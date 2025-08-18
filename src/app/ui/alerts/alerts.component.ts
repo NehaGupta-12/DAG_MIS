@@ -1,0 +1,19 @@
+import { Component } from '@angular/core';
+@Component({
+    selector: 'app-alerts',
+    templateUrl: './alerts.component.html',
+    styleUrls: ['./alerts.component.scss'],
+    standalone: true,
+})
+export class AlertsComponent {
+  breadscrums = [
+    {
+      title: 'Alert',
+      items: ['UI'],
+      active: 'Alert',
+    },
+  ];
+  constructor() {
+    //constructor
+  }
+}

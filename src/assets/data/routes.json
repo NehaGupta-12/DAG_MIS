@@ -1,0 +1,151 @@
+{
+  "routes": [
+    {
+      "path": "",
+      "title": "MENUITEMS.MAIN.TEXT",
+      "icon": "",
+      "class": "header",
+      "groupTitle": true,
+      "submenu": []
+    },
+    {
+      "path": "/dashboard/main",
+      "title": "MENUITEMS.HOME.LIST.DASHBOARD1",
+      "icon": "trello",
+      "class": "",
+      "groupTitle": false,
+      "submenu": []
+    },
+    {
+      "path": "",
+      "title": "Master",
+      "icon": "monitor",
+      "class": "menu-toggle",
+      "groupTitle": false,
+      "submenu": [
+        {
+          "path": "module/location",
+          "title": "Location",
+          "icon": "",
+          "class": "ml-menu",
+          "groupTitle": false,
+          "submenu": []
+        },
+        {
+          "path": "/Inventory",
+          "title": "Inventory",
+          "icon": "",
+          "class": "ml-menu",
+          "groupTitle": false,
+          "submenu": []
+        },
+        {
+          "path": "/Suppliers",
+          "title": "Suppliers",
+          "icon": "",
+          "class": "ml-menu",
+          "groupTitle": false,
+          "submenu": []
+        }      ]
+    },
+    {
+      "path": "advance-table",
+      "title": "MENUITEMS.ADVANCE-TABLE.TEXT",
+      "icon": "trello",
+      "class": "",
+      "groupTitle": false,
+      "submenu": []
+    },
+
+    {
+      "path": "",
+      "title": "MENUITEMS.FORMS.TEXT",
+      "icon": "layout",
+      "class": "menu-toggle",
+      "groupTitle": false,
+      "submenu": [
+        {
+          "path": "/forms/form-controls",
+          "title": "MENUITEMS.FORMS.LIST.CONTROLS",
+          "icon": "",
+          "class": "ml-menu",
+          "groupTitle": false,
+          "submenu": []
+        },
+        {
+          "path": "/forms/advance-controls",
+          "title": "MENUITEMS.FORMS.LIST.ADVANCE",
+          "icon": "",
+          "class": "ml-menu",
+          "groupTitle": false,
+          "submenu": []
+        },
+        {
+          "path": "/forms/form-example",
+          "title": "MENUITEMS.FORMS.LIST.EXAMPLE",
+          "icon": "",
+          "class": "ml-menu",
+          "groupTitle": false,
+          "submenu": []
+        },
+        {
+          "path": "/forms/form-validation",
+          "title": "MENUITEMS.FORMS.LIST.VALIDATION",
+          "icon": "",
+          "class": "ml-menu",
+          "groupTitle": false,
+          "submenu": []
+        },
+        {
+          "path": "/forms/wizard",
+          "title": "MENUITEMS.FORMS.LIST.WIZARD",
+          "icon": "",
+          "class": "ml-menu",
+          "groupTitle": false,
+          "submenu": []
+        },
+        {
+          "path": "/forms/editors",
+          "title": "MENUITEMS.FORMS.LIST.EDITORS",
+          "icon": "",
+          "class": "ml-menu",
+          "groupTitle": false,
+          "submenu": []
+        }
+      ]
+    },
+    {
+      "path": "",
+      "title": "MENUITEMS.TABLES.TEXT",
+      "icon": "grid",
+      "class": "menu-toggle",
+      "groupTitle": false,
+      "submenu": [
+        {
+          "path": "/tables/basic-tables",
+          "title": "MENUITEMS.TABLES.LIST.BASIC",
+          "icon": "",
+          "class": "ml-menu",
+          "groupTitle": false,
+          "submenu": []
+        },
+        {
+          "path": "/tables/material-tables",
+          "title": "MENUITEMS.TABLES.LIST.MATERIAL",
+          "icon": "",
+          "class": "ml-menu",
+          "groupTitle": false,
+          "submenu": []
+        },
+        {
+          "path": "/tables/ngx-datatable",
+          "title": "MENUITEMS.TABLES.LIST.NGX-DATATABLE",
+          "icon": "",
+          "class": "ml-menu",
+          "groupTitle": false,
+          "submenu": []
+        }
+      ]
+    }
+  ]
+}

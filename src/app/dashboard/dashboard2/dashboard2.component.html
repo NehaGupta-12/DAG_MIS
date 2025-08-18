@@ -1,0 +1,233 @@
+<section class="content">
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-12 col-sm-6 col-md-3">
+        <div class="card">
+          <div class="card-body">
+            <div class="d-flex justify-content-between">
+              <div>
+                <h6>Total Sales</h6>
+                <p class="text-muted">In Units</p>
+              </div>
+              <h5 class="col-purple">2,487</h5>
+            </div>
+            <div class="card-content mt-2">
+              <apx-chart [series]="smallChart1Options.series!" [chart]="smallChart1Options.chart!"
+                [xaxis]="smallChart1Options.xaxis!" [yaxis]="smallChart1Options.yaxis!"
+                [colors]="smallChart1Options.colors!" [stroke]="smallChart1Options.stroke!"
+                [legend]="smallChart1Options.legend!" [tooltip]="smallChart1Options.tooltip!"
+                [dataLabels]="smallChart1Options.dataLabels!"></apx-chart>
+            </div>
+            <div class="d-flex justify-content-between mt-2">
+              <p class="text-muted mb-0">Increase</p>
+              <p class="text-muted mb-0">15%</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 col-sm-6 col-md-3">
+        <div class="card">
+          <div class="card-body">
+            <div class="d-flex justify-content-between">
+              <div>
+                <h6>Total Revenue</h6>
+                <p class="text-muted">In Dollers</p>
+              </div>
+              <h5 class="col-orange">$1,520</h5>
+            </div>
+            <div class="card-content mt-2">
+              <apx-chart [series]="smallChart2Options.series!" [chart]="smallChart2Options.chart!"
+                [xaxis]="smallChart2Options.xaxis!" [yaxis]="smallChart2Options.yaxis!"
+                [colors]="smallChart2Options.colors!" [stroke]="smallChart2Options.stroke!"
+                [legend]="smallChart2Options.legend!" [tooltip]="smallChart2Options.tooltip!"
+                [dataLabels]="smallChart2Options.dataLabels!"></apx-chart>
+            </div>
+            <div class="d-flex justify-content-between mt-2">
+              <p class="text-muted mb-0">Increase</p>
+              <p class="text-muted mb-0">25%</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 col-sm-6 col-md-3">
+        <div class="card">
+          <div class="card-body">
+            <div class="d-flex justify-content-between">
+              <div>
+                <h6>New Orders</h6>
+                <p class="text-muted">In Units</p>
+              </div>
+              <h5 class="col-green">15</h5>
+            </div>
+            <div class="card-content mt-2">
+              <apx-chart [series]="smallChart3Options.series!" [chart]="smallChart3Options.chart!"
+                [xaxis]="smallChart3Options.xaxis!" [yaxis]="smallChart3Options.yaxis!"
+                [colors]="smallChart3Options.colors!" [stroke]="smallChart3Options.stroke!"
+                [legend]="smallChart3Options.legend!" [tooltip]="smallChart3Options.tooltip!"
+                [dataLabels]="smallChart3Options.dataLabels!"></apx-chart>
+            </div>
+            <div class="d-flex justify-content-between mt-2">
+              <p class="text-muted mb-0">Decrease</p>
+              <p class="text-muted mb-0">08%</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 col-sm-6 col-md-3">
+        <div class="card">
+          <div class="card-body">
+            <div class="d-flex justify-content-between">
+              <div>
+                <h6>New Customers</h6>
+                <p class="text-muted">In Count</p>
+              </div>
+              <h5 class="col-blue">458</h5>
+            </div>
+            <div class="card-content mt-2">
+              <apx-chart [series]="smallChart4Options.series!" [chart]="smallChart4Options.chart!"
+                [xaxis]="smallChart4Options.xaxis!" [yaxis]="smallChart4Options.yaxis!"
+                [colors]="smallChart4Options.colors!" [stroke]="smallChart4Options.stroke!"
+                [legend]="smallChart4Options.legend!" [tooltip]="smallChart4Options.tooltip!"
+                [dataLabels]="smallChart4Options.dataLabels!"></apx-chart>
+            </div>
+            <div class="d-flex justify-content-between mt-2">
+              <p class="text-muted mb-0">Increase</p>
+              <p class="text-muted mb-0">12%</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="row clearfix">
+      <!-- Bar chart with line -->
+      <div class="col-xl-8 col-lg-8 col-md-12 col-sm-12">
+        <mat-card>
+          <mat-card-header class="header-style">
+            <mat-card-title>Project Chart</mat-card-title>
+            <a mat-button color="primary" href="#" (click)="$event.preventDefault();">View All</a>
+          </mat-card-header>
+          <mat-card-content>
+            <apx-chart [series]="chartOptions.series!" [chart]="chartOptions.chart!" [yaxis]="chartOptions.yaxis!"
+              [xaxis]="chartOptions.xaxis!" [labels]="chartOptions.labels!" [stroke]="chartOptions.stroke!"
+              [plotOptions]="chartOptions.plotOptions!" [markers]="chartOptions.markers!" [fill]="chartOptions.fill!"
+              [tooltip]="chartOptions.tooltip!" [grid]="chartOptions.grid!"></apx-chart>
+          </mat-card-content>
+        </mat-card>
+      </div>
+      <!-- line chart -->
+      <div class="col-xl-4 col-lg-4 col-md-12 col-sm-12">
+        <app-report-card-widget [heading]="'Sales Report'" [todayCount]="1898" [weekCount]="32112" [monthCount]="72067"
+          [progressPercentage]="62" progressColor="orange">
+        </app-report-card-widget>
+
+        <app-report-card-widget [heading]="'Income Report'" [todayCount]="1247" [weekCount]="22568" [monthCount]="65147"
+          [progressPercentage]="70" progressColor="Olive">
+        </app-report-card-widget>
+
+        <app-report-card-widget [heading]="'Customer Report'" [todayCount]="154" [weekCount]="857" [monthCount]="4587"
+          [progressPercentage]="55" progressColor="green">
+        </app-report-card-widget>
+      </div>
+    </div>
+    <div class="row clearfix">
+      <!-- Task Info -->
+      <div class="col-xs-12 col-sm-12 col-md-8 col-lg-8">
+        <mat-card>
+          <mat-card-header class="header-style">
+            <mat-card-title>Recent Orders</mat-card-title>
+            <a mat-button color="primary" href="#" (click)="$event.preventDefault();">View All</a>
+          </mat-card-header>
+          <mat-card-content>
+            <ng-scrollbar style="height: 360px" visibility="hover">
+              <app-table-card [dataSource]="orderData" [columnDefinitions]="orderColumnDefinitions"></app-table-card>
+            </ng-scrollbar>
+          </mat-card-content>
+        </mat-card>
+      </div>
+      <!-- #END# Task Info -->
+      <!-- Browser Usage -->
+      <div class="col-xs-12 col-sm-12 col-md-4 col-lg-4">
+        <mat-card>
+          <mat-card-header class="header-style">
+            <mat-card-title>Total Revenue</mat-card-title>
+            <button mat-icon-button [matMenuTriggerFor]="menu" class="header-dropdown">
+              <mat-icon>more_vert</mat-icon>
+            </button>
+            <mat-menu #menu="matMenu">
+              <button mat-menu-item>
+                <mat-icon>add_circle_outline</mat-icon>
+                <span>Add</span>
+              </button>
+              <button mat-menu-item disabled>
+                <mat-icon>delete_outline</mat-icon>
+                <span>Delete</span>
+              </button>
+              <button mat-menu-item>
+                <mat-icon>refresh</mat-icon>
+                <span>Refresh</span>
+              </button>
+            </mat-menu>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="body text-center">
+              <h4 class="m-b-20">Total Visitors</h4>
+              <h6 class="m-b-10">5,98,345</h6>
+              <div class="apex-chart-center">
+                <apx-chart [series]="smallBarChart.series!" [chart]="smallBarChart.chart!"
+                  [plotOptions]="smallBarChart.plotOptions!" [tooltip]="smallBarChart.tooltip!">
+                </apx-chart>
+              </div>
+              <h4 class="m-t-30">Satisfaction Rate</h4>
+              <h6 class="displayblock m-t-10">36% Average</h6>
+              <apx-chart [series]="bannerChartOptions.series!" [chart]="bannerChartOptions.chart!"
+                [xaxis]="bannerChartOptions.xaxis!" [yaxis]="bannerChartOptions.yaxis!"
+                [colors]="bannerChartOptions.colors!" [stroke]="bannerChartOptions.stroke!"
+                [legend]="bannerChartOptions.legend!" [tooltip]="bannerChartOptions.tooltip!"
+                [dataLabels]="bannerChartOptions.dataLabels!"></apx-chart>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+      <!-- #END# Browser Usage -->
+    </div>
+    <div class="row clearfix">
+      <div class="col-xs-12 col-sm-12 col-md-4 col-lg-4">
+        <mat-card>
+          <mat-card-header>
+            <mat-card-title>Project Status</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <ng-scrollbar style="height: 380px" visibility="hover">
+              <app-progress-table [subjects]="subjects"></app-progress-table>
+            </ng-scrollbar>
+          </mat-card-content>
+        </mat-card>
+      </div>
+      <div class="col-xs-12 col-sm-12 col-md-4 col-lg-4">
+        <mat-card>
+          <mat-card-header class="header-style">
+            <mat-card-title>Todo List</mat-card-title>
+            <a mat-button color="primary" href="#" (click)="$event.preventDefault();">View All</a>
+          </mat-card-header>
+          <mat-card-content>
+            <ng-scrollbar style="height: 380px" visibility="hover">
+              <app-todo-widget [todos]="tasks" (todoToggled)="onTodoToggled($event)"
+                (todosUpdated)="onTodosUpdated($event)">
+              </app-todo-widget>
+            </ng-scrollbar>
+          </mat-card-content>
+        </mat-card>
+      </div>
+      <div class="col-xs-12 col-sm-12 col-md-4 col-lg-4">
+        <mat-card>
+          <mat-card-content>
+            <ng-scrollbar style="height: 430px" visibility="hover">
+              <app-event-card [events]="events" [maxEvents]="3" [showViewMore]="true">
+              </app-event-card>
+            </ng-scrollbar>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </div>
+  </div>
+</section>

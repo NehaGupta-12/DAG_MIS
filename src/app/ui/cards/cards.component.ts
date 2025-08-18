@@ -1,0 +1,29 @@
+import { Component } from '@angular/core';
+import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatCardModule } from '@angular/material/card';
+@Component({
+    selector: 'app-cards',
+    templateUrl: './cards.component.html',
+    styleUrls: ['./cards.component.scss'],
+    imports: [
+        MatCardModule,
+        MatDividerModule,
+        MatButtonModule,
+        MatIconModule,
+    ]
+})
+export class CardsComponent {
+  breadscrums = [
+    {
+      title: 'Cards',
+      items: ['UI'],
+      active: 'Cards',
+    },
+  ];
+
+  constructor() {
+    // constructor
+  }
+}

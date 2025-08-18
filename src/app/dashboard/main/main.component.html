@@ -1,0 +1,163 @@
+<section class="content">
+  <div class="container-fluid">
+    <!-- Widgets -->
+    <div class="row">
+      <div class="col-lg-3 col-sm-6">
+        <app-order-info-box title="Orders Received" value="358" percentageText="18% Higher Than Last Month"
+          iconClass="fas fa-cart-plus" bgClass="bg-c-blue">
+        </app-order-info-box>
+      </div>
+      <div class="col-lg-3 col-sm-6">
+        <app-order-info-box title="Delivered" value="865" percentageText="21% Higher Than Last Month"
+          iconClass="fas fa-business-time" bgClass="bg-c-green">
+        </app-order-info-box>
+      </div>
+      <div class="col-lg-3 col-sm-6">
+        <app-order-info-box title="New Orders" value="128" percentageText="37% Higher Than Last Month"
+          iconClass="fas fa-chart-line" bgClass="bg-c-yellow">
+        </app-order-info-box>
+      </div>
+      <div class="col-lg-3 col-sm-6">
+        <app-order-info-box title="Total Earning" value="$25,698" percentageText="10% Higher Than Last Month"
+          iconClass="fas fa-dollar-sign" bgClass="l-bg-card1">
+        </app-order-info-box>
+      </div>
+    </div>
+    <!-- #END# Widgets -->
+    <div class="row">
+      <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
+        <mat-card>
+          <mat-card-header class="header-style">
+            <mat-card-title>Customer Chart</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div id="chart">
+              <apx-chart [series]="areaChartOptions.series!" [chart]="areaChartOptions.chart!"
+                [xaxis]="areaChartOptions.xaxis!" [yaxis]="areaChartOptions.yaxis!" [colors]="areaChartOptions.colors!"
+                [stroke]="areaChartOptions.stroke!" [legend]="areaChartOptions.legend!" [grid]="areaChartOptions.grid!"
+                [tooltip]="areaChartOptions.tooltip!" [dataLabels]="areaChartOptions.dataLabels!"></apx-chart>
+            </div>
+            <div class="row">
+              <div class="col-4">
+                <p class="text-muted font-12 text-truncate">Target</p>
+                <h6>
+                  <i class="fas fa-arrow-circle-up col-green m-r-5"></i>$15.3k
+                </h6>
+              </div>
+              <div class="col-4">
+                <p class="text-muted font-12 text-truncate">Last
+                  week</p>
+                <h6>
+                  <i class="fas fa-arrow-circle-down col-red m-r-5"></i>$2.8k
+                </h6>
+              </div>
+              <div class="col-4">
+                <p class="text-muted font-12 text-truncate">Last
+                  Month</p>
+                <h6>
+                  <i class="fas fa-arrow-circle-up col-green m-r-5"></i>$12.5k
+                </h6>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+      <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
+        <mat-card>
+          <mat-card-header class="header-style">
+            <mat-card-title>Profit Chart</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div id="chart">
+              <apx-chart [series]="barChartOptions.series!" [chart]="barChartOptions.chart!"
+                [legend]="barChartOptions.legend!" [dataLabels]="barChartOptions.dataLabels!"
+                [colors]="barChartOptions.colors!" [plotOptions]="barChartOptions.plotOptions!"
+                [tooltip]="barChartOptions.tooltip!" [grid]="barChartOptions.grid!"></apx-chart>
+            </div>
+            <div class="row">
+              <div class="col-4">
+                <p class="text-muted font-12 text-truncate">Target</p>
+                <h6>
+                  <i class="fas fa-arrow-circle-up col-green m-r-5"></i>$15.3k
+                </h6>
+              </div>
+              <div class="col-4">
+                <p class="text-muted font-12 text-truncate">Last
+                  week</p>
+                <h6>
+                  <i class="fas fa-arrow-circle-down col-red m-r-5"></i>$2.8k
+                </h6>
+              </div>
+              <div class="col-4">
+                <p class="text-muted font-12 text-truncate">Last
+                  Month</p>
+                <h6>
+                  <i class="fas fa-arrow-circle-up col-green m-r-5"></i>$12.5k
+                </h6>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </div>
+    <div class="row clearfix">
+      <div class="col-xs-12 col-sm-12 col-md-8 col-lg-8">
+        <mat-card>
+          <mat-card-header class="header-style">
+            <mat-card-title>Chart Data</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div id="chart">
+              <apx-chart [series]="chartOptions.series!" [chart]="chartOptions.chart!" [xaxis]="chartOptions.xaxis!"
+                [stroke]="chartOptions.stroke!" [colors]="chartOptions.colors!" [dataLabels]="chartOptions.dataLabels!"
+                [legend]="chartOptions.legend!" [markers]="chartOptions.markers!" [grid]="chartOptions.grid!"
+                [tooltip]="chartOptions.tooltip!" [yaxis]="chartOptions.yaxis!" [title]="chartOptions.title!">
+              </apx-chart>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+      <div class="col-xs-12 col-sm-12 col-md-4 col-lg-4">
+        <mat-card>
+          <mat-card-header class="header-style">
+            <mat-card-title>Chart Data</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div id="chart">
+              <apx-chart [series]="chartOptions2.series!" [chart]="chartOptions2.chart!"
+                [tooltip]="chartOptions2.tooltip!" [dataLabels]="chartOptions2.dataLabels!" [grid]="chartOptions2.grid!"
+                [plotOptions]="chartOptions2.plotOptions!"></apx-chart>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </div>
+    <div class="row clearfix">
+      <div class="col-xs-12 col-sm-12 col-md-4 col-lg-4">
+        <mat-card>
+          <mat-card-header>
+            <mat-card-title>New Project</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <ng-scrollbar style="height: 400px" visibility="hover">
+              <app-new-order-list></app-new-order-list>
+            </ng-scrollbar>
+          </mat-card-content>
+        </mat-card>
+      </div>
+      <div class="col-xs-12 col-sm-12 col-md-8 col-lg-8">
+        <mat-card>
+          <mat-card-header class="header-style">
+            <mat-card-title>Order Details</mat-card-title>
+            <a mat-button color="primary" href="#" (click)="$event.preventDefault();">View All</a>
+          </mat-card-header>
+          <mat-card-content>
+            <ng-scrollbar style="height: 400px" visibility="hover">
+              <app-table-card [dataSource]="orderData" [columnDefinitions]="orderColumnDefinitions"></app-table-card>
+            </ng-scrollbar>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </div>
+  </div>
+</section>
