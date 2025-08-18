@@ -17,9 +17,7 @@
         "build": {
           "builder": "@angular/build:application",
           "options": {
-            "outputPath": {
-              "base": "dist/atrio"
-            },
+            "outputPath": "dist/DAG_New",
             "index": "src/index.html",
             "polyfills": [
               "@angular/localize/init",
