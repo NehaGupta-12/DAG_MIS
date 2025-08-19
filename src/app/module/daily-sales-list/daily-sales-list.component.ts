@@ -1,45 +1,45 @@
 import {Component, ViewChild} from '@angular/core';
+import {DatePipe} from "@angular/common";
 import {
   MatCell,
+  MatCellDef,
   MatColumnDef,
   MatHeaderCell,
   MatHeaderRow,
-  MatRow,
-  MatTable,
-  MatTableDataSource, MatTableModule
+  MatHeaderRowDef,
+  MatRow, MatRowDef, MatTable, MatTableDataSource, MatTableModule
 } from "@angular/material/table";
-import {MatPaginator} from "@angular/material/paginator";
-import {MatSort} from "@angular/material/sort";
-import {MatProgressSpinner} from "@angular/material/progress-spinner";
-import {MatIcon} from "@angular/material/icon";
 import {MatIconButton} from "@angular/material/button";
+import {MatIcon} from "@angular/material/icon";
+import {MatPaginator} from "@angular/material/paginator";
+import {MatProgressSpinner} from "@angular/material/progress-spinner";
 import {MatTooltip} from "@angular/material/tooltip";
+import {MatSort} from "@angular/material/sort";
 import {MatDialog} from "@angular/material/dialog";
-import {DatePipe} from "@angular/common";
 import {Router} from "@angular/router";
 import {AddUserComponent} from "../add-user/add-user.component";
 
 @Component({
-  selector: 'app-location',
-  imports: [
-    MatCell,
-    MatHeaderCell,
-    MatHeaderRow,
-    MatIcon,
-    MatIconButton,
-    MatPaginator,
-    MatProgressSpinner,
-    MatRow,
-    MatTable,
-    MatTooltip,
-    MatColumnDef,
-    MatTableModule,
-    DatePipe
-  ],
-  templateUrl: './location.component.html',
-  styleUrl: './location.component.scss'
+  selector: 'app-daily-sales-list',
+    imports: [
+      MatCell,
+      MatHeaderCell,
+      MatHeaderRow,
+      MatIcon,
+      MatIconButton,
+      MatPaginator,
+      MatProgressSpinner,
+      MatRow,
+      MatTable,
+      MatTooltip,
+      MatColumnDef,
+      MatTableModule,
+      DatePipe
+    ],
+  templateUrl: './daily-sales-list.component.html',
+  styleUrl: './daily-sales-list.component.scss'
 })
-export class LocationComponent {
+export class DailySalesListComponent {
 
   users = [
     {
@@ -127,8 +127,8 @@ export class LocationComponent {
     });
   }
 
-  navigateToAddLocation(){
-    this.router.navigate(['module/add-location']);
+  navigateToAddDailySales(){
+    this.router.navigate(['module/add-daily-sales']);
   }
 
   ngAfterViewInit() {
@@ -147,5 +147,7 @@ export class LocationComponent {
   }
 
   isLoading: any;
+
+
 
 }

@@ -8,19 +8,19 @@ import {
   MatTable,
   MatTableDataSource, MatTableModule
 } from "@angular/material/table";
+import {MatIconButton} from "@angular/material/button";
 import {MatPaginator} from "@angular/material/paginator";
 import {MatSort} from "@angular/material/sort";
+import {MatDialog} from "@angular/material/dialog";
 import {MatProgressSpinner} from "@angular/material/progress-spinner";
 import {MatIcon} from "@angular/material/icon";
-import {MatIconButton} from "@angular/material/button";
 import {MatTooltip} from "@angular/material/tooltip";
-import {MatDialog} from "@angular/material/dialog";
-import {DatePipe} from "@angular/common";
-import {Router} from "@angular/router";
 import {AddUserComponent} from "../add-user/add-user.component";
+import {Router} from "@angular/router";
+import {DatePipe} from "@angular/common";
 
 @Component({
-  selector: 'app-location',
+  selector: 'app-user-list',
   imports: [
     MatCell,
     MatHeaderCell,
@@ -36,10 +36,10 @@ import {AddUserComponent} from "../add-user/add-user.component";
     MatTableModule,
     DatePipe
   ],
-  templateUrl: './location.component.html',
-  styleUrl: './location.component.scss'
+  templateUrl: './user-list.component.html',
+  styleUrl: './user-list.component.scss'
 })
-export class LocationComponent {
+export class UserListComponent {
 
   users = [
     {
@@ -127,8 +127,8 @@ export class LocationComponent {
     });
   }
 
-  navigateToAddLocation(){
-    this.router.navigate(['module/add-location']);
+  navigateToAddUser(){
+    this.router.navigate(['module/add-user']);
   }
 
   ngAfterViewInit() {
@@ -147,5 +147,6 @@ export class LocationComponent {
   }
 
   isLoading: any;
+
 
 }

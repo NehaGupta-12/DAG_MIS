@@ -10,7 +10,7 @@
     },
     {
       "path": "/dashboard/main",
-      "title": "MENUITEMS.HOME.LIST.DASHBOARD1",
+      "title": "Dashboard",
       "icon": "trello",
       "class": "",
       "groupTitle": false,
@@ -24,89 +24,32 @@
       "groupTitle": false,
       "submenu": [
         {
-          "path": "module/location",
-          "title": "Location",
+          "path": "module/user-list",
+          "title": "User",
           "icon": "",
           "class": "ml-menu",
           "groupTitle": false,
           "submenu": []
         },
         {
-          "path": "/Inventory",
-          "title": "Inventory",
+          "path": "module/role-list",
+          "title": "Role",
           "icon": "",
           "class": "ml-menu",
           "groupTitle": false,
           "submenu": []
         },
         {
-          "path": "/Suppliers",
-          "title": "Suppliers",
-          "icon": "",
-          "class": "ml-menu",
-          "groupTitle": false,
-          "submenu": []
-        }      ]
-    },
-    {
-      "path": "advance-table",
-      "title": "MENUITEMS.ADVANCE-TABLE.TEXT",
-      "icon": "trello",
-      "class": "",
-      "groupTitle": false,
-      "submenu": []
-    },
-
-    {
-      "path": "",
-      "title": "MENUITEMS.FORMS.TEXT",
-      "icon": "layout",
-      "class": "menu-toggle",
-      "groupTitle": false,
-      "submenu": [
-        {
-          "path": "/forms/form-controls",
-          "title": "MENUITEMS.FORMS.LIST.CONTROLS",
+          "path": "module/types",
+          "title": "Type/Dropdown",
           "icon": "",
           "class": "ml-menu",
           "groupTitle": false,
           "submenu": []
         },
         {
-          "path": "/forms/advance-controls",
-          "title": "MENUITEMS.FORMS.LIST.ADVANCE",
-          "icon": "",
-          "class": "ml-menu",
-          "groupTitle": false,
-          "submenu": []
-        },
-        {
-          "path": "/forms/form-example",
-          "title": "MENUITEMS.FORMS.LIST.EXAMPLE",
-          "icon": "",
-          "class": "ml-menu",
-          "groupTitle": false,
-          "submenu": []
-        },
-        {
-          "path": "/forms/form-validation",
-          "title": "MENUITEMS.FORMS.LIST.VALIDATION",
-          "icon": "",
-          "class": "ml-menu",
-          "groupTitle": false,
-          "submenu": []
-        },
-        {
-          "path": "/forms/wizard",
-          "title": "MENUITEMS.FORMS.LIST.WIZARD",
-          "icon": "",
-          "class": "ml-menu",
-          "groupTitle": false,
-          "submenu": []
-        },
-        {
-          "path": "/forms/editors",
-          "title": "MENUITEMS.FORMS.LIST.EDITORS",
+          "path": "module/dealer-list",
+          "title": "Outlet/Dealer",
           "icon": "",
           "class": "ml-menu",
           "groupTitle": false,
@@ -116,30 +59,97 @@
     },
     {
       "path": "",
-      "title": "MENUITEMS.TABLES.TEXT",
-      "icon": "grid",
+      "title": "Location",
+      "icon": "monitor",
       "class": "menu-toggle",
       "groupTitle": false,
       "submenu": [
         {
-          "path": "/tables/basic-tables",
-          "title": "MENUITEMS.TABLES.LIST.BASIC",
+          "path": "module/location",
+          "title": "List Location",
           "icon": "",
           "class": "ml-menu",
           "groupTitle": false,
           "submenu": []
         },
         {
-          "path": "/tables/material-tables",
-          "title": "MENUITEMS.TABLES.LIST.MATERIAL",
+          "path": "module/location-product-list",
+          "title": "Location Products",
+          "icon": "",
+          "class": "ml-menu",
+          "groupTitle": false,
+          "submenu": []
+        }
+      ]
+    },
+    {
+      "path": "Product",
+      "title": "Product",
+      "icon": "monitor",
+      "class": "menu-toggle",
+      "groupTitle": false,
+      "submenu": [
+        {
+          "path": "module/products-master-list",
+          "title": "Product Master",
           "icon": "",
           "class": "ml-menu",
           "groupTitle": false,
           "submenu": []
         },
         {
-          "path": "/tables/ngx-datatable",
-          "title": "MENUITEMS.TABLES.LIST.NGX-DATATABLE",
+          "path": "module/inventory-list",
+          "title": "Inventory List",
+          "icon": "",
+          "class": "ml-menu",
+          "groupTitle": false,
+          "submenu": []
+        }
+      ]
+    },
+    {
+      "path": "",
+      "title": "Operation",
+      "icon": "monitor",
+      "class": "menu-toggle",
+      "groupTitle": false,
+      "submenu": [
+        {
+          "path": "module/daily-sales-list",
+          "title": "Daily Sales",
+          "icon": "",
+          "class": "ml-menu",
+          "groupTitle": false,
+          "submenu": []
+        },
+        {
+          "path": "module/grn-list",
+          "title": "GRN",
+          "icon": "",
+          "class": "ml-menu",
+          "groupTitle": false,
+          "submenu": []
+        }
+      ]
+    },
+    {
+      "path": "",
+      "title": "Reports",
+      "icon": "monitor",
+      "class": "menu-toggle",
+      "groupTitle": false,
+      "submenu": [
+        {
+          "path": "module/Daily",
+          "title": "Daily Sale Report",
+          "icon": "",
+          "class": "ml-menu",
+          "groupTitle": false,
+          "submenu": []
+        },
+        {
+          "path": "/Item",
+          "title": "Item Wise Report",
           "icon": "",
           "class": "ml-menu",
           "groupTitle": false,

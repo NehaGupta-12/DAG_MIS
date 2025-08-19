@@ -1,4 +1,4 @@
-import {Component} from '@angular/core';
+import { Component } from '@angular/core';
 import {FormsModule, ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup, Validators} from "@angular/forms";
 import {MatButton, MatButtonModule} from "@angular/material/button";
 import {MatCheckbox, MatCheckboxModule} from "@angular/material/checkbox";
@@ -10,7 +10,7 @@ import {MatOptionModule} from "@angular/material/core";
 import {Location} from "@angular/common";
 
 @Component({
-  selector: 'app-add-location',
+  selector: 'app-add-inventory',
   imports: [
     FormsModule,
     ReactiveFormsModule,
@@ -22,10 +22,10 @@ import {Location} from "@angular/common";
     MatCheckboxModule,
     MatButtonModule,
   ],
-  templateUrl: './add-location.component.html',
-  styleUrl: './add-location.component.scss'
+  templateUrl: './add-inventory.component.html',
+  styleUrl: './add-inventory.component.scss'
 })
-export class AddLocationComponent {
+export class AddInventoryComponent {
   // Form 1
   register?: UntypedFormGroup;
   hide = true;
@@ -42,7 +42,7 @@ export class AddLocationComponent {
       active: 'Examples',
     },
   ];
-  constructor(private fb: UntypedFormBuilder , private location: Location) {
+  constructor(private fb: UntypedFormBuilder, private location: Location) {
     this.initForm();
     this.initSecondForm();
     this.initThirdForm();
@@ -104,7 +104,6 @@ export class AddLocationComponent {
   onThirdFormSubmit() {
     console.log('Form Value', this.thirdForm?.value);
   }
-
 
   goBack() {
     this.location.back();

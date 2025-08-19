@@ -1,9 +1,8 @@
-
 <section class="content d-flex justify-content-center align-items-center min-vh-100">
   <div class="content-block w-100" style="max-width: 800px;">
     <!-- 🔙 Back Button (outside the card, top-left) -->
     <div class="mb-3">
-      <button mat-stroked-button color="primary" (click)="goBack()">
+      <button mat-stroked-button color="primary">
         <mat-icon>arrow_back</mat-icon> Back
       </button>
     </div>
@@ -11,7 +10,7 @@
       <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12">
         <div class="card">
           <div class="header">
-            <h2>Add Location</h2>
+            <h2>Add Daily Sales</h2>
           </div>
           <div class="body">
             <form class="register-form m-4" [formGroup]="register!" (ngSubmit)="onRegister()">

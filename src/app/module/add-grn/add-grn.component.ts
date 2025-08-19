@@ -1,4 +1,4 @@
-import {Component} from '@angular/core';
+import { Component } from '@angular/core';
 import {FormsModule, ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup, Validators} from "@angular/forms";
 import {MatButton, MatButtonModule} from "@angular/material/button";
 import {MatCheckbox, MatCheckboxModule} from "@angular/material/checkbox";
@@ -7,25 +7,25 @@ import {MatFormFieldModule} from "@angular/material/form-field";
 import {MatIconModule} from "@angular/material/icon";
 import {MatSelectModule} from "@angular/material/select";
 import {MatOptionModule} from "@angular/material/core";
-import {Location} from "@angular/common";
 
 @Component({
-  selector: 'app-add-location',
-  imports: [
-    FormsModule,
-    ReactiveFormsModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatIconModule,
-    MatSelectModule,
-    MatOptionModule,
-    MatCheckboxModule,
-    MatButtonModule,
-  ],
-  templateUrl: './add-location.component.html',
-  styleUrl: './add-location.component.scss'
+  selector: 'app-add-grn',
+    imports: [
+      FormsModule,
+      ReactiveFormsModule,
+      MatFormFieldModule,
+      MatInputModule,
+      MatIconModule,
+      MatSelectModule,
+      MatOptionModule,
+      MatCheckboxModule,
+      MatButtonModule,
+    ],
+  templateUrl: './add-grn.component.html',
+  styleUrl: './add-grn.component.scss'
 })
-export class AddLocationComponent {
+export class AddGRNComponent {
+
   // Form 1
   register?: UntypedFormGroup;
   hide = true;
@@ -42,7 +42,7 @@ export class AddLocationComponent {
       active: 'Examples',
     },
   ];
-  constructor(private fb: UntypedFormBuilder , private location: Location) {
+  constructor(private fb: UntypedFormBuilder) {
     this.initForm();
     this.initSecondForm();
     this.initThirdForm();
@@ -103,11 +103,6 @@ export class AddLocationComponent {
   }
   onThirdFormSubmit() {
     console.log('Form Value', this.thirdForm?.value);
-  }
-
-
-  goBack() {
-    this.location.back();
   }
 
 }
