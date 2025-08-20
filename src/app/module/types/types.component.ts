@@ -31,7 +31,7 @@ import { NgClass, NgForOf, NgIf } from "@angular/common";
 })
 export class TypesComponent implements OnInit {
 
-  availableTypes: string[] = ['Nagpur', 'Pune', 'Mumbai']; // dropdown
+  availableTypes: string[] = ["Division", "Town", "Types of Customer"]; // dropdown
   selectedOption: string = '';
   fieldValue: string = '';
 

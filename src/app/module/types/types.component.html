@@ -7,7 +7,7 @@
         <div class="col-md-6 mb-2">
           <label for="selectType" class="form-label fw-bold">Select Division</label>
           <select class="form-select" id="selectType" [(ngModel)]="selectedOption" (change)="onTypeChange()">
-            <option value="" selected disabled>Select Division...</option>
+            <option value="" selected disabled>Select...</option>
             <option *ngFor="let type of availableTypes" [value]="type">{{ type }}</option>
           </select>
         </div>
