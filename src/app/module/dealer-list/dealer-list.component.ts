@@ -43,53 +43,48 @@ export class DealerListComponent {
   users = [
     {
       id: 1,
-      firstName: 'John Doe',
-      email: 'Hatchbacks',
-      gender: 'Mumbai',
-      birthDate: 'Hingna',
-      mobile: 'COCO',
-      address: '123 Main St, New York',
-      country: 'USA'
+      name: 'John Doe',
+      modelType: 'Hatchbacks',
+      division: 'Mumbai',
+      town: 'Hingna',
+      category: 'COCO',
+      location: '123 Main St, New York',
     },
     {
       id: 2,
-      firstName: 'Jane Smith',
-      email: 'Sedans',
-      gender: 'Pune',
-      birthDate: 'Thane',
-      mobile: 'DOCO',
-      address: '456 Park Ave, London',
-      country: 'UK'
+      name: 'Jane Smith',
+      modelType: 'Sedans',
+      division: 'Pune',
+      town: 'Thane',
+      category: 'DOCO',
+      location: '456 Park Ave, London',
     },
     {
       id: 3,
-      firstName: 'Raj Kumar',
-      email: 'SUVs',
-      gender: 'Nagpur',
-      birthDate: 'Kharadi',
-      mobile: 'DEALER',
-      address: 'MG Road, Bangalore',
-      country: 'India'
+      name: 'Raj Kumar',
+      modelType: 'SUVs',
+      division: 'Nagpur',
+      town: 'Kharadi',
+      category: 'DEALER',
+      location: 'MG Road, Bangalore',
     },
     {
       id: 3,
-      firstName: 'Prashant T',
-      email: 'Hatchbacks',
-      gender: 'Mumbai',
-      birthDate: 'Pimpri',
-      mobile: 'OUTLET',
-      address: 'MG Road, Bangalore',
-      country: 'India'
+      name: 'Prashant T',
+      modelType: 'Hatchbacks',
+      division: 'Mumbai',
+      town: 'Pimpri',
+      category: 'OUTLET',
+      location: 'MG Road, Bangalore',
     },
     {
       id: 3,
-      firstName: 'Saurav S',
-      email: 'SUVs',
-      gender: 'Amravati',
-      birthDate: 'Khamla',
-      mobile: 'SHOWROOM',
-      address: 'MG Road, Bangalore',
-      country: 'India'
+      name: 'Saurav S',
+      modelType: 'SUVs',
+      division: 'Amravati',
+      town: 'Khamla',
+      category: 'SHOWROOM',
+      location: 'MG Road, Bangalore',
     }
   ];
 
@@ -99,23 +94,22 @@ export class DealerListComponent {
   columnDefinitions = [
     { def: 'id', label: 'ID' },
     { def: 'name', label: 'Name' },
-    { def: 'email', label: 'Email' },
-    { def: 'gender', label: 'Gender' },
-    { def: 'birthDate', label: 'Birth Date' },
-    { def: 'mobile', label: 'Mobile' },
-    { def: 'address', label: 'Address' },
-    { def: 'country', label: 'Country' },
+    { def: 'modelType', label: 'Model Type' },
+    { def: 'division', label: 'Division' },
+    { def: 'town', label: 'Birth Date' },
+    { def: 'category', label: 'Category' },
+    { def: 'location', label: 'Location' },
   ];
 
   displayedColumns: string[] = [
     'id',
-    'firstName',
-    'email',
-    'gender',
-    'birthDate',
-    'mobile',
-    'address',
-    'country'
+    'name',
+    'modelType',
+    'division',
+    'town',
+    'category',
+    'location',
+    'action'
   ];
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
@@ -138,6 +132,16 @@ export class DealerListComponent {
   // getDisplayedColumns(): string[] {
   //   return this.columnDefinitions.filter(cd => cd.visible).map(cd => cd.def);
   // }
+
+  editDealer(row: any) {
+    console.log("Edit Dealer:", row);
+    // Navigate or open dialog to edit
+  }
+
+  deleteDealer(row: any) {
+    console.log("Delete Dealer:", row);
+    // Add delete logic here
+  }
 
   openDialog() {
     this.dialog.open(AddUserComponent, {

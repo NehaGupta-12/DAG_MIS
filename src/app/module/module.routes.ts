@@ -16,6 +16,10 @@ import {AddProductMasterComponent} from "./add-product-master/add-product-master
 import {InventoryListComponent} from "./inventory-list/inventory-list.component";
 import {AddInventoryComponent} from "./add-inventory/add-inventory.component";
 import {DailySaleReportsComponent} from "./reports/daily-sale-reports/daily-sale-reports.component";
+import {DailySalesListComponent} from "./daily-sales-list/daily-sales-list.component";
+import {AddDailySalesComponent} from "./add-daily-sales/add-daily-sales.component";
+import {GRNListComponent} from "./grn-list/grn-list.component";
+import {AddGRNComponent} from "./add-grn/add-grn.component";
 
 export const MODULES_ROUTE: Route[] = [
   {
@@ -81,19 +85,19 @@ export const MODULES_ROUTE: Route[] = [
 
   {
     path: 'daily-sales-list',
-    component: ProductMasterListComponent
+    component: DailySalesListComponent
   },
   {
     path: 'add-daily-sales',
-    component: AddProductMasterComponent
+    component: AddDailySalesComponent
   },
   {
     path: 'grn-list',
-    component: InventoryListComponent
+    component: GRNListComponent
   },
   {
     path: 'add-grn',
-    component: AddInventoryComponent
+    component: AddGRNComponent
   },
   {
     path: 'daily-sale-reports',

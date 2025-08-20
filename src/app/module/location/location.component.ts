@@ -41,62 +41,124 @@ import {AddUserComponent} from "../add-user/add-user.component";
 })
 export class LocationComponent {
 
+  // users = [
+  //   {
+  //     id: 1,
+  //     firstName: 'John Doe',
+  //     email: 'john.doe@example.com',
+  //     gender: 'Male',
+  //     birthDate: '1990-01-15',
+  //     mobile: '9876543210',
+  //     address: '123 Main St, New York',
+  //     country: 'USA'
+  //   },
+  //   {
+  //     id: 2,
+  //     firstName: 'Jane Smith',
+  //     email: 'jane.smith@example.com',
+  //     gender: 'Female',
+  //     birthDate: '1985-05-23',
+  //     mobile: '9876501234',
+  //     address: '456 Park Ave, London',
+  //     country: 'UK'
+  //   },
+  //   {
+  //     id: 3,
+  //     firstName: 'Raj Kumar',
+  //     email: 'raj.kumar@example.com',
+  //     gender: 'Male',
+  //     birthDate: '1992-09-10',
+  //     mobile: '9876123456',
+  //     address: 'MG Road, Bangalore',
+  //     country: 'India'
+  //   }
+  // ];
+
   users = [
     {
       id: 1,
-      firstName: 'John Doe',
-      email: 'john.doe@example.com',
-      gender: 'Male',
-      birthDate: '1990-01-15',
-      mobile: '9876543210',
-      address: '123 Main St, New York',
-      country: 'USA'
+      country: 'India',
+      locationType: 'Head Office',
+      name: 'Mumbai Central',
+      locationCode: 'LOC001',
+      division: 'Mumbai',
+      town: 'Hingna',
+      address: '123 MG Road, Mumbai',
+      locationHead: 'Mr. Sharma',
     },
     {
       id: 2,
-      firstName: 'Jane Smith',
-      email: 'jane.smith@example.com',
-      gender: 'Female',
-      birthDate: '1985-05-23',
-      mobile: '9876501234',
-      address: '456 Park Ave, London',
-      country: 'UK'
+      country: 'India',
+      locationType: 'Branch',
+      name: 'Pune East',
+      locationCode: 'LOC002',
+      division: 'Pune',
+      town: 'Thane',
+      address: '45 Park Street, Pune',
+      locationHead: 'Ms. Iyer',
     },
     {
       id: 3,
-      firstName: 'Raj Kumar',
-      email: 'raj.kumar@example.com',
-      gender: 'Male',
-      birthDate: '1992-09-10',
-      mobile: '9876123456',
-      address: 'MG Road, Bangalore',
-      country: 'India'
+      country: 'India',
+      locationType: 'Showroom',
+      name: 'Nagpur Central',
+      locationCode: 'LOC003',
+      division: 'Nagpur',
+      town: 'Kharadi',
+      address: '12 Residency Road, Nagpur',
+      locationHead: 'Mr. Patil',
+    },
+    {
+      id: 4,
+      country: 'India',
+      locationType: 'Outlet',
+      name: 'Pimpri West',
+      locationCode: 'LOC004',
+      division: 'Mumbai',
+      town: 'Pimpri',
+      address: '78 MG Road, Pimpri',
+      locationHead: 'Mr. Deshmukh',
+    },
+    {
+      id: 5,
+      country: 'India',
+      locationType: 'Warehouse',
+      name: 'Amravati Depot',
+      locationCode: 'LOC005',
+      division: 'Amravati',
+      town: 'Khamla',
+      address: '56 Industrial Area, Amravati',
+      locationHead: 'Mr. Gupta',
     }
   ];
+
 
   dataSource = new MatTableDataSource<any>(this.users);
 
   // Define columns
   columnDefinitions = [
     { def: 'id', label: 'ID' },
-    { def: 'firstName', label: 'First Name' },
-    { def: 'email', label: 'Email' },
-    { def: 'gender', label: 'Gender' },
-    { def: 'birthDate', label: 'Birth Date' },
-    { def: 'mobile', label: 'Mobile' },
-    { def: 'address', label: 'Address' },
+    { def: 'name', label: 'Name' },
     { def: 'country', label: 'Country' },
+    { def: 'locationType', label: 'Location Type' },
+    { def: 'locationCode', label: 'Location Code' },
+    { def: 'division', label: 'Division' },
+    { def: 'town', label: 'Town' },
+    { def: 'address', label: 'Address' },
+    { def: 'locationHead', label: 'Location Head' },
   ];
 
   displayedColumns: string[] = [
     'id',
-    'firstName',
-    'email',
-    'gender',
-    'birthDate',
-    'mobile',
+    'name',
+    'country',
+    'locationType',
+    'locationCode',
+    'division',
+    'town',
     'address',
-    'country'
+    'locationHead',
+    'actions'
   ];
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;

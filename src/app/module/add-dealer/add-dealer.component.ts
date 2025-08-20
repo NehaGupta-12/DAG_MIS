@@ -8,6 +8,7 @@ import {MatIconModule} from "@angular/material/icon";
 import {MatSelectModule} from "@angular/material/select";
 import {MatOptionModule} from "@angular/material/core";
 import {Location} from "@angular/common";
+import {Router} from "@angular/router";
 
 @Component({
   selector: 'app-add-dealer',
@@ -42,7 +43,7 @@ export class AddDealerComponent {
       active: 'Examples',
     },
   ];
-  constructor(private fb: UntypedFormBuilder, private location: Location) {
+  constructor(private fb: UntypedFormBuilder, private location: Location, private router: Router) {
     this.initForm();
     // this.initSecondForm();
     // this.initThirdForm();
@@ -101,6 +102,11 @@ export class AddDealerComponent {
 
   goBack() {
     this.location.back();
+  }
+
+  submitForm() {
+    this.router.navigate(['module/dealer-list']);
+    console.log('Form Value', this.dealerForm?.value);
   }
 
 }

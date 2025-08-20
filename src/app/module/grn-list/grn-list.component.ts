@@ -44,59 +44,107 @@ export class GRNListComponent {
   users = [
     {
       id: 1,
-      firstName: 'John Doe',
-      email: 'john.doe@example.com',
-      gender: 'Male',
-      birthDate: '1990-01-15',
-      mobile: '9876543210',
-      address: '123 Main St, New York',
-      country: 'USA'
+      location: 'Mumbai Central',
+      products: 'Swift VXI',
+      openingStock: 25,
+      grnQuantity: 10,
+      typeOfGrn: 'Purchase Order'
     },
     {
       id: 2,
-      firstName: 'Jane Smith',
-      email: 'jane.smith@example.com',
-      gender: 'Female',
-      birthDate: '1985-05-23',
-      mobile: '9876501234',
-      address: '456 Park Ave, London',
-      country: 'UK'
+      location: 'Pune East',
+      products: 'Honda City ZX',
+      openingStock: 15,
+      grnQuantity: 8,
+      typeOfGrn: 'Non-PO Receipts'
     },
     {
       id: 3,
-      firstName: 'Raj Kumar',
-      email: 'raj.kumar@example.com',
-      gender: 'Male',
-      birthDate: '1992-09-10',
-      mobile: '9876123456',
-      address: 'MG Road, Bangalore',
-      country: 'India'
+      location: 'Nagpur Central',
+      products: 'Hyundai Creta',
+      openingStock: 30,
+      grnQuantity: 12,
+      typeOfGrn: 'Purchase Order'
+    },
+    {
+      id: 4,
+      location: 'Amravati Depot',
+      products: 'Royal Enfield Classic 350',
+      openingStock: 20,
+      grnQuantity: 6,
+      typeOfGrn: 'Non-PO Receipts'
+    },
+    {
+      id: 5,
+      location: 'Mumbai Central',
+      products: 'KTM Duke 200',
+      openingStock: 18,
+      grnQuantity: 7,
+      typeOfGrn: 'Purchase Order'
+    },
+    {
+      id: 6,
+      location: 'Pune East',
+      products: 'Swift VXI',
+      openingStock: 22,
+      grnQuantity: 5,
+      typeOfGrn: 'Purchase Order'
+    },
+    {
+      id: 7,
+      location: 'Nagpur Central',
+      products: 'Honda City ZX',
+      openingStock: 12,
+      grnQuantity: 9,
+      typeOfGrn: 'Non-PO Receipts'
+    },
+    {
+      id: 8,
+      location: 'Amravati Depot',
+      products: 'Hyundai Creta',
+      openingStock: 28,
+      grnQuantity: 11,
+      typeOfGrn: 'Purchase Order'
+    },
+    {
+      id: 9,
+      location: 'Mumbai Central',
+      products: 'Royal Enfield Classic 350',
+      openingStock: 14,
+      grnQuantity: 4,
+      typeOfGrn: 'Non-PO Receipts'
+    },
+    {
+      id: 10,
+      location: 'Pune East',
+      products: 'KTM Duke 200',
+      openingStock: 19,
+      grnQuantity: 6,
+      typeOfGrn: 'Purchase Order'
     }
   ];
+
 
   dataSource = new MatTableDataSource<any>(this.users);
 
   // Define columns
   columnDefinitions = [
     { def: 'id', label: 'ID' },
-    { def: 'firstName', label: 'First Name' },
-    { def: 'email', label: 'Email' },
-    { def: 'gender', label: 'Gender' },
-    { def: 'birthDate', label: 'Birth Date' },
-    { def: 'mobile', label: 'Mobile' },
-    { def: 'address', label: 'Address' },
-    { def: 'country', label: 'Country' },
+    { def: 'location', label: 'Location' },
+    { def: 'products', label: 'Products' },
+    { def: 'openingStock', label: 'Opening Stock' },
+    { def: 'grnQuantity', label: 'GRN Quantity' },
+    { def: 'typeOfGrn', label: 'Type Of GRN' },
   ];
 
   displayedColumns: string[] = [
     'id',
-    'firstName',
-    'email',
-    'gender',
-    'birthDate',
-    'mobile',
-    'address',
-    'country'
+    'location',
+    'products',
+    'openingStock',
+    'grnQuantity',
+    'typeOfGrn',
+    'action',
   ];
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
