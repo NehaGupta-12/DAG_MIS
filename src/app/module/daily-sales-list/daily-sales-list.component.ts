@@ -44,59 +44,131 @@ export class DailySalesListComponent {
   users = [
     {
       id: 1,
-      firstName: 'John Doe',
-      email: 'john.doe@example.com',
-      gender: 'Male',
-      birthDate: '1990-01-15',
-      mobile: '9876543210',
-      address: '123 Main St, New York',
-      country: 'USA'
+      location: 'Mumbai Central',
+      dealerOutlet: 'John Doe',
+      vehicle: 'Swift VXI',
+      salesQuantity: 12,
+      typeOfCustomer: 'Active Customers',
+      division: 'Mumbai',
+      town: 'Hingna'
     },
     {
       id: 2,
-      firstName: 'Jane Smith',
-      email: 'jane.smith@example.com',
-      gender: 'Female',
-      birthDate: '1985-05-23',
-      mobile: '9876501234',
-      address: '456 Park Ave, London',
-      country: 'UK'
+      location: 'Pune East',
+      dealerOutlet: 'Jane Smith',
+      vehicle: 'Honda City ZX',
+      salesQuantity: 8,
+      typeOfCustomer: 'Lapsed Customers',
+      division: 'Pune',
+      town: 'Thane'
     },
     {
       id: 3,
-      firstName: 'Raj Kumar',
-      email: 'raj.kumar@example.com',
-      gender: 'Male',
-      birthDate: '1992-09-10',
-      mobile: '9876123456',
-      address: 'MG Road, Bangalore',
-      country: 'India'
+      location: 'Nagpur Central',
+      dealerOutlet: 'Raj Kumar',
+      vehicle: 'Hyundai Creta',
+      salesQuantity: 15,
+      typeOfCustomer: 'Referring Customers',
+      division: 'Nagpur',
+      town: 'Kharadi'
+    },
+    {
+      id: 4,
+      location: 'Amravati Depot',
+      dealerOutlet: 'Prashant T',
+      vehicle: 'Royal Enfield Classic 350',
+      salesQuantity: 5,
+      typeOfCustomer: 'Wandering Customers',
+      division: 'Amravati',
+      town: 'Khamla'
+    },
+    {
+      id: 5,
+      location: 'Mumbai Central',
+      dealerOutlet: 'Saurav S',
+      vehicle: 'KTM Duke 200',
+      salesQuantity: 10,
+      typeOfCustomer: 'Active Customers',
+      division: 'Mumbai',
+      town: 'Pimpri'
+    },
+    {
+      id: 6,
+      location: 'Pune East',
+      dealerOutlet: 'Jane Smith',
+      vehicle: 'Swift VXI',
+      salesQuantity: 7,
+      typeOfCustomer: 'Wandering Customers',
+      division: 'Pune',
+      town: 'Dadar'
+    },
+    {
+      id: 7,
+      location: 'Nagpur Central',
+      dealerOutlet: 'Raj Kumar',
+      vehicle: 'Honda City ZX',
+      salesQuantity: 11,
+      typeOfCustomer: 'Active Customers',
+      division: 'Nagpur',
+      town: 'Hingna'
+    },
+    {
+      id: 8,
+      location: 'Amravati Depot',
+      dealerOutlet: 'Prashant T',
+      vehicle: 'Hyundai Creta',
+      salesQuantity: 6,
+      typeOfCustomer: 'Lapsed Customers',
+      division: 'Amravati',
+      town: 'Thane'
+    },
+    {
+      id: 9,
+      location: 'Mumbai Central',
+      dealerOutlet: 'John Doe',
+      vehicle: 'Royal Enfield Classic 350',
+      salesQuantity: 9,
+      typeOfCustomer: 'Referring Customers',
+      division: 'Mumbai',
+      town: 'Dadar'
+    },
+    {
+      id: 10,
+      location: 'Pune East',
+      dealerOutlet: 'Saurav S',
+      vehicle: 'KTM Duke 200',
+      salesQuantity: 13,
+      typeOfCustomer: 'Active Customers',
+      division: 'Pune',
+      town: 'Pimpri'
     }
   ];
+
 
   dataSource = new MatTableDataSource<any>(this.users);
 
   // Define columns
   columnDefinitions = [
     { def: 'id', label: 'ID' },
-    { def: 'firstName', label: 'First Name' },
-    { def: 'email', label: 'Email' },
-    { def: 'gender', label: 'Gender' },
-    { def: 'birthDate', label: 'Birth Date' },
-    { def: 'mobile', label: 'Mobile' },
-    { def: 'address', label: 'Address' },
-    { def: 'country', label: 'Country' },
+    { def: 'location', label: 'Location' },
+    { def: 'dealerOutlet', label: 'Dealer Outlet' },
+    { def: 'vehicle', label: 'Vehicle' },
+    { def: 'salesQuantity', label: 'Sales Quantity' },
+    { def: 'typeOfCustomer', label: 'Type Of Customer' },
+    { def: 'division', label: 'Division' },
+    { def: 'town', label: 'Town' },
   ];
 
   displayedColumns: string[] = [
     'id',
-    'firstName',
-    'email',
-    'gender',
-    'birthDate',
-    'mobile',
-    'address',
-    'country'
+    'location',
+    'dealerOutlet',
+    'vehicle',
+    'salesQuantity',
+    'typeOfCustomer',
+    'division',
+    'town',
+    'action'
   ];
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;

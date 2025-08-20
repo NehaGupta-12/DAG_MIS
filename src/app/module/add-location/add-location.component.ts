@@ -27,14 +27,11 @@ import {Location} from "@angular/common";
 })
 export class AddLocationComponent {
   // Form 1
-  register?: UntypedFormGroup;
+  locationForm?: UntypedFormGroup;
   hide = true;
   // Form 2
-  secondForm?: UntypedFormGroup;
-  hide2 = true;
-  // Form 3
-  thirdForm?: UntypedFormGroup;
-  hide3 = true;
+  uniqueCountries: any[] = [];
+
   breadscrums = [
     {
       title: 'Examples',
@@ -42,67 +39,30 @@ export class AddLocationComponent {
       active: 'Examples',
     },
   ];
+  private users: any;
   constructor(private fb: UntypedFormBuilder , private location: Location) {
     this.initForm();
-    this.initSecondForm();
-    this.initThirdForm();
   }
+
+  ngOnInit() {
+    this.uniqueCountries = [...new Set(this.users.map((u:any) => u.country))];
+    console.log(this.uniqueCountries);
+  }
+
   initForm() {
-    this.register = this.fb.group({
-      first: ['', [Validators.required, Validators.pattern('[a-zA-Z]+')]],
-      last: [''],
-      password: ['', [Validators.required]],
-      email: [
-        '',
-        [Validators.required, Validators.email, Validators.minLength(5)],
-      ],
-      address: [''],
-      city: ['', [Validators.required]],
-      state: ['', [Validators.required]],
+    this.locationForm = this.fb.group({
+      name: ['', [Validators.required, Validators.pattern('[a-zA-Z]+')]],
       country: ['', [Validators.required]],
-      termcondition: [false, [Validators.requiredTrue]],
-    });
-  }
-  initSecondForm() {
-    this.secondForm = this.fb.group({
-      first: ['', [Validators.required, Validators.pattern('[a-zA-Z]+')]],
-      last: [''],
-      password: ['', [Validators.required]],
-      email: [
-        '',
-        [Validators.required, Validators.email, Validators.minLength(5)],
-      ],
-      address: [''],
-      city: ['', [Validators.required]],
-      state: ['', [Validators.required]],
-      country: ['', [Validators.required]],
-      termcondition: [false, [Validators.requiredTrue]],
-    });
-  }
-  initThirdForm() {
-    this.thirdForm = this.fb.group({
-      first: ['', [Validators.required, Validators.pattern('[a-zA-Z]+')]],
-      last: [''],
-      password: ['', [Validators.required]],
-      email: [
-        '',
-        [Validators.required, Validators.email, Validators.minLength(5)],
-      ],
-      address: [''],
-      city: ['', [Validators.required]],
-      state: ['', [Validators.required]],
-      country: ['', [Validators.required]],
-      termcondition: [false, [Validators.requiredTrue]],
+      locationType: ['', [Validators.required]],
+      locationCode: ['', [Validators.required]],
+      division: ['', [Validators.required]],
+      town: ['', [Validators.required]],
+      address: ['', [Validators.required]],
+      locationHead: ['', [Validators.required]],
     });
   }
   onRegister() {
-    console.log('Form Value', this.register?.value);
-  }
-  onsecondFormSubmit() {
-    console.log('Form Value', this.secondForm?.value);
-  }
-  onThirdFormSubmit() {
-    console.log('Form Value', this.thirdForm?.value);
+    console.log('Form Value', this.locationForm?.value);
   }
 
 

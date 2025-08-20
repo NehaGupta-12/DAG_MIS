@@ -140,7 +140,7 @@
       "groupTitle": false,
       "submenu": [
         {
-          "path": "module/Daily",
+          "path": "daily-sale-reports",
           "title": "Daily Sale Report",
           "icon": "",
           "class": "ml-menu",

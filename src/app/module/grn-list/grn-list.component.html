@@ -46,46 +46,48 @@
                 </ng-container>
 
                 <!-- First Name -->
-                <ng-container matColumnDef="firstName">
-                  <th mat-header-cell *matHeaderCellDef mat-sort-header>First Name</th>
-                  <td mat-cell *matCellDef="let row">{{ row.firstName }}</td>
+                <ng-container matColumnDef="location">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Location</th>
+                  <td mat-cell *matCellDef="let row">{{ row.location }}</td>
                 </ng-container>
 
                 <!-- Email -->
-                <ng-container matColumnDef="email">
-                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Email</th>
-                  <td mat-cell *matCellDef="let row">{{ row.email }}</td>
+                <ng-container matColumnDef="products">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Product</th>
+                  <td mat-cell *matCellDef="let row">{{ row.products }}</td>
                 </ng-container>
 
                 <!-- Gender -->
-                <ng-container matColumnDef="gender">
-                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Gender</th>
-                  <td mat-cell *matCellDef="let row">{{ row.gender }}</td>
+                <ng-container matColumnDef="openingStock">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Opening Stock</th>
+                  <td mat-cell *matCellDef="let row">{{ row.openingStock }}</td>
                 </ng-container>
 
                 <!-- Birth Date -->
-                <ng-container matColumnDef="birthDate">
-                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Birth Date</th>
-                  <td mat-cell *matCellDef="let row">{{ row.birthDate | date }}</td>
+                <ng-container matColumnDef="grnQuantity">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>GRN Quantity</th>
+                  <td mat-cell *matCellDef="let row">{{ row.grnQuantity }}</td>
                 </ng-container>
 
                 <!-- Mobile -->
-                <ng-container matColumnDef="mobile">
-                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Mobile</th>
-                  <td mat-cell *matCellDef="let row">{{ row.mobile }}</td>
+                <ng-container matColumnDef="typeOfGrn">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Type Of GRN</th>
+                  <td mat-cell *matCellDef="let row">{{ row.typeOfGrn }}</td>
                 </ng-container>
 
-                <!-- Address -->
-                <ng-container matColumnDef="address">
-                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Address</th>
-                  <td mat-cell *matCellDef="let row">{{ row.address }}</td>
+                <!-- Action -->
+                <ng-container matColumnDef="action">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Action</th>
+                  <td mat-cell *matCellDef="let row">
+                    <button mat-icon-button color="primary" matTooltip="Edit">
+                      <mat-icon>edit</mat-icon>
+                    </button>
+                    <button mat-icon-button color="warn" matTooltip="Delete">
+                      <mat-icon>delete</mat-icon>
+                    </button>
+                  </td>
                 </ng-container>
 
-                <!-- Country -->
-                <ng-container matColumnDef="country">
-                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Country</th>
-                  <td mat-cell *matCellDef="let row">{{ row.country }}</td>
-                </ng-container>
 
                 <!-- Table Rows -->
                 <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>

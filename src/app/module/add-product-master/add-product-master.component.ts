@@ -27,14 +27,8 @@ import {Location} from "@angular/common";
 })
 export class AddProductMasterComponent {
   // Form 1
-  register?: UntypedFormGroup;
+  productForm?: UntypedFormGroup;
   hide = true;
-  // Form 2
-  secondForm?: UntypedFormGroup;
-  hide2 = true;
-  // Form 3
-  thirdForm?: UntypedFormGroup;
-  hide3 = true;
   breadscrums = [
     {
       title: 'Examples',
@@ -44,65 +38,19 @@ export class AddProductMasterComponent {
   ];
   constructor(private fb: UntypedFormBuilder, private location: Location) {
     this.initForm();
-    this.initSecondForm();
-    this.initThirdForm();
   }
   initForm() {
-    this.register = this.fb.group({
-      first: ['', [Validators.required, Validators.pattern('[a-zA-Z]+')]],
-      last: [''],
-      password: ['', [Validators.required]],
-      email: [
-        '',
-        [Validators.required, Validators.email, Validators.minLength(5)],
-      ],
-      address: [''],
-      city: ['', [Validators.required]],
-      state: ['', [Validators.required]],
-      country: ['', [Validators.required]],
-      termcondition: [false, [Validators.requiredTrue]],
-    });
-  }
-  initSecondForm() {
-    this.secondForm = this.fb.group({
-      first: ['', [Validators.required, Validators.pattern('[a-zA-Z]+')]],
-      last: [''],
-      password: ['', [Validators.required]],
-      email: [
-        '',
-        [Validators.required, Validators.email, Validators.minLength(5)],
-      ],
-      address: [''],
-      city: ['', [Validators.required]],
-      state: ['', [Validators.required]],
-      country: ['', [Validators.required]],
-      termcondition: [false, [Validators.requiredTrue]],
-    });
-  }
-  initThirdForm() {
-    this.thirdForm = this.fb.group({
-      first: ['', [Validators.required, Validators.pattern('[a-zA-Z]+')]],
-      last: [''],
-      password: ['', [Validators.required]],
-      email: [
-        '',
-        [Validators.required, Validators.email, Validators.minLength(5)],
-      ],
-      address: [''],
-      city: ['', [Validators.required]],
-      state: ['', [Validators.required]],
-      country: ['', [Validators.required]],
-      termcondition: [false, [Validators.requiredTrue]],
+    this.productForm = this.fb.group({
+      name: ['', [Validators.required, Validators.pattern('[a-zA-Z]+')]],
+      sku: ['', [Validators.required]],
+      model: ['', [Validators.required]],
+      brand: ['', [Validators.required]],
+      category: ['', [Validators.required]],
+      subCategory: ['', [Validators.required]],
     });
   }
   onRegister() {
-    console.log('Form Value', this.register?.value);
-  }
-  onsecondFormSubmit() {
-    console.log('Form Value', this.secondForm?.value);
-  }
-  onThirdFormSubmit() {
-    console.log('Form Value', this.thirdForm?.value);
+    console.log('Form Value', this.productForm?.value);
   }
 
   goBack() {
