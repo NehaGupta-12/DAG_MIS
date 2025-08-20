@@ -1,51 +1,51 @@
 <div class="container-fluid p-0">
   <div class="row g-0">
-    <div class="col-lg-4">
-      <div class="auth-content p-4 d-flex align-items-center min-vh-100">
+    <div class="col-lg-5">
+      <div class="auth-content p-4 d-flex align-items-center min-vh-500">
         <div class="w-100">
           <div class="row justify-content-center">
             <div class="col-lg-9">
               <div>
                 <div class="text-center">
-                  <div>
-                    <a routerLink="" class="logo-full"><img src="assets/images/logo-full.png" alt="logo-full"></a>
+                  <div class="mt-5">
+                    <a routerLink="" class="logo-full"><img src="assets/myimages/dubaiautogalleryllc_logo.jpg" alt="logo-full" height="40%" width="40%" id="dattiimg"></a>
                   </div>
 
                   <h4 class="font-20 mt-4">Welcome Back !</h4>
-                  <p class="text-muted">Sign in to continue to Atrio.</p>
+                  <p class="text-muted">Sign in to continue to DAG.</p>
                 </div>
 
-                <div class="p-2 mt-5">
+                <div class="p-2 mt-4">
                   <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
                     @if (error) {
-                    <div class="alert alert-danger mb-3 mt-0">{{error}}</div>
+                      <div class="alert alert-danger mb-3 mt-0">{{error}}</div>
                     }
                     <div class="form-group auth-form-group mb-4">
                       <mat-icon matSuffix class="material-icons-outlined auth-page-icon">email</mat-icon>
                       <input type="email" formControlName="email" class="form-control auth-control" id="email"
-                        placeholder="Email" [ngClass]="{ 'is-invalid': submitted && form['email'].errors }">
+                             placeholder="Email" [ngClass]="{ 'is-invalid': submitted && form['email'].errors }">
                       @if (submitted && form['email'].errors) {
-                      <div class="invalid-feedback">
-                        @if (form['email'].errors['required']) {
-                        <div>Email is required</div>
-                        }
-                        @if (form['email'].errors['email']) {
-                        <div>Email must be a valid email address</div>
-                        }
-                      </div>
+                        <div class="invalid-feedback">
+                          @if (form['email'].errors['required']) {
+                            <div>Email is required</div>
+                          }
+                          @if (form['email'].errors['email']) {
+                            <div>Email must be a valid email address</div>
+                          }
+                        </div>
                       }
                     </div>
 
                     <div class="form-group auth-form-group mb-4">
                       <mat-icon matSuffix class="material-icons-outlined auth-page-icon">vpn_key</mat-icon>
                       <input type="password" formControlName="password" class="form-control auth-control" id="password"
-                        [ngClass]="{ 'is-invalid': submitted && form['password'].errors }" placeholder="Password" />
+                             [ngClass]="{ 'is-invalid': submitted && form['password'].errors }" placeholder="Password" />
                       @if (submitted && form['password'].errors) {
-                      <div class="invalid-feedback">
-                        @if (form['password'].errors['required']) {
-                        <div>Password is required</div>
-                        }
-                      </div>
+                        <div class="invalid-feedback">
+                          @if (form['password'].errors['required']) {
+                            <div>Password is required</div>
+                          }
+                        </div>
                       }
                     </div>
 
@@ -63,7 +63,7 @@
                       </div>
                     </div>
 
-                    <div class="container-login100-form-btn">
+                    <div class="container-login100-form-btn mt-3" >
                       <button mat-flat-button color="accent" class="login100-form-btn" type="submit">
                         Login
                       </button>
@@ -71,24 +71,24 @@
                   </form>
                 </div>
 
-                <div class="mt-5 text-center">
-                  <p>Don't have an account ? <a routerLink="/authentication/signup"
-                      class="font-weight-medium text-primary">
-                      Register </a> </p>
-                  <ul class="list-unstyled social-icon mb-0 mt-3">
-                    <li class="list-inline-item m-2"><a href="javascript:void(0)" class="rounded">
-                        <i class="fab fa-google"></i>
-                      </a></li>
-                    <li class="list-inline-item m-2"><a href="javascript:void(0)" class="rounded flex-c-m">
-                        <i class="fab fa-facebook-f"></i>
-                      </a></li>
-                    <li class="list-inline-item m-2"><a href="javascript:void(0)" class="rounded">
-                        <i class="fab fa-twitter"></i>
-                      </a></li>
-                    <li class="list-inline-item m-2"><a href="javascript:void(0)" class="rounded">
-                        <i class="fab fa-linkedin-in"></i>
-                      </a></li>
-                  </ul>
+                <div class="mt-4 text-center">
+                  <p class="moveup" >Don't have an account ? <a routerLink="/authentication/signup"
+                                                                class="font-weight-medium text-primary">
+                    Register </a> </p>
+<!--                  <ul class="list-unstyled social-icon mb-0 mt-3">-->
+<!--                    <li class="list-inline-item m-2"><a href="javascript:void(0)" class="rounded">-->
+<!--                      <i class="fab fa-google"></i>-->
+<!--                    </a></li>-->
+<!--                    <li class="list-inline-item m-2"><a href="javascript:void(0)" class="rounded flex-c-m">-->
+<!--                      <i class="fab fa-facebook-f"></i>-->
+<!--                    </a></li>-->
+<!--                    <li class="list-inline-item m-2"><a href="javascript:void(0)" class="rounded">-->
+<!--                      <i class="fab fa-twitter"></i>-->
+<!--                    </a></li>-->
+<!--                    <li class="list-inline-item m-2"><a href="javascript:void(0)" class="rounded">-->
+<!--                      <i class="fab fa-linkedin-in"></i>-->
+<!--                    </a></li>-->
+<!--                  </ul>-->
                 </div>
               </div>
             </div>
@@ -96,10 +96,11 @@
         </div>
       </div>
     </div>
-    <div class="col-lg-8">
-      <div class="auth-bg">
-        <div class="bg-overlay"></div>
-      </div>
+    <div class="col-lg-7 movedown ">
+      <img src="assets/myimages/banner.webp" height="100%">
+      <!--      <div class="auth-bg">-->
+      <!--        <div class="bg-overlay"></div>-->
+      <!--      </div>-->
     </div>
   </div>
 </div>

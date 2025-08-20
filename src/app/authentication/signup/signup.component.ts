@@ -6,18 +6,19 @@ import { NgClass } from '@angular/common';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 @Component({
-    selector: 'app-signup',
-    templateUrl: './signup.component.html',
-    styleUrls: ['./signup.component.scss'],
-    imports: [
-        RouterLink,
-        FormsModule,
-        ReactiveFormsModule,
-        MatIconModule,
-        MatFormFieldModule,
-        NgClass,
-        MatButtonModule,
-    ]
+  selector: 'app-signup',
+  templateUrl: './signup.component.html',
+  styleUrls: ['./signup.component.scss'],
+  standalone: true,
+  imports: [
+    RouterLink,
+    FormsModule,
+    ReactiveFormsModule,
+    MatIconModule,
+    MatFormFieldModule,
+    NgClass,
+    MatButtonModule,
+  ]
 })
 export class SignupComponent implements OnInit {
   loginForm!: UntypedFormGroup;
@@ -43,13 +44,31 @@ export class SignupComponent implements OnInit {
   get form(): { [key: string]: AbstractControl } {
     return this.loginForm.controls;
   }
+  // onSubmit() {
+  //   this.submitted = true;
+  //   // stop here if form is invalid
+  //   if (this.loginForm.invalid) {
+  //     return;
+  //   } else {
+  //     this.router.navigate(['/dashboard/main']);
+  //   }
+  // }
+
   onSubmit() {
     this.submitted = true;
-    // stop here if form is invalid
-    if (this.loginForm.invalid) {
-      return;
-    } else {
-      this.router.navigate(['/dashboard/main']);
-    }
+    if (this.loginForm.invalid) return;
+
+    const { email, password, username } = this.loginForm.value;
+
+    // Save user to localStorage
+    localStorage.setItem('registeredUser', JSON.stringify({ email, password, username }));
+
+    // Also save for auto-fill
+    localStorage.setItem('tempLoginFill', JSON.stringify({ email, password }));
+
+    // Redirect to login page
+    this.router.navigate(['/authentication/signin']);
   }
+
+
 }

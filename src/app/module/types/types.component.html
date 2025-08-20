@@ -3,120 +3,77 @@
     <div class="container py-4">
 
       <!-- Select Type Row -->
-<!--      <div class="row mb-3">-->
-<!--        <div class="col-md-6 mb-2">-->
-<!--          <label for="selectType" class="form-label fw-bold">Select Type</label>-->
-<!--          <select class="form-select" id="selectType">-->
-<!--            <option value="Contacts" selected>Contacts</option>-->
-<!--            <option value="Suppliers">Suppliers</option>-->
-<!--            <option value="Clients">Clients</option>-->
-<!--          </select>-->
-<!--        </div>-->
-<!--        <div class="col-md-6 d-flex align-items-end mb-2">-->
-<!--          <button class="btn btn-warning w-40">Add Type</button>-->
-<!--        </div>-->
-<!--      </div>-->
-
-      <!-- Add Field Row -->
-<!--      <div class="row mb-4">-->
-<!--        <div class="col-md-6 mb-2">-->
-<!--          <input type="text" class="form-control" placeholder="Enter Field *">-->
-<!--        </div>-->
-<!--        <div class="col-md-6 d-flex mb-2">-->
-<!--          <button class="btn btn-primary w-40">Add Contacts</button>-->
-<!--        </div>-->
-<!--      </div>-->
-
-      <!-- Select Type Row -->
       <div class="row mb-3">
         <div class="col-md-6 mb-2">
-          <label for="selectType" class="form-label fw-bold">Select Type</label>
-          <select class="form-select" id="selectType" (change)="onTypeChange($event)">
-            <option value="" selected disabled>Select...</option>
-            <option value="Contacts">Contacts</option>
-            <option value="Suppliers">Suppliers</option>
-            <option value="Clients">Clients</option>
+          <label for="selectType" class="form-label fw-bold">Select Division</label>
+          <select class="form-select" id="selectType" [(ngModel)]="selectedOption" (change)="onTypeChange()">
+            <option value="" selected disabled>Select Division...</option>
+            <option *ngFor="let type of availableTypes" [value]="type">{{ type }}</option>
           </select>
         </div>
         <div class="col-md-6 d-flex align-items-end mb-2">
-          <button class="btn btn-warning w-40">Add Type</button>
+          <button class="btn btn-warning w-40" (click)="openConfirmBeforeAddType()">Add Type</button>
         </div>
       </div>
 
-      <!-- Add Field Row (hidden by default, shown only after dropdown selection) -->
+      <!-- Inline Add Type Form -->
+      <div *ngIf="showAddTypeForm" class="card mb-4">
+        <div class="card-body">
+          <h5 class="mb-3">Add Type</h5>
+          <form [formGroup]="typeForm" (ngSubmit)="submitType()">
+            <input
+              formControlName="name"
+              class="form-control mb-2"
+              placeholder="Enter Name *"
+              [ngClass]="{'is-invalid': typeForm.controls['name'].invalid && typeForm.controls['name'].touched}"
+            />
+            <div *ngIf="typeForm.controls['name'].invalid && typeForm.controls['name'].touched" class="text-danger">
+              * It is Required.
+            </div>
+            <button class="btn btn-primary mt-2" type="submit" [disabled]="typeForm.invalid">
+              Submit
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Add Field Row -->
       <div class="row mb-4" *ngIf="showAddFieldRow">
         <div class="col-md-6 mb-2">
-          <input type="text" class="form-control" placeholder="Enter Field *">
+          <input type="text" [(ngModel)]="fieldValue" class="form-control" placeholder="Enter Town *">
         </div>
         <div class="col-md-6 d-flex mb-2">
-          <button class="btn btn-primary w-40">Add {{ selectedOption }}</button>
+          <button class="btn btn-primary w-40" (click)="confirmAddField()">Add {{ selectedOption }}</button>
         </div>
       </div>
 
-
-
-      <!-- Types Table -->
-      <div class="card">
-        <div class="card-body">
-          <h5 class="mb-3">Types</h5>
-          <div class="table-responsive">
-            <table class="table table-bordered align-middle">
-              <thead>
-              <tr>
-                <th>Name</th>
-                <th style="width: 150px;">Actions</th>
-              </tr>
-              </thead>
-              <tbody>
-              <tr>
-                <td>Supplier</td>
-                <td>
-                  <button class="btn btn-sm btn-primary">Delete</button>
-                </td>
-              </tr>
-              <tr>
-                <td>Dealer</td>
-                <td>
-                  <button class="btn btn-sm btn-primary">Delete</button>
-                </td>
-              </tr>
-              <tr>
-                <td>Contractor</td>
-                <td>
-                  <button class="btn btn-sm btn-primary">Delete</button>
-                </td>
-              </tr>
-              <tr>
-                <td>Site Engineer (Client)</td>
-                <td>
-                  <button class="btn btn-sm btn-primary">Delete</button>
-                </td>
-              </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <!-- Pagination Footer -->
-          <div class="d-flex justify-content-between align-items-center mt-3 flex-wrap">
-            <div>
-              <label class="me-2">Items per page:</label>
-              <select class="form-select form-select-sm d-inline-block w-auto">
-                <option>10</option>
-                <option>25</option>
-                <option>50</option>
-              </select>
-            </div>
-            <div class="d-flex align-items-center gap-3">
-              <span>1 – 4 of 4</span>
-              <div>
-                <button class="btn btn-sm btn-light">&lt;</button>
-                <button class="btn btn-sm btn-light">&gt;</button>
-              </div>
+      <!-- Dynamic Tables (per type) -->
+      <div *ngFor="let type of availableTypes">
+        <div *ngIf="(typeData?.[type]?.length || 0) > 0" class="card mb-3">
+          <div class="card-body">
+            <h5 class="mb-3">{{ type }} Towns</h5>
+            <div class="table-responsive">
+              <table class="table table-bordered align-middle">
+                <thead>
+                <tr>
+                  <th>Name</th>
+                  <th style="width: 150px;">Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr *ngFor="let item of typeData[type]; let i = index">
+                  <td>{{ item.name }}</td>
+                  <td>
+                    <button class="btn btn-sm btn-danger" (click)="deleteItem(type, i)">Delete</button>
+                  </td>
+                </tr>
+                </tbody>
+              </table>
             </div>
           </div>
-
         </div>
       </div>
+
     </div>
   </div>
 </section>

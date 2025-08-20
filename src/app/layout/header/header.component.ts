@@ -13,13 +13,15 @@ import { UnsubscribeOnDestroyAdapter } from '@shared';
 import {
   InConfiguration,
   LanguageService,
-  AuthService,
+
   RightSidebarService,
 } from '@core';
 import { NgScrollbar } from 'ngx-scrollbar';
 import { MatMenuModule } from '@angular/material/menu';
 import { FeatherIconsComponent } from '../../shared/components/feather-icons/feather-icons.component';
 import { MatButtonModule } from '@angular/material/button';
+import { AuthService } from '../../authentication/auth.service';
+
 
 interface Notifications {
   message: string;
@@ -30,20 +32,23 @@ interface Notifications {
 }
 
 @Component({
-    selector: 'app-header',
-    templateUrl: './header.component.html',
-    styleUrls: ['./header.component.scss'],
-    imports: [
-        RouterLink,
-        NgClass,
-        MatButtonModule,
-        FeatherIconsComponent,
-        MatMenuModule,
-        NgScrollbar,
-    ],
-    providers: [RightSidebarService]
+  selector: 'app-header',
+  standalone: true,
+  templateUrl: './header.component.html',
+  styleUrls: ['./header.component.scss'],
+  imports: [
+    RouterLink,
+    NgClass,
+    MatButtonModule,
+    FeatherIconsComponent,
+    MatMenuModule,
+    NgScrollbar,
+  ],
+  providers: [RightSidebarService]
 })
 export class HeaderComponent
+
+
   extends UnsubscribeOnDestroyAdapter
   implements OnInit {
   public config!: InConfiguration;
@@ -179,11 +184,11 @@ export class HeaderComponent
       localStorage.setItem('collapsed_menu', 'true');
     }
   }
-  logout() {
-    this.subs.sink = this.authService.logout().subscribe((res) => {
-      if (!res.success) {
-        this.router.navigate(['/authentication/signin']);
-      }
-    });
+
+  logout(): void {
+    this.authService.logout(); // now handles full logic cleanly
   }
+
+
+
 }

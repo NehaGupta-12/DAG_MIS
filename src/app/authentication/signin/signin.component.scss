@@ -1,0 +1,48 @@
+@media (min-width: 320px) and (max-width: 767px){
+  #dattiimg{
+    margin-top: 30px;
+  }
+  .movedown{
+    margin-top: 65px;
+  }
+
+  .moveup{
+    margin-top: -15px;
+  }
+}
+
+
+
+@media (min-width: 768px){
+  .movedown{
+    margin-top: 100px;
+  }
+  .moveup{
+    margin-top: -25px;
+  }
+  #dattiimg{
+    margin-top: 55px;
+
+  }
+
+}
+@media (min-width: 496px) and (max-width: 767px){
+  .movedown{
+    margin-top: 98px;
+  }
+  #dattiimg{
+    margin-top: 60px;
+  }
+}
+
+
+@media (min-width: 992px) and (max-width: 2056px) {
+  .movedown{
+    margin-top: 0px;
+  }
+
+  #dattiimg{
+    margin-top: 0px;
+
+  }
+}
