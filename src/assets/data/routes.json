@@ -131,31 +131,6 @@
           "submenu": []
         }
       ]
-    },
-    {
-      "path": "",
-      "title": "Reports",
-      "icon": "monitor",
-      "class": "menu-toggle",
-      "groupTitle": false,
-      "submenu": [
-        {
-          "path": "daily-sale-reports",
-          "title": "Daily Sale Report",
-          "icon": "",
-          "class": "ml-menu",
-          "groupTitle": false,
-          "submenu": []
-        },
-        {
-          "path": "/Item",
-          "title": "Item Wise Report",
-          "icon": "",
-          "class": "ml-menu",
-          "groupTitle": false,
-          "submenu": []
-        }
-      ]
     }
   ]
 }
