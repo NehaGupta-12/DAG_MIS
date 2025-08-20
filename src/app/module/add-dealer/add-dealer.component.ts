@@ -27,7 +27,7 @@ import {Location} from "@angular/common";
 })
 export class AddDealerComponent {
   // Form 1
-  register?: UntypedFormGroup;
+  dealerForm?: UntypedFormGroup;
   hide = true;
   // Form 2
   secondForm?: UntypedFormGroup;
@@ -44,59 +44,53 @@ export class AddDealerComponent {
   ];
   constructor(private fb: UntypedFormBuilder, private location: Location) {
     this.initForm();
-    this.initSecondForm();
-    this.initThirdForm();
+    // this.initSecondForm();
+    // this.initThirdForm();
   }
   initForm() {
-    this.register = this.fb.group({
-      first: ['', [Validators.required, Validators.pattern('[a-zA-Z]+')]],
-      last: [''],
-      password: ['', [Validators.required]],
-      email: [
-        '',
-        [Validators.required, Validators.email, Validators.minLength(5)],
-      ],
-      address: [''],
-      city: ['', [Validators.required]],
-      state: ['', [Validators.required]],
-      country: ['', [Validators.required]],
-      termcondition: [false, [Validators.requiredTrue]],
+    this.dealerForm = this.fb.group({
+      name: ['', [Validators.required, Validators.pattern('[a-zA-Z]+')]],
+      division: ['', [Validators.required]],
+      town: ['', [Validators.required]],
+      category: ['', [Validators.required]],
+      modelType: ['', [Validators.required]],
+      location: ['', [Validators.required]],
     });
   }
-  initSecondForm() {
-    this.secondForm = this.fb.group({
-      first: ['', [Validators.required, Validators.pattern('[a-zA-Z]+')]],
-      last: [''],
-      password: ['', [Validators.required]],
-      email: [
-        '',
-        [Validators.required, Validators.email, Validators.minLength(5)],
-      ],
-      address: [''],
-      city: ['', [Validators.required]],
-      state: ['', [Validators.required]],
-      country: ['', [Validators.required]],
-      termcondition: [false, [Validators.requiredTrue]],
-    });
-  }
-  initThirdForm() {
-    this.thirdForm = this.fb.group({
-      first: ['', [Validators.required, Validators.pattern('[a-zA-Z]+')]],
-      last: [''],
-      password: ['', [Validators.required]],
-      email: [
-        '',
-        [Validators.required, Validators.email, Validators.minLength(5)],
-      ],
-      address: [''],
-      city: ['', [Validators.required]],
-      state: ['', [Validators.required]],
-      country: ['', [Validators.required]],
-      termcondition: [false, [Validators.requiredTrue]],
-    });
-  }
+  // initSecondForm() {
+  //   this.secondForm = this.fb.group({
+  //     name: ['', [Validators.required, Validators.pattern('[a-zA-Z]+')]],
+  //     last: [''],
+  //     password: ['', [Validators.required]],
+  //     email: [
+  //       '',
+  //       [Validators.required, Validators.email, Validators.minLength(5)],
+  //     ],
+  //     address: [''],
+  //     city: ['', [Validators.required]],
+  //     state: ['', [Validators.required]],
+  //     modelType: ['', [Validators.required]],
+  //     termcondition: [false, [Validators.requiredTrue]],
+  //   });
+  // }
+  // initThirdForm() {
+  //   this.thirdForm = this.fb.group({
+  //     name: ['', [Validators.required, Validators.pattern('[a-zA-Z]+')]],
+  //     last: [''],
+  //     password: ['', [Validators.required]],
+  //     email: [
+  //       '',
+  //       [Validators.required, Validators.email, Validators.minLength(5)],
+  //     ],
+  //     address: [''],
+  //     city: ['', [Validators.required]],
+  //     state: ['', [Validators.required]],
+  //     modelType: ['', [Validators.required]],
+  //     termcondition: [false, [Validators.requiredTrue]],
+  //   });
+  // }
   onRegister() {
-    console.log('Form Value', this.register?.value);
+    console.log('Form Value', this.dealerForm?.value);
   }
   onsecondFormSubmit() {
     console.log('Form Value', this.secondForm?.value);

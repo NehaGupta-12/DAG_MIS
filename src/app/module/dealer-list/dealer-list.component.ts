@@ -44,30 +44,50 @@ export class DealerListComponent {
     {
       id: 1,
       firstName: 'John Doe',
-      email: 'john.doe@example.com',
-      gender: 'Male',
-      birthDate: '1990-01-15',
-      mobile: '9876543210',
+      email: 'Hatchbacks',
+      gender: 'Mumbai',
+      birthDate: 'Hingna',
+      mobile: 'COCO',
       address: '123 Main St, New York',
       country: 'USA'
     },
     {
       id: 2,
       firstName: 'Jane Smith',
-      email: 'jane.smith@example.com',
-      gender: 'Female',
-      birthDate: '1985-05-23',
-      mobile: '9876501234',
+      email: 'Sedans',
+      gender: 'Pune',
+      birthDate: 'Thane',
+      mobile: 'DOCO',
       address: '456 Park Ave, London',
       country: 'UK'
     },
     {
       id: 3,
       firstName: 'Raj Kumar',
-      email: 'raj.kumar@example.com',
-      gender: 'Male',
-      birthDate: '1992-09-10',
-      mobile: '9876123456',
+      email: 'SUVs',
+      gender: 'Nagpur',
+      birthDate: 'Kharadi',
+      mobile: 'DEALER',
+      address: 'MG Road, Bangalore',
+      country: 'India'
+    },
+    {
+      id: 3,
+      firstName: 'Prashant T',
+      email: 'Hatchbacks',
+      gender: 'Mumbai',
+      birthDate: 'Pimpri',
+      mobile: 'OUTLET',
+      address: 'MG Road, Bangalore',
+      country: 'India'
+    },
+    {
+      id: 3,
+      firstName: 'Saurav S',
+      email: 'SUVs',
+      gender: 'Amravati',
+      birthDate: 'Khamla',
+      mobile: 'SHOWROOM',
       address: 'MG Road, Bangalore',
       country: 'India'
     }
@@ -78,7 +98,7 @@ export class DealerListComponent {
   // Define columns
   columnDefinitions = [
     { def: 'id', label: 'ID' },
-    { def: 'firstName', label: 'First Name' },
+    { def: 'name', label: 'Name' },
     { def: 'email', label: 'Email' },
     { def: 'gender', label: 'Gender' },
     { def: 'birthDate', label: 'Birth Date' },
