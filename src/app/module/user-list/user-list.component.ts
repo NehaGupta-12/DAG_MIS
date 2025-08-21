@@ -18,24 +18,26 @@ import {MatTooltip} from "@angular/material/tooltip";
 import {AddUserComponent} from "../add-user/add-user.component";
 import {Router} from "@angular/router";
 import {DatePipe} from "@angular/common";
+import {FeatherIconsComponent} from "@shared/components/feather-icons/feather-icons.component";
 
 @Component({
   selector: 'app-user-list',
-  imports: [
-    MatCell,
-    MatHeaderCell,
-    MatHeaderRow,
-    MatIcon,
-    MatIconButton,
-    MatPaginator,
-    MatProgressSpinner,
-    MatRow,
-    MatTable,
-    MatTooltip,
-    MatColumnDef,
-    MatTableModule,
-    DatePipe
-  ],
+    imports: [
+        MatCell,
+        MatHeaderCell,
+        MatHeaderRow,
+        MatIcon,
+        MatIconButton,
+        MatPaginator,
+        MatProgressSpinner,
+        MatRow,
+        MatTable,
+        MatTooltip,
+        MatColumnDef,
+        MatTableModule,
+        DatePipe,
+        FeatherIconsComponent
+    ],
   templateUrl: './user-list.component.html',
   styleUrl: './user-list.component.scss'
 })
@@ -96,7 +98,8 @@ export class UserListComponent {
     'birthDate',
     'mobile',
     'address',
-    'country'
+    'country',
+    'action'
   ];
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;

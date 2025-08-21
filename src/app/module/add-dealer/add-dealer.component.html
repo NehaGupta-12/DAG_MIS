@@ -8,7 +8,7 @@
 <!--    </div>-->
     <div class="row clearfix justify-content-center">
       <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12">
-        <div class="card">
+        <div class="card shadow">
           <div class="header">
             <h2>Add Outlet / Dealer</h2>
           </div>
@@ -29,22 +29,19 @@
                 </div>
                 <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 mb-2">
                   <mat-form-field class="example-full-width" appearance="outline">
-                    <mat-label>Model Type</mat-label>
-                    <mat-select formControlName="modelType" required>
-                      <mat-option [value]="'Hatchbacks'">
-                        Hatchbacks
+                    <mat-label>Outlet Type</mat-label>
+                    <mat-select formControlName="outletType" required>
+                      <mat-option [value]="'COCO'">
+                        COCO
                       </mat-option>
-                      <mat-option [value]="'Sedans'">
-                        Sedans
-                      </mat-option>
-                      <mat-option [value]="'SUVs'">
-                        SUVs
+                      <mat-option [value]="'CODO'">
+                        CODO
                       </mat-option>
                     </mat-select>
 <!--                    <mat-icon class="material-icons-outlined color-icon p-3" matSuffix>flag</mat-icon>-->
-                    @if (dealerForm?.get('modelType')?.hasError('required')) {
+                    @if (dealerForm?.get('outletType')?.hasError('required')) {
                       <mat-error>
-                        Model Type is required
+                        Outlet Type Type is required
                       </mat-error>
                     }
                   </mat-form-field>
@@ -55,17 +52,32 @@
                   <mat-form-field class="example-full-width" appearance="outline">
                     <mat-label>Division</mat-label>
                     <mat-select formControlName="division" required>
-                      <mat-option [value]="'Mumbai'">
-                        Mumbai
+                      <mat-option [value]="'us-central'">
+                        us-central
                       </mat-option>
-                      <mat-option [value]="'Pune'">
-                        Pune
+                      <mat-option [value]="'us-east'">
+                        us-east
                       </mat-option>
-                      <mat-option [value]="'Nagpur'">
-                        Nagpur
+                      <mat-option [value]="'us-west'">
+                        us-west
                       </mat-option>
-                      <mat-option [value]="'Amravati'">
-                        Amravati
+                      <mat-option [value]="'asia-east'">
+                        asia-east
+                      </mat-option>
+                      <mat-option [value]="'asia-south'">
+                        asia-south
+                      </mat-option>
+                      <mat-option [value]="'asia-southeast'">
+                        asia-southeast
+                      </mat-option>
+                      <mat-option [value]="'asia-northeast'">
+                        asia-northeast
+                      </mat-option>
+                      <mat-option [value]="'europe-west'">
+                        europe-west
+                      </mat-option>
+                      <mat-option [value]="'south-africa'">
+                        south-africa
                       </mat-option>
                     </mat-select>
                     <!--                    <mat-icon class="material-icons-outlined color-icon p-3" matSuffix>flag</mat-icon>-->
@@ -78,31 +90,31 @@
                 </div>
                 <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 mb-2">
                   <mat-form-field class="example-full-width" appearance="outline">
-                    <mat-label>Town</mat-label>
-                    <mat-select formControlName="town" required>
-                      <mat-option [value]="'Hingna'">
-                        Hingna
+                    <mat-label>Country</mat-label>
+                    <mat-select formControlName="country" required>
+                      <mat-option [value]="'USA'">
+                        USA
                       </mat-option>
-                      <mat-option [value]="'Thane'">
-                        Thane
+                      <mat-option [value]="'India'">
+                        India
                       </mat-option>
-                      <mat-option [value]="'Kharadi'">
-                        Kharadi
+                      <mat-option [value]="'UAE'">
+                        UAE
                       </mat-option>
-                      <mat-option [value]="'Khamla'">
-                        Khamla
+                      <mat-option [value]="'Saudi Arabia'">
+                        Saudi Arabia
                       </mat-option>
-                      <mat-option [value]="'Pimpri'">
-                        Pimpri
+                      <mat-option [value]="'Sri Lanka'">
+                        Sri Lanka
                       </mat-option>
-                      <mat-option [value]="'Dadar'">
-                        Dadar
+                      <mat-option [value]="'Japan'">
+                        Japan
                       </mat-option>
                     </mat-select>
                     <!--                    <mat-icon class="material-icons-outlined color-icon p-3" matSuffix>flag</mat-icon>-->
-                    @if (dealerForm?.get('town')?.hasError('required')) {
+                    @if (dealerForm?.get('country')?.hasError('required')) {
                       <mat-error>
-                        Town is required
+                        Model Type is required
                       </mat-error>
                     }
                   </mat-form-field>
@@ -110,15 +122,42 @@
               </div>
               <div class="row">
                 <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 mb-2">
+                    <mat-form-field class="example-full-width" appearance="outline">
+                      <mat-label>Town</mat-label>
+                      <mat-select formControlName="town" required>
+                        <mat-option [value]="'Hingna'">
+                          Hingna
+                        </mat-option>
+                        <mat-option [value]="'Thane'">
+                          Thane
+                        </mat-option>
+                        <mat-option [value]="'Kharadi'">
+                          Kharadi
+                        </mat-option>
+                        <mat-option [value]="'Khamla'">
+                          Khamla
+                        </mat-option>
+                        <mat-option [value]="'Pimpri'">
+                          Pimpri
+                        </mat-option>
+                        <mat-option [value]="'Dadar'">
+                          Dadar
+                        </mat-option>
+                      </mat-select>
+                      <!--                    <mat-icon class="material-icons-outlined color-icon p-3" matSuffix>flag</mat-icon>-->
+                      @if (dealerForm?.get('town')?.hasError('required')) {
+                        <mat-error>
+                          Town is required
+                        </mat-error>
+                      }
+                    </mat-form-field>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 mb-2">
                   <mat-form-field class="example-full-width" appearance="outline">
                     <mat-label>Category</mat-label>
                     <mat-select formControlName="category" required>
-                      <mat-option [value]="'COCO'">
-                        COCO
-                      </mat-option>
-                      <mat-option [value]="'DOCO'">
-                        DOCO
-                      </mat-option>
                       <mat-option [value]="'DEALER'">
                         DEALER
                       </mat-option>

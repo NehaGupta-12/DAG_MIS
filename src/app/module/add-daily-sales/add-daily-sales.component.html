@@ -8,7 +8,7 @@
 <!--    </div>-->
     <div class="row clearfix justify-content-center">
       <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12">
-        <div class="card">
+        <div class="card shadow">
           <div class="header">
             <h2>Add Daily Sales</h2>
           </div>
@@ -146,17 +146,32 @@
                   <mat-form-field class="example-full-width" appearance="outline">
                     <mat-label>Division</mat-label>
                     <mat-select formControlName="division" required>
-                      <mat-option [value]="'Mumbai'">
-                        Mumbai
+                      <mat-option [value]="'us-central'">
+                        us-central
                       </mat-option>
-                      <mat-option [value]="'Pune'">
-                        Pune
+                      <mat-option [value]="'us-east'">
+                        us-east
                       </mat-option>
-                      <mat-option [value]="'Nagpur'">
-                        Nagpur
+                      <mat-option [value]="'us-west'">
+                        us-west
                       </mat-option>
-                      <mat-option [value]="'Amravati'">
-                        Amravati
+                      <mat-option [value]="'asia-east'">
+                        asia-east
+                      </mat-option>
+                      <mat-option [value]="'asia-south'">
+                        asia-south
+                      </mat-option>
+                      <mat-option [value]="'asia-southeast'">
+                        asia-southeast
+                      </mat-option>
+                      <mat-option [value]="'asia-northeast'">
+                        asia-northeast
+                      </mat-option>
+                      <mat-option [value]="'europe-west'">
+                        europe-west
+                      </mat-option>
+                      <mat-option [value]="'south-africa'">
+                        south-africa
                       </mat-option>
                     </mat-select>
                     <!--                    <mat-icon class="material-icons-outlined color-icon p-3" matSuffix>flag</mat-icon>-->
@@ -168,6 +183,40 @@
                   </mat-form-field>
                 </div>
                 <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 mb-2">
+                  <mat-form-field class="example-full-width" appearance="outline">
+                    <mat-label>Country</mat-label>
+                    <mat-select formControlName="country" required>
+                      <mat-option [value]="'USA'">
+                        USA
+                      </mat-option>
+                      <mat-option [value]="'India'">
+                        India
+                      </mat-option>
+                      <mat-option [value]="'UAE'">
+                        UAE
+                      </mat-option>
+                      <mat-option [value]="'Saudi Arabia'">
+                        Saudi Arabia
+                      </mat-option>
+                      <mat-option [value]="'Sri Lanka'">
+                        Sri Lanka
+                      </mat-option>
+                      <mat-option [value]="'Japan'">
+                        Japan
+                      </mat-option>
+                    </mat-select>
+                    <!--                    <mat-icon class="material-icons-outlined color-icon p-3" matSuffix>flag</mat-icon>-->
+                    @if (dailySalesForm?.get('country')?.hasError('required')) {
+                      <mat-error>
+                        Model Type is required
+                      </mat-error>
+                    }
+                  </mat-form-field>
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 mb-2">
                   <mat-form-field class="example-full-width" appearance="outline">
                     <mat-label>Town</mat-label>
                     <mat-select formControlName="town" required>
@@ -199,6 +248,7 @@
                   </mat-form-field>
                 </div>
               </div>
+
               <div class="row">
                 <div class="col-12 d-flex justify-content-center">
                   <button class="btn-space" [disabled]="!dailySalesForm?.valid" mat-raised-button

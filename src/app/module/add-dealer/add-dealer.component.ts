@@ -52,9 +52,10 @@ export class AddDealerComponent {
     this.dealerForm = this.fb.group({
       name: ['', [Validators.required, Validators.pattern('[a-zA-Z]+')]],
       division: ['', [Validators.required]],
+      country: ['', [Validators.required]],
       town: ['', [Validators.required]],
       category: ['', [Validators.required]],
-      modelType: ['', [Validators.required]],
+      outletType: ['', [Validators.required]],
       location: ['', [Validators.required]],
     });
   }

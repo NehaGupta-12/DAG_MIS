@@ -18,24 +18,26 @@ import {MatSort} from "@angular/material/sort";
 import {MatDialog} from "@angular/material/dialog";
 import {Router} from "@angular/router";
 import {AddUserComponent} from "../add-user/add-user.component";
+import {FeatherIconsComponent} from "@shared/components/feather-icons/feather-icons.component";
 
 @Component({
   selector: 'app-location-product-list',
-  imports: [
-    MatCell,
-    MatHeaderCell,
-    MatHeaderRow,
-    MatIcon,
-    MatIconButton,
-    MatPaginator,
-    MatProgressSpinner,
-    MatRow,
-    MatTable,
-    MatTooltip,
-    MatColumnDef,
-    MatTableModule,
-    DatePipe
-  ],
+    imports: [
+        MatCell,
+        MatHeaderCell,
+        MatHeaderRow,
+        MatIcon,
+        MatIconButton,
+        MatPaginator,
+        MatProgressSpinner,
+        MatRow,
+        MatTable,
+        MatTooltip,
+        MatColumnDef,
+        MatTableModule,
+        DatePipe,
+        FeatherIconsComponent
+    ],
   templateUrl: './location-product-list.component.html',
   styleUrl: './location-product-list.component.scss'
 })
@@ -96,7 +98,8 @@ export class LocationProductListComponent {
     'birthDate',
     'mobile',
     'address',
-    'country'
+    'country',
+    'action'
   ];
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;

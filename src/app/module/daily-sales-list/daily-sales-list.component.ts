@@ -18,24 +18,26 @@ import {MatSort} from "@angular/material/sort";
 import {MatDialog} from "@angular/material/dialog";
 import {Router} from "@angular/router";
 import {AddUserComponent} from "../add-user/add-user.component";
+import {FeatherIconsComponent} from "@shared/components/feather-icons/feather-icons.component";
 
 @Component({
   selector: 'app-daily-sales-list',
-    imports: [
-      MatCell,
-      MatHeaderCell,
-      MatHeaderRow,
-      MatIcon,
-      MatIconButton,
-      MatPaginator,
-      MatProgressSpinner,
-      MatRow,
-      MatTable,
-      MatTooltip,
-      MatColumnDef,
-      MatTableModule,
-      DatePipe
-    ],
+  imports: [
+    MatCell,
+    MatHeaderCell,
+    MatHeaderRow,
+    MatIcon,
+    MatIconButton,
+    MatPaginator,
+    MatProgressSpinner,
+    MatRow,
+    MatTable,
+    MatTooltip,
+    MatColumnDef,
+    MatTableModule,
+    DatePipe,
+    FeatherIconsComponent
+  ],
   templateUrl: './daily-sales-list.component.html',
   styleUrl: './daily-sales-list.component.scss'
 })
@@ -49,7 +51,8 @@ export class DailySalesListComponent {
       vehicle: 'Swift VXI',
       salesQuantity: 12,
       typeOfCustomer: 'Active Customers',
-      division: 'Mumbai',
+      division: 'europe-west',
+      country: 'India',
       town: 'Hingna'
     },
     {
@@ -59,7 +62,8 @@ export class DailySalesListComponent {
       vehicle: 'Honda City ZX',
       salesQuantity: 8,
       typeOfCustomer: 'Lapsed Customers',
-      division: 'Pune',
+      division: 'asia-northeast',
+      country: 'India',
       town: 'Thane'
     },
     {
@@ -69,7 +73,8 @@ export class DailySalesListComponent {
       vehicle: 'Hyundai Creta',
       salesQuantity: 15,
       typeOfCustomer: 'Referring Customers',
-      division: 'Nagpur',
+      division: 'asia-southeast',
+      country: 'India',
       town: 'Kharadi'
     },
     {
@@ -79,7 +84,8 @@ export class DailySalesListComponent {
       vehicle: 'Royal Enfield Classic 350',
       salesQuantity: 5,
       typeOfCustomer: 'Wandering Customers',
-      division: 'Amravati',
+      division: 'asia-south',
+      country: 'India',
       town: 'Khamla'
     },
     {
@@ -89,7 +95,8 @@ export class DailySalesListComponent {
       vehicle: 'KTM Duke 200',
       salesQuantity: 10,
       typeOfCustomer: 'Active Customers',
-      division: 'Mumbai',
+      division: 'asia-east',
+      country: 'India',
       town: 'Pimpri'
     },
     {
@@ -99,7 +106,8 @@ export class DailySalesListComponent {
       vehicle: 'Swift VXI',
       salesQuantity: 7,
       typeOfCustomer: 'Wandering Customers',
-      division: 'Pune',
+      division: 'us-west',
+      country: 'India',
       town: 'Dadar'
     },
     {
@@ -109,7 +117,8 @@ export class DailySalesListComponent {
       vehicle: 'Honda City ZX',
       salesQuantity: 11,
       typeOfCustomer: 'Active Customers',
-      division: 'Nagpur',
+      division: 'us-east',
+      country: 'India',
       town: 'Hingna'
     },
     {
@@ -119,7 +128,8 @@ export class DailySalesListComponent {
       vehicle: 'Hyundai Creta',
       salesQuantity: 6,
       typeOfCustomer: 'Lapsed Customers',
-      division: 'Amravati',
+      division: 'us-central',
+      country: 'India',
       town: 'Thane'
     },
     {
@@ -129,7 +139,8 @@ export class DailySalesListComponent {
       vehicle: 'Royal Enfield Classic 350',
       salesQuantity: 9,
       typeOfCustomer: 'Referring Customers',
-      division: 'Mumbai',
+      division: 'south-africa',
+      country: 'India',
       town: 'Dadar'
     },
     {
@@ -139,7 +150,8 @@ export class DailySalesListComponent {
       vehicle: 'KTM Duke 200',
       salesQuantity: 13,
       typeOfCustomer: 'Active Customers',
-      division: 'Pune',
+      division: 'south-africa',
+      country: 'India',
       town: 'Pimpri'
     }
   ];
@@ -156,6 +168,7 @@ export class DailySalesListComponent {
     { def: 'salesQuantity', label: 'Sales Quantity' },
     { def: 'typeOfCustomer', label: 'Type Of Customer' },
     { def: 'division', label: 'Division' },
+    { def: 'country', label: 'Country' },
     { def: 'town', label: 'Town' },
   ];
 
@@ -167,6 +180,7 @@ export class DailySalesListComponent {
     'salesQuantity',
     'typeOfCustomer',
     'division',
+    'country',
     'town',
     'action'
   ];
