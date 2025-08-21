@@ -93,20 +93,17 @@
                   <mat-form-field class="example-full-width" appearance="outline">
                     <mat-label>Category</mat-label>
                     <mat-select formControlName="category" required>
-                      <mat-option [value]="'COCO'">
-                        COCO
+                      <mat-option [value]="'Tyres'">
+                        Tyres
                       </mat-option>
-                      <mat-option [value]="'DOCO'">
-                        DOCO
+                      <mat-option [value]="'Lubricants'">
+                        Lubricants
                       </mat-option>
-                      <mat-option [value]="'DEALER'">
-                        DEALER
+                      <mat-option [value]="'Spare Parts'">
+                        Spare Parts
                       </mat-option>
-                      <mat-option [value]="'OUTLET'">
-                        OUTLET
-                      </mat-option>
-                      <mat-option [value]="'SHOWROOM'">
-                        SHOWROOM
+                      <mat-option [value]="'Vehicles'">
+                        Vehicles
                       </mat-option>
                     </mat-select>
                     <!--                    <mat-icon class="material-icons-outlined color-icon p-3" matSuffix>flag</mat-icon>-->
@@ -118,6 +115,30 @@
                   </mat-form-field>
                 </div>
                 <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 mb-2">
+                  <mat-form-field class="example-full-width" appearance="outline">
+                    <mat-label>Category</mat-label>
+                    <mat-select formControlName="category" required>
+                      <mat-option [value]="'2W'">
+                        2W
+                      </mat-option>
+                      <mat-option [value]="'3W'">
+                        3W
+                      </mat-option>
+                      <mat-option [value]="'4W'">
+                        4W
+                      </mat-option>
+                    </mat-select>
+                    <!--                    <mat-icon class="material-icons-outlined color-icon p-3" matSuffix>flag</mat-icon>-->
+                    @if (productForm?.get('category')?.hasError('required')) {
+                      <mat-error>
+                        Category is required
+                      </mat-error>
+                    }
+                  </mat-form-field>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 mb-2">
                   <mat-form-field class="example-full-width" appearance="outline">
                     <mat-label>Varient</mat-label>
                     <mat-select formControlName="varient" required>
