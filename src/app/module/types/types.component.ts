@@ -8,6 +8,7 @@ import { MatOptionModule } from "@angular/material/core";
 import { MatCheckboxModule } from "@angular/material/checkbox";
 import { MatButtonModule } from "@angular/material/button";
 import { NgClass, NgForOf, NgIf } from "@angular/common";
+import {FeatherIconsComponent} from "@shared/components/feather-icons/feather-icons.component";
 
 @Component({
   selector: 'app-types',
@@ -24,6 +25,7 @@ import { NgClass, NgForOf, NgIf } from "@angular/common";
     NgIf,
     NgClass,
     NgForOf,
+    FeatherIconsComponent,
   ],
   templateUrl: './types.component.html',
   standalone: true,

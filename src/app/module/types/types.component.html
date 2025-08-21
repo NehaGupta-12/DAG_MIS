@@ -60,8 +60,11 @@
                 <td>
 <!--                  <button class="btn btn-sm btn-danger" (click)="deleteCategory(i)">Delete</button>-->
 
-                  <button mat-icon-button (click)="deleteCategory(i)">
-                    <mat-icon style="color: red; font-variation-settings: 'FILL' 1;">delete</mat-icon>
+<!--                  <button mat-icon-button (click)="deleteCategory(i)">-->
+<!--                    <mat-icon style="color: red; font-variation-settings: 'FILL' 1;">delete</mat-icon>-->
+<!--                  </button>-->
+                  <button mat-icon-button color="accent" (click)="deleteCategory(i)">
+                    <app-feather-icons [icon]="'trash-2'" [class]="'tbl-fav-delete'"></app-feather-icons>
                   </button>
 
 
@@ -124,8 +127,11 @@
               <tr *ngFor="let sub of selectedCategory.subcategories; let i = index">
                 <td>{{ sub }}</td>
                 <td>
-                  <button mat-icon-button (click)="selectedCategory.subcategories.splice(i,1)">
-                    <mat-icon style="color: red; font-variation-settings: 'FILL' 1;">delete</mat-icon>
+<!--                  <button mat-icon-button (click)="selectedCategory.subcategories.splice(i,1)">-->
+<!--                    <mat-icon style="color: red; font-variation-settings: 'FILL' 1;">delete</mat-icon>-->
+<!--                  </button>-->
+                  <button mat-icon-button color="accent" (click)="selectedCategory.subcategories.splice(i,1)">
+                    <app-feather-icons [icon]="'trash-2'" [class]="'tbl-fav-delete'"></app-feather-icons>
                   </button>
                 </td>
 
