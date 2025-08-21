@@ -31,68 +31,59 @@ import { NgClass, NgForOf, NgIf } from "@angular/common";
 })
 export class TypesComponent implements OnInit {
 
-  availableTypes: string[] = ["Division", "Town", "Types of Customer"]; // dropdown
-  selectedOption: string = '';
-  fieldValue: string = '';
-
-  // ✅ Each division will hold its own towns list
-  typeData: { [key: string]: { name: string }[] } = {};
-
-  showAddTypeForm = false;
-  showAddFieldRow = false;
-
-  typeForm!: FormGroup;
-
-  constructor(private fb: FormBuilder) {}
-
-  ngOnInit(): void {
-    this.typeForm = this.fb.group({
-      name: ['', Validators.required]
-    });
-
-    // initialize arrays for each type
-    this.availableTypes.forEach(type => this.typeData[type] = []);
-  }
+  showModal = false;
+  newCategory = '';
+  newField = '';
 
 
-  onTypeChange() {
-    this.showAddTypeForm = false;
-    this.showAddFieldRow = true;
-  }
 
-  openConfirmBeforeAddType() {
-    if (confirm('Do you want to add a new type?')) {
-      this.showAddTypeForm = true;
-      this.showAddFieldRow = false;
+  categories: any[] = [
+    { name: 'Division', subcategories: [] },
+    { name: 'Town', subcategories: [] },
+    { name: 'Types of Customer', subcategories: [] }
+  ];
+
+  selectedCategory: any = null;
+
+  ngOnInit() {
+    const saved = localStorage.getItem('categories');
+    if (saved) {
+      this.categories = JSON.parse(saved);
     }
   }
 
-  submitType() {
-    if (this.typeForm.valid) {
-      const newType = this.typeForm.value.name;
 
-      // ✅ if not already present, add in dropdown + create its list
-      if (!this.availableTypes.includes(newType)) {
-        this.availableTypes.push(newType);
-        this.typeData[newType] = [];
-      }
+  openModal() {
+    this.showModal = true;
+  }
 
-      this.selectedOption = newType;
-      this.showAddTypeForm = false;
-      this.showAddFieldRow = true;
+  closeModal() {
+    this.showModal = false;
+  }
 
-      this.typeForm.reset();
+  addCategory(name: string) {
+    if (name.trim()) {
+      this.categories.push({ name, subcategories: [] });
+      this.saveToStorage();
     }
   }
 
-  confirmAddField() {
-    if (this.fieldValue.trim() && this.selectedOption) {
-      this.typeData[this.selectedOption].push({ name: this.fieldValue });
-      this.fieldValue = '';
+  deleteCategory(index: number) {
+    this.categories.splice(index, 1);
+    this.selectedCategory = null;
+    this.saveToStorage();
+  }
+
+
+
+  addSubCategory(field: string) {
+    if (this.selectedCategory && field.trim()) {
+      this.selectedCategory.subcategories.push(field);
+      this.saveToStorage();
     }
   }
 
-  deleteItem(type: string, index: number) {
-    this.typeData[type].splice(index, 1);
+  private saveToStorage() {
+    localStorage.setItem('categories', JSON.stringify(this.categories));
   }
 }

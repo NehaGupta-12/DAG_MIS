@@ -1,75 +1,138 @@
+
 <section class="content d-flex justify-content-center align-items-center">
   <div class="content-block w-100">
     <div class="container py-4">
 
-      <!-- Select Type Row -->
+
+      <!-- Category + Add Button -->
       <div class="row mb-3">
         <div class="col-md-6 mb-2">
-          <label for="selectType" class="form-label fw-bold">Select Division</label>
-          <select class="form-select" id="selectType" [(ngModel)]="selectedOption" (change)="onTypeChange()">
-            <option value="" selected disabled>Select...</option>
-            <option *ngFor="let type of availableTypes" [value]="type">{{ type }}</option>
-          </select>
+          <h4 class="fw-bold">Category</h4>
         </div>
-        <div class="col-md-6 d-flex align-items-end mb-2">
-          <button class="btn btn-warning w-40" (click)="openConfirmBeforeAddType()">Add Type</button>
+        <div class="col-md-6 d-flex justify-content-end mb-2">
+          <button mat-fab color="primary" (click)="openModal()">Add</button>
         </div>
       </div>
 
-      <!-- Inline Add Type Form -->
-      <div *ngIf="showAddTypeForm" class="card mb-4">
-        <div class="card-body">
-          <h5 class="mb-3">Add Type</h5>
-          <form [formGroup]="typeForm" (ngSubmit)="submitType()">
+      <!-- Modal with Fade Background -->
+      <div *ngIf="showModal" class="modal-overlay">
+        <div class="modal-box card shadow">
+          <div class="card-body">
+            <h5 class="mb-3">Add Type</h5>
             <input
-              formControlName="name"
-              class="form-control mb-2"
+              type="text"
+              [(ngModel)]="newCategory"
+              class="form-control mb-3"
               placeholder="Enter Name *"
-              [ngClass]="{'is-invalid': typeForm.controls['name'].invalid && typeForm.controls['name'].touched}"
             />
-            <div *ngIf="typeForm.controls['name'].invalid && typeForm.controls['name'].touched" class="text-danger">
-              * It is Required.
+
+            <div class="d-flex justify-content-start">
+              <!-- Cancel -->
+              <button class="btn btn-secondary me-2" (click)="closeModal()">Cancel</button>
+
+              <!-- Submit -->
+              <button class="btn btn-primary"
+                      (click)="addCategory(newCategory); newCategory=''; closeModal()">
+                Submit
+              </button>
             </div>
-            <button class="btn btn-primary mt-2" type="submit" [disabled]="typeForm.invalid">
-              Submit
-            </button>
-          </form>
+          </div>
         </div>
       </div>
 
-      <!-- Add Field Row -->
-      <div class="row mb-4" *ngIf="showAddFieldRow">
+
+
+      <!-- Category Table -->
+      <div class="card mb-4">
+        <div class="card-body">
+          <h5 class="mb-3">Category List</h5>
+          <div class="table-responsive">
+            <table class="table table-bordered align-middle">
+              <thead>
+              <tr>
+                <th>Name</th>
+                <th style="width: 150px;">Actions</th>
+              </tr>
+              </thead>
+              <tbody>
+              <tr *ngFor="let cat of categories; let i = index">
+                <td>{{ cat.name }}</td>
+                <td>
+<!--                  <button class="btn btn-sm btn-danger" (click)="deleteCategory(i)">Delete</button>-->
+
+                  <button mat-icon-button (click)="deleteCategory(i)">
+                    <mat-icon style="color: red; font-variation-settings: 'FILL' 1;">delete</mat-icon>
+                  </button>
+
+
+
+                </td>
+              </tr>
+
+
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dropdown -->
+      <div class="row mb-3">
         <div class="col-md-6 mb-2">
-          <input type="text" [(ngModel)]="fieldValue" class="form-control" placeholder="Enter Town *">
+          <label class="form-label fw-bold">Select Category</label>
+          <select class="form-select" [(ngModel)]="selectedCategory">
+            <option [ngValue]="null" disabled>Select...</option>
+            <option *ngFor="let cat of categories" [ngValue]="cat">{{ cat.name }}</option>
+          </select>
+
+
+        </div>
+      </div>
+
+      <!-- Subcategory Add -->
+
+      <div *ngIf="selectedCategory" class="row mb-4">
+        <div class="col-md-6 mb-2">
+          <input type="text" [(ngModel)]="newField" class="form-control" placeholder="Enter Field *">
         </div>
         <div class="col-md-6 d-flex mb-2">
-          <button class="btn btn-primary w-40" (click)="confirmAddField()">Add {{ selectedOption }}</button>
+          <button class="btn btn-primary" (click)="addSubCategory(newField); newField=''">
+            Add {{ selectedCategory.name }}
+          </button>
         </div>
       </div>
 
-      <!-- Dynamic Tables (per type) -->
-      <div *ngFor="let type of availableTypes">
-        <div *ngIf="(typeData?.[type]?.length || 0) > 0" class="card mb-3">
-          <div class="card-body">
-            <h5 class="mb-3">{{ type }} Towns</h5>
-            <div class="table-responsive">
-              <table class="table table-bordered align-middle">
-                <thead>
-                <tr>
-                  <th>Name</th>
-                  <th style="width: 150px;">Actions</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr *ngFor="let item of typeData[type]; let i = index">
-                  <td>{{ item.name }}</td>
-                  <td>
-                    <button class="btn btn-sm btn-danger" (click)="deleteItem(type, i)">Delete</button>
-                  </td>
-                </tr>
-                </tbody>
-              </table>
-            </div>
+      <!-- Subcategory List -->
+      <div class="row mb-3">
+        <div class="col-md-6 mb-2">
+          <h4 class="fw-bold">Sub Category</h4>
+        </div>
+      </div>
+<!--      <h4 class="fw-bold mt-3 ">Sub Category</h4>-->
+      <div *ngIf="selectedCategory" class="card mb-3">
+        <div class="card-body">
+          <h5 class="mb-3">{{ selectedCategory.name }} Fields</h5>
+          <div class="table-responsive">
+            <table class="table table-bordered align-middle">
+              <thead>
+              <tr>
+                <th>Name</th>
+                <th style="width: 150px;">Actions</th>
+              </tr>
+              </thead>
+              <tbody>
+              <tr *ngFor="let sub of selectedCategory.subcategories; let i = index">
+                <td>{{ sub }}</td>
+                <td>
+                  <button mat-icon-button (click)="selectedCategory.subcategories.splice(i,1)">
+                    <mat-icon style="color: red; font-variation-settings: 'FILL' 1;">delete</mat-icon>
+                  </button>
+                </td>
+
+
+              </tr>
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
@@ -77,3 +140,4 @@
     </div>
   </div>
 </section>
+
