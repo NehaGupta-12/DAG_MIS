@@ -18,23 +18,25 @@ import {MatSort} from "@angular/material/sort";
 import {MatDialog} from "@angular/material/dialog";
 import {Router} from "@angular/router";
 import {AddUserComponent} from "../add-user/add-user.component";
+import {FeatherIconsComponent} from "@shared/components/feather-icons/feather-icons.component";
 
 @Component({
   selector: 'app-grn-list',
     imports: [
-      MatCell,
-      MatHeaderCell,
-      MatHeaderRow,
-      MatIcon,
-      MatIconButton,
-      MatPaginator,
-      MatProgressSpinner,
-      MatRow,
-      MatTable,
-      MatTooltip,
-      MatColumnDef,
-      MatTableModule,
-      DatePipe
+        MatCell,
+        MatHeaderCell,
+        MatHeaderRow,
+        MatIcon,
+        MatIconButton,
+        MatPaginator,
+        MatProgressSpinner,
+        MatRow,
+        MatTable,
+        MatTooltip,
+        MatColumnDef,
+        MatTableModule,
+        DatePipe,
+        FeatherIconsComponent
     ],
   templateUrl: './grn-list.component.html',
   styleUrl: './grn-list.component.scss'

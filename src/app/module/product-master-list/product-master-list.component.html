@@ -76,20 +76,33 @@
                 </ng-container>
 
                 <!-- Address -->
-                <ng-container matColumnDef="subCategory">
-                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Sub Category</th>
-                  <td mat-cell *matCellDef="let row">{{ row.subCategory }}</td>
+                <ng-container matColumnDef="varient">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Varient</th>
+                  <td mat-cell *matCellDef="let row">{{ row.varient }}</td>
                 </ng-container>
 
+                <!-- Address -->
+                <ng-container matColumnDef="engineCc">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Engine CC</th>
+                  <td mat-cell *matCellDef="let row">{{ row.engineCc }}</td>
+                </ng-container>
+
+                <!-- Address -->
+                <ng-container matColumnDef="unit">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Unit</th>
+                  <td mat-cell *matCellDef="let row">{{ row.unit }}</td>
+                </ng-container>
+
+                <!-- Action -->
                 <!-- Action -->
                 <ng-container matColumnDef="action">
                   <th mat-header-cell *matHeaderCellDef mat-sort-header>Action</th>
                   <td mat-cell *matCellDef="let row">
-                    <button mat-icon-button color="primary" matTooltip="Edit">
-                      <mat-icon>edit</mat-icon>
+                    <button mat-icon-button color="accent">
+                      <app-feather-icons [icon]="'edit'" [class]="'tbl-fav-edit'"></app-feather-icons>
                     </button>
-                    <button mat-icon-button color="warn" matTooltip="Delete">
-                      <mat-icon>delete</mat-icon>
+                    <button mat-icon-button color="accent">
+                      <app-feather-icons [icon]="'trash-2'" [class]="'tbl-fav-delete'"></app-feather-icons>
                     </button>
                   </td>
                 </ng-container>

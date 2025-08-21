@@ -18,25 +18,27 @@ import {AddUserComponent} from "../add-user/add-user.component";
 import {MatIcon} from "@angular/material/icon";
 import {MatProgressSpinner} from "@angular/material/progress-spinner";
 import {MatTooltip} from "@angular/material/tooltip";
+import {FeatherIconsComponent} from "@shared/components/feather-icons/feather-icons.component";
 
 @Component({
   selector: 'app-role',
-  imports: [
-    MatCell,
-    MatHeaderCell,
-    MatHeaderRow,
-    MatIcon,
-    MatIconButton,
-    MatPaginator,
-    MatProgressSpinner,
-    MatRow,
-    MatTable,
-    MatTooltip,
-    MatColumnDef,
-    MatTableModule,
-    DatePipe,
-    CommonModule
-  ],
+    imports: [
+        MatCell,
+        MatHeaderCell,
+        MatHeaderRow,
+        MatIcon,
+        MatIconButton,
+        MatPaginator,
+        MatProgressSpinner,
+        MatRow,
+        MatTable,
+        MatTooltip,
+        MatColumnDef,
+        MatTableModule,
+        DatePipe,
+        CommonModule,
+        FeatherIconsComponent
+    ],
   templateUrl: './role.component.html',
   styleUrl: './role.component.scss'
 })
@@ -97,7 +99,8 @@ export class RoleComponent {
     'birthDate',
     'mobile',
     'address',
-    'country'
+    'country',
+    'action'
   ];
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;

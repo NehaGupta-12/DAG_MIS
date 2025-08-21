@@ -8,7 +8,7 @@
 <!--    </div>-->
     <div class="row clearfix justify-content-center">
       <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12">
-        <div class="card">
+        <div class="card shadow">
           <div class="header">
             <h2>Add Product Master</h2>
           </div>
@@ -56,8 +56,30 @@
                 <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 mb-2">
                   <mat-form-field class="example-full-width" appearance="outline">
                     <mat-label>Model</mat-label>
-                    <input matInput formControlName="model">
-                    <!--                    <mat-icon class="material-icons-outlined color-icon p-3" matSuffix>face</mat-icon>-->
+                    <mat-select formControlName="model" required>
+                      <mat-option [value]="'Pulser'">
+                        Pulser
+                      </mat-option>
+                      <mat-option [value]="'Boxer'">
+                        Boxer
+                      </mat-option>
+                      <mat-option [value]="'Platina'">
+                        Platina
+                      </mat-option>
+                      <mat-option [value]="'CT'">
+                        CT
+                      </mat-option>
+                      <mat-option [value]="'RE'">
+                        RE
+                      </mat-option>
+                      <mat-option [value]="'Qute'">
+                        Maxima
+                      </mat-option>
+                      <mat-option [value]="'Maxima'">
+                        Maxima
+                      </mat-option>
+                    </mat-select>
+                    <!--                    <mat-icon class="material-icons-outlined color-icon p-3" matSuffix>flag</mat-icon>-->
                     @if (productForm?.get('model')?.hasError('required')) {
                       <mat-error>
                         Model is required
@@ -97,25 +119,98 @@
                 </div>
                 <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 mb-2">
                   <mat-form-field class="example-full-width" appearance="outline">
-                    <mat-label>Sub Category</mat-label>
-                    <mat-select formControlName="subCategory" required>
-                      <mat-option [value]="'Passenger Cars'">
-                        Passenger Cars
+                    <mat-label>Varient</mat-label>
+                    <mat-select formControlName="varient" required>
+                      <mat-option [value]="'NS160'">
+                        NS160
                       </mat-option>
-                      <mat-option [value]="'Commercial Vehicles'">
-                        Commercial Vehicles
+                      <mat-option [value]="'NS200'">
+                        NS200
                       </mat-option>
-                      <mat-option [value]="'Sports Cars'">
-                        Sports Cars
+                      <mat-option [value]="'BM150'">
+                        BM150
                       </mat-option>
-                      <mat-option [value]="'Electric Vehicles'">
-                        Electric Vehicles
+                      <mat-option [value]="'Platina 100'">
+                        Platina 100
+                      </mat-option>
+                      <mat-option [value]="'CT125X'">
+                        CT125X
+                      </mat-option>
+                      <mat-option [value]="'RE Compact'">
+                        RE Compact
+                      </mat-option>
+                      <mat-option [value]="'Maxima Cargo'">
+                        Maxima Cargo
                       </mat-option>
                     </mat-select>
                     <!--                    <mat-icon class="material-icons-outlined color-icon p-3" matSuffix>flag</mat-icon>-->
-                    @if (productForm?.get('subCategory')?.hasError('required')) {
+                    @if (productForm?.get('varient')?.hasError('required')) {
                       <mat-error>
-                        Sub Category is required
+                        Varient is required
+                      </mat-error>
+                    }
+                  </mat-form-field>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 mb-2">
+                  <mat-form-field class="example-full-width" appearance="outline">
+                    <mat-label>Engine CC</mat-label>
+                    <mat-select formControlName="engineCc" required>
+                      <mat-option [value]="'160cc'">
+                        160cc
+                      </mat-option>
+                      <mat-option [value]="'200cc'">
+                        200cc
+                      </mat-option>
+                      <mat-option [value]="'150cc'">
+                        150cc
+                      </mat-option>
+                      <mat-option [value]="'100cc'">
+                        100cc
+                      </mat-option>
+                      <mat-option [value]="'125cc'">
+                        125cc
+                      </mat-option>
+                      <mat-option [value]="'198cc'">
+                        198cc
+                      </mat-option>
+                      <mat-option [value]="'236cc'">
+                        236cc
+                      </mat-option>
+                      <mat-option [value]="'470cc'">
+                        470cc
+                      </mat-option>
+                      <mat-option [value]="'216cc'">
+                        216cc
+                      </mat-option>
+                    </mat-select>
+                    <!--                    <mat-icon class="material-icons-outlined color-icon p-3" matSuffix>flag</mat-icon>-->
+                    @if (productForm?.get('engineCc')?.hasError('required')) {
+                      <mat-error>
+                        Engine CC is required
+                      </mat-error>
+                    }
+                  </mat-form-field>
+                </div>
+                <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 mb-2">
+                  <mat-form-field class="example-full-width" appearance="outline">
+                    <mat-label>Unit Of Measurement</mat-label>
+                    <mat-select formControlName="unit" required>
+                      <mat-option [value]="'Nos'">
+                        Nos
+                      </mat-option>
+                      <mat-option [value]="'Litre'">
+                        Litre
+                      </mat-option>
+                      <mat-option [value]="'Pieces'">
+                        Pieces
+                      </mat-option>
+                    </mat-select>
+                    <!--                    <mat-icon class="material-icons-outlined color-icon p-3" matSuffix>flag</mat-icon>-->
+                    @if (productForm?.get('unit')?.hasError('required')) {
+                      <mat-error>
+                        Unit Of Measurement is required
                       </mat-error>
                     }
                   </mat-form-field>

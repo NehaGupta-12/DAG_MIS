@@ -18,6 +18,7 @@ import {MatDialog} from "@angular/material/dialog";
 import {DatePipe} from "@angular/common";
 import {Router} from "@angular/router";
 import {AddUserComponent} from "../add-user/add-user.component";
+import {FeatherIconsComponent} from "@shared/components/feather-icons/feather-icons.component";
 
 @Component({
   selector: 'app-location',
@@ -34,7 +35,8 @@ import {AddUserComponent} from "../add-user/add-user.component";
     MatTooltip,
     MatColumnDef,
     MatTableModule,
-    DatePipe
+    DatePipe,
+    FeatherIconsComponent
   ],
   templateUrl: './location.component.html',
   styleUrl: './location.component.scss'
@@ -81,7 +83,7 @@ export class LocationComponent {
       locationType: 'Head Office',
       name: 'Mumbai Central',
       locationCode: 'LOC001',
-      division: 'Mumbai',
+      division: 'us-central',
       town: 'Hingna',
       address: '123 MG Road, Mumbai',
       locationHead: 'Mr. Sharma',
@@ -92,7 +94,7 @@ export class LocationComponent {
       locationType: 'Branch',
       name: 'Pune East',
       locationCode: 'LOC002',
-      division: 'Pune',
+      division: 'us-east',
       town: 'Thane',
       address: '45 Park Street, Pune',
       locationHead: 'Ms. Iyer',
@@ -103,7 +105,7 @@ export class LocationComponent {
       locationType: 'Showroom',
       name: 'Nagpur Central',
       locationCode: 'LOC003',
-      division: 'Nagpur',
+      division: 'asia-south',
       town: 'Kharadi',
       address: '12 Residency Road, Nagpur',
       locationHead: 'Mr. Patil',
@@ -114,7 +116,7 @@ export class LocationComponent {
       locationType: 'Outlet',
       name: 'Pimpri West',
       locationCode: 'LOC004',
-      division: 'Mumbai',
+      division: 'asia-northeast',
       town: 'Pimpri',
       address: '78 MG Road, Pimpri',
       locationHead: 'Mr. Deshmukh',
@@ -125,7 +127,7 @@ export class LocationComponent {
       locationType: 'Warehouse',
       name: 'Amravati Depot',
       locationCode: 'LOC005',
-      division: 'Amravati',
+      division: 'europe-west',
       town: 'Khamla',
       address: '56 Industrial Area, Amravati',
       locationHead: 'Mr. Gupta',
@@ -158,7 +160,7 @@ export class LocationComponent {
     'town',
     'address',
     'locationHead',
-    'actions'
+    'action'
   ];
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;

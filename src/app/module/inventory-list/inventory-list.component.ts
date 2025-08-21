@@ -18,23 +18,25 @@ import {AddUserComponent} from "../add-user/add-user.component";
 import {MatIcon} from "@angular/material/icon";
 import {MatProgressSpinner} from "@angular/material/progress-spinner";
 import {MatTooltip} from "@angular/material/tooltip";
+import {FeatherIconsComponent} from "@shared/components/feather-icons/feather-icons.component";
 
 @Component({
   selector: 'app-inventory-list',
     imports: [
-      MatCell,
-      MatHeaderCell,
-      MatHeaderRow,
-      MatIcon,
-      MatIconButton,
-      MatPaginator,
-      MatProgressSpinner,
-      MatRow,
-      MatTable,
-      MatTooltip,
-      MatColumnDef,
-      MatTableModule,
-      DatePipe
+        MatCell,
+        MatHeaderCell,
+        MatHeaderRow,
+        MatIcon,
+        MatIconButton,
+        MatPaginator,
+        MatProgressSpinner,
+        MatRow,
+        MatTable,
+        MatTooltip,
+        MatColumnDef,
+        MatTableModule,
+        DatePipe,
+        FeatherIconsComponent
     ],
   templateUrl: './inventory-list.component.html',
   styleUrl: './inventory-list.component.scss'
@@ -96,7 +98,8 @@ export class InventoryListComponent {
     'birthDate',
     'mobile',
     'address',
-    'country'
+    'country',
+    'action'
   ];
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
