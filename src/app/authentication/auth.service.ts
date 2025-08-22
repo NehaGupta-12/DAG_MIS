@@ -1,115 +1,89 @@
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
-import {AngularFireAuth} from "@angular/fire/compat/auth";
-import {MatSnackBar} from "@angular/material/snack-bar";
-import {AngularFireDatabase} from "@angular/fire/compat/database";
-import {UserDataModel} from "../module/add-user/UserData.model";
-import firebase from "firebase/compat/app";
-import Auth = firebase.auth.Auth;
-import {AngularFireFunctions} from "@angular/fire/compat/functions";
-import {firstValueFrom} from "rxjs";
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { AngularFireDatabase } from '@angular/fire/compat/database';
+import { UserDataModel } from '../module/add-user/UserData.model';
+import { AngularFireFunctions } from '@angular/fire/compat/functions';
+import { firstValueFrom } from 'rxjs';
+import { AngularFireAuth } from '@angular/fire/compat/auth';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
-  constructor(public mAuth: AngularFireAuth,
-              private router: Router,
-              private auth: Auth,
-              public functions : AngularFireFunctions,
-              private mDatabase : AngularFireDatabase,
-              private _snackBar : MatSnackBar) {}
+  constructor(
+    public mAuth: AngularFireAuth,
+    private router: Router,
+    public functions: AngularFireFunctions,
+    private mDatabase: AngularFireDatabase,
+    private _snackBar: MatSnackBar
+  ) {}
 
-
-  // LOGIN: validate from localStorage
-  // login(email: string , password: string): Observable<any> {
-  //   const registeredUser = JSON.parse(localStorage.getItem('registeredUser') || '{}');
-  //
-  //   if (registeredUser.email === email && registeredUser.password === password) {
-  //     const user = { email, token: 'mock-token' };
-  //     localStorage.setItem('currentUser', JSON.stringify(user));
-  //     this.currentUserSubject.next(user);
-  //     return of(user); // success
-  //   } else {
-  //     return throwError(() => new Error('Username or password is incorrect'));
-  //   }
-  // }
   async login(email: string, password: string) {
-    localStorage.clear()
+    localStorage.clear();
     try {
       const userCredential = await this.mAuth.signInWithEmailAndPassword(
         email,
         password
       ).catch(() => {
-        this._snackBar.open('Invalid Username Or Password')._dismissAfter(3000)
+        this._snackBar.open('Invalid Username Or Password', 'Close', {
+          duration: 3000,
+        });
+        return null;
       });
+
       if (userCredential && userCredential.user) {
-        console.log('Login is Successful')
         const user = userCredential.user;
-        console.log('user in login',JSON.stringify(user))
+        console.log('Login successful:', user);
+
         localStorage.setItem('user', JSON.stringify(user));
         localStorage.setItem('uid', user.uid);
-        localStorage.setItem('userEmail', user.email!);
-        await this.setUserData(user.uid)
-        console.log('flow complete')
-      }
+        if (user.email) {
+          localStorage.setItem('userEmail', user.email);
+        }
 
-    }catch (err: unknown) {
+        await this.setUserData(user.uid);
+      }
+    } catch (err: unknown) {
       if (err instanceof Error) {
-        this._snackBar.open('Invalid password')._dismissAfter(3000)
+        this._snackBar.open('Login failed: ' + err.message, 'Close', {
+          duration: 3000,
+        });
       }
     }
   }
 
   logout(): void {
     console.log('Inside logout service');
-
     localStorage.removeItem('currentUser');
+    localStorage.removeItem('user');
+    localStorage.removeItem('uid');
+    localStorage.removeItem('userEmail');
+    localStorage.removeItem('userData');
     sessionStorage.clear();
-    // this.currentUserSubject.next(null);
 
     this.router.navigateByUrl('/authentication/signin', { replaceUrl: true });
   }
 
-  async setUserData(uid: string
-  ) {
-    console.log('into setUserData')
-    console.log(uid)
+  async setUserData(uid: string) {
     try {
       this.mDatabase
         .object<UserDataModel>('users/' + uid)
-        .valueChanges().subscribe(res => {
-        const userData = res
-        // console.log(res)
-        console.log('USERDATA===>>>', userData);
-        localStorage.setItem('userData', JSON.stringify(userData));
+        .valueChanges()
+        .subscribe((userData) => {
+          if (userData) {
+            console.log('USERDATA ===>>>', userData);
+            localStorage.setItem('userData', JSON.stringify(userData));
+          }
 
-        // const resdata = userData as UserDataModel;
-        // if (resdata.role) {
-        //   localStorage.setItem('ROLE', resdata.role);
-        //   console.log(2);
-        // }
-        //
-        // if (resdata.permissions) {
-        //   localStorage.setItem('permissions', JSON.stringify(resdata.permissions));
-        //   console.log(3);
-        // }
-
-        // console.log('JSON PERMISSIONS', JSON.parse(localStorage.getItem('permissions') || ''));
-        console.log(4);
-
-        this.router.navigate(['home/dashboard']).then(() => {
-          console.log('sending to dashboard');
-        })
-
-
-      })
+          this.router.navigate(['home/dashboard']).then(() => {
+            console.log('Redirected to dashboard');
+          });
+        });
     } catch (error) {
-      console.error(error);
+      console.error('Error in setUserData', error);
     }
-
   }
-
 
   async createUser(email: string, password: string): Promise<any> {
     const callable = this.functions.httpsCallable<
@@ -118,14 +92,14 @@ export class AuthService {
     >('createUserCallable');
 
     try {
-      const result = await firstValueFrom(callable({email, password}));
-      return result;
+      return await firstValueFrom(callable({ email, password }));
     } catch (err) {
       if (err instanceof Error) {
-        console.error(err.message);
+        console.error('Error creating user:', err.message);
       } else {
         console.error(String(err));
       }
+      throw err;
     }
   }
 }

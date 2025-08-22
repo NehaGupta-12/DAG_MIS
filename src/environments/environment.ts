@@ -1,9 +1,10 @@
 
 export const environment = {
   production: false,
-  firebase: {
+  firebaseConfig : {
     apiKey: "AIzaSyApibewYFhNYYvxl0xqr8jsGW4bi75LiFU",
     authDomain: "dag-new.firebaseapp.com",
+    databaseURL: "https://dag-new-default-rtdb.firebaseio.com",
     projectId: "dag-new",
     storageBucket: "dag-new.firebasestorage.app",
     messagingSenderId: "808094841189",
