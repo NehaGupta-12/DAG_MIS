@@ -1,4 +1,4 @@
-import {Component, ViewChild} from '@angular/core';
+import {Component, EnvironmentInjector, OnInit, runInInjectionContext, ViewChild} from '@angular/core';
 import {DatePipe} from "@angular/common";
 import {
   MatCell,
@@ -19,6 +19,8 @@ import {MatIcon} from "@angular/material/icon";
 import {MatProgressSpinner} from "@angular/material/progress-spinner";
 import {MatTooltip} from "@angular/material/tooltip";
 import {FeatherIconsComponent} from "@shared/components/feather-icons/feather-icons.component";
+import {ProductMasterService} from "../product-master.service";
+import Swal from "sweetalert2";
 
 @Component({
   selector: 'app-product-master-list',
@@ -41,7 +43,7 @@ import {FeatherIconsComponent} from "@shared/components/feather-icons/feather-ic
   templateUrl: './product-master-list.component.html',
   styleUrl: './product-master-list.component.scss'
 })
-export class ProductMasterListComponent {
+export class ProductMasterListComponent implements OnInit {
 
   users = [
     { id: 1, name: 'Bajaj Pulsar 150', sku: 'SKU001', brand: 'Bajaj', model: 'Pulser', category: 'Vehicle', varient: 'NS160', engineCc: '150cc', unit: 'Nos', subCategory: '2W' },
@@ -58,7 +60,7 @@ export class ProductMasterListComponent {
 
 
 
-  dataSource = new MatTableDataSource<any>(this.users);
+  dataSource = new MatTableDataSource<any>();
 
   // Define columns
   columnDefinitions = [
@@ -97,11 +99,32 @@ export class ProductMasterListComponent {
   // isLoading = false;
 
 
-  constructor(private dialog: MatDialog, private router: Router) {
+  constructor(private dialog: MatDialog,
+              private router: Router,
+              private productService: ProductMasterService,
+              private injector: EnvironmentInjector,
+              ) {
   }
 
   ngOnInit() {
-    // this.loadDummyData();
+    this.productList()
+  }
+
+  productList() {
+    runInInjectionContext(this.injector, () => {
+      this.productService.getProductList().subscribe((data) => {
+        this.dataSource.data = data;
+        this.dataSource.paginator = this.paginator;
+        this.dataSource.sort = this.sort;
+        console.log(this.dataSource.data)
+      });
+    });
+  }
+
+  goToEdit(row: any) {
+    this.router.navigate(['module/add-products-master'], {
+      queryParams: {data: JSON.stringify(row)}
+    });
   }
 
   // ✅ Dynamically get columns to display
@@ -136,6 +159,41 @@ export class ProductMasterListComponent {
   }
 
   isLoading: any;
+
+  delete(id: string) {
+    Swal.fire({
+      title: 'Are you sure?',
+      text: 'You will not be able to recover this Product!',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, delete it!',
+      cancelButtonText: 'No, cancel',
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // Proceed with deletion
+        runInInjectionContext(this.injector, () => {
+          this.productService.deleteProduct(id).then(() => {
+            this.productList();
+
+            // // Log activity
+            // const activity = {
+            //   date: new Date().getTime(),
+            //   section: 'Installation List',
+            //   action: 'Delete',
+            //   description: `Installation deleted by user`,
+            //   currentIp: localStorage.getItem('currentip')!,
+            // };
+            // this.mLogService.addLog(activity);
+
+            // Optional: Show success alert
+            Swal.fire('Deleted!', 'Product has been deleted.', 'success');
+          });
+        });
+      } else if (result.dismiss === Swal.DismissReason.cancel) {
+        Swal.fire('Cancelled', 'Product is safe.', 'info');
+      }
+    });
+  }
 
 
 
