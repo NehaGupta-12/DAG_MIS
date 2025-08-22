@@ -41,8 +41,10 @@
 
                 <!-- ID -->
                 <ng-container matColumnDef="id">
-                  <th mat-header-cell *matHeaderCellDef mat-sort-header>ID</th>
-                  <td mat-cell *matCellDef="let row">{{ row.id }}</td>
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Sr. No.</th>
+                  <td mat-cell *matCellDef="let row; let i = index">
+                    {{ i + 1 }}
+                  </td>
                 </ng-container>
 
                 <!-- First Name -->
@@ -96,10 +98,10 @@
                 <ng-container matColumnDef="action">
                   <th mat-header-cell *matHeaderCellDef mat-sort-header>Action</th>
                   <td mat-cell *matCellDef="let row">
-                    <button mat-icon-button color="accent">
+                    <button mat-icon-button color="accent" (click)="goToEdit(row)">
                       <app-feather-icons [icon]="'edit'" [class]="'tbl-fav-edit'"></app-feather-icons>
                     </button>
-                    <button mat-icon-button color="accent">
+                    <button mat-icon-button color="accent" (click)="delete(row.id)">
                       <app-feather-icons [icon]="'trash-2'" [class]="'tbl-fav-delete'"></app-feather-icons>
                     </button>
                   </td>
