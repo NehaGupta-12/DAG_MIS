@@ -1,6 +1,5 @@
 import {
   HTTP_INTERCEPTORS,
-  HttpClient,
   provideHttpClient,
   withInterceptorsFromDi,
 } from '@angular/common/http';
@@ -24,8 +23,17 @@ import { FeatherModule } from 'angular-feather';
 import { allIcons } from 'angular-feather/icons';
 import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
+import { environment } from '../environments/environment';
 
-export function createTranslateLoader(http: HttpClient): TranslateHttpLoader {
+// 🔥 COMPAT IMPORTS
+import { AngularFireModule } from '@angular/fire/compat';
+import { AngularFireAuthModule } from '@angular/fire/compat/auth';
+import { AngularFireDatabaseModule } from '@angular/fire/compat/database';
+import { AngularFireFunctionsModule } from '@angular/fire/compat/functions';
+
+import { HttpClient as NgHttpClient } from '@angular/common/http';
+
+export function createTranslateLoader(http: NgHttpClient): TranslateHttpLoader {
   return new TranslateHttpLoader(http, './assets/i18n/', '.json');
 }
 
@@ -34,27 +42,34 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(),
     provideRouter(APP_ROUTE),
     provideAnimations(),
-    { provide: LocationStrategy, useClass: HashLocationStrategy },
-    DirectionService,
-    LanguageService,
+
+    // ✅ AngularFire COMPAT Setup
     importProvidersFrom(
+      AngularFireModule.initializeApp(environment.firebaseConfig),
+      AngularFireAuthModule,
+      AngularFireDatabaseModule,
+      AngularFireFunctionsModule,
       TranslateModule.forRoot({
         defaultLanguage: 'en',
         loader: {
           provide: TranslateLoader,
           useFactory: createTranslateLoader,
-          deps: [HttpClient],
+          deps: [NgHttpClient],
         },
-      })
+      }),
+      FeatherModule.pick(allIcons)
     ),
+
+    { provide: LocationStrategy, useClass: HashLocationStrategy },
+    DirectionService,
+    LanguageService,
+
     { provide: MAT_DATE_LOCALE, useValue: 'en-GB' },
     { provide: DateAdapter, useClass: MomentDateAdapter },
     {
       provide: MAT_DATE_FORMATS,
       useValue: {
-        parse: {
-          dateInput: 'YYYY-MM-DD',
-        },
+        parse: { dateInput: 'YYYY-MM-DD' },
         display: {
           dateInput: 'YYYY-MM-DD',
           monthYearLabel: 'YYYY MMM',
@@ -63,7 +78,7 @@ export const appConfig: ApplicationConfig = {
         },
       },
     },
-    importProvidersFrom(FeatherModule.pick(allIcons)),
+
     provideCharts(withDefaultRegisterables()),
     provideHttpClient(withInterceptorsFromDi()),
     {
@@ -71,7 +86,6 @@ export const appConfig: ApplicationConfig = {
       useClass: JwtInterceptor,
       multi: true,
     },
-    provideHttpClient(withInterceptorsFromDi()),
     {
       provide: HTTP_INTERCEPTORS,
       useClass: ErrorInterceptor,

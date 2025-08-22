@@ -20,6 +20,7 @@ import {DailySalesListComponent} from "./daily-sales-list/daily-sales-list.compo
 import {AddDailySalesComponent} from "./add-daily-sales/add-daily-sales.component";
 import {GRNListComponent} from "./grn-list/grn-list.component";
 import {AddGRNComponent} from "./add-grn/add-grn.component";
+import {ShowroomListComponent} from "./showroom-list/showroom-list.component";
 
 export const MODULES_ROUTE: Route[] = [
   {
@@ -102,6 +103,10 @@ export const MODULES_ROUTE: Route[] = [
   {
     path: 'daily-sale-reports',
     component: DailySaleReportsComponent
+  },
+  {
+    path: 'showroom-list',
+    component: ShowroomListComponent
   },
   { path: '**', component: Page404Component },
 ];
