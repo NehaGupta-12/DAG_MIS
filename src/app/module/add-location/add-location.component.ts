@@ -1,4 +1,4 @@
-import {Component, EnvironmentInjector, Inject, runInInjectionContext} from '@angular/core';
+import {Component, EnvironmentInjector, Inject, OnInit, runInInjectionContext} from '@angular/core';
 import {
   FormGroup,
   FormsModule,
@@ -17,6 +17,7 @@ import {Location} from "@angular/common";
 import {MAT_DIALOG_DATA, MatDialogModule} from "@angular/material/dialog";
 import {LocationService} from "../location.service";
 import Swal from "sweetalert2";
+import {ActivatedRoute} from "@angular/router";
 
 @Component({
   selector: 'app-add-location',
@@ -38,11 +39,7 @@ import Swal from "sweetalert2";
   templateUrl: './add-location.component.html',
   styleUrl: './add-location.component.scss'
 })
-export class AddLocationComponent {
-  // Form 1
-  // locationForm?: UntypedFormGroup;
-  // hide = true;
-  // Form 2
+export class AddLocationComponent implements OnInit {
   uniqueCountries: any[] = [];
   isEditMode: boolean = false;
   locationForm: FormGroup;
@@ -59,7 +56,8 @@ export class AddLocationComponent {
               private location: Location,
               private locationService: LocationService,
               private injector: EnvironmentInjector,
-              @Inject(MAT_DIALOG_DATA) public data: any
+              private route: ActivatedRoute,
+              @Inject(MAT_DIALOG_DATA) public data: any,
   ) {
     // this.initForm();
     this.isEditMode = !!data?.id;
@@ -76,67 +74,87 @@ export class AddLocationComponent {
   }
 
   ngOnInit() {
-    this.uniqueCountries = [...new Set(this.users.map((u:any) => u.country))];
-    console.log(this.uniqueCountries);
-  }
+    this.route.queryParams.subscribe(params => {
+      if (params['data']) {
+        const rowData = JSON.parse(params['data']);
+        console.log('Received row data:', rowData);
 
-onRegister() {
-  if (this.locationForm.valid) {
-    Swal.fire({
-      title: 'Add Location Details?',
-      text: 'Are you sure you want to proceed?',
-      icon: 'question',
-      showCancelButton: true,
-      confirmButtonText: 'Yes',
-      cancelButtonText: 'No'
-    }).then((result: any) => {
-      if (result.isConfirmed) {
-        const {...locationData} = this.locationForm.getRawValue();
+        // ✅ Patch data to form
+        this.locationForm.patchValue(rowData);
 
-        const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-        const username = userData.userName || 'Unknown User';
-        const timestamp = Date.now();
-
-        const transformedData: any = {
-          ...locationData,
-          status: 'Active',
-          createBy: username,
-          createdAt: timestamp
-        };
-
-        // 🔍 Duplicate check
-        const isDuplicate = this.users?.some((entry: any) =>
-          entry.name === locationData.name &&
-          entry.country === locationData.country
-        );
-
-        if (isDuplicate) {
-          Swal.fire({
-            icon: 'warning',
-            title: 'Duplicate Entry',
-            text: 'This Location already exists.',
-          });
-          return;
+        // ✅ Check if ID exists
+        if (rowData.id) {
+          this.isEditMode = true;
+          this.data = rowData; // ✅ Store it for later
         }
-
-        // ✅ Use runInInjectionContext to restore Angular DI context
-        runInInjectionContext(this.injector, () => {
-          this.locationService.addLocation(transformedData)
-            .then(() => {
-              Swal.fire('Added!', 'Location Details added successfully.', 'success');
-              this.goBack();
-            })
-            .catch(error => {
-              console.error('Error adding Location Details:', error);
-              Swal.fire('Error', 'Something went wrong.', 'error');
-            });
-        });
       }
     });
-  } else {
-    console.log('Form is invalid:', this.locationForm.errors);
   }
-}
+
+
+
+  onRegister() {
+    if (this.locationForm.valid) {
+      Swal.fire({
+        title: this.isEditMode ? 'Update Location Details?' : 'Add Location Details?',
+        text: 'Are you sure you want to proceed?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Yes',
+        cancelButtonText: 'No'
+      }).then((result: any) => {
+        if (result.isConfirmed) {
+          const { ...locationData } = this.locationForm.getRawValue();
+
+          const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+          const username = userData.userName || 'Unknown User';
+          const timestamp = Date.now();
+
+          const transformedData: any = {
+            ...locationData,
+          };
+
+          if (this.isEditMode && this.data.id) {
+            transformedData.updateBy = username;
+            transformedData.updatedAt = timestamp;
+
+            runInInjectionContext(this.injector, () => {
+              this.locationService.updateLocation(this.data.id, transformedData)
+                .then(() => {
+                  Swal.fire('Updated!', 'Location Details updated successfully.', 'success');
+                  this.goBack();
+                })
+                .catch(error => {
+                  console.error('Error updating Location Details:', error);
+                  Swal.fire('Error', 'Something went wrong.', 'error');
+                });
+            });
+          } else {
+            // ➕ Add logic
+            transformedData.status = 'Active';
+            transformedData.createBy = username;
+            transformedData.createdAt = timestamp;
+
+            runInInjectionContext(this.injector, () => {
+              this.locationService.addLocation(transformedData)
+                .then(() => {
+                  Swal.fire('Added!', 'Location Details added successfully.', 'success');
+                  this.goBack();
+                })
+                .catch(error => {
+                  console.error('Error adding Location Details:', error);
+                  Swal.fire('Error', 'Something went wrong.', 'error');
+                });
+            });
+          }
+        }
+      });
+    } else {
+      console.log('Form is invalid:', this.locationForm.errors);
+    }
+  }
+
+
 
 goBack() {
     this.location.back();

@@ -199,7 +199,9 @@
               <div class="row">
                 <div class="col-12 d-flex justify-content-center">
                   <button class="btn-space" [disabled]="!locationForm?.valid" mat-raised-button
-                          color="primary">Submit</button>
+                          color="primary">
+                    {{ isEditMode ? 'Update' : 'Submit' }}
+                  </button>
                   <button type="button" mat-raised-button color="warn" (click)="goBack()">Back</button>
                 </div>
               </div>

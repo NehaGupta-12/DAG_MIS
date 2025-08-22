@@ -1,4 +1,4 @@
-import {Component, ViewChild} from '@angular/core';
+import {Component, EnvironmentInjector, OnInit, runInInjectionContext, ViewChild} from '@angular/core';
 import {
   MatCell,
   MatColumnDef,
@@ -19,6 +19,8 @@ import {DatePipe} from "@angular/common";
 import {Router} from "@angular/router";
 import {AddUserComponent} from "../add-user/add-user.component";
 import {FeatherIconsComponent} from "@shared/components/feather-icons/feather-icons.component";
+import {LocationService} from "../location.service";
+import Swal from "sweetalert2";
 
 @Component({
   selector: 'app-location',
@@ -41,7 +43,7 @@ import {FeatherIconsComponent} from "@shared/components/feather-icons/feather-ic
   templateUrl: './location.component.html',
   styleUrl: './location.component.scss'
 })
-export class LocationComponent {
+export class LocationComponent implements OnInit {
 
   // users = [
   //   {
@@ -135,19 +137,19 @@ export class LocationComponent {
   ];
 
 
-  dataSource = new MatTableDataSource<any>(this.users);
+  dataSource = new MatTableDataSource<any>();
 
   // Define columns
   columnDefinitions = [
-    { def: 'id', label: 'ID' },
-    { def: 'name', label: 'Name' },
-    { def: 'country', label: 'Country' },
-    { def: 'locationType', label: 'Location Type' },
-    { def: 'locationCode', label: 'Location Code' },
-    { def: 'division', label: 'Division' },
-    { def: 'town', label: 'Town' },
-    { def: 'address', label: 'Address' },
-    { def: 'locationHead', label: 'Location Head' },
+    {def: 'id', label: 'ID'},
+    {def: 'name', label: 'Name'},
+    {def: 'country', label: 'Country'},
+    {def: 'locationType', label: 'Location Type'},
+    {def: 'locationCode', label: 'Location Code'},
+    {def: 'division', label: 'Division'},
+    {def: 'town', label: 'Town'},
+    {def: 'address', label: 'Address'},
+    {def: 'locationHead', label: 'Location Head'},
   ];
 
   displayedColumns: string[] = [
@@ -172,11 +174,32 @@ export class LocationComponent {
   // isLoading = false;
 
 
-  constructor(private dialog: MatDialog, private router: Router) {
+  constructor(private dialog: MatDialog,
+              private router: Router,
+              private locationService: LocationService,
+              private injector: EnvironmentInjector,
+  ) {
   }
 
   ngOnInit() {
-    // this.loadDummyData();
+    this.loadLocationList()
+  }
+
+  loadLocationList() {
+    runInInjectionContext(this.injector, () => {
+      this.locationService.getLocationList().subscribe((data) => {
+        this.dataSource.data = data;
+        this.dataSource.paginator = this.paginator;
+        this.dataSource.sort = this.sort;
+        console.log(this.dataSource.data)
+      });
+    });
+  }
+
+  goToEdit(row: any) {
+    this.router.navigate(['module/add-location'], {
+      queryParams: {data: JSON.stringify(row)}
+    });
   }
 
   // ✅ Dynamically get columns to display
@@ -191,7 +214,7 @@ export class LocationComponent {
     });
   }
 
-  navigateToAddLocation(){
+  navigateToAddLocation() {
     this.router.navigate(['module/add-location']);
   }
 
@@ -211,5 +234,40 @@ export class LocationComponent {
   }
 
   isLoading: any;
+
+  delete(id: string) {
+    Swal.fire({
+      title: 'Are you sure?',
+      text: 'You will not be able to recover this Installation!',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, delete it!',
+      cancelButtonText: 'No, cancel',
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // Proceed with deletion
+        runInInjectionContext(this.injector, () => {
+          this.locationService.deleteLocation(id).then(() => {
+            this.loadLocationList();
+
+            // // Log activity
+            // const activity = {
+            //   date: new Date().getTime(),
+            //   section: 'Installation List',
+            //   action: 'Delete',
+            //   description: `Installation deleted by user`,
+            //   currentIp: localStorage.getItem('currentip')!,
+            // };
+            // this.mLogService.addLog(activity);
+
+            // Optional: Show success alert
+            Swal.fire('Deleted!', 'Installation has been deleted.', 'success');
+          });
+        });
+      } else if (result.dismiss === Swal.DismissReason.cancel) {
+        Swal.fire('Cancelled', 'Installation is safe.', 'info');
+      }
+    });
+  }
 
 }
