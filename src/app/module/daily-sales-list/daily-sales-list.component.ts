@@ -1,4 +1,4 @@
-import {Component, ViewChild} from '@angular/core';
+import {Component, EnvironmentInjector, OnInit, runInInjectionContext, ViewChild} from '@angular/core';
 import {DatePipe} from "@angular/common";
 import {
   MatCell,
@@ -19,6 +19,8 @@ import {MatDialog} from "@angular/material/dialog";
 import {Router} from "@angular/router";
 import {AddUserComponent} from "../add-user/add-user.component";
 import {FeatherIconsComponent} from "@shared/components/feather-icons/feather-icons.component";
+import {DailySalesService} from "../daily-sales.service";
+import Swal from "sweetalert2";
 
 @Component({
   selector: 'app-daily-sales-list',
@@ -41,7 +43,7 @@ import {FeatherIconsComponent} from "@shared/components/feather-icons/feather-ic
   templateUrl: './daily-sales-list.component.html',
   styleUrl: './daily-sales-list.component.scss'
 })
-export class DailySalesListComponent {
+export class DailySalesListComponent implements OnInit {
 
   users = [
     {
@@ -157,7 +159,7 @@ export class DailySalesListComponent {
   ];
 
 
-  dataSource = new MatTableDataSource<any>(this.users);
+  dataSource = new MatTableDataSource<any>();
 
   // Define columns
   columnDefinitions = [
@@ -194,17 +196,33 @@ export class DailySalesListComponent {
   // isLoading = false;
 
 
-  constructor(private dialog: MatDialog, private router: Router) {
+  constructor(private dialog: MatDialog,
+              private router: Router,
+              private injector: EnvironmentInjector,
+              private dailySlaes: DailySalesService,
+              ) {
   }
 
   ngOnInit() {
-    // this.loadDummyData();
+    this.loadLocationList()
   }
 
-  // ✅ Dynamically get columns to display
-  // getDisplayedColumns(): string[] {
-  //   return this.columnDefinitions.filter(cd => cd.visible).map(cd => cd.def);
-  // }
+  loadLocationList() {
+    runInInjectionContext(this.injector, () => {
+      this.dailySlaes.getDailySalesList().subscribe((data) => {
+        this.dataSource.data = data;
+        this.dataSource.paginator = this.paginator;
+        this.dataSource.sort = this.sort;
+        console.log(this.dataSource.data)
+      });
+    });
+  }
+
+  goToEdit(row: any) {
+    this.router.navigate(['module/add-daily-sales'], {
+      queryParams: {data: JSON.stringify(row)}
+    });
+  }
 
   openDialog() {
     this.dialog.open(AddUserComponent, {
@@ -234,6 +252,40 @@ export class DailySalesListComponent {
 
   isLoading: any;
 
+  delete(id: string) {
+    Swal.fire({
+      title: 'Are you sure?',
+      text: 'You will not be able to recover this Daily Sales!',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, delete it!',
+      cancelButtonText: 'No, cancel',
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // Proceed with deletion
+        runInInjectionContext(this.injector, () => {
+          this.dailySlaes.deleteDailySales(id).then(() => {
+            this.loadLocationList();
+
+            // // Log activity
+            // const activity = {
+            //   date: new Date().getTime(),
+            //   section: 'Installation List',
+            //   action: 'Delete',
+            //   description: `Installation deleted by user`,
+            //   currentIp: localStorage.getItem('currentip')!,
+            // };
+            // this.mLogService.addLog(activity);
+
+            // Optional: Show success alert
+            Swal.fire('Deleted!', 'Daily Sales has been deleted.', 'success');
+          });
+        });
+      } else if (result.dismiss === Swal.DismissReason.cancel) {
+        Swal.fire('Cancelled', 'Daily Sales is safe.', 'info');
+      }
+    });
+  }
 
 
 }
