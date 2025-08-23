@@ -1,61 +1,59 @@
-import { Injectable } from '@angular/core';
-import { AngularFirestore } from '@angular/fire/compat/firestore';
-import { Observable } from 'rxjs';
-import { map, take } from 'rxjs/operators';
+import {Injectable} from '@angular/core';
+import {AngularFirestore} from "@angular/fire/compat/firestore";
+import {Observable} from "rxjs";
+import {map} from "rxjs/operators";
 
-@Injectable({ providedIn: 'root' })
-export class DealerService {
-  private collectionName = 'dealers';
+@Injectable({
+  providedIn: 'root'
+})
+export class AddDealerService {
+  constructor(private firestore: AngularFirestore) {}
+  private collectionName = "dealer";
 
-  constructor(private afs: AngularFirestore) {}
-
-  // READ all dealers
-  getDealerList(startAfter?: any): Observable<any[]> {
-    return this.afs
+  // Fetch all callSheet with pagination
+  getDealerList(startAfter?: any): Observable<any> {
+    return this.firestore
       .collection(this.collectionName, (ref) => {
-        let query = ref.orderBy('createdAt', 'desc');
+        let query = ref.orderBy('createdAt','desc');
         if (startAfter) query = query.startAfter(startAfter);
         return query;
       })
       .snapshotChanges()
-      .pipe(
-        map((actions) =>
-          actions.map((a) => {
-            const data = a.payload.doc.data() as Record<string, any>;
-            const id = a.payload.doc.id;
-            return { id, ...data };
-          })
-        )
-      );
+      .pipe(map((actions) => actions.map((a) => {
+        const data = a.payload.doc.data();
+        const id = a.payload.doc.id;
+        return { id, ...(data as any) };
+      })));
   }
 
-  // CREATE with duplicate check
-  async addDealer(dealer: any) {
-    const existing = await this.afs
-      .collection(this.collectionName, ref =>
-        ref.where('name', '==', dealer.name).limit(1)
-      )
-      .get()
-      .pipe(take(1))
-      .toPromise();
-
-    if (!existing?.empty) {
-      console.warn(`⚠️ Dealer with name "${dealer.name}" already exists!`);
-      return Promise.reject(`Dealer "${dealer.name}" already exists`);
-    }
-
-    return this.afs
-      .collection(this.collectionName)
-      .add({ ...dealer, createdAt: new Date() });
+  addDealer(callSheet: any): Promise<any> {
+    console.log('Calling Firestore addCallSheet with data:', callSheet);
+    return this.firestore.collection(this.collectionName).add(callSheet)
+      .then((result) => {
+        console.log('Firestore successfully added Call Sheet Log:', result);
+        return result;
+      })
+      .catch((error) => {
+        console.error('Firestore failed to add Call Sheet Log:', error);
+        throw error;
+      });
   }
 
-  // UPDATE
-  updateDealer(id: string, dealer: any): Promise<void> {
-    return this.afs.collection(this.collectionName).doc(id).update(dealer);
+  updateDealer(id: string, callSheet: any): Promise<any> {
+    console.log('Calling Firestore updateCallSheet with ID:', id, ' and data:', callSheet);
+    return this.firestore.collection(this.collectionName).doc(id).update(callSheet)
+      .then((result) => {
+        console.log('Firestore successfully updated Call Sheet Log:', result);
+        return result;
+      })
+      .catch((error) => {
+        console.error('Firestore failed to update Call Sheet Log:', error);
+        throw error;
+      });
   }
 
-  // DELETE
-  deleteDealer(id: string): Promise<void> {
-    return this.afs.collection(this.collectionName).doc(id).delete();
+  deleteDealer(id: string) {
+    return this.firestore.doc(`${this.collectionName}/${id}`).delete();
   }
+
 }

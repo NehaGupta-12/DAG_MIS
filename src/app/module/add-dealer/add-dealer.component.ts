@@ -1,21 +1,28 @@
-import { Component, EnvironmentInjector, runInInjectionContext } from '@angular/core';
-import { CommonModule, Location, NgIf, NgFor } from '@angular/common';
-import { FormsModule, ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup, Validators } from "@angular/forms";
-import { MatFormFieldModule } from "@angular/material/form-field";
-import { MatInputModule } from "@angular/material/input";
-import { MatIconModule } from "@angular/material/icon";
-import { MatSelectModule } from "@angular/material/select";
-import { MatOptionModule } from "@angular/material/core";
-import { MatCheckboxModule } from "@angular/material/checkbox";
-import { MatButtonModule } from "@angular/material/button";
-import { Router } from "@angular/router";
-import { DealerService } from '../add-dealer.service';
+import {Component, EnvironmentInjector, Inject, OnInit, runInInjectionContext} from '@angular/core';
+import {
+  FormGroup,
+  FormsModule,
+  ReactiveFormsModule,
+  UntypedFormBuilder,
+  Validators
+} from "@angular/forms";
+import {MatButtonModule} from "@angular/material/button";
+import {MatCheckboxModule} from "@angular/material/checkbox";
+import {MatInputModule} from "@angular/material/input";
+import {MatFormFieldModule} from "@angular/material/form-field";
+import {MatIconModule} from "@angular/material/icon";
+import {MatSelectModule} from "@angular/material/select";
+import {MatOptionModule} from "@angular/material/core";
+import {Location} from "@angular/common";
+import {MAT_DIALOG_DATA, MatDialogModule} from "@angular/material/dialog";
+import {AddDealerService} from "../add-dealer.service";
+import Swal from "sweetalert2";
+import {ActivatedRoute} from "@angular/router";
 
 @Component({
   selector: 'app-add-dealer',
   standalone: true,
   imports: [
-    CommonModule,
     FormsModule,
     ReactiveFormsModule,
     MatFormFieldModule,
@@ -25,104 +32,132 @@ import { DealerService } from '../add-dealer.service';
     MatOptionModule,
     MatCheckboxModule,
     MatButtonModule,
-    NgIf,
-    NgFor,   // ✅ for looping dealers
+    MatDialogModule
+  ],
+  providers: [
+    { provide: MAT_DIALOG_DATA, useValue: {} } // ✅ Fallback
   ],
   templateUrl: './add-dealer.component.html',
   styleUrls: ['./add-dealer.component.scss']
 })
-export class AddDealerComponent {
-  dealerForm!: UntypedFormGroup;
-  dealers: any[] = [];   // ✅ store fetched dealers
+export class AddDealerComponent implements OnInit{
+  uniqueCountries: any[] = [];
+  isEditMode: boolean = false;
+  dealerForm: FormGroup;
 
-  constructor(
-    private fb: UntypedFormBuilder,
-    private dealerService: DealerService,
-    private injector: EnvironmentInjector,
-    private location: Location,
-    private router: Router
+  breadscrums = [
+    {
+      title: 'Examples',
+      items: ['Forms'],
+      active: 'Examples',
+    },
+  ];
+  private users: any;
+  constructor(private fb: UntypedFormBuilder,
+              private dealer: Location,
+              private addDealerService: AddDealerService,
+              private injector: EnvironmentInjector,
+              private route: ActivatedRoute,
+              @Inject(MAT_DIALOG_DATA) public data: any,
   ) {
-    this.initForm();
-    this.loadDealers();   // ✅ fetch list on init
-  }
-
-  // ✅ Initialize form
-  initForm() {
+    // this.initForm();
+    this.isEditMode = !!data?.id;
     this.dealerForm = this.fb.group({
-      name: ['', [Validators.required, Validators.pattern('[a-zA-Z ]+')]],
-      division: ['', [Validators.required]],
+      name: ['', [Validators.required, Validators.pattern('[a-zA-Z]+')]],
       country: ['', [Validators.required]],
+      outletType: ['', [Validators.required]],
+      // locationCode: ['', [Validators.required]],
+      division: ['', [Validators.required]],
       town: ['', [Validators.required]],
       category: ['', [Validators.required]],
-      outletType: ['', [Validators.required]],
       location: ['', [Validators.required]],
     });
-
-    console.log("🟢 Dealer form initialized:", this.dealerForm.value);
   }
 
-  // ✅ Load dealers
-  loadDealers() {
-    console.log("🔵 Fetching dealer list...");
-    runInInjectionContext(this.injector, () => {
-      this.dealerService.getDealerList().subscribe({
-        next: (data) => {
-          this.dealers = data;
-          console.log("📦 Dealers fetched:", this.dealers);
-        },
-        error: (err) => console.error("❌ Error loading dealers:", err),
-      });
+  ngOnInit() {
+    this.route.queryParams.subscribe(params => {
+      if (params['data']) {
+        const rowData = JSON.parse(params['data']);
+        console.log('Received row data:', rowData);
+
+        // ✅ Patch data to form
+        this.dealerForm.patchValue(rowData);
+
+        // ✅ Check if ID exists
+        if (rowData.id) {
+          this.isEditMode = true;
+          this.data = rowData; // ✅ Store it for later
+        }
+      }
     });
   }
 
-  // ✅ Add Dealer
-  submitForm() {
-    console.log("🟡 Submit button clicked. Form value:", this.dealerForm.value);
 
+
+  submitForm() {
     if (this.dealerForm.valid) {
-      runInInjectionContext(this.injector, () => {
-        this.dealerService.addDealer(this.dealerForm.value)
-          .then(() => {
-            console.log("✅ Dealer added successfully:", this.dealerForm.value);
-            this.dealerForm.reset();
-            this.loadDealers();   // ✅ refresh list after adding
-          })
-          .catch(err => console.error("❌ Failed to add dealer:", err));
+      Swal.fire({
+        title: this.isEditMode ? 'Update Location Details?' : 'Add Location Details?',
+        text: 'Are you sure you want to proceed?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Yes',
+        cancelButtonText: 'No'
+      }).then((result: any) => {
+        if (result.isConfirmed) {
+          const { ...locationData } = this.dealerForm.getRawValue();
+
+          const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+          const username = userData.userName || 'Unknown User';
+          const timestamp = Date.now();
+
+          const transformedData: any = {
+            ...locationData,
+          };
+
+          if (this.isEditMode && this.data.id) {
+            transformedData.updateBy = username;
+            transformedData.updatedAt = timestamp;
+
+            runInInjectionContext(this.injector, () => {
+              this.addDealerService.updateDealer(this.data.id, transformedData)
+                .then(() => {
+                  Swal.fire('Updated!', 'Location Details updated successfully.', 'success');
+                  this.goBack();
+                })
+                .catch(error => {
+                  console.error('Error updating Location Details:', error);
+                  Swal.fire('Error', 'Something went wrong.', 'error');
+                });
+            });
+          } else {
+            // ➕ Add logic
+            transformedData.status = 'Active';
+            transformedData.createBy = username;
+            transformedData.createdAt = timestamp;
+
+            runInInjectionContext(this.injector, () => {
+              this.addDealerService.addDealer(transformedData)
+                .then(() => {
+                  Swal.fire('Added!', 'Location Details added successfully.', 'success');
+                  this.goBack();
+                })
+                .catch(error => {
+                  console.error('Error adding Location Details:', error);
+                  Swal.fire('Error', 'Something went wrong.', 'error');
+                });
+            });
+          }
+        }
       });
     } else {
-      console.warn("⚠️ Form is invalid. Current value:", this.dealerForm.value);
+      console.log('Form is invalid:', this.dealerForm.errors);
     }
   }
 
-  // ✅ Update Dealer
-  updateDealer(id: string, dealerData: any) {
-    console.log(`🟠 Updating dealer with id=${id}`, dealerData);
-    runInInjectionContext(this.injector, () => {
-      this.dealerService.updateDealer(id, dealerData)
-        .then(() => {
-          console.log("✅ Dealer updated successfully!");
-          this.loadDealers();
-        })
-        .catch(err => console.error("❌ Update failed:", err));
-    });
-  }
 
-  // ✅ Delete Dealer
-  deleteDealer(id: string) {
-    console.log(`🔴 Deleting dealer with id=${id}`);
-    runInInjectionContext(this.injector, () => {
-      this.dealerService.deleteDealer(id)
-        .then(() => {
-          console.log("✅ Dealer deleted successfully!");
-          this.loadDealers();
-        })
-        .catch(err => console.error("❌ Delete failed:", err));
-    });
-  }
 
-  // ✅ Back Navigation
   goBack() {
-    console.log("↩️ Back button clicked");
-    this.location.back();
+    this.dealer.back();
   }
 }

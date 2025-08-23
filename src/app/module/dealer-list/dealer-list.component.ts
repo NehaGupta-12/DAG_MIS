@@ -1,18 +1,26 @@
-import { Component, EnvironmentInjector, runInInjectionContext, ViewChild } from '@angular/core';
-import { DatePipe } from "@angular/common";
+import {Component, EnvironmentInjector, OnInit, runInInjectionContext, ViewChild} from '@angular/core';
 import {
-  MatCell, MatColumnDef, MatHeaderCell, MatHeaderRow, MatRow,
-  MatTable, MatTableDataSource, MatTableModule
+  MatCell,
+  MatColumnDef,
+  MatHeaderCell,
+  MatHeaderRow,
+  MatRow,
+  MatTable,
+  MatTableDataSource, MatTableModule
 } from "@angular/material/table";
-import { MatIconButton } from "@angular/material/button";
-import { MatPaginator } from "@angular/material/paginator";
-import { MatSort } from "@angular/material/sort";
-import { MatIcon } from "@angular/material/icon";
-import { MatProgressSpinner } from "@angular/material/progress-spinner";
-import { MatTooltip } from "@angular/material/tooltip";
-import { FeatherIconsComponent } from "@shared/components/feather-icons/feather-icons.component";
-import { DealerService } from '../add-dealer.service';
-import { Router } from "@angular/router";
+import {MatPaginator} from "@angular/material/paginator";
+import {MatSort} from "@angular/material/sort";
+import {MatProgressSpinner} from "@angular/material/progress-spinner";
+import {MatIcon} from "@angular/material/icon";
+import {MatIconButton} from "@angular/material/button";
+import {MatTooltip} from "@angular/material/tooltip";
+import {MatDialog} from "@angular/material/dialog";
+import {DatePipe} from "@angular/common";
+import {Router} from "@angular/router";
+import {AddUserComponent} from "../add-user/add-user.component";
+import {FeatherIconsComponent} from "@shared/components/feather-icons/feather-icons.component";
+import {AddDealerService} from "../add-dealer.service";
+import Swal from "sweetalert2";
 
 @Component({
   selector: 'app-dealer-list',
@@ -36,46 +44,87 @@ import { Router } from "@angular/router";
   standalone: true,
   styleUrls: ['./dealer-list.component.scss']
 })
-export class DealerListComponent {
-  dataSource = new MatTableDataSource<any>([]);
+export class DealerListComponent implements OnInit{
+  dataSource = new MatTableDataSource<any>();
+
+  // Define columns
+  columnDefinitions = [
+    {def: 'serial', label: 'Serial'},
+    {def: 'name', label: 'Name'},
+    {def: 'country', label: 'Country'},
+    {def: 'type', label: 'Type'},
+    {def: 'division', label: 'Division'},
+    {def: 'town', label: 'Town'},
+    {def: 'category', label: 'category'},
+    {def: 'location', label: 'Location '},
+  ];
+
+  users = [
+
+  ];
+
+
   displayedColumns: string[] = [
     'serial',
     'name',
-    'outletType',
-    'division',
     'country',
+    'type',
+    'division',
     'town',
     'category',
     'location',
     'action'
   ];
 
-  isLoading = true;
-
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
 
-  constructor(private injector: EnvironmentInjector) {}
 
-  ngOnInit() {
-    this.loadDealers();
+
+
+
+  constructor(private dialog: MatDialog,
+              private router: Router,
+              private addDealerService: AddDealerService,
+              private injector: EnvironmentInjector,
+  ) {
   }
 
-  loadDealers() {
-    this.isLoading = true;
+  ngOnInit() {
+    this.loadLocationList()
+  }
+
+  loadLocationList() {
     runInInjectionContext(this.injector, () => {
-      const dealerService = this.injector.get(DealerService);
-      dealerService.getDealerList().subscribe({
-        next: (dealers) => {
-          this.dataSource.data = dealers;
-          this.isLoading = false;
-        },
-        error: (err) => {
-          console.error("❌ Error fetching dealers:", err);
-          this.isLoading = false;
-        }
+      this.addDealerService.getDealerList().subscribe((data) => {
+        this.dataSource.data = data;
+        this.dataSource.paginator = this.paginator;
+        this.dataSource.sort = this.sort;
+        console.log(this.dataSource.data)
       });
     });
+  }
+
+  editDealer(row: any) {
+    this.router.navigate(['module/add-dealer'], {
+      queryParams: {data: JSON.stringify(row)}
+    });
+  }
+
+  // ✅ Dynamically get columns to display
+  // getDisplayedColumns(): string[] {
+  //   return this.columnDefinitions.filter(cd => cd.visible).map(cd => cd.def);
+  // }
+
+  openDialog() {
+    this.dialog.open(AddUserComponent, {
+      // width: '400px',   // set width
+      autoFocus: false  // optional
+    });
+  }
+
+  navigateToAddDealer() {
+    this.router.navigate(['module/add-dealer']);
   }
 
   ngAfterViewInit() {
@@ -83,29 +132,50 @@ export class DealerListComponent {
     this.dataSource.sort = this.sort;
   }
 
-  editDealer(row: any) {
-    console.log("Edit Dealer:", row);
+  getDisplayedColumns() {
+    return this.columnDefinitions.map(c => c.def);
   }
 
-  deleteDealer(row: any) {
-    runInInjectionContext(this.injector, () => {
-      const dealerService = this.injector.get(DealerService);
-      dealerService.deleteDealer(row.id).then(() => {
-        console.log("✅ Dealer deleted:", row.id);
-        this.loadDealers();
-      });
-    });
-  }
-
-  navigateToAddDealer() {
-    runInInjectionContext(this.injector, () => {
-      const router = this.injector.get(Router);
-      router.navigate(['module/add-dealer']);
-    });
-  }
-
+  // Filtering
   applyFilter(event: Event) {
     const filterValue = (event.target as HTMLInputElement).value;
     this.dataSource.filter = filterValue.trim().toLowerCase();
+  }
+
+  isLoading: any;
+
+  deleteDealer(id: string) {
+    Swal.fire({
+      title: 'Are you sure?',
+      text: 'You will not be able to recover this Installation!',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, delete it!',
+      cancelButtonText: 'No, cancel',
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // Proceed with deletion
+        runInInjectionContext(this.injector, () => {
+          this.addDealerService.deleteDealer(id).then(() => {
+            this.loadLocationList();
+
+            // // Log activity
+            // const activity = {
+            //   date: new Date().getTime(),
+            //   section: 'Installation List',
+            //   action: 'Delete',
+            //   description: `Installation deleted by user`,
+            //   currentIp: localStorage.getItem('currentip')!,
+            // };
+            // this.mLogService.addLog(activity);
+
+            // Optional: Show success alert
+            Swal.fire('Deleted!', 'Installation has been deleted.', 'success');
+          });
+        });
+      } else if (result.dismiss === Swal.DismissReason.cancel) {
+        Swal.fire('Cancelled', 'Installation is safe.', 'info');
+      }
+    });
   }
 }
