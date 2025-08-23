@@ -38,7 +38,8 @@ import Swal from "sweetalert2";
     MatColumnDef,
     MatTableModule,
     DatePipe,
-    FeatherIconsComponent
+    FeatherIconsComponent,
+
   ],
   templateUrl: './dealer-list.component.html',
   standalone: true,
@@ -59,9 +60,6 @@ export class DealerListComponent implements OnInit{
     {def: 'location', label: 'Location '},
   ];
 
-  users = [
-
-  ];
 
 
   displayedColumns: string[] = [
@@ -78,9 +76,6 @@ export class DealerListComponent implements OnInit{
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
-
-
-
 
 
   constructor(private dialog: MatDialog,
@@ -111,10 +106,6 @@ export class DealerListComponent implements OnInit{
     });
   }
 
-  // ✅ Dynamically get columns to display
-  // getDisplayedColumns(): string[] {
-  //   return this.columnDefinitions.filter(cd => cd.visible).map(cd => cd.def);
-  // }
 
   openDialog() {
     this.dialog.open(AddUserComponent, {
@@ -159,15 +150,6 @@ export class DealerListComponent implements OnInit{
           this.addDealerService.deleteDealer(id).then(() => {
             this.loadLocationList();
 
-            // // Log activity
-            // const activity = {
-            //   date: new Date().getTime(),
-            //   section: 'Installation List',
-            //   action: 'Delete',
-            //   description: `Installation deleted by user`,
-            //   currentIp: localStorage.getItem('currentip')!,
-            // };
-            // this.mLogService.addLog(activity);
 
             // Optional: Show success alert
             Swal.fire('Deleted!', 'Installation has been deleted.', 'success');

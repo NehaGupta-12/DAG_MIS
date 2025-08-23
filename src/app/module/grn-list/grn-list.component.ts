@@ -1,4 +1,4 @@
-import {Component, ViewChild} from '@angular/core';
+import {Component, EnvironmentInjector, OnInit, runInInjectionContext, ViewChild} from '@angular/core';
 import {DatePipe} from "@angular/common";
 import {
   MatCell,
@@ -19,156 +19,91 @@ import {MatDialog} from "@angular/material/dialog";
 import {Router} from "@angular/router";
 import {AddUserComponent} from "../add-user/add-user.component";
 import {FeatherIconsComponent} from "@shared/components/feather-icons/feather-icons.component";
+import {AddDealerService} from "../add-dealer.service";
+import Swal from "sweetalert2";
+import {GrnService} from "../grn.service";
+import {Validators} from "@angular/forms";
 
 @Component({
   selector: 'app-grn-list',
-    imports: [
-        MatCell,
-        MatHeaderCell,
-        MatHeaderRow,
-        MatIcon,
-        MatIconButton,
-        MatPaginator,
-        MatProgressSpinner,
-        MatRow,
-        MatTable,
-        MatTooltip,
-        MatColumnDef,
-        MatTableModule,
-        DatePipe,
-        FeatherIconsComponent
-    ],
+  imports: [
+    MatCell,
+    MatHeaderCell,
+    MatHeaderRow,
+    MatIcon,
+    MatIconButton,
+    MatPaginator,
+    MatProgressSpinner,
+    MatRow,
+    MatTable,
+    MatTooltip,
+    MatColumnDef,
+    MatTableModule,
+    DatePipe,
+    FeatherIconsComponent
+  ],
   templateUrl: './grn-list.component.html',
+  standalone: true,
   styleUrl: './grn-list.component.scss'
 })
-export class GRNListComponent {
+export class GRNListComponent implements OnInit {
 
-  users = [
-    {
-      id: 1,
-      location: 'Mumbai Central',
-      products: 'Swift VXI',
-      openingStock: 25,
-      grnQuantity: 10,
-      typeOfGrn: 'Purchase Order'
-    },
-    {
-      id: 2,
-      location: 'Pune East',
-      products: 'Honda City ZX',
-      openingStock: 15,
-      grnQuantity: 8,
-      typeOfGrn: 'Non-PO Receipts'
-    },
-    {
-      id: 3,
-      location: 'Nagpur Central',
-      products: 'Hyundai Creta',
-      openingStock: 30,
-      grnQuantity: 12,
-      typeOfGrn: 'Purchase Order'
-    },
-    {
-      id: 4,
-      location: 'Amravati Depot',
-      products: 'Royal Enfield Classic 350',
-      openingStock: 20,
-      grnQuantity: 6,
-      typeOfGrn: 'Non-PO Receipts'
-    },
-    {
-      id: 5,
-      location: 'Mumbai Central',
-      products: 'KTM Duke 200',
-      openingStock: 18,
-      grnQuantity: 7,
-      typeOfGrn: 'Purchase Order'
-    },
-    {
-      id: 6,
-      location: 'Pune East',
-      products: 'Swift VXI',
-      openingStock: 22,
-      grnQuantity: 5,
-      typeOfGrn: 'Purchase Order'
-    },
-    {
-      id: 7,
-      location: 'Nagpur Central',
-      products: 'Honda City ZX',
-      openingStock: 12,
-      grnQuantity: 9,
-      typeOfGrn: 'Non-PO Receipts'
-    },
-    {
-      id: 8,
-      location: 'Amravati Depot',
-      products: 'Hyundai Creta',
-      openingStock: 28,
-      grnQuantity: 11,
-      typeOfGrn: 'Purchase Order'
-    },
-    {
-      id: 9,
-      location: 'Mumbai Central',
-      products: 'Royal Enfield Classic 350',
-      openingStock: 14,
-      grnQuantity: 4,
-      typeOfGrn: 'Non-PO Receipts'
-    },
-    {
-      id: 10,
-      location: 'Pune East',
-      products: 'KTM Duke 200',
-      openingStock: 19,
-      grnQuantity: 6,
-      typeOfGrn: 'Purchase Order'
-    }
-  ];
-
-
-  dataSource = new MatTableDataSource<any>(this.users);
+  dataSource = new MatTableDataSource<any>();
 
   // Define columns
   columnDefinitions = [
-    { def: 'id', label: 'ID' },
-    { def: 'location', label: 'Location' },
-    { def: 'products', label: 'Products' },
-    { def: 'openingStock', label: 'Opening Stock' },
-    { def: 'grnQuantity', label: 'GRN Quantity' },
-    { def: 'typeOfGrn', label: 'Type Of GRN' },
+    {def: 'serial', label: 'Serial'},
+    {def: 'location', label: 'Location'},
+    {def: 'products', label: 'Products'},
+    {def: 'openingStock', label: 'OpeningStock'},
+    {def: 'grnQuantity', label: 'GrnQuantity'},
+    {def: 'typeOfGrn', label: 'GrnType'},
   ];
 
+
+
   displayedColumns: string[] = [
-    'id',
+    'serial',
     'location',
     'products',
     'openingStock',
     'grnQuantity',
     'typeOfGrn',
-    'action',
+    'action'
   ];
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
 
 
-  // ✅ Data source
-  // dataSource = new MatTableDataSource<AdvanceTable>([]);
-  // isLoading = false;
-
-
-  constructor(private dialog: MatDialog, private router: Router) {
+  constructor(private dialog: MatDialog,
+              private router: Router,
+              private grnService: GrnService,
+              private injector: EnvironmentInjector,
+  ) {
   }
 
   ngOnInit() {
-    // this.loadDummyData();
+    this.loadLocationList()
   }
 
-  // ✅ Dynamically get columns to display
-  // getDisplayedColumns(): string[] {
-  //   return this.columnDefinitions.filter(cd => cd.visible).map(cd => cd.def);
-  // }
+  loadLocationList() {
+    runInInjectionContext(this.injector, () => {
+      this.grnService.getGrnList().subscribe((data) => {
+        this.dataSource.data = data;
+        this.dataSource.paginator = this.paginator;
+        this.dataSource.sort = this.sort;
+        console.log(this.dataSource.data)
+      });
+    });
+  }
+
+  editGrn(row: any) {
+    this.router.navigate(['module/add-grn'], {
+      queryParams: {data: JSON.stringify(row)}
+    });
+  }
+
 
   openDialog() {
     this.dialog.open(AddUserComponent, {
@@ -177,7 +112,7 @@ export class GRNListComponent {
     });
   }
 
-  navigateToAddGrn(){
+  navigateToAddGrn() {
     this.router.navigate(['module/add-grn']);
   }
 
@@ -198,6 +133,31 @@ export class GRNListComponent {
 
   isLoading: any;
 
+  deleteGrn(id: string) {
+    Swal.fire({
+      title: 'Are you sure?',
+      text: 'You will not be able to recover this Installation!',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, delete it!',
+      cancelButtonText: 'No, cancel',
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // Proceed with deletion
+        runInInjectionContext(this.injector, () => {
+          this.grnService.deleteGrn(id).then(() => {
+            this.loadLocationList();
+
+
+            // Optional: Show success alert
+            Swal.fire('Deleted!', 'Installation has been deleted.', 'success');
+          });
+        });
+      } else if (result.dismiss === Swal.DismissReason.cancel) {
+        Swal.fire('Cancelled', 'Installation is safe.', 'info');
+      }
+    });
+  }
 
 
 }

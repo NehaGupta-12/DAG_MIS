@@ -41,7 +41,7 @@ import {ActivatedRoute} from "@angular/router";
   styleUrls: ['./add-dealer.component.scss']
 })
 export class AddDealerComponent implements OnInit{
-  uniqueCountries: any[] = [];
+
   isEditMode: boolean = false;
   dealerForm: FormGroup;
 
@@ -52,7 +52,7 @@ export class AddDealerComponent implements OnInit{
       active: 'Examples',
     },
   ];
-  private users: any;
+
   constructor(private fb: UntypedFormBuilder,
               private dealer: Location,
               private addDealerService: AddDealerService,
@@ -66,7 +66,6 @@ export class AddDealerComponent implements OnInit{
       name: ['', [Validators.required, Validators.pattern('[a-zA-Z]+')]],
       country: ['', [Validators.required]],
       outletType: ['', [Validators.required]],
-      // locationCode: ['', [Validators.required]],
       division: ['', [Validators.required]],
       town: ['', [Validators.required]],
       category: ['', [Validators.required]],

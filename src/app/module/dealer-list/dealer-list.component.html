@@ -113,14 +113,19 @@
             </div>
 
             <!-- Loading spinner -->
-            <div *ngIf="isLoading" class="tbl-spinner">
-              <mat-progress-spinner color="primary" [diameter]="40" mode="indeterminate"></mat-progress-spinner>
-            </div>
+            @if (isLoading) {
+              <div class="tbl-spinner">
+                <mat-progress-spinner color="primary" [diameter]="40" mode="indeterminate"></mat-progress-spinner>
+              </div>
+            }
+
 
             <!-- No results -->
-            <div class="no-results" *ngIf="!isLoading && dataSource.data.length === 0">
+            @if(!isLoading && dataSource.data.length === 0){
+            <div class="no-results" >
               No results
             </div>
+            }
 
             <!-- Pagination -->
             <mat-paginator
