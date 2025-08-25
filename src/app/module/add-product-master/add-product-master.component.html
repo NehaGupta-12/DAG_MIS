@@ -57,26 +57,8 @@
                   <mat-form-field class="example-full-width" appearance="outline">
                     <mat-label>Model</mat-label>
                     <mat-select formControlName="model" required>
-                      <mat-option [value]="'Pulser'">
-                        Pulser
-                      </mat-option>
-                      <mat-option [value]="'Boxer'">
-                        Boxer
-                      </mat-option>
-                      <mat-option [value]="'Platina'">
-                        Platina
-                      </mat-option>
-                      <mat-option [value]="'CT'">
-                        CT
-                      </mat-option>
-                      <mat-option [value]="'RE'">
-                        RE
-                      </mat-option>
-                      <mat-option [value]="'Qute'">
-                        Maxima
-                      </mat-option>
-                      <mat-option [value]="'Maxima'">
-                        Maxima
+                      <mat-option *ngFor="let model of (_modelTypes$ | async)" [value]="model">
+                        {{ model }}
                       </mat-option>
                     </mat-select>
                     <!--                    <mat-icon class="material-icons-outlined color-icon p-3" matSuffix>flag</mat-icon>-->
@@ -93,17 +75,8 @@
                   <mat-form-field class="example-full-width" appearance="outline">
                     <mat-label>Category</mat-label>
                     <mat-select formControlName="category" required>
-                      <mat-option [value]="'Tyres'">
-                        Tyres
-                      </mat-option>
-                      <mat-option [value]="'Lubricants'">
-                        Lubricants
-                      </mat-option>
-                      <mat-option [value]="'Spare Parts'">
-                        Spare Parts
-                      </mat-option>
-                      <mat-option [value]="'Vehicles'">
-                        Vehicles
+                      <mat-option *ngFor="let category of (_categoryTypes$ | async)" [value]="category">
+                        {{ category }}
                       </mat-option>
                     </mat-select>
                     <!--                    <mat-icon class="material-icons-outlined color-icon p-3" matSuffix>flag</mat-icon>-->
@@ -118,14 +91,8 @@
                   <mat-form-field class="example-full-width" appearance="outline">
                     <mat-label>Sub Category</mat-label>
                     <mat-select formControlName="subCategory" required>
-                      <mat-option [value]="'2W'">
-                        2W
-                      </mat-option>
-                      <mat-option [value]="'3W'">
-                        3W
-                      </mat-option>
-                      <mat-option [value]="'4W'">
-                        4W
+                      <mat-option *ngFor="let subCategory of (_subCategoryTypes$ | async)" [value]="subCategory">
+                        {{ subCategory }}
                       </mat-option>
                     </mat-select>
                     <!--                    <mat-icon class="material-icons-outlined color-icon p-3" matSuffix>flag</mat-icon>-->
@@ -142,26 +109,8 @@
                   <mat-form-field class="example-full-width" appearance="outline">
                     <mat-label>Varient</mat-label>
                     <mat-select formControlName="varient" required>
-                      <mat-option [value]="'NS160'">
-                        NS160
-                      </mat-option>
-                      <mat-option [value]="'NS200'">
-                        NS200
-                      </mat-option>
-                      <mat-option [value]="'BM150'">
-                        BM150
-                      </mat-option>
-                      <mat-option [value]="'Platina 100'">
-                        Platina 100
-                      </mat-option>
-                      <mat-option [value]="'CT125X'">
-                        CT125X
-                      </mat-option>
-                      <mat-option [value]="'RE Compact'">
-                        RE Compact
-                      </mat-option>
-                      <mat-option [value]="'Maxima Cargo'">
-                        Maxima Cargo
+                      <mat-option *ngFor="let variant of (_variantTypes$ | async)" [value]="variant">
+                        {{ variant }}
                       </mat-option>
                     </mat-select>
                     <!--                    <mat-icon class="material-icons-outlined color-icon p-3" matSuffix>flag</mat-icon>-->
@@ -178,32 +127,8 @@
                   <mat-form-field class="example-full-width" appearance="outline">
                     <mat-label>Engine CC</mat-label>
                     <mat-select formControlName="engineCc" required>
-                      <mat-option [value]="'160cc'">
-                        160cc
-                      </mat-option>
-                      <mat-option [value]="'200cc'">
-                        200cc
-                      </mat-option>
-                      <mat-option [value]="'150cc'">
-                        150cc
-                      </mat-option>
-                      <mat-option [value]="'100cc'">
-                        100cc
-                      </mat-option>
-                      <mat-option [value]="'125cc'">
-                        125cc
-                      </mat-option>
-                      <mat-option [value]="'198cc'">
-                        198cc
-                      </mat-option>
-                      <mat-option [value]="'236cc'">
-                        236cc
-                      </mat-option>
-                      <mat-option [value]="'470cc'">
-                        470cc
-                      </mat-option>
-                      <mat-option [value]="'216cc'">
-                        216cc
+                      <mat-option *ngFor="let engine of (_engineTypes$ | async)" [value]="engine">
+                        {{ engine }}
                       </mat-option>
                     </mat-select>
                     <!--                    <mat-icon class="material-icons-outlined color-icon p-3" matSuffix>flag</mat-icon>-->
@@ -218,14 +143,8 @@
                   <mat-form-field class="example-full-width" appearance="outline">
                     <mat-label>Unit Of Measurement</mat-label>
                     <mat-select formControlName="unit" required>
-                      <mat-option [value]="'Nos'">
-                        Nos
-                      </mat-option>
-                      <mat-option [value]="'Litre'">
-                        Litre
-                      </mat-option>
-                      <mat-option [value]="'Pieces'">
-                        Pieces
+                      <mat-option *ngFor="let unit of (_unitTypes$ | async)" [value]="unit">
+                        {{ unit }}
                       </mat-option>
                     </mat-select>
                     <!--                    <mat-icon class="material-icons-outlined color-icon p-3" matSuffix>flag</mat-icon>-->

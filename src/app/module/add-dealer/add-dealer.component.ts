@@ -13,12 +13,18 @@ import {MatFormFieldModule} from "@angular/material/form-field";
 import {MatIconModule} from "@angular/material/icon";
 import {MatSelectModule} from "@angular/material/select";
 import {MatOptionModule} from "@angular/material/core";
-import {Location} from "@angular/common";
+import {AsyncPipe, CommonModule, Location} from "@angular/common";
 import {MAT_DIALOG_DATA, MatDialogModule} from "@angular/material/dialog";
 import {AddDealerService} from "../add-dealer.service";
 import Swal from "sweetalert2";
 import {ActivatedRoute} from "@angular/router";
-
+import {Observable} from "rxjs";
+import {AngularFireDatabase} from "@angular/fire/compat/database";
+import {map} from "rxjs/operators";
+export interface ListType {
+  name: string
+  id?: string
+}
 @Component({
   selector: 'app-add-dealer',
   standalone: true,
@@ -32,7 +38,9 @@ import {ActivatedRoute} from "@angular/router";
     MatOptionModule,
     MatCheckboxModule,
     MatButtonModule,
-    MatDialogModule
+    MatDialogModule,
+    AsyncPipe,
+    CommonModule
   ],
   providers: [
     { provide: MAT_DIALOG_DATA, useValue: {} } // ✅ Fallback
@@ -44,6 +52,11 @@ export class AddDealerComponent implements OnInit{
 
   isEditMode: boolean = false;
   dealerForm: FormGroup;
+  _divisionTypes$!: Observable<string[]>;
+  _outletTypes$!: Observable<string[]>;
+  _outletCategoryTypes$!: Observable<string[]>;
+  _countriesTypes$!: Observable<string[]>;
+  _townTypes$!: Observable<string[]>;
 
   breadscrums = [
     {
@@ -58,8 +71,39 @@ export class AddDealerComponent implements OnInit{
               private addDealerService: AddDealerService,
               private injector: EnvironmentInjector,
               private route: ActivatedRoute,
+              private mDatabase: AngularFireDatabase,
               @Inject(MAT_DIALOG_DATA) public data: any,
   ) {
+    this._divisionTypes$ = this.mDatabase
+      .object<{ subcategories: string[] }>('typelist/Division')
+      .valueChanges()
+      .pipe(
+        map(data => data?.subcategories || [])
+      );
+    this._outletTypes$ = this.mDatabase
+      .object<{ subcategories: string[] }>('typelist/outletType')
+      .valueChanges()
+      .pipe(
+        map(data => data?.subcategories || [])
+      );
+    this._outletCategoryTypes$ = this.mDatabase
+      .object<{ subcategories: string[] }>('typelist/outletCategory')
+      .valueChanges()
+      .pipe(
+        map(data => data?.subcategories || [])
+      );
+    this._countriesTypes$ = this.mDatabase
+      .object<{ subcategories: string[] }>('typelist/Countries')
+      .valueChanges()
+      .pipe(
+        map(data => data?.subcategories || [])
+      );
+    this._townTypes$ = this.mDatabase
+      .object<{ subcategories: string[] }>('typelist/Town')
+      .valueChanges()
+      .pipe(
+        map(data => data?.subcategories || [])
+      );
     // this.initForm();
     this.isEditMode = !!data?.id;
     this.dealerForm = this.fb.group({

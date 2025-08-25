@@ -49,15 +49,10 @@
 
                 <!-- First Name -->
                 <ng-container matColumnDef="location">
-                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Location</th>
-                  <td mat-cell *matCellDef="let row">{{ row.location }}</td>
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Outlet/dealer</th>
+                  <td mat-cell *matCellDef="let row">{{ row.dealerOutlet }}</td>
                 </ng-container>
 
-                <!-- Email -->
-                <ng-container matColumnDef="products">
-                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Product</th>
-                  <td mat-cell *matCellDef="let row">{{ row.products }}</td>
-                </ng-container>
 
                 <!-- Gender -->
                 <ng-container matColumnDef="openingStock">
@@ -65,16 +60,23 @@
                   <td mat-cell *matCellDef="let row">{{ row.openingStock }}</td>
                 </ng-container>
 
-                <!-- Birth Date -->
-                <ng-container matColumnDef="grnQuantity">
-                  <th mat-header-cell *matHeaderCellDef mat-sort-header>GRN Quantity</th>
-                  <td mat-cell *matCellDef="let row">{{ row.grnQuantity }}</td>
-                </ng-container>
+<!--                &lt;!&ndash; Birth Date &ndash;&gt;-->
+<!--                <ng-container matColumnDef="grnQuantity">-->
+<!--                  <th mat-header-cell *matHeaderCellDef mat-sort-header>GRN Quantity</th>-->
+<!--                  <td mat-cell *matCellDef="let row">{{ row.grnQuantity }}</td>-->
+<!--                </ng-container>-->
 
                 <!-- Mobile -->
                 <ng-container matColumnDef="typeOfGrn">
                   <th mat-header-cell *matHeaderCellDef mat-sort-header>Type Of GRN</th>
                   <td mat-cell *matCellDef="let row">{{ row.typeOfGrn }}</td>
+                </ng-container>
+
+
+                <!-- Email -->
+                <ng-container matColumnDef="products">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Product</th>
+                  <td mat-cell *matCellDef="let row">{{ row?.items?.length || 0 }}</td>
                 </ng-container>
 
                 <!-- Action -->

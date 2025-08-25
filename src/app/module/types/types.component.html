@@ -7,7 +7,7 @@
       <!-- Category + Add Button -->
       <div class="row mb-3">
         <div class="col-md-6 mb-2">
-          <h4 class="fw-bold">Category</h4>
+          <h4 class="fw-bold">Types</h4>
         </div>
         <div class="col-md-6 d-flex justify-content-end mb-2">
           <button mat-fab color="primary" (click)="openModal()">Add</button>
@@ -45,34 +45,24 @@
       <!-- Category Table -->
       <div class="card mb-4">
         <div class="card-body">
-          <h5 class="mb-3">Category List</h5>
+          <h5 class="mb-3">Types List</h5>
           <div class="table-responsive">
             <table class="table table-bordered align-middle">
               <thead>
               <tr>
-                <th>Name</th>
-                <th style="width: 150px;">Actions</th>
+                <th>Category</th>
+                <th>Actions</th>
               </tr>
               </thead>
               <tbody>
-              <tr *ngFor="let cat of categories; let i = index">
+              <tr *ngFor="let cat of categories">
                 <td>{{ cat.name }}</td>
                 <td>
-<!--                  <button class="btn btn-sm btn-danger" (click)="deleteCategory(i)">Delete</button>-->
-
-<!--                  <button mat-icon-button (click)="deleteCategory(i)">-->
-<!--                    <mat-icon style="color: red; font-variation-settings: 'FILL' 1;">delete</mat-icon>-->
-<!--                  </button>-->
-                  <button mat-icon-button color="accent" (click)="deleteCategory(i)">
+                  <button mat-icon-button color="accent" (click)="deleteCategory(cat.name)">
                     <app-feather-icons [icon]="'trash-2'" [class]="'tbl-fav-delete'"></app-feather-icons>
                   </button>
-
-
-
                 </td>
               </tr>
-
-
               </tbody>
             </table>
           </div>
@@ -108,7 +98,7 @@
       <!-- Subcategory List -->
       <div class="row mb-3">
         <div class="col-md-6 mb-2">
-          <h4 class="fw-bold">Sub Category</h4>
+          <h4 class="fw-bold">Sub Types</h4>
         </div>
       </div>
 <!--      <h4 class="fw-bold mt-3 ">Sub Category</h4>-->
@@ -127,16 +117,12 @@
               <tr *ngFor="let sub of selectedCategory.subcategories; let i = index">
                 <td>{{ sub }}</td>
                 <td>
-<!--                  <button mat-icon-button (click)="selectedCategory.subcategories.splice(i,1)">-->
-<!--                    <mat-icon style="color: red; font-variation-settings: 'FILL' 1;">delete</mat-icon>-->
-<!--                  </button>-->
-                  <button mat-icon-button color="accent" (click)="selectedCategory.subcategories.splice(i,1)">
+                  <button mat-icon-button color="accent" (click)="deleteSubCategory(sub)">
                     <app-feather-icons [icon]="'trash-2'" [class]="'tbl-fav-delete'"></app-feather-icons>
                   </button>
                 </td>
-
-
               </tr>
+
               </tbody>
             </table>
           </div>
