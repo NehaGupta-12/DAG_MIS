@@ -17,23 +17,14 @@
               <div class="row">
                 <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 mb-2">
                   <mat-form-field class="example-full-width" appearance="outline">
-                    <mat-label>Location</mat-label>
-                    <mat-select formControlName="location" required>
-                      <mat-option [value]="'Mumbai Central'">
-                        Mumbai Central
-                      </mat-option>
-                      <mat-option [value]="'Pune East'">
-                        Pune East
-                      </mat-option>
-                      <mat-option [value]="'Nagpur Central'">
-                        Nagpur Central
-                      </mat-option>
-                      <mat-option [value]="'Amravati Depot'">
-                        Amravati Depot
+                    <mat-label>Outlet/Dealer</mat-label>
+                    <mat-select formControlName="dealerOutlet" required>
+                      <mat-option *ngFor="let dealer of dealerdataSource.data" [value]="dealer.name">
+                        {{ dealer.name }}
                       </mat-option>
                     </mat-select>
                     <!--                    <mat-icon class="material-icons-outlined color-icon p-3" matSuffix>flag</mat-icon>-->
-                    @if (grnForm?.get('location')?.hasError('required')) {
+                    @if (grnForm?.get('dealerOutlet')?.hasError('required')) {
                       <mat-error>
                         Division is required
                       </mat-error>
@@ -43,29 +34,17 @@
                 <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 mb-2">
                   <mat-form-field class="example-full-width" appearance="outline">
                     <mat-label>Products</mat-label>
-                    <mat-select formControlName="products" required>
-                      <mat-option [value]="'Swift VXI'">
-                        Swift VXI
-                      </mat-option>
-                      <mat-option [value]="'Honda City ZX'">
-                        Honda City ZX
-                      </mat-option>
-                      <mat-option [value]="'Hyundai Creta'">
-                        Hyundai Creta
-                      </mat-option>
-                      <mat-option [value]="'Royal Enfield Classic 350'">
-                        Royal Enfield Classic 350
-                      </mat-option>
-                      <mat-option [value]="'KTM Duke 200'">
-                        KTM Duke 200
+                    <mat-select required formControlName="products">
+                      <mat-option *ngFor="let product of vehicledataSource.data" [value]="product?.name">
+                        {{ product?.name }}
                       </mat-option>
                     </mat-select>
                     <!--                    <mat-icon class="material-icons-outlined color-icon p-3" matSuffix>flag</mat-icon>-->
-                    @if (grnForm?.get('products')?.hasError('required')) {
-                      <mat-error>
-                        Products is required
-                      </mat-error>
-                    }
+<!--                    @if (grnForm?.get('products')?.hasError('required')) {-->
+<!--                      <mat-error>-->
+<!--                        Products is required-->
+<!--                      </mat-error>-->
+<!--                    }-->
                   </mat-form-field>
                 </div>
               </div>
@@ -82,21 +61,19 @@
                     }
                   </mat-form-field>
                 </div>
+<!--                <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 mb-2">-->
+<!--                  <mat-form-field class="example-full-width" appearance="outline">-->
+<!--                    <mat-label>GRN Quantity</mat-label>-->
+<!--                    <input matInput formControlName="grnQuantity">-->
+<!--                    &lt;!&ndash;                    <mat-icon class="material-icons-outlined color-icon p-3" matSuffix>face</mat-icon>&ndash;&gt;-->
+<!--                    @if (grnForm?.get('grnQuantity')?.hasError('required')) {-->
+<!--                      <mat-error>-->
+<!--                        GRN Quantity is required-->
+<!--                      </mat-error>-->
+<!--                    }-->
+<!--                  </mat-form-field>-->
+<!--                </div>      -->
                 <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 mb-2">
-                  <mat-form-field class="example-full-width" appearance="outline">
-                    <mat-label>GRN Quantity</mat-label>
-                    <input matInput formControlName="grnQuantity">
-                    <!--                    <mat-icon class="material-icons-outlined color-icon p-3" matSuffix>face</mat-icon>-->
-                    @if (grnForm?.get('grnQuantity')?.hasError('required')) {
-                      <mat-error>
-                        GRN Quantity is required
-                      </mat-error>
-                    }
-                  </mat-form-field>
-                </div>
-              </div>
-              <div class="row">
-                <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 mb-2">
                   <mat-form-field class="example-full-width" appearance="outline">
                     <mat-label>Type Of GRN</mat-label>
                     <mat-select formControlName="typeOfGrn" required>
@@ -118,14 +95,87 @@
               </div>
               <div class="row">
                 <div class="col-12 d-flex justify-content-center">
-                  <button class="btn-space" [disabled]="!grnForm?.valid" mat-raised-button
+                  <button type="button" mat-raised-button color="accent" (click)="addProduct()">Add</button>
+                </div>
+              </div>
+
+            <!-- Table for added products -->
+            <div *ngIf="addedProducts.length > 0" class="mt-4">
+              <h5 class="mb-3">Added Products</h5>
+              <table mat-table [dataSource]="addedProducts" class="mat-elevation-z8 w-100">
+
+                <!-- SKU Column -->
+                <ng-container matColumnDef="sku">
+                  <th mat-header-cell *matHeaderCellDef> SKU </th>
+                  <td mat-cell *matCellDef="let product">{{ product.sku }}</td>
+                </ng-container>
+
+                <!-- Name Column -->
+                <ng-container matColumnDef="name">
+                  <th mat-header-cell *matHeaderCellDef> Name </th>
+                  <td mat-cell *matCellDef="let product">{{ product.name }}</td>
+                </ng-container>
+
+                <!-- Brand Column -->
+                <ng-container matColumnDef="brand">
+                  <th mat-header-cell *matHeaderCellDef> Brand </th>
+                  <td mat-cell *matCellDef="let product">{{ product.brand }}</td>
+                </ng-container>
+
+                <!-- Model Column -->
+                <ng-container matColumnDef="model">
+                  <th mat-header-cell *matHeaderCellDef> Model </th>
+                  <td mat-cell *matCellDef="let product">{{ product.model }}</td>
+                </ng-container>
+
+                <!-- Variant Column -->
+                <ng-container matColumnDef="variant">
+                  <th mat-header-cell *matHeaderCellDef> Variant </th>
+                  <td mat-cell *matCellDef="let product">{{ product.variant }}</td>
+                </ng-container>
+
+                <!-- Unit Column -->
+                <ng-container matColumnDef="unit">
+                  <th mat-header-cell *matHeaderCellDef> Unit </th>
+                  <td mat-cell *matCellDef="let product">{{ product.unit }}</td>
+                </ng-container>
+
+                <!-- Quantity Column -->
+                <ng-container matColumnDef="quantity">
+                  <th mat-header-cell *matHeaderCellDef> Quantity </th>
+                  <td mat-cell *matCellDef="let product">
+                    <input type="number" [(ngModel)]="product.quantity" min="1" style="width: 60px;" />
+                  </td>
+                </ng-container>
+
+                <!-- Action Column -->
+                <ng-container matColumnDef="action">
+                  <th mat-header-cell *matHeaderCellDef> Action </th>
+                  <td mat-cell *matCellDef="let product; let i = index">
+                    <button mat-icon-button color="warn" (click)="removeProduct(i)">
+                      <mat-icon>delete</mat-icon>
+                    </button>
+                  </td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+              </table>
+
+              <div class="row">
+                <div class="col-12 d-flex justify-content-center">
+                  <button class="btn-space"  [disabled]="!isSubmitEnabled()"  mat-raised-button
                           color="primary">
                     {{ isEditMode ? 'Update' : 'Submit' }}
                   </button>
-                  <button type="button" mat-raised-button color="warn" (click)="goBack()">Back</button>
                 </div>
               </div>
+
+            </div>
+
+
             </form>
+
           </div>
         </div>
       </div>
