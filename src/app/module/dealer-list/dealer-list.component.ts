@@ -86,10 +86,10 @@ export class DealerListComponent implements OnInit{
   }
 
   ngOnInit() {
-    this.loadLocationList()
+    this.DealerList()
   }
 
-  loadLocationList() {
+  DealerList() {
     runInInjectionContext(this.injector, () => {
       this.addDealerService.getDealerList().subscribe((data) => {
         this.dataSource.data = data;
@@ -148,7 +148,7 @@ export class DealerListComponent implements OnInit{
         // Proceed with deletion
         runInInjectionContext(this.injector, () => {
           this.addDealerService.deleteDealer(id).then(() => {
-            this.loadLocationList();
+            this.DealerList();
 
 
             // Optional: Show success alert
