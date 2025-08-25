@@ -14,11 +14,14 @@ import {MatFormFieldModule} from "@angular/material/form-field";
 import {MatIconModule} from "@angular/material/icon";
 import {MatSelectModule} from "@angular/material/select";
 import {MatOptionModule} from "@angular/material/core";
-import {Location} from "@angular/common";
+import {AsyncPipe, Location, NgForOf} from "@angular/common";
 import Swal from "sweetalert2";
 import {MAT_DIALOG_DATA} from "@angular/material/dialog";
 import {ProductMasterService} from "../product-master.service";
 import {ActivatedRoute} from "@angular/router";
+import {map} from "rxjs/operators";
+import {AngularFireDatabase} from "@angular/fire/compat/database";
+import {Observable} from "rxjs";
 
 @Component({
   selector: 'app-add-product-master',
@@ -32,6 +35,8 @@ import {ActivatedRoute} from "@angular/router";
     MatOptionModule,
     MatCheckboxModule,
     MatButtonModule,
+    AsyncPipe,
+    NgForOf,
   ],
   providers: [
     { provide: MAT_DIALOG_DATA, useValue: {} }
@@ -43,14 +48,57 @@ export class AddProductMasterComponent implements OnInit {
   uniqueCountries: any[] = [];
   isEditMode: boolean = false;
   productForm: FormGroup;
+  _modelTypes$!: Observable<string[]>;
+  _categoryTypes$!: Observable<string[]>;
+  _subCategoryTypes$!: Observable<string[]>;
+  _variantTypes$!: Observable<string[]>;
+  _engineTypes$!: Observable<string[]>;
+  _unitTypes$!: Observable<string[]>;
 
   constructor(private fb: UntypedFormBuilder,
               private location: Location,
               private productService: ProductMasterService, // Replace 'any' with actual service type
               private injector: EnvironmentInjector,
               private route: ActivatedRoute,
+              private mDatabase: AngularFireDatabase,
               @Inject(MAT_DIALOG_DATA) public data: any,
   ) {
+    this._modelTypes$ = this.mDatabase
+      .object<{ subcategories: string[] }>('typelist/Model')
+      .valueChanges()
+      .pipe(
+        map(data => data?.subcategories || [])
+      );
+    this._categoryTypes$ = this.mDatabase
+      .object<{ subcategories: string[] }>('typelist/productCategory')
+      .valueChanges()
+      .pipe(
+        map(data => data?.subcategories || [])
+      );
+    this._subCategoryTypes$ = this.mDatabase
+      .object<{ subcategories: string[] }>('typelist/productSubCategory')
+      .valueChanges()
+      .pipe(
+        map(data => data?.subcategories || [])
+      );
+    this._variantTypes$ = this.mDatabase
+      .object<{ subcategories: string[] }>('typelist/Variant')
+      .valueChanges()
+      .pipe(
+        map(data => data?.subcategories || [])
+      );
+    this._engineTypes$ = this.mDatabase
+      .object<{ subcategories: string[] }>('typelist/EngineCC')
+      .valueChanges()
+      .pipe(
+        map(data => data?.subcategories || [])
+      );
+    this._unitTypes$ = this.mDatabase
+      .object<{ subcategories: string[] }>('typelist/unitOfMeasurement')
+      .valueChanges()
+      .pipe(
+        map(data => data?.subcategories || [])
+      );
     this.productForm = this.fb.group({
       name: ['', [Validators.required, Validators.pattern('[a-zA-Z]+')]],
       sku: ['', [Validators.required]],
