@@ -17,7 +17,7 @@ import {MatSelectModule} from "@angular/material/select";
 import {MatOptionModule} from "@angular/material/core";
 import {Location, NgFor, NgIf} from "@angular/common";
 import Swal from "sweetalert2";
-import {ActivatedRoute} from "@angular/router";
+import {ActivatedRoute, Router} from "@angular/router";
 import {MAT_DIALOG_DATA} from "@angular/material/dialog";
 import {DailySalesService} from "../daily-sales.service";
 import {MatTableDataSource, MatTableModule} from "@angular/material/table";
@@ -69,6 +69,7 @@ export class AddDailySalesComponent implements OnInit {
     private route: ActivatedRoute,
     private addDealerService: AddDealerService,
     private productService:ProductMasterService,
+    private router: Router,
     @Inject(MAT_DIALOG_DATA) public data: any,
   ) {
     this.isEditMode = !!data?.id;
@@ -123,12 +124,59 @@ export class AddDailySalesComponent implements OnInit {
         }
       }
     });
+
   }
 
   // ✅ Quantity update handler (bind in HTML)
   updateQuantity(row: any, value: number) {
     row.quantity = value;
   }
+
+
+  submitDailySales() {
+    if (this.dailySalesForm.invalid || this.dataSource.data.length === 0) {
+      Swal.fire('Error', 'Please fill required fields and add at least one product.', 'error');
+      return;
+    }
+
+    const formData = this.dailySalesForm.value;
+
+    const salesData = {
+      ...formData,
+      products: this.dataSource.data.map(p => ({
+        productId: p.id,
+        quantity: p.quantity,
+        sku: p.sku,
+        name: p.name,
+        brand: p.brand,
+        model: p.model,
+        variant: p.variant,
+        unit: p.unit
+      })),
+      createdAt: new Date().toISOString()
+    };
+
+    Swal.fire({
+      title: 'Confirm Submission',
+      text: 'Do you want to save this daily sales entry?',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, Save',
+      cancelButtonText: 'Cancel'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.dailySalesService.addDailySales(salesData).then(() => {
+          Swal.fire('Success', 'Daily Sales saved successfully!', 'success').then(() => {
+            this.router.navigate(['/daily-sales-list']);   // ✅ Redirect after success
+          });
+        }).catch(err => {
+          console.error('Error saving daily sales:', err);
+          Swal.fire('Error', 'Failed to save daily sales.', 'error');
+        });
+      }
+    });
+  }
+
 
 //master-outlets/dealer
   DealerList() {
@@ -170,7 +218,6 @@ export class AddDailySalesComponent implements OnInit {
     if (this.dailySalesForm.valid) {
       const formData = this.dailySalesForm.value;
 
-      // ✅ Find selected vehicle from product list
       const selectedProduct = this.vehicledataSource.data.find((p: any) => p.id === formData.vehicle);
 
       if (!selectedProduct) {
@@ -178,29 +225,37 @@ export class AddDailySalesComponent implements OnInit {
         return;
       }
 
-      // ✅ Build row object for the table
       const productRow = {
-        id: selectedProduct.id,
+        productId: selectedProduct.id,
         sku: selectedProduct.sku,
         name: selectedProduct.name,
         brand: selectedProduct.brand,
         model: selectedProduct.model,
-        variant: selectedProduct.varient || selectedProduct.variant, // adjust key spelling
+        variant: selectedProduct.varient || selectedProduct.variant,
         unit: selectedProduct.unit,
-        quantity: 1 // default quantity
+        quantity: 1,
+        createdAt: new Date().toISOString()
       };
 
-      // ✅ Push to table data
-      const currentData = this.dataSource.data;
-      this.dataSource.data = [...currentData, productRow];  // reassign so table updates
+      // ✅ Save product permanently
+      this.dailySalesService.addProductToDailySales(productRow)
+        .then((res: any) => {
+          console.log('[addProduct] Product saved in Firestore:', res);
 
-      console.log('[addProduct] Added product row:', productRow);
+          // Add to local table
+          this.dataSource.data = [...this.dataSource.data, { ...productRow, id: res.id }];
+        })
+        .catch((err) => {
+          console.error('[addProduct] Failed to save product:', err);
+          Swal.fire('Error', 'Failed to add product.', 'error');
+        });
 
-      Swal.fire('Added!', 'Product added to daily sales list.', 'success');
     } else {
       Swal.fire('Error', 'Please fill required fields first.', 'error');
     }
   }
+
+
 
   deleteProduct(row: any) {
     this.dataSource.data = this.dataSource.data.filter((p: any) => p.id !== row.id);
