@@ -1,5 +1,5 @@
 import {Component, EnvironmentInjector, OnInit, runInInjectionContext, ViewChild} from '@angular/core';
-import {DatePipe} from "@angular/common";
+import {CommonModule, DatePipe} from "@angular/common";
 import {
   MatCell,
   MatCellDef,
@@ -38,9 +38,12 @@ import Swal from "sweetalert2";
     MatColumnDef,
     MatTableModule,
     DatePipe,
-    FeatherIconsComponent
+    FeatherIconsComponent,
+    MatSort,
+    CommonModule
   ],
   templateUrl: './daily-sales-list.component.html',
+  standalone: true,
   styleUrl: './daily-sales-list.component.scss'
 })
 export class DailySalesListComponent implements OnInit {
@@ -55,7 +58,8 @@ export class DailySalesListComponent implements OnInit {
       typeOfCustomer: 'Active Customers',
       division: 'europe-west',
       country: 'India',
-      town: 'Hingna'
+      town: 'Hingna',
+
     },
     {
       id: 2,
@@ -164,11 +168,8 @@ export class DailySalesListComponent implements OnInit {
   // Define columns
   columnDefinitions = [
     { def: 'id', label: 'ID' },
-    { def: 'location', label: 'Location' },
     { def: 'dealerOutlet', label: 'Dealer Outlet' },
-    { def: 'vehicle', label: 'Vehicle' },
-    { def: 'salesQuantity', label: 'Sales Quantity' },
-    { def: 'typeOfCustomer', label: 'Type Of Customer' },
+    { def: 'productCount', label: 'Product' },
     { def: 'division', label: 'Division' },
     { def: 'country', label: 'Country' },
     { def: 'town', label: 'Town' },
@@ -176,14 +177,11 @@ export class DailySalesListComponent implements OnInit {
 
   displayedColumns: string[] = [
     'id',
-    'location',
     'dealerOutlet',
-    'vehicle',
-    'salesQuantity',
-    'typeOfCustomer',
     'division',
     'country',
     'town',
+    'productCount',  // ✅ New column
     'action'
   ];
 
@@ -210,13 +208,17 @@ export class DailySalesListComponent implements OnInit {
   loadLocationList() {
     runInInjectionContext(this.injector, () => {
       this.dailySlaes.getDailySalesList().subscribe((data) => {
-        this.dataSource.data = data;
+        this.dataSource.data = data.map((item, index) => ({
+          id: index + 1, // Sr. No.
+          ...item
+        }));
         this.dataSource.paginator = this.paginator;
         this.dataSource.sort = this.sort;
         console.log(this.dataSource.data)
       });
     });
   }
+
 
   goToEdit(row: any) {
     this.router.navigate(['module/add-daily-sales'], {
@@ -267,15 +269,6 @@ export class DailySalesListComponent implements OnInit {
           this.dailySlaes.deleteDailySales(id).then(() => {
             this.loadLocationList();
 
-            // // Log activity
-            // const activity = {
-            //   date: new Date().getTime(),
-            //   section: 'Installation List',
-            //   action: 'Delete',
-            //   description: `Installation deleted by user`,
-            //   currentIp: localStorage.getItem('currentip')!,
-            // };
-            // this.mLogService.addLog(activity);
 
             // Optional: Show success alert
             Swal.fire('Deleted!', 'Daily Sales has been deleted.', 'success');

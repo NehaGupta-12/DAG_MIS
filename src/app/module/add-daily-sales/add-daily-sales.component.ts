@@ -1,28 +1,27 @@
-import {Component, EnvironmentInjector, Inject, OnInit, runInInjectionContext} from '@angular/core';
+import { Component, EnvironmentInjector, Inject, OnInit, runInInjectionContext } from '@angular/core';
 import {
-  FormBuilder,
   FormGroup,
   FormsModule,
   ReactiveFormsModule,
   UntypedFormBuilder,
-  UntypedFormGroup,
   Validators
 } from "@angular/forms";
-import {MatButton, MatButtonModule} from "@angular/material/button";
-import {MatCheckbox, MatCheckboxModule} from "@angular/material/checkbox";
-import {MatInput, MatInputModule, MatLabel, MatSuffix} from "@angular/material/input";
-import {MatFormFieldModule} from "@angular/material/form-field";
-import {MatIconModule} from "@angular/material/icon";
-import {MatSelectModule} from "@angular/material/select";
-import {MatOptionModule} from "@angular/material/core";
-import {Location, NgFor, NgIf} from "@angular/common";
+import { MatButtonModule } from "@angular/material/button";
+import { MatCheckboxModule } from "@angular/material/checkbox";
+import { MatInputModule } from "@angular/material/input";
+import { MatFormFieldModule } from "@angular/material/form-field";
+import { MatIconModule } from "@angular/material/icon";
+import { MatSelectModule } from "@angular/material/select";
+import { MatOptionModule } from "@angular/material/core";
+import {Location, NgFor, NgForOf, NgIf} from "@angular/common";
 import Swal from "sweetalert2";
-import {ActivatedRoute} from "@angular/router";
-import {MAT_DIALOG_DATA} from "@angular/material/dialog";
-import {DailySalesService} from "../daily-sales.service";
-import {MatTableDataSource, MatTableModule} from "@angular/material/table";
-import {AddDealerService} from "../add-dealer.service";
-import {ProductMasterService} from "../product-master.service";
+import { ActivatedRoute, Router } from "@angular/router";
+import { MAT_DIALOG_DATA } from "@angular/material/dialog";
+import { DailySalesService } from "../daily-sales.service";
+import { MatTableDataSource, MatTableModule } from "@angular/material/table";
+import { AddDealerService } from "../add-dealer.service";
+import { ProductMasterService } from "../product-master.service";
+import {PrettyJsonModule} from "angular2-prettyjson";
 
 @Component({
   selector: 'app-add-daily-sales',
@@ -37,11 +36,12 @@ import {ProductMasterService} from "../product-master.service";
     MatCheckboxModule,
     MatButtonModule,
     MatTableModule,
-    NgIf,
+    NgForOf,
     NgFor,
+    NgIf,
   ],
   providers: [
-    {provide: MAT_DIALOG_DATA, useValue: {}}
+    { provide: MAT_DIALOG_DATA, useValue: {} }
   ],
   templateUrl: './add-daily-sales.component.html',
   standalone: true,
@@ -50,16 +50,11 @@ import {ProductMasterService} from "../product-master.service";
 export class AddDailySalesComponent implements OnInit {
 
   isEditMode: boolean = false;
-  dailySalesForm!: FormGroup;
-
-  // Table
+  dailySalesForm: FormGroup;
   displayedColumns: string[] = ['sku', 'name', 'brand', 'model', 'variant', 'unit', 'quantity', 'action'];
-  dataSource = new MatTableDataSource<any>([]);
   dealerdataSource = new MatTableDataSource<any>();
   vehicledataSource = new MatTableDataSource<any>();
-  // Data
-  dealers: any[] = [];
-  products: any[] = [];
+  addedProducts: any[] = [];
 
   constructor(
     private fb: UntypedFormBuilder,
@@ -68,94 +63,72 @@ export class AddDailySalesComponent implements OnInit {
     private injector: EnvironmentInjector,
     private route: ActivatedRoute,
     private addDealerService: AddDealerService,
-    private productService:ProductMasterService,
+    private productService: ProductMasterService,
+    private router: Router,
     @Inject(MAT_DIALOG_DATA) public data: any,
   ) {
     this.isEditMode = !!data?.id;
-  }
-
-
-  ngOnInit() {
-    this.DealerList()
-    this.productList()
-    console.log('[ngOnInit] Initializing AddDailySalesComponent');
-
     this.dailySalesForm = this.fb.group({
       dealerOutlet: ['', Validators.required],
-      vehicle: ['', Validators.required],
       division: ['', Validators.required],
       country: ['', Validators.required],
       town: ['', Validators.required],
-      products: this.fb.array([])   // <-- NEW
+      vehicle: ['', Validators.required], // selected vehicle
     });
+  }
 
-    console.log('[ngOnInit] Form initialized:', this.dailySalesForm.value);
+  ngOnInit() {
+    this.DealerList();
+    this.productList();
 
-    // 🔹 Load dealers into dropdown
-    console.log('[ngOnInit] Fetching dealers...');
-    this.dailySalesService.getDealers().subscribe({
-      next: (dealers: any[]) => {
-        console.log('[ngOnInit] Dealers fetched:', dealers);
-        this.dealers = dealers;
-      },
-      error: (err) => {
-        console.error('[ngOnInit] Error fetching dealers:', err);
-      }
-    });
-
-
-    // 🔹 Edit mode handling
+    // Edit mode handling
     this.route.queryParams.subscribe(params => {
-      console.log('[ngOnInit] Query params:', params);
       if (params['data']) {
-        try {
-          const rowData = JSON.parse(params['data']);
-          console.log('[ngOnInit] Parsed rowData:', rowData);
-          this.dailySalesForm.patchValue(rowData);
+        const rowData = JSON.parse(params['data']);
+        this.dailySalesForm.patchValue({
+          dealerOutlet: rowData.dealerOutlet,
+          division: rowData.division,
+          country: rowData.country,
+          town: rowData.town
+        });
 
-          if (rowData.id) {
-            console.log('[ngOnInit] Edit mode enabled for ID:', rowData.id);
-            this.isEditMode = true;
-            this.data = rowData;
-          }
-        } catch (e) {
-          console.error('[ngOnInit] Failed to parse query param data:', e);
+        if (rowData.products && Array.isArray(rowData.products)) {
+          this.addedProducts = rowData.products.map((p: any) => ({
+            ...p,
+            variant: p.variant ?? p.varient,
+            quantity: p.quantity ?? 1
+          }));
+        }
+
+        if (rowData.id) {
+          this.isEditMode = true;
+          this.data = rowData;
         }
       }
     });
   }
 
-  // ✅ Quantity update handler (bind in HTML)
-  updateQuantity(row: any, value: number) {
-    row.quantity = value;
-  }
-
-//master-outlets/dealer
   DealerList() {
     runInInjectionContext(this.injector, () => {
       this.addDealerService.getDealerList().subscribe((data) => {
         this.dealerdataSource.data = data;
-        console.log(this.dealerdataSource.data)
       });
     });
   }
 
-  //product
   productList() {
     runInInjectionContext(this.injector, () => {
       this.productService.getProductList().subscribe((data) => {
         this.vehicledataSource.data = data;
-        console.log(this.vehicledataSource.data)
+        console.log("this.vehicledataSource.data", this.vehicledataSource.data)
       });
     });
   }
 
   onDealerChange(event: any) {
     const dealerId = event.value;
-    const dealer = this.dealerdataSource.data.find((d: any) => d.id === dealerId);
-
+    const dealer = this.dealerdataSource.data.find((d: any) => d.name === dealerId);
     if (dealer) {
-      console.log('[onDealerChange] Selected dealer:', dealer);
       this.dailySalesForm.patchValue({
         division: dealer.division || '',
         country: dealer.country || '',
@@ -164,50 +137,113 @@ export class AddDailySalesComponent implements OnInit {
     }
   }
 
+  isSubmitEnabled(): boolean {
+    const formValid =
+      this.dailySalesForm.get('dealerOutlet')?.valid &&
+      this.dailySalesForm.get('division')?.valid &&
+      this.dailySalesForm.get('country')?.valid &&
+      this.dailySalesForm.get('town')?.valid;
 
+    const hasProducts = this.addedProducts.length > 0;
+    const allQuantitiesValid = this.addedProducts.every(p => p.quantity && p.quantity > 0);
+
+    return !!formValid && hasProducts && allQuantitiesValid;
+  }
 
   addProduct() {
-    if (this.dailySalesForm.valid) {
-      const formData = this.dailySalesForm.value;
+    const selectedProductId = this.dailySalesForm.get('vehicle')?.value;
+    if (!selectedProductId) {
+      Swal.fire('Error', 'Please select a product before adding.', 'error');
+      return;
+    }
 
-      // ✅ Find selected vehicle from product list
-      const selectedProduct = this.vehicledataSource.data.find((p: any) => p.id === formData.vehicle);
-
-      if (!selectedProduct) {
-        Swal.fire('Error', 'Please select a valid vehicle.', 'error');
+    const product = this.vehicledataSource.data.find(p => p.name === selectedProductId);
+    if (product) {
+      const exists = this.addedProducts.some(p => p.productId === product.name);
+      if (exists) {
+        Swal.fire('Info', 'This product is already added.', 'info');
         return;
       }
 
-      // ✅ Build row object for the table
-      const productRow = {
-        id: selectedProduct.id,
-        sku: selectedProduct.sku,
-        name: selectedProduct.name,
-        brand: selectedProduct.brand,
-        model: selectedProduct.model,
-        variant: selectedProduct.varient || selectedProduct.variant, // adjust key spelling
-        unit: selectedProduct.unit,
-        quantity: 1 // default quantity
-      };
+      this.addedProducts = [...this.addedProducts, {
+        productId: product.id,
+        sku: product.sku,
+        name: product.name,
+        brand: product.brand,
+        model: product.model,
+        variant: product.varient,
+        unit: product.unit,
+        quantity: 1
+      }];
+      console.log(this.addedProducts)
+    }
 
-      // ✅ Push to table data
-      const currentData = this.dataSource.data;
-      this.dataSource.data = [...currentData, productRow];  // reassign so table updates
+    // this.dailySalesForm.get('vehicle')?.reset();
+  }
 
-      console.log('[addProduct] Added product row:', productRow);
+  removeProduct(index: number) {
+    this.addedProducts.splice(index, 1);
+  }
 
-      Swal.fire('Added!', 'Product added to daily sales list.', 'success');
+  submitForm() {
+    const formValues = this.dailySalesForm.getRawValue();
+    console.log(formValues)
+    if (this.isSubmitEnabled()) {
+      Swal.fire({
+        title: this.isEditMode ? 'Update Daily Sales?' : 'Add Daily Sales?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Yes',
+        cancelButtonText: 'No'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+          const username = userData.userName || 'Unknown User';
+          const timestamp = Date.now();
+          console.log(this.addedProducts)
+          const transformedData: any = {
+            ...formValues,
+            products: this.addedProducts,
+          };
+
+          if (this.isEditMode && this.data.id) {
+            transformedData.updateBy = username;
+            transformedData.updatedAt = timestamp;
+
+            runInInjectionContext(this.injector, () => {
+              this.dailySalesService.updateDailySales(this.data.id, transformedData)
+                .then(() => {
+                  Swal.fire('Updated!', 'Daily Sales updated successfully.', 'success');
+                  this.goBack();
+                })
+                .catch(err => {
+                  console.error('Error updating daily sales:', err);
+                  Swal.fire('Error', 'Something went wrong.', 'error');
+                });
+            });
+          } else {
+            transformedData.status = 'Active';
+            transformedData.createBy = username;
+            transformedData.createdAt = timestamp;
+
+            runInInjectionContext(this.injector, () => {
+              this.dailySalesService.addDailySales(transformedData)
+                .then(() => {
+                  Swal.fire('Added!', 'Daily Sales added successfully.', 'success');
+                  this.router.navigate(['/module/daily-sales-list']);
+                })
+                .catch(err => {
+                  console.error('Error adding daily sales:', err);
+                  Swal.fire('Error', 'Something went wrong.', 'error');
+                });
+            });
+          }
+        }
+      });
     } else {
-      Swal.fire('Error', 'Please fill required fields first.', 'error');
+      Swal.fire('Error', 'Please fill required fields and add at least one product.', 'error');
     }
   }
-
-  deleteProduct(row: any) {
-    this.dataSource.data = this.dataSource.data.filter((p: any) => p.id !== row.id);
-    Swal.fire('Deleted!', 'Product removed from daily sales list.', 'success');
-  }
-
-
 
   goBack() {
     this.location.back();

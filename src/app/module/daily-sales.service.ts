@@ -1,97 +1,26 @@
-// import { Injectable } from '@angular/core';
-// import {AngularFirestore} from "@angular/fire/compat/firestore";
-// import {Observable} from "rxjs";
-// import {map} from "rxjs/operators";
-//
-// @Injectable({
-//   providedIn: 'root'
-// })
-// export class DailySalesService {
-//   constructor(private firestore: AngularFirestore) {}
-//   private collectionName = "daily-sales";
-//
-//   // Fetch all callSheet with pagination
-//   getDailySalesList(startAfter?: any): Observable<any> {
-//     return this.firestore
-//       .collection(this.collectionName, (ref) => {
-//         let query = ref.orderBy('createdAt','desc');
-//         if (startAfter) query = query.startAfter(startAfter);
-//         return query;
-//       })
-//       .snapshotChanges()
-//       .pipe(map((actions) => actions.map((a) => {
-//         const data = a.payload.doc.data();
-//         const id = a.payload.doc.id;
-//         return { id, ...(data as any) };
-//       })));
-//   }
-//
-//   addDailySales(callSheet: any): Promise<any> {
-//     console.log('Calling Firestore addCallSheet with data:', callSheet);
-//     return this.firestore.collection(this.collectionName).add(callSheet)
-//       .then((result) => {
-//         console.log('Firestore successfully added Call Sheet Log:', result);
-//         return result;
-//       })
-//       .catch((error) => {
-//         console.error('Firestore failed to add Call Sheet Log:', error);
-//         throw error;
-//       });
-//   }
-//
-//   updateDailySales(id: string, callSheet: any): Promise<any> {
-//     console.log('Calling Firestore updateCallSheet with ID:', id, ' and data:', callSheet);
-//     return this.firestore.collection(this.collectionName).doc(id).update(callSheet)
-//       .then((result) => {
-//         console.log('Firestore successfully updated Call Sheet Log:', result);
-//         return result;
-//       })
-//       .catch((error) => {
-//         console.error('Firestore failed to update Call Sheet Log:', error);
-//         throw error;
-//       });
-//   }
-//
-//   deleteDailySales(id: string) {
-//     return this.firestore.doc(`${this.collectionName}/${id}`).delete();
-//   }
-//
-//   getDealerByName(name: string): Observable<any> {
-//     return this.firestore
-//       .collection('dealers', ref => ref.where('name', '==', name).limit(1))
-//       .valueChanges()
-//       .pipe(
-//         map(dealers => dealers[0] || null)
-//       );
-//   }
-//
-//
-// }
+import { Injectable } from "@angular/core";
+import { AngularFirestore } from "@angular/fire/compat/firestore";
+import { Observable } from "rxjs";
+import { map } from "rxjs/operators";
 
-import {Observable, of} from "rxjs";
-import {Injectable} from "@angular/core";
-import {AngularFirestore} from "@angular/fire/compat/firestore";
-import {map} from "rxjs/operators";
-
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: "root" })
 export class DailySalesService {
-  private collectionName = "daily-sales";
+  private collectionName = "daily-sales";  // same as GRN
 
   constructor(private firestore: AngularFirestore) {}
 
-  // 🔹 Fetch all Daily Sales with pagination
+  // 📌 Get all daily sales (with optional pagination)
   getDailySalesList(startAfter?: any): Observable<any[]> {
-    return this.firestore.collection(this.collectionName, (ref) => {
-        let query = ref.orderBy('createdAt', 'desc');
+    return this.firestore
+      .collection(this.collectionName, (ref) => {
+        let query = ref.orderBy("createdAt", "desc");
         if (startAfter) query = query.startAfter(startAfter);
         return query;
       })
       .snapshotChanges()
       .pipe(
-        map(actions =>
-          actions.map(a => {
+        map((actions) =>
+          actions.map((a) => {
             const data = a.payload.doc.data();
             const id = a.payload.doc.id;
             return { id, ...(data as any) };
@@ -100,71 +29,72 @@ export class DailySalesService {
       );
   }
 
-  addDailySales(data: any): Promise<any> {
-    data.createdAt = Date.now();
-    return this.firestore.collection(this.collectionName).add(data);
+  // 📌 Add daily sales (dealer + all products)
+  addDailySales(salesData: any): Promise<any> {
+    const payload = {
+      ...salesData,
+      createdAt: new Date(),
+    };
+    return this.firestore
+      .collection(this.collectionName)
+      .add(payload)
+      .then((result) => {
+        console.log("✅ Daily Sale added successfully:", result);
+        return result;
+      })
+      .catch((error) => {
+        console.error("❌ Error adding Daily Sale:", error);
+        throw error;
+      });
   }
 
-  updateDailySales(id: string, data: any): Promise<any> {
-    data.updatedAt = Date.now();
-    return this.firestore.collection(this.collectionName).doc(id).update(data);
+  // 📌 Update daily sale
+  updateDailySales(id: string, salesData: any): Promise<any> {
+    return this.firestore
+      .collection(this.collectionName)
+      .doc(id)
+      .update(salesData)
+      .then((result) => {
+        console.log("✅ Daily Sale updated successfully:", result);
+        return result;
+      })
+      .catch((error) => {
+        console.error("❌ Error updating Daily Sale:", error);
+        throw error;
+      });
   }
 
-  deleteDailySales(id: string) {
+  // 📌 Delete daily sale
+  deleteDailySales(id: string): Promise<void> {
     return this.firestore.doc(`${this.collectionName}/${id}`).delete();
   }
 
-  // 🔹 Dealer APIs
-  // getDealers(): Observable<any[]> {
-  //   return this.firestore
-  //     .collection('dealers', ref => ref.orderBy('name'))
-  //     .snapshotChanges()
-  //     .pipe(
-  //       map(actions =>
-  //         actions.map(a => {
-  //           const data = a.payload.doc.data();
-  //           const id = a.payload.doc.id;
-  //           return { id, ...(data as any) };
-  //         })
-  //       )
-  //     );
-  // }
+  // 📌 Get daily sale by ID
+  getDailySalesById(id: string): Observable<any> {
+    return this.firestore
+      .collection(this.collectionName)
+      .doc(id)
+      .snapshotChanges()
+      .pipe(
+        map((action) => {
+          const data = action.payload.data();
+          return { id, ...(data as any) };
+        })
+      );
+  }
 
-  // Dealers
+  // 📌 Get all dealers
   getDealers(): Observable<any[]> {
-    // return this.firestore.collection('dealers').snapshotChanges().pipe(
-    //   map(actions => actions.map(a => {
-    //     const data = a.payload.doc.data();
-    //     const id = a.payload.doc.id;
-    //     return { id, ...(data as any) };
-    //   }))
-    // );
- return of([])
-  }
-
-  getDealerById(dealerId: string): Observable<any> {
     return this.firestore
-      .collection('dealers')
-      .doc(dealerId)
-      .valueChanges();
-  }
-
-  getDealerByName(name: string): Observable<any> {
-    return this.firestore
-      .collection('dealers', ref => ref.where('name', '==', name).limit(1))
-      .valueChanges()
-      .pipe(map(dealers => dealers[0] || null));
-  }
-
-  // 🔹 Product APIs
-  // Products
-  getProducts(): Observable<any[]> {
-    return this.firestore.collection('products').snapshotChanges().pipe(
-      map(actions => actions.map(a => {
-        const data = a.payload.doc.data();
-        const id = a.payload.doc.id;
-        return { id, ...(data as any) };
-      }))
-    );
+      .collection("dealers", (ref) => ref.orderBy("name"))
+      .snapshotChanges()
+      .pipe(
+        map((actions) =>
+          actions.map((a) => {
+            const data = a.payload.doc.data() as { [key: string]: any };
+            return { id: a.payload.doc.id, ...data };
+          })
+        )
+      );
   }
 }
