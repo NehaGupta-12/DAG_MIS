@@ -21,7 +21,6 @@ import { DailySalesService } from "../daily-sales.service";
 import { MatTableDataSource, MatTableModule } from "@angular/material/table";
 import { AddDealerService } from "../add-dealer.service";
 import { ProductMasterService } from "../product-master.service";
-import {PrettyJsonModule} from "angular2-prettyjson";
 
 @Component({
   selector: 'app-add-daily-sales',
