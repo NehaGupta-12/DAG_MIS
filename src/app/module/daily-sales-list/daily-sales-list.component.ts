@@ -38,9 +38,11 @@ import Swal from "sweetalert2";
     MatColumnDef,
     MatTableModule,
     DatePipe,
-    FeatherIconsComponent
+    FeatherIconsComponent,
+    MatSort
   ],
   templateUrl: './daily-sales-list.component.html',
+  standalone: true,
   styleUrl: './daily-sales-list.component.scss'
 })
 export class DailySalesListComponent implements OnInit {
@@ -55,7 +57,8 @@ export class DailySalesListComponent implements OnInit {
       typeOfCustomer: 'Active Customers',
       division: 'europe-west',
       country: 'India',
-      town: 'Hingna'
+      town: 'Hingna',
+
     },
     {
       id: 2,
@@ -168,7 +171,7 @@ export class DailySalesListComponent implements OnInit {
     { def: 'dealerOutlet', label: 'Dealer Outlet' },
     { def: 'vehicle', label: 'Vehicle' },
     { def: 'salesQuantity', label: 'Sales Quantity' },
-    { def: 'typeOfCustomer', label: 'Type Of Customer' },
+    { def: 'productCount', label: 'Product' },
     { def: 'division', label: 'Division' },
     { def: 'country', label: 'Country' },
     { def: 'town', label: 'Town' },
@@ -184,6 +187,7 @@ export class DailySalesListComponent implements OnInit {
     'division',
     'country',
     'town',
+    'productCount',  // ✅ New column
     'action'
   ];
 
@@ -208,15 +212,21 @@ export class DailySalesListComponent implements OnInit {
   }
 
   loadLocationList() {
-    runInInjectionContext(this.injector, () => {
-      this.dailySlaes.getDailySalesList().subscribe((data) => {
-        this.dataSource.data = data;
-        this.dataSource.paginator = this.paginator;
-        this.dataSource.sort = this.sort;
-        console.log(this.dataSource.data)
-      });
+    this.dailySlaes.getDailySalesList().subscribe((data) => {
+      this.dataSource.data = data.map((item, index) => ({
+        id: index + 1, // Sr. No.
+        ...item,
+        createdAt: item.createdAt
+          ? new Date(item.createdAt).toLocaleString()  // 🕒 readable format
+          : ''                                         // fallback if missing
+      }));
+      this.dataSource.paginator = this.paginator;
+      this.dataSource.sort = this.sort;
+      console.log('[loadLocationList] Daily sales data:', this.dataSource.data);
     });
+
   }
+
 
   goToEdit(row: any) {
     this.router.navigate(['module/add-daily-sales'], {

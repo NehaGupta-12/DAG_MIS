@@ -141,41 +141,43 @@ export class AddDailySalesComponent implements OnInit {
 
     const formData = this.dailySalesForm.value;
 
-    const salesData = {
-      ...formData,
-      products: this.dataSource.data.map(p => ({
-        productId: p.id,
-        quantity: p.quantity,
+    // 🔹 Prepare full sale object
+    const saleData = {
+      dealer: formData.dealer,
+      location: formData.location,
+      customerType: formData.customerType,
+      createdAt: new Date().toISOString(),
+      products: this.dataSource.data.map((p: any) => ({
+        productId: p.productId,
         sku: p.sku,
         name: p.name,
         brand: p.brand,
         model: p.model,
         variant: p.variant,
-        unit: p.unit
+        unit: p.unit,
+        quantity: p.quantity
       })),
-      createdAt: new Date().toISOString()
+      productCount: this.dataSource.data.length
     };
 
-    Swal.fire({
-      title: 'Confirm Submission',
-      text: 'Do you want to save this daily sales entry?',
-      icon: 'question',
-      showCancelButton: true,
-      confirmButtonText: 'Yes, Save',
-      cancelButtonText: 'Cancel'
-    }).then((result) => {
-      if (result.isConfirmed) {
-        this.dailySalesService.addDailySales(salesData).then(() => {
-          Swal.fire('Success', 'Daily Sales saved successfully!', 'success').then(() => {
-            this.router.navigate(['/daily-sales-list']);   // ✅ Redirect after success
-          });
-        }).catch(err => {
-          console.error('Error saving daily sales:', err);
-          Swal.fire('Error', 'Failed to save daily sales.', 'error');
-        });
-      }
-    });
+    // 🔹 Save in Firebase
+    this.dailySalesService.addDailySales(saleData)
+      .then(() => {
+        Swal.fire('Success', 'Daily Sales saved permanently in Firebase.', 'success');
+        this.router.navigate(['/module/daily-sales-list']);
+      })
+      .catch((err: any) => {
+        console.error('Error saving Daily Sales:', err);
+        Swal.fire('Error', 'Could not save Daily Sales.', 'error');
+      });
   }
+
+
+
+
+
+
+
 
 
 //master-outlets/dealer
@@ -225,7 +227,15 @@ export class AddDailySalesComponent implements OnInit {
         return;
       }
 
+      // Check if product already exists in table
+      const exists = this.dataSource.data.find(p => p.productId === selectedProduct.id);
+      if (exists) {
+        Swal.fire('Info', 'This product is already added.', 'info');
+        return;
+      }
+
       const productRow = {
+        id: Math.random().toString(36).substr(2, 9), // Temporary unique id for table
         productId: selectedProduct.id,
         sku: selectedProduct.sku,
         name: selectedProduct.name,
@@ -237,23 +247,15 @@ export class AddDailySalesComponent implements OnInit {
         createdAt: new Date().toISOString()
       };
 
-      // ✅ Save product permanently
-      this.dailySalesService.addProductToDailySales(productRow)
-        .then((res: any) => {
-          console.log('[addProduct] Product saved in Firestore:', res);
-
-          // Add to local table
-          this.dataSource.data = [...this.dataSource.data, { ...productRow, id: res.id }];
-        })
-        .catch((err) => {
-          console.error('[addProduct] Failed to save product:', err);
-          Swal.fire('Error', 'Failed to add product.', 'error');
-        });
+      // ✅ Only update local table, saving happens on Submit
+      this.dataSource.data = [...this.dataSource.data, productRow];
+      console.log('[addProduct] Product added locally:', productRow);
 
     } else {
       Swal.fire('Error', 'Please fill required fields first.', 'error');
     }
   }
+
 
 
 
