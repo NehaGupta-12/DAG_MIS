@@ -1,5 +1,5 @@
 import {Component, EnvironmentInjector, OnInit, runInInjectionContext, ViewChild} from '@angular/core';
-import {DatePipe} from "@angular/common";
+import {CommonModule, DatePipe} from "@angular/common";
 import {
   MatCell,
   MatCellDef,
@@ -38,7 +38,8 @@ import Swal from "sweetalert2";
     MatColumnDef,
     MatTableModule,
     DatePipe,
-    FeatherIconsComponent
+    FeatherIconsComponent,
+    CommonModule
   ],
   templateUrl: './product-master-list.component.html',
   styleUrl: './product-master-list.component.scss'
