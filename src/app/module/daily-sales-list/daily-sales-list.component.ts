@@ -181,7 +181,7 @@ export class DailySalesListComponent implements OnInit {
     'division',
     'country',
     'town',
-    'productCount',  // ✅ New column
+    'productCount',   // ✅ New column
     'action'
   ];
 
