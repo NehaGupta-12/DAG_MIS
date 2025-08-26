@@ -114,6 +114,7 @@ export class ProductMasterListComponent implements OnInit {
   productList() {
     runInInjectionContext(this.injector, () => {
       this.productService.getProductList().subscribe((data) => {
+        console.log(data)
         this.dataSource.data = data;
         this.dataSource.paginator = this.paginator;
         this.dataSource.sort = this.sort;

@@ -9,22 +9,37 @@ import {map} from "rxjs/operators";
 export class ProductMasterService {
   constructor(private firestore: AngularFirestore) {}
   private collectionName = "product";
-
-  // Fetch all callSheet with pagination
-  getProductList(startAfter?: any): Observable<any> {
+  getProductList() {
     return this.firestore
-      .collection(this.collectionName, (ref) => {
-        let query = ref.orderBy('createdAt','desc');
-        if (startAfter) query = query.startAfter(startAfter);
-        return query;
-      })
+      .collection(this.collectionName)
       .snapshotChanges()
-      .pipe(map((actions) => actions.map((a) => {
-        const data = a.payload.doc.data();
-        const id = a.payload.doc.id;
-        return { id, ...(data as any) };
-      })));
+      .pipe(
+        map(actions =>
+          actions.map(a => {
+            const data = a.payload.doc.data();
+            const id = a.payload.doc.id;
+            return { id, ...(data as any) }; // Add ID field to result
+          })
+        )
+      );
   }
+
+
+  // // Fetch all callSheet with pagination
+  // getProductList(startAfter?: any): Observable<any> {
+  //   return this.firestore
+  //     .collection(this.collectionName, (ref) => {
+  //       let query = ref.orderBy('createdAt','desc');
+  //       if (startAfter) query = query.startAfter(startAfter);
+  //       return query;
+  //     })
+  //     .snapshotChanges()
+  //     .pipe(map((actions) => actions.map((a) => {
+  //       const data = a.payload.doc.data();
+  //       const id = a.payload.doc.id;
+  //       return { id, ...(data as any) };
+  //     })));
+  // }
 
   addProduct(callSheet: any): Promise<any> {
     console.log('Calling Firestore addCallSheet with data:', callSheet);

@@ -58,31 +58,6 @@
       ]
     },
     {
-      "path": "",
-      "title": "Location",
-      "icon": "monitor",
-      "class": "menu-toggle",
-      "groupTitle": false,
-      "submenu": [
-        {
-          "path": "module/location",
-          "title": "List Location",
-          "icon": "",
-          "class": "ml-menu",
-          "groupTitle": false,
-          "submenu": []
-        },
-        {
-          "path": "module/location-product-list",
-          "title": "Location Products",
-          "icon": "",
-          "class": "ml-menu",
-          "groupTitle": false,
-          "submenu": []
-        }
-      ]
-    },
-    {
       "path": "Product",
       "title": "Product",
       "icon": "monitor",
