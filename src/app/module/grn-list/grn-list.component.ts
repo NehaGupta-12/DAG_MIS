@@ -1,5 +1,5 @@
 import {Component, EnvironmentInjector, OnInit, runInInjectionContext, ViewChild} from '@angular/core';
-import {DatePipe} from "@angular/common";
+import {CommonModule, DatePipe} from "@angular/common";
 import {
   MatCell,
   MatCellDef,
@@ -40,7 +40,8 @@ import {Validators} from "@angular/forms";
     MatColumnDef,
     MatTableModule,
     DatePipe,
-    FeatherIconsComponent
+    FeatherIconsComponent,
+    CommonModule
   ],
   templateUrl: './grn-list.component.html',
   standalone: true,

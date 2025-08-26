@@ -120,9 +120,11 @@ export class AddGRNComponent implements OnInit{
         if (rowData.items && Array.isArray(rowData.items)) {
           this.addedProducts = rowData.items.map((item: any) => ({
             ...item,
-            quantity: item.quantity ?? 1  // use quantity if present, else 1
+            varient: item.varient ?? item.variant,  // fallback if rowData has 'variant'
+            quantity: item.quantity ?? 1
           }));
         }
+
 
         // ✅ Check if ID exists for edit mode
         if (rowData.id) {
