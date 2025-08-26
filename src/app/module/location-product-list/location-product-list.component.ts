@@ -1,5 +1,5 @@
 import {Component, ViewChild} from '@angular/core';
-import {DatePipe} from "@angular/common";
+import {CommonModule, DatePipe} from "@angular/common";
 import {
   MatCell,
   MatCellDef,
@@ -36,7 +36,8 @@ import {FeatherIconsComponent} from "@shared/components/feather-icons/feather-ic
         MatColumnDef,
         MatTableModule,
         DatePipe,
-        FeatherIconsComponent
+        FeatherIconsComponent,
+        CommonModule
     ],
   templateUrl: './location-product-list.component.html',
   styleUrl: './location-product-list.component.scss'

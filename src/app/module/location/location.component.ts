@@ -15,7 +15,7 @@ import {MatIcon} from "@angular/material/icon";
 import {MatIconButton} from "@angular/material/button";
 import {MatTooltip} from "@angular/material/tooltip";
 import {MatDialog} from "@angular/material/dialog";
-import {DatePipe} from "@angular/common";
+import {CommonModule, DatePipe} from "@angular/common";
 import {Router} from "@angular/router";
 import {AddUserComponent} from "../add-user/add-user.component";
 import {FeatherIconsComponent} from "@shared/components/feather-icons/feather-icons.component";
@@ -38,7 +38,8 @@ import Swal from "sweetalert2";
     MatColumnDef,
     MatTableModule,
     DatePipe,
-    FeatherIconsComponent
+    FeatherIconsComponent,
+    CommonModule
   ],
   templateUrl: './location.component.html',
   styleUrl: './location.component.scss'
