@@ -1,5 +1,5 @@
 import {Component, EnvironmentInjector, OnInit, runInInjectionContext, ViewChild} from '@angular/core';
-import {DatePipe} from "@angular/common";
+import {CommonModule, DatePipe} from "@angular/common";
 import {
   MatCell,
   MatCellDef,
@@ -39,7 +39,8 @@ import Swal from "sweetalert2";
     MatTableModule,
     DatePipe,
     FeatherIconsComponent,
-    MatSort
+    MatSort,
+    CommonModule
   ],
   templateUrl: './daily-sales-list.component.html',
   standalone: true,
@@ -167,10 +168,7 @@ export class DailySalesListComponent implements OnInit {
   // Define columns
   columnDefinitions = [
     { def: 'id', label: 'ID' },
-    { def: 'location', label: 'Location' },
     { def: 'dealerOutlet', label: 'Dealer Outlet' },
-    { def: 'vehicle', label: 'Vehicle' },
-    { def: 'salesQuantity', label: 'Sales Quantity' },
     { def: 'productCount', label: 'Product' },
     { def: 'division', label: 'Division' },
     { def: 'country', label: 'Country' },
@@ -179,11 +177,7 @@ export class DailySalesListComponent implements OnInit {
 
   displayedColumns: string[] = [
     'id',
-    'location',
     'dealerOutlet',
-    'vehicle',
-    'salesQuantity',
-    'typeOfCustomer',
     'division',
     'country',
     'town',
@@ -212,19 +206,17 @@ export class DailySalesListComponent implements OnInit {
   }
 
   loadLocationList() {
-    this.dailySlaes.getDailySalesList().subscribe((data) => {
-      this.dataSource.data = data.map((item, index) => ({
-        id: index + 1, // Sr. No.
-        ...item,
-        createdAt: item.createdAt
-          ? new Date(item.createdAt).toLocaleString()  // 🕒 readable format
-          : ''                                         // fallback if missing
-      }));
-      this.dataSource.paginator = this.paginator;
-      this.dataSource.sort = this.sort;
-      console.log('[loadLocationList] Daily sales data:', this.dataSource.data);
+    runInInjectionContext(this.injector, () => {
+      this.dailySlaes.getDailySalesList().subscribe((data) => {
+        this.dataSource.data = data.map((item, index) => ({
+          id: index + 1, // Sr. No.
+          ...item
+        }));
+        this.dataSource.paginator = this.paginator;
+        this.dataSource.sort = this.sort;
+        console.log(this.dataSource.data)
+      });
     });
-
   }
 
 
@@ -277,15 +269,6 @@ export class DailySalesListComponent implements OnInit {
           this.dailySlaes.deleteDailySales(id).then(() => {
             this.loadLocationList();
 
-            // // Log activity
-            // const activity = {
-            //   date: new Date().getTime(),
-            //   section: 'Installation List',
-            //   action: 'Delete',
-            //   description: `Installation deleted by user`,
-            //   currentIp: localStorage.getItem('currentip')!,
-            // };
-            // this.mLogService.addLog(activity);
 
             // Optional: Show success alert
             Swal.fire('Deleted!', 'Daily Sales has been deleted.', 'success');
