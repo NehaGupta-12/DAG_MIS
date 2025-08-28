@@ -43,7 +43,10 @@ export class ProductMasterService {
 
   addProduct(callSheet: any): Promise<any> {
     console.log('Calling Firestore addCallSheet with data:', callSheet);
-    return this.firestore.collection(this.collectionName).add(callSheet)
+
+    const sku = this.generateUniqueSku();
+    callSheet.sku = sku;
+    return this.firestore.collection(this.collectionName).doc(sku).set(callSheet)
       .then((result) => {
         console.log('Firestore successfully added Call Sheet Log:', result);
         return result;
@@ -53,6 +56,11 @@ export class ProductMasterService {
         throw error;
       });
   }
+  private generateUniqueSku(): string {
+    return Math.floor(100 + Math.random() * 900).toString(); // returns a number between 100–999
+  }
+
+
 
   updateProduct(id: string, callSheet: any): Promise<any> {
     console.log('Calling Firestore updateCallSheet with ID:', id, ' and data:', callSheet);
@@ -66,6 +74,8 @@ export class ProductMasterService {
         throw error;
       });
   }
+
+
 
   deleteProduct(id: string) {
     return this.firestore.doc(`${this.collectionName}/${id}`).delete();

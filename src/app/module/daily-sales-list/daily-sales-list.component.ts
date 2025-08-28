@@ -22,6 +22,7 @@ import {FeatherIconsComponent} from "@shared/components/feather-icons/feather-ic
 import {DailySalesService} from "../daily-sales.service";
 import Swal from "sweetalert2";
 
+
 @Component({
   selector: 'app-daily-sales-list',
   imports: [
@@ -279,6 +280,15 @@ export class DailySalesListComponent implements OnInit {
       }
     });
   }
+
+  getTotalQuantity(row: any): number {
+    if (!row?.products) return 0;
+    return row.products
+      .map((p: any) => p.quantity || 0)
+      .reduce((acc: number, val: number) => acc + val, 0);
+  }
+
+
 
 
 }

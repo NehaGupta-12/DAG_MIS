@@ -1,5 +1,5 @@
 import {Component, EnvironmentInjector, OnInit, runInInjectionContext, ViewChild} from '@angular/core';
-import {CommonModule, DatePipe} from "@angular/common";
+import {CommonModule, DatePipe, NgIf} from "@angular/common";
 import {
   MatCell,
   MatCellDef,
@@ -39,9 +39,11 @@ import Swal from "sweetalert2";
     MatTableModule,
     DatePipe,
     FeatherIconsComponent,
-    CommonModule
+    CommonModule,
+    NgIf
   ],
   templateUrl: './product-master-list.component.html',
+  standalone: true,
   styleUrl: './product-master-list.component.scss'
 })
 export class ProductMasterListComponent implements OnInit {
@@ -79,8 +81,8 @@ export class ProductMasterListComponent implements OnInit {
 
   displayedColumns: string[] = [
     'id',
-    'sku',
     'name',
+    'sku',
     'model',
     'brand',
     'category',

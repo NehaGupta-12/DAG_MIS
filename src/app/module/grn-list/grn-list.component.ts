@@ -69,7 +69,7 @@ export class GRNListComponent implements OnInit {
     'openingStock',
     // 'grnQuantity',
     'typeOfGrn',
-    'products',
+    'quantityCount',
     'action'
   ];
 
@@ -159,6 +159,14 @@ export class GRNListComponent implements OnInit {
       }
     });
   }
+
+  getTotalQuantity(row: any): number {
+    if (!row?.items) return 0;
+    return row.items
+      .map((i: any) => i.quantity || 0)
+      .reduce((acc: number, val: number) => acc + val, 0);
+  }
+
 
 
 }

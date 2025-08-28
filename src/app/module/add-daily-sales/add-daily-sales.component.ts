@@ -185,64 +185,91 @@ export class AddDailySalesComponent implements OnInit {
   }
 
   submitForm() {
-    const formValues = this.dailySalesForm.getRawValue();
-    console.log(formValues)
-    if (this.isSubmitEnabled()) {
-      Swal.fire({
-        title: this.isEditMode ? 'Update Daily Sales?' : 'Add Daily Sales?',
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonText: 'Yes',
-        cancelButtonText: 'No'
-      }).then((result) => {
-        if (result.isConfirmed) {
-          const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-          const username = userData.userName || 'Unknown User';
-          const timestamp = Date.now();
-          console.log(this.addedProducts)
-          const transformedData: any = {
-            ...formValues,
-            products: this.addedProducts,
-          };
+    try {
+      const formValues = this.dailySalesForm.getRawValue();
 
-          if (this.isEditMode && this.data.id) {
-            transformedData.updateBy = username;
-            transformedData.updatedAt = timestamp;
+      if (this.isSubmitEnabled()) {
+        Swal.fire({
+          title: this.isEditMode ? 'Update Daily Sales?' : 'Add Daily Sales?',
+          icon: 'question',
+          showCancelButton: true,
+          confirmButtonText: 'Yes',
+          cancelButtonText: 'No'
+        }).then((result) => {
+          if (result.isConfirmed) {
+            try {
+              const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+              const username = userData.userName || 'Unknown User';
+              const timestamp = Date.now();
 
-            runInInjectionContext(this.injector, () => {
-              this.dailySalesService.updateDailySales(this.data.id, transformedData)
-                .then(() => {
-                  Swal.fire('Updated!', 'Daily Sales updated successfully.', 'success');
-                  this.goBack();
-                })
-                .catch(err => {
-                  console.error('Error updating daily sales:', err);
-                  Swal.fire('Error', 'Something went wrong.', 'error');
+              // ✅ Transform + sanitize data
+              const transformedData: any = {
+                ...formValues,
+                products: this.addedProducts.map(p => ({
+                  ...p,
+                  variant: p.variant ?? p.varient ?? '',   // fix variant/varient mismatch
+                  sku: p.sku ?? '',
+                  brand: p.brand ?? '',
+                  model: p.model ?? '',
+                  unit: p.unit ?? '',
+                  quantity: p.quantity ?? 0
+                }))
+              };
+
+              // Remove undefined fields recursively
+              Object.keys(transformedData).forEach(k => {
+                if (transformedData[k] === undefined) {
+                  transformedData[k] = '';
+                }
+              });
+
+              if (this.isEditMode && this.data.id) {
+                transformedData.updateBy = username;
+                transformedData.updatedAt = timestamp;
+
+                runInInjectionContext(this.injector, () => {
+                  this.dailySalesService.updateDailySales(this.data.id, transformedData)
+                    .then(() => {
+                      Swal.fire('Updated!', 'Daily Sales updated successfully.', 'success');
+                      this.goBack();
+                    })
+                    .catch(err => {
+                      console.error('Error updating daily sales:', err);
+                      Swal.fire('Error', 'Something went wrong.', 'error');
+                    });
                 });
-            });
-          } else {
-            transformedData.status = 'Active';
-            transformedData.createBy = username;
-            transformedData.createdAt = timestamp;
+              } else {
+                transformedData.status = 'Active';
+                transformedData.createBy = username;
+                transformedData.createdAt = timestamp;
 
-            runInInjectionContext(this.injector, () => {
-              this.dailySalesService.addDailySales(transformedData)
-                .then(() => {
-                  Swal.fire('Added!', 'Daily Sales added successfully.', 'success');
-                  this.router.navigate(['/module/daily-sales-list']);
-                })
-                .catch(err => {
-                  console.error('Error adding daily sales:', err);
-                  Swal.fire('Error', 'Something went wrong.', 'error');
+                runInInjectionContext(this.injector, () => {
+                  this.dailySalesService.addDailySales(transformedData)
+                    .then(() => {
+                      Swal.fire('Added!', 'Daily Sales added successfully.', 'success');
+                      this.router.navigate(['/module/daily-sales-list']);
+                    })
+                    .catch(err => {
+                      console.error('Error adding daily sales:', err);
+                      Swal.fire('Error', 'Something went wrong.', 'error');
+                    });
                 });
-            });
+              }
+            } catch (innerErr) {
+              console.error('Unexpected error during submission:', innerErr);
+              Swal.fire('Error', 'Unexpected issue occurred.', 'error');
+            }
           }
-        }
-      });
-    } else {
-      Swal.fire('Error', 'Please fill required fields and add at least one product.', 'error');
+        });
+      } else {
+        Swal.fire('Error', 'Please fill required fields and add at least one product.', 'error');
+      }
+    } catch (err) {
+      console.error('Global submit error:', err);
+      Swal.fire('Error', 'Something went wrong while submitting.', 'error');
     }
   }
+
 
   goBack() {
     this.location.back();

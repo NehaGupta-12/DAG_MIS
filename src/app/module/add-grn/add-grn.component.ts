@@ -203,80 +203,99 @@ export class AddGRNComponent implements OnInit{
 
 
   submitForm() {
-    const formValues = this.grnForm.getRawValue();
-    delete formValues.products; // remove dropdown value
+    try {
+      const formValues = this.grnForm.getRawValue();
+      delete formValues.products; // remove dropdown value
 
-    const isMainFormValid =
-      this.grnForm.get('dealerOutlet')?.valid &&
-      this.grnForm.get('openingStock')?.valid &&
-      this.grnForm.get('typeOfGrn')?.valid;
+      const isMainFormValid =
+        this.grnForm.get('dealerOutlet')?.valid &&
+        this.grnForm.get('openingStock')?.valid &&
+        this.grnForm.get('typeOfGrn')?.valid;
 
-    if (isMainFormValid && this.addedProducts.length > 0) {
-      Swal.fire({
-        title: this.isEditMode ? 'Update GRN Details?' : 'Add GRN Details?',
-        text: 'Are you sure you want to proceed?',
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonText: 'Yes',
-        cancelButtonText: 'No'
-      }).then((result: any) => {
-        if (result.isConfirmed) {
-          const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-          const username = userData.userName || 'Unknown User';
-          const timestamp = Date.now();
+      if (isMainFormValid && this.addedProducts.length > 0) {
+        Swal.fire({
+          title: this.isEditMode ? 'Update GRN Details?' : 'Add GRN Details?',
+          text: 'Are you sure you want to proceed?',
+          icon: 'question',
+          showCancelButton: true,
+          confirmButtonText: 'Yes',
+          cancelButtonText: 'No'
+        }).then((result: any) => {
+          if (result.isConfirmed) {
+            try {
+              const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+              const username = userData.userName || 'Unknown User';
+              const timestamp = Date.now();
 
-          const transformedData: any = {
-            ...formValues,
-            items: this.addedProducts.map(product => ({
-              id: product.id,
-              sku: product.sku,
-              name: product.name,
-              brand: product.brand,
-              model: product.model,
-              variant: product.varient,
-              unit: product.unit,
-              quantity: product.quantity
-            }))
-          };
+              // ✅ Transform + sanitize data
+              const transformedData: any = {
+                ...formValues,
+                items: this.addedProducts.map(p => ({
+                  id: p.id ?? '',
+                  sku: p.sku ?? '',
+                  name: p.name ?? '',
+                  brand: p.brand ?? '',
+                  model: p.model ?? '',
+                  variant: p.variant ?? p.varient ?? '',
+                  unit: p.unit ?? '',
+                  quantity: p.quantity ?? 0
+                }))
+              };
 
-          if (this.isEditMode && this.data.id) {
-            transformedData.updateBy = username;
-            transformedData.updatedAt = timestamp;
+              // Remove undefined fields recursively
+              Object.keys(transformedData).forEach(k => {
+                if (transformedData[k] === undefined) {
+                  transformedData[k] = '';
+                }
+              });
 
-            runInInjectionContext(this.injector, () => {
-              this.grnService.updateGrn(this.data.id, transformedData)
-                .then(() => {
-                  Swal.fire('Updated!', 'GRN Details updated successfully.', 'success');
-                  this.goBack();
-                })
-                .catch(error => {
-                  console.error('Error updating GRN:', error);
-                  Swal.fire('Error', 'Something went wrong.', 'error');
+              if (this.isEditMode && this.data.id) {
+                transformedData.updateBy = username;
+                transformedData.updatedAt = timestamp;
+
+                runInInjectionContext(this.injector, () => {
+                  this.grnService.updateGrn(this.data.id, transformedData)
+                    .then(() => {
+                      Swal.fire('Updated!', 'GRN Details updated successfully.', 'success');
+                      this.goBack();
+                    })
+                    .catch(error => {
+                      console.error('Error updating GRN:', error);
+                      Swal.fire('Error', 'Something went wrong.', 'error');
+                    });
                 });
-            });
-          } else {
-            transformedData.status = 'Active';
-            transformedData.createBy = username;
-            transformedData.createdAt = timestamp;
+              } else {
+                transformedData.status = 'Active';
+                transformedData.createBy = username;
+                transformedData.createdAt = timestamp;
 
-            runInInjectionContext(this.injector, () => {
-              this.grnService.addGrn(transformedData)
-                .then(() => {
-                  Swal.fire('Added!', 'GRN Details added successfully.', 'success');
-                  this.goBack();
-                })
-                .catch(error => {
-                  console.error('Error adding GRN:', error);
-                  Swal.fire('Error', 'Something went wrong.', 'error');
+                runInInjectionContext(this.injector, () => {
+                  this.grnService.addGrn(transformedData)
+                    .then(() => {
+                      Swal.fire('Added!', 'GRN Details added successfully.', 'success');
+                      this.goBack();
+                    })
+                    .catch(error => {
+                      console.error('Error adding GRN:', error);
+                      Swal.fire('Error', 'Something went wrong.', 'error');
+                    });
                 });
-            });
+              }
+            } catch (innerErr) {
+              console.error('Unexpected error during GRN submission:', innerErr);
+              Swal.fire('Error', 'Unexpected issue occurred.', 'error');
+            }
           }
-        }
-      });
-    } else {
-      Swal.fire('Error', 'Please fill in all required fields and add at least one product.', 'error');
+        });
+      } else {
+        Swal.fire('Error', 'Please fill in all required fields and add at least one product.', 'error');
+      }
+    } catch (err) {
+      console.error('Global GRN submit error:', err);
+      Swal.fire('Error', 'Something went wrong while submitting.', 'error');
     }
   }
+
 
 
 

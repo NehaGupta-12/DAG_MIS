@@ -9,7 +9,7 @@
             <div class="left">
               <ul class="header-buttons-left ms-0">
                 <li class="tbl-title">
-                  <h2 class="fs-4">Daily Sales List</h2>
+                  <h2 class="fs-4">Summarized Sales Record</h2>
                 </li>
                 <li class="tbl-search-box">
                   <label for="search-input">
@@ -77,8 +77,9 @@
 
 
                 <ng-container matColumnDef="productCount">
-                  <th mat-header-cell *matHeaderCellDef> Product Count </th>
-                  <td mat-cell *matCellDef="let row">{{ row?.products?.length || 0 }}</td>
+                  <th mat-header-cell *matHeaderCellDef> Quantity Count </th>
+                  <td mat-cell *matCellDef="let row">{{ getTotalQuantity(row) }}
+                  </td>
                 </ng-container>
 
 

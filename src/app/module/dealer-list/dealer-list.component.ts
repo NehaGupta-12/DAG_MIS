@@ -57,7 +57,7 @@ export class DealerListComponent implements OnInit{
     {def: 'division', label: 'Division'},
     {def: 'town', label: 'Town'},
     {def: 'category', label: 'category'},
-    {def: 'location', label: 'Location '},
+    // {def: 'location', label: 'Location '},
   ];
 
 
@@ -70,7 +70,7 @@ export class DealerListComponent implements OnInit{
     'division',
     'town',
     'category',
-    'location',
+    // 'location',
     'action'
   ];
 
