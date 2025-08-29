@@ -72,7 +72,7 @@
       <!-- Dropdown -->
       <div class="row mb-3">
         <div class="col-md-6 mb-2">
-          <label class="form-label fw-bold">Select Category</label>
+          <label class="form-label fw-bold">Select Type</label>
           <select class="form-select" [(ngModel)]="selectedCategory">
             <option [ngValue]="null" disabled>Select...</option>
             <option *ngFor="let cat of categories" [ngValue]="cat">{{ cat.name }}</option>

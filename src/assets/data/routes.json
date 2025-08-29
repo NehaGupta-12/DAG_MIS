@@ -79,6 +79,14 @@
           "class": "ml-menu",
           "groupTitle": false,
           "submenu": []
+        },
+        {
+          "path": "module/inventory-list",
+          "title": "Stock Transfer",
+          "icon": "",
+          "class": "ml-menu",
+          "groupTitle": false,
+          "submenu": []
         }
       ]
     },
