@@ -21,6 +21,10 @@ import {AddDailySalesComponent} from "./add-daily-sales/add-daily-sales.componen
 import {GRNListComponent} from "./grn-list/grn-list.component";
 import {AddGRNComponent} from "./add-grn/add-grn.component";
 import {ShowroomListComponent} from "./showroom-list/showroom-list.component";
+import {StockTransferListComponent} from "./stock-transfer-list/stock-transfer-list.component";
+import {AddStockTransferComponent} from "./add-stock-transfer/add-stock-transfer.component";
+import {AddOutletProductComponent} from "./add-outlet-product/add-outlet-product.component";
+import {OutletProductListComponent} from "./outlet-product-list/outlet-product-list.component";
 
 export const MODULES_ROUTE: Route[] = [
   {
@@ -107,6 +111,22 @@ export const MODULES_ROUTE: Route[] = [
   {
     path: 'showroom-list',
     component: ShowroomListComponent
+  },
+  {
+    path: 'stock-transfer-list',
+    component: StockTransferListComponent
+  },
+  {
+    path: 'add-stock-transfer',
+    component: AddStockTransferComponent
+  },
+  {
+    path: 'add-outlet-product',
+    component: AddOutletProductComponent
+  },
+  {
+    path: 'outlet-product-list',
+    component: OutletProductListComponent
   },
   { path: '**', component: Page404Component },
 ];
