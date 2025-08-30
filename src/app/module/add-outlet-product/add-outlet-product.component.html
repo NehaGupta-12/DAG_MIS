@@ -10,7 +10,7 @@
       <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12">
         <div class="card shadow">
           <div class="header form-header">
-            <h2 style="font-size: 23px">Add GRN</h2>
+            <h2 style="font-size: 23px">Add Outlet Product</h2>
           </div>
           <div class="body">
             <form class="register-form m-4" [formGroup]="grnForm!" (ngSubmit)="submitForm()">
@@ -76,11 +76,11 @@
                 <h5 class="mb-3">Added Products</h5>
                 <table mat-table [dataSource]="addedProducts" class="mat-elevation-z8 w-100">
 
-                  <!-- SKU Column -->
-                  <ng-container matColumnDef="sku">
-                    <th mat-header-cell *matHeaderCellDef> SKU </th>
-                    <td mat-cell *matCellDef="let product">{{ product.sku }}</td>
-                  </ng-container>
+<!--                  &lt;!&ndash; SKU Column &ndash;&gt;-->
+<!--                  <ng-container matColumnDef="sku">-->
+<!--                    <th mat-header-cell *matHeaderCellDef> SKU </th>-->
+<!--                    <td mat-cell *matCellDef="let product">{{ product.sku }}</td>-->
+<!--                  </ng-container>-->
 
                   <!-- Name Column -->
                   <ng-container matColumnDef="name">

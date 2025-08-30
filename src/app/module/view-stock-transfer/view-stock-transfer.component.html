@@ -8,7 +8,7 @@
             <div class="left">
               <ul class="header-buttons-left ms-0">
                 <li class="tbl-title">
-                  <h2 class="fs-4">Inventory List</h2>
+                  <h2 class="fs-4">Transfer Product List</h2>
                 </li>
                 <li class="tbl-search-box">
                   <label for="search-input">
@@ -32,9 +32,11 @@
               <table mat-table [dataSource]="dataSource" matSort class="mat-cell advance-table">
 
                 <!-- ID -->
-                <ng-container matColumnDef="id">
-                  <th mat-header-cell *matHeaderCellDef mat-sort-header>ID</th>
-                  <td mat-cell *matCellDef="let row">{{ row.id }}</td>
+                <ng-container matColumnDef="srNo">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Sr. No.</th>
+                  <td mat-cell *matCellDef="let row; let i = index">
+                    {{ i + 1 }}
+                  </td>
                 </ng-container>
 
                 <!-- SKU -->

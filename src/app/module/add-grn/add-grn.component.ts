@@ -29,6 +29,7 @@ import {
   MatTableDataSource, MatTableModule
 } from "@angular/material/table";
 import {ProductMasterService} from "../product-master.service";
+import {OutletProductService} from "../outlet-product.service";
 
 @Component({
   selector: 'app-add-grn',
@@ -70,6 +71,7 @@ export class AddGRNComponent implements OnInit{
   dealerdataSource = new MatTableDataSource<any>();
   vehicledataSource = new MatTableDataSource<any>();
   addedProducts: any[] = [];
+  dataSource = new MatTableDataSource<any>();
 
   breadscrums = [
     {
@@ -86,13 +88,14 @@ export class AddGRNComponent implements OnInit{
               private route: ActivatedRoute,
               private addDealerService: AddDealerService,
               private productService:ProductMasterService,
+              private outletProductService: OutletProductService,
               @Inject(MAT_DIALOG_DATA) public data: any,
   ) {
     // this.initForm();
     this.isEditMode = !!data?.id;
     this.grnForm = this.fb.group({
       products: ['', [Validators.required]],
-      openingStock: ['', [Validators.required]],
+      // openingStock: ['', [Validators.required]],
       // grnQuantity: ['', [Validators.required]],
       typeOfGrn: ['', [Validators.required]],
       dealerOutlet: ['', [Validators.required]],
@@ -103,6 +106,7 @@ export class AddGRNComponent implements OnInit{
   ngOnInit() {
     this.DealerList();
     this.productList();
+    this.loadOutletProduct();
 
     this.route.queryParams.subscribe(params => {
       if (params['data']) {
@@ -112,7 +116,7 @@ export class AddGRNComponent implements OnInit{
         // ✅ Patch simple fields
         this.grnForm.patchValue({
           dealerOutlet: rowData.dealerOutlet,
-          openingStock: rowData.openingStock,
+          // openingStock: rowData.openingStock,
           typeOfGrn: rowData.typeOfGrn
         });
 
@@ -120,7 +124,7 @@ export class AddGRNComponent implements OnInit{
         if (rowData.items && Array.isArray(rowData.items)) {
           this.addedProducts = rowData.items.map((item: any) => ({
             ...item,
-            varient: item.varient ?? item.variant,  // fallback if rowData has 'variant'
+            varient: item.variant ?? item.variant,  // fallback if rowData has 'variant'
             quantity: item.quantity ?? 1
           }));
         }
@@ -157,10 +161,35 @@ export class AddGRNComponent implements OnInit{
     });
   }
 
+  loadOutletProduct() {
+    runInInjectionContext(this.injector, () => {
+      this.outletProductService.getOutletProductList().subscribe((data) => {
+        this.dataSource.data = data;
+        console.log(this.dataSource.data)
+      });
+    });
+  }
+
+  onOutletChange(selectedOutlet: string) {
+    // Find the selected outlet from dealer data
+    const selectedOutletData = this.dealerdataSource.data.find(dealer => dealer.name === selectedOutlet);
+
+    if (selectedOutletData) {
+      // Find the products associated with this outlet from all outlet products
+      const outletProducts = this.dataSource.data.find(o => o.dealerOutlet === selectedOutletData.name)?.items;
+
+      // Bind to vehicledataSource for products dropdown
+      this.vehicledataSource.data = outletProducts || [];
+    } else {
+      this.vehicledataSource.data = []; // Reset if no outlet found
+    }
+  }
+
+
   isSubmitEnabled(): boolean {
     const formValid =
       !!this.grnForm.get('dealerOutlet')?.valid &&
-      !!this.grnForm.get('openingStock')?.valid &&
+      // !!this.grnForm.get('openingStock')?.valid &&
       !!this.grnForm.get('typeOfGrn')?.valid;
 
     const hasProducts = this.addedProducts.length > 0;
@@ -209,7 +238,7 @@ export class AddGRNComponent implements OnInit{
 
       const isMainFormValid =
         this.grnForm.get('dealerOutlet')?.valid &&
-        this.grnForm.get('openingStock')?.valid &&
+        // this.grnForm.get('openingStock')?.valid &&
         this.grnForm.get('typeOfGrn')?.valid;
 
       if (isMainFormValid && this.addedProducts.length > 0) {
@@ -236,7 +265,7 @@ export class AddGRNComponent implements OnInit{
                   name: p.name ?? '',
                   brand: p.brand ?? '',
                   model: p.model ?? '',
-                  variant: p.variant ?? p.varient ?? '',
+                  variant: p.variant ?? p.variant ?? '',
                   unit: p.unit ?? '',
                   quantity: p.quantity ?? 0
                 }))

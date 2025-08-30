@@ -55,7 +55,7 @@ export class GRNListComponent implements OnInit {
   columnDefinitions = [
     {def: 'serial', label: 'Serial'},
     {def: 'location', label: 'Location'},
-    {def: 'openingStock', label: 'OpeningStock'},
+    // {def: 'openingStock', label: 'OpeningStock'},
     // {def: 'grnQuantity', label: 'GrnQuantity'},
     {def: 'products', label: 'Products'},
     {def: 'typeOfGrn', label: 'GrnType'},
@@ -66,7 +66,7 @@ export class GRNListComponent implements OnInit {
   displayedColumns: string[] = [
     'serial',
     'location',
-    'openingStock',
+    // 'openingStock',
     // 'grnQuantity',
     'typeOfGrn',
     'quantityCount',

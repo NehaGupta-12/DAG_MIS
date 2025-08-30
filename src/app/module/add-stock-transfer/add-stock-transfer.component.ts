@@ -24,6 +24,7 @@ import {MatSelectModule} from "@angular/material/select";
 import {MatOptionModule} from "@angular/material/core";
 import {MatCheckboxModule} from "@angular/material/checkbox";
 import {StockTransferService} from "../stock-transfer.service";
+import {OutletProductService} from "../outlet-product.service";
 
 @Component({
   selector: 'app-add-stock-transfer',
@@ -64,6 +65,8 @@ export class AddStockTransferComponent {
   dealerdataSource = new MatTableDataSource<any>();
   vehicledataSource = new MatTableDataSource<any>();
   addedProducts: any[] = [];
+  dataSource = new MatTableDataSource<any>();
+
 
   breadscrums = [
     {
@@ -80,6 +83,7 @@ export class AddStockTransferComponent {
               private route: ActivatedRoute,
               private addDealerService: AddDealerService,
               private productService:ProductMasterService,
+              private outletProductService: OutletProductService,
               @Inject(MAT_DIALOG_DATA) public data: any,
   ) {
     // this.initForm();
@@ -96,6 +100,7 @@ export class AddStockTransferComponent {
   ngOnInit() {
     this.DealerList();
     this.productList();
+    this.loadOutletProduct();
 
     // disable products until both dealers selected
     this.stockTransferForm.get('products')?.disable();
@@ -135,15 +140,38 @@ export class AddStockTransferComponent {
   }
 
   toggleProducts() {
-    const from = this.stockTransferForm.get('fromDealerOutlet')?.value;
-    const to = this.stockTransferForm.get('toDealerOutlet')?.value;
+    const fromOutletName = this.stockTransferForm.get('fromDealerOutlet')?.value;
+    const toOutletName = this.stockTransferForm.get('toDealerOutlet')?.value;
 
-    if (from && to) {
+    if (fromOutletName && toOutletName) {
+      const fromOutlet = this.dataSource.data.find(
+        (o: any) => o.dealerOutlet === fromOutletName
+      );
+      const toOutlet = this.dataSource.data.find(
+        (o: any) => o.dealerOutlet === toOutletName
+      );
+
+      if (fromOutlet && toOutlet) {
+        // find products common to both outlets (match by id OR name)
+        const commonProducts = fromOutlet.items.filter((fromItem: any) =>
+          toOutlet.items.some(
+            (toItem: any) => toItem.id === fromItem.id || toItem.name === fromItem.name
+          )
+        );
+
+        this.vehicledataSource.data = commonProducts;
+      } else {
+        this.vehicledataSource.data = [];
+      }
+
       this.stockTransferForm.get('products')?.enable();
     } else {
+      this.vehicledataSource.data = [];
       this.stockTransferForm.get('products')?.disable();
     }
   }
+
+
 
 
 
@@ -162,6 +190,15 @@ export class AddStockTransferComponent {
     runInInjectionContext(this.injector, () => {
       this.productService.getProductList().subscribe((data) => {
         this.vehicledataSource.data = data;
+      });
+    });
+  }
+
+  loadOutletProduct() {
+    runInInjectionContext(this.injector, () => {
+      this.outletProductService.getOutletProductList().subscribe((data) => {
+        this.dataSource.data = data;
+        console.log(this.dataSource.data)
       });
     });
   }

@@ -21,6 +21,7 @@ import { DailySalesService } from "../daily-sales.service";
 import { MatTableDataSource, MatTableModule } from "@angular/material/table";
 import { AddDealerService } from "../add-dealer.service";
 import { ProductMasterService } from "../product-master.service";
+import {OutletProductService} from "../outlet-product.service";
 
 @Component({
   selector: 'app-add-daily-sales',
@@ -54,6 +55,7 @@ export class AddDailySalesComponent implements OnInit {
   dealerdataSource = new MatTableDataSource<any>();
   vehicledataSource = new MatTableDataSource<any>();
   addedProducts: any[] = [];
+  dataSource = new MatTableDataSource<any>();
 
   constructor(
     private fb: UntypedFormBuilder,
@@ -64,6 +66,7 @@ export class AddDailySalesComponent implements OnInit {
     private addDealerService: AddDealerService,
     private productService: ProductMasterService,
     private router: Router,
+    private outletProductService: OutletProductService,
     @Inject(MAT_DIALOG_DATA) public data: any,
   ) {
     this.isEditMode = !!data?.id;
@@ -78,7 +81,8 @@ export class AddDailySalesComponent implements OnInit {
 
   ngOnInit() {
     this.DealerList();
-    this.productList();
+    // this.productList();
+    this.loadOutletProduct();
 
     // Edit mode handling
     this.route.queryParams.subscribe(params => {
@@ -111,22 +115,34 @@ export class AddDailySalesComponent implements OnInit {
     runInInjectionContext(this.injector, () => {
       this.addDealerService.getDealerList().subscribe((data) => {
         this.dealerdataSource.data = data;
+        console.log(this.dealerdataSource.data)
       });
     });
   }
 
-  productList() {
+  // productList() {
+  //   runInInjectionContext(this.injector, () => {
+  //     this.productService.getProductList().subscribe((data) => {
+  //       this.vehicledataSource.data = data;
+  //       console.log("this.vehicledataSource.data", this.vehicledataSource.data)
+  //     });
+  //   });
+  // }
+
+  loadOutletProduct() {
     runInInjectionContext(this.injector, () => {
-      this.productService.getProductList().subscribe((data) => {
-        this.vehicledataSource.data = data;
-        console.log("this.vehicledataSource.data", this.vehicledataSource.data)
+      this.outletProductService.getOutletProductList().subscribe((data) => {
+        this.dataSource.data = data;
+        console.log(this.dataSource.data)
       });
     });
   }
 
   onDealerChange(event: any) {
-    const dealerId = event.value;
-    const dealer = this.dealerdataSource.data.find((d: any) => d.name === dealerId);
+    const dealerName = event.value;
+
+    // 1. Get dealer details (division, country, town)
+    const dealer = this.dealerdataSource.data.find((d: any) => d.name === dealerName);
     if (dealer) {
       this.dailySalesForm.patchValue({
         division: dealer.division || '',
@@ -134,7 +150,24 @@ export class AddDailySalesComponent implements OnInit {
         town: dealer.town || ''
       });
     }
+
+    // 2. Find outlet products using dealer.id (since outletProduct.dealerId matches dealer.id)
+    const outlet = this.dataSource.data.find((o: any) => o.dealerId === dealer.id);
+    if (outlet && outlet.items) {
+      // 3. Filter items where stock > 0
+      const availableProducts = outlet.items.filter((item: any) => item.openingStock > 0);
+
+      // ✅ Bind filtered products into vehicle dropdown
+      this.vehicledataSource.data = availableProducts;
+    } else {
+      // No products found
+      this.vehicledataSource.data = [];
+    }
+
+    // reset vehicle selection
+    this.dailySalesForm.get('vehicle')?.reset();
   }
+
 
   isSubmitEnabled(): boolean {
     const formValid =
@@ -170,7 +203,7 @@ export class AddDailySalesComponent implements OnInit {
         name: product.name,
         brand: product.brand,
         model: product.model,
-        variant: product.varient,
+        variant: product.variant,
         unit: product.unit,
         quantity: 1
       }];
@@ -207,7 +240,7 @@ export class AddDailySalesComponent implements OnInit {
                 ...formValues,
                 products: this.addedProducts.map(p => ({
                   ...p,
-                  variant: p.variant ?? p.varient ?? '',   // fix variant/varient mismatch
+                  variant: p.variant ?? p.variant ?? '',   // fix variant/varient mismatch
                   sku: p.sku ?? '',
                   brand: p.brand ?? '',
                   model: p.model ?? '',

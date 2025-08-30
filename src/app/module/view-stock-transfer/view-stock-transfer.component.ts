@@ -43,45 +43,10 @@ import {MatTooltip} from "@angular/material/tooltip";
   styleUrl: './view-stock-transfer.component.scss'
 })
 export class ViewStockTransferComponent implements OnInit {
+  dataSource = new MatTableDataSource<any>([]);
 
-  users = [
-    {
-      id: 1,
-      firstName: 'John Doe',
-      email: 'john.doe@example.com',
-      gender: 'Male',
-      birthDate: '1990-01-15',
-      mobile: '9876543210',
-      address: '123 Main St, New York',
-      country: 'USA'
-    },
-    {
-      id: 2,
-      firstName: 'Jane Smith',
-      email: 'jane.smith@example.com',
-      gender: 'Female',
-      birthDate: '1985-05-23',
-      mobile: '9876501234',
-      address: '456 Park Ave, London',
-      country: 'UK'
-    },
-    {
-      id: 3,
-      firstName: 'Raj Kumar',
-      email: 'raj.kumar@example.com',
-      gender: 'Male',
-      birthDate: '1992-09-10',
-      mobile: '9876123456',
-      address: 'MG Road, Bangalore',
-      country: 'India'
-    }
-  ];
-
-  dataSource = new MatTableDataSource<any>(this.users);
-
-  // Define columns
   columnDefinitions = [
-    { def: 'id', label: 'ID' },
+    { def: 'srNo', label: 'SrNo' },
     { def: 'sku', label: 'SKU' },
     { def: 'name', label: 'Name' },
     { def: 'brand', label: 'Brand' },
@@ -91,69 +56,35 @@ export class ViewStockTransferComponent implements OnInit {
     { def: 'unit', label: 'Unit' },
   ];
 
-  displayedColumns: string[] = [
-    'id',
-    'firstName',
-    'email',
-    'gender',
-    'birthDate',
-    'mobile',
-    'address',
-    'country',
-    'action'
-  ];
+  displayedColumns: string[] = this.columnDefinitions.map(c => c.def);
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
 
-
-  // ✅ Data source
-  // dataSource = new MatTableDataSource<AdvanceTable>([]);
-  // isLoading = false;
-
-
-  constructor(private dialog: MatDialog, private router: Router, @Inject(MAT_DIALOG_DATA) public data: any) {
-  }
-
+  constructor(
+    private dialog: MatDialog,
+    private router: Router,
+    @Inject(MAT_DIALOG_DATA) public data: any
+  ) {}
 
   ngOnInit(): void {
-    console.log("Received data:", this.data); // row details
-  }
+    console.log("Received data:", this.data);
 
-
-  // ✅ Dynamically get columns to display
-  // getDisplayedColumns(): string[] {
-  //   return this.columnDefinitions.filter(cd => cd.visible).map(cd => cd.def);
-  // }
-
-  openDialog() {
-    this.dialog.open(AddUserComponent, {
-      // width: '400px',   // set width
-      autoFocus: false  // optional
-    });
-  }
-
-  navigateToAddInventory(){
-    this.router.navigate(['module/add-inventory']);
-  }
-
-  ngAfterViewInit() {
-    this.dataSource.paginator = this.paginator;
-    this.dataSource.sort = this.sort;
+    if (this.data?.items) {
+      this.dataSource = new MatTableDataSource(this.data.items);
+    }
   }
 
   getDisplayedColumns() {
     return this.columnDefinitions.map(c => c.def);
   }
 
-  // Filtering
   applyFilter(event: Event) {
     const filterValue = (event.target as HTMLInputElement).value;
     this.dataSource.filter = filterValue.trim().toLowerCase();
   }
 
+
   isLoading: any;
-
-
 
 }

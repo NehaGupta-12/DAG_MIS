@@ -9,7 +9,7 @@
             <div class="left">
               <ul class="header-buttons-left ms-0">
                 <li class="tbl-title">
-                  <h2 class="fs-4">Outlet/Dealer Product List</h2>
+                  <h2 class="fs-4">Outlet Product List</h2>
                 </li>
                 <li class="tbl-search-box">
                   <label for="search-input">
@@ -27,7 +27,7 @@
             </div>
             <div class="right">
               <div class="right-side-btn">
-                <button mat-icon-button  class="tbl-header-btn col-green" matTooltip="Add" (click)="navigateToAddGrn()">
+                <button mat-icon-button  class="tbl-header-btn col-green" matTooltip="Add" (click)="navigateToAddloadOutletProduct()">
                   <mat-icon>add_circle_outline</mat-icon>
                 </button>
               </div>
@@ -55,21 +55,15 @@
 
 
                 <!-- Gender -->
-                <ng-container matColumnDef="openingStock">
-                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Opening Stock</th>
-                  <td mat-cell *matCellDef="let row">{{ row.openingStock }}</td>
+                <ng-container matColumnDef="remark">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>remark</th>
+                  <td mat-cell *matCellDef="let row">{{ row.remark }}</td>
                 </ng-container>
 
-                <!--                &lt;!&ndash; Birth Date &ndash;&gt;-->
-                <!--                <ng-container matColumnDef="grnQuantity">-->
-                <!--                  <th mat-header-cell *matHeaderCellDef mat-sort-header>GRN Quantity</th>-->
-                <!--                  <td mat-cell *matCellDef="let row">{{ row.grnQuantity }}</td>-->
-                <!--                </ng-container>-->
 
-                <!-- Mobile -->
-                <ng-container matColumnDef="typeOfGrn">
-                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Type Of GRN</th>
-                  <td mat-cell *matCellDef="let row">{{ row.typeOfGrn }}</td>
+                <ng-container matColumnDef="productCount">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Product Count</th>
+                  <td mat-cell *matCellDef="let row">{{ row.items.length || 0 }}</td>
                 </ng-container>
 
 
@@ -86,10 +80,10 @@
                 <ng-container matColumnDef="action">
                   <th mat-header-cell *matHeaderCellDef mat-sort-header>Action</th>
                   <td mat-cell *matCellDef="let row">
-                    <button mat-icon-button color="accent" (click)="editGrn(row)" >
+                    <button mat-icon-button color="accent" (click)="editloadOutletProduct(row)" >
                       <app-feather-icons [icon]="'edit'" [class]="'tbl-fav-edit'"></app-feather-icons>
                     </button>
-                    <button mat-icon-button color="accent" (click)="deleteGrn(row.id)" >
+                    <button mat-icon-button color="accent" (click)="deleteOutletProduct(row.id)" >
                       <app-feather-icons [icon]="'trash-2'" [class]="'tbl-fav-delete'"></app-feather-icons>
                     </button>
                   </td>

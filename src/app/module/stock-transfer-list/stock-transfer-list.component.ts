@@ -171,8 +171,10 @@ export class StockTransferListComponent implements OnInit {
 
   openAssignDialog(row: any): void {
     const dialogRef = this.dialog.open(ViewStockTransferComponent, {
-      width: '800px',
-      data: row   // <-- passing the full item
+      width: '70vw',   // 90% of viewport width
+      height: '70vh',  // 90% of viewport height
+      maxWidth: '100vw',
+      data: row
     });
 
     dialogRef.afterClosed().subscribe(result => {
@@ -181,6 +183,7 @@ export class StockTransferListComponent implements OnInit {
       }
     });
   }
+
 
 
 }

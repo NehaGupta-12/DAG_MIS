@@ -1,4 +1,4 @@
-import {Component, EnvironmentInjector, runInInjectionContext, ViewChild} from '@angular/core';
+import {Component, EnvironmentInjector, OnInit, runInInjectionContext, ViewChild} from '@angular/core';
 import {FeatherIconsComponent} from "@shared/components/feather-icons/feather-icons.component";
 import {
   MatCell,
@@ -21,6 +21,7 @@ import Swal from "sweetalert2";
 import {MatIcon} from "@angular/material/icon";
 import {MatProgressSpinner} from "@angular/material/progress-spinner";
 import {MatTooltip} from "@angular/material/tooltip";
+import {OutletProductService} from "../outlet-product.service";
 
 @Component({
   selector: 'app-outlet-product-list',
@@ -44,7 +45,7 @@ import {MatTooltip} from "@angular/material/tooltip";
   templateUrl: './outlet-product-list.component.html',
   styleUrl: './outlet-product-list.component.scss'
 })
-export class OutletProductListComponent {
+export class OutletProductListComponent implements OnInit {
 
 
   dataSource = new MatTableDataSource<any>();
@@ -53,10 +54,10 @@ export class OutletProductListComponent {
   columnDefinitions = [
     {def: 'serial', label: 'Serial'},
     {def: 'location', label: 'Location'},
-    {def: 'openingStock', label: 'OpeningStock'},
-    // {def: 'grnQuantity', label: 'GrnQuantity'},
-    {def: 'products', label: 'Products'},
-    {def: 'typeOfGrn', label: 'GrnType'},
+    {def: 'remark', label: 'Remark'},
+    {def: 'productCount', label: 'ProductCount'},
+    {def: 'quantityCount', label: 'QuantityCount'},
+    {def: 'action', label: 'Action'},
   ];
 
 
@@ -64,9 +65,8 @@ export class OutletProductListComponent {
   displayedColumns: string[] = [
     'serial',
     'location',
-    'openingStock',
-    // 'grnQuantity',
-    'typeOfGrn',
+    'remark',
+    'productCount',
     'quantityCount',
     'action'
   ];
@@ -77,18 +77,18 @@ export class OutletProductListComponent {
 
   constructor(private dialog: MatDialog,
               private router: Router,
-              private grnService: GrnService,
+              private outletProductService: OutletProductService,
               private injector: EnvironmentInjector,
   ) {
   }
 
   ngOnInit() {
-    this.loadLocationList()
+    this.loadOutletProduct()
   }
 
-  loadLocationList() {
+  loadOutletProduct() {
     runInInjectionContext(this.injector, () => {
-      this.grnService.getGrnList().subscribe((data) => {
+      this.outletProductService.getOutletProductList().subscribe((data) => {
         this.dataSource.data = data;
         this.dataSource.paginator = this.paginator;
         this.dataSource.sort = this.sort;
@@ -97,7 +97,7 @@ export class OutletProductListComponent {
     });
   }
 
-  editGrn(row: any) {
+  editloadOutletProduct(row: any) {
     this.router.navigate(['module/add-outlet-product'], {
       queryParams: {data: JSON.stringify(row)}
     });
@@ -111,7 +111,7 @@ export class OutletProductListComponent {
     });
   }
 
-  navigateToAddGrn() {
+  navigateToAddloadOutletProduct() {
     this.router.navigate(['module/add-outlet-product']);
   }
 
@@ -132,10 +132,10 @@ export class OutletProductListComponent {
 
   isLoading: any;
 
-  deleteGrn(id: string) {
+  deleteOutletProduct(id: string) {
     Swal.fire({
       title: 'Are you sure?',
-      text: 'You will not be able to recover this Installation!',
+      text: 'You will not be able to recover this Dealer/Outlet Product!',
       icon: 'warning',
       showCancelButton: true,
       confirmButtonText: 'Yes, delete it!',
@@ -144,16 +144,16 @@ export class OutletProductListComponent {
       if (result.isConfirmed) {
         // Proceed with deletion
         runInInjectionContext(this.injector, () => {
-          this.grnService.deleteGrn(id).then(() => {
-            this.loadLocationList();
+          this.outletProductService.deleteOutletProduct(id).then(() => {
+            this.loadOutletProduct();
 
 
             // Optional: Show success alert
-            Swal.fire('Deleted!', 'Installation has been deleted.', 'success');
+            Swal.fire('Deleted!', 'Dealer/Outlet Product has been deleted.', 'success');
           });
         });
       } else if (result.dismiss === Swal.DismissReason.cancel) {
-        Swal.fire('Cancelled', 'Installation is safe.', 'info');
+        Swal.fire('Cancelled', 'Dealer/Outlet Product is safe.', 'info');
       }
     });
   }
@@ -161,7 +161,7 @@ export class OutletProductListComponent {
   getTotalQuantity(row: any): number {
     if (!row?.items) return 0;
     return row.items
-      .map((i: any) => i.quantity || 0)
+      .map((i: any) => i.openingStock || 0)
       .reduce((acc: number, val: number) => acc + val, 0);
   }
 

@@ -29,6 +29,7 @@ import {MatFormFieldModule} from "@angular/material/form-field";
 import {MatOptionModule} from "@angular/material/core";
 import {MatCheckboxModule} from "@angular/material/checkbox";
 import {AddDealerService} from "../add-dealer.service";
+import {OutletProductService} from "../outlet-product.service";
 
 @Component({
   selector: 'app-inventory-list',
@@ -83,6 +84,7 @@ export class InventoryListComponent implements OnInit {
 
   dataSource = new MatTableDataSource<any>();
   dealerdataSource = new MatTableDataSource<any>();
+  allOutletProducts: any[] = [];
 
   // Define columns
   columnDefinitions = [
@@ -91,10 +93,9 @@ export class InventoryListComponent implements OnInit {
     { def: 'name', label: 'Name' },
     { def: 'model', label: 'Model' },
     { def: 'brand', label: 'Brand' },
-    { def: 'category', label: 'Category' },
-    { def: 'subCategory', label: 'Sub Category' },
     { def: 'varient', label: 'Varient' },
-    { def: 'engineCc', label: 'Engine CC' },
+    { def: 'quantity', label: 'Quantity' },
+    // { def: 'engineCc', label: 'Engine CC' },
   ];
 
   displayedColumns: string[] = [
@@ -103,11 +104,10 @@ export class InventoryListComponent implements OnInit {
     'sku',
     'model',
     'brand',
-    'category',
-    'subCategory',
     'varient',
-    'engineCc',
+    // 'engineCc',
     'unit',
+    'quantity',
   ];
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
@@ -124,6 +124,7 @@ export class InventoryListComponent implements OnInit {
               private productService: ProductMasterService,
               private injector: EnvironmentInjector,
               private addDealerService: AddDealerService,
+              private outletProductService: OutletProductService,
   ) {
   }
 
@@ -142,26 +143,36 @@ export class InventoryListComponent implements OnInit {
 
   productList() {
     runInInjectionContext(this.injector, () => {
-      this.productService.getProductList().subscribe((data) => {
-        console.log(data)
-        this.dataSource.data = data;
+      this.outletProductService.getOutletProductList().subscribe((data) => {
+        console.log("All outlet products:", data);
+        this.allOutletProducts = data;   // keep all
+        this.dataSource.data = [];       // empty table by default
         this.dataSource.paginator = this.paginator;
         this.dataSource.sort = this.sort;
-        console.log(this.dataSource.data)
       });
     });
   }
 
-  goToEdit(row: any) {
-    this.router.navigate(['module/add-products-master'], {
-      queryParams: {data: JSON.stringify(row)}
-    });
+
+  onOutletChange(selectedOutlet: string) {
+    if (!selectedOutlet) {
+      this.dataSource.data = []; // reset table
+      return;
+    }
+
+    const outlet = this.allOutletProducts.find(
+      o => (o.dealerOutlet || '').trim() === selectedOutlet.trim()
+    );
+
+    // If found, bind its items; else show empty
+    this.dataSource.data = outlet ? outlet.items || [] : [];
+    console.log("Filtered items:", this.dataSource.data);
+
+    this.dataSource.paginator = this.paginator;
+    this.dataSource.sort = this.sort;
   }
 
-  // ✅ Dynamically get columns to display
-  // getDisplayedColumns(): string[] {
-  //   return this.columnDefinitions.filter(cd => cd.visible).map(cd => cd.def);
-  // }
+
 
   openDialog() {
     this.dialog.open(AddUserComponent, {
