@@ -1,6 +1,6 @@
 import {Component, EnvironmentInjector, Inject, OnInit, runInInjectionContext} from '@angular/core';
 import {FormGroup, FormsModule, ReactiveFormsModule, UntypedFormBuilder, Validators} from "@angular/forms";
-import {MatButton, MatButtonModule, MatIconButton} from "@angular/material/button";
+import {MatButtonModule} from "@angular/material/button";
 import {
   MatCell,
   MatCellDef,
@@ -10,9 +10,8 @@ import {
   MatHeaderRowDef,
   MatRow, MatRowDef, MatTable, MatTableDataSource, MatTableModule
 } from "@angular/material/table";
-import {MatInput, MatInputModule, MatLabel} from "@angular/material/input";
-import {CommonModule, Location, NgForOf, NgIf} from "@angular/common";
-import {GrnService} from "../grn.service";
+import {MatInputModule} from "@angular/material/input";
+import {CommonModule, Location, NgForOf} from "@angular/common";
 import {ActivatedRoute} from "@angular/router";
 import {AddDealerService} from "../add-dealer.service";
 import {ProductMasterService} from "../product-master.service";
@@ -92,7 +91,7 @@ export class AddOutletProductComponent implements OnInit {
       products: ['', [Validators.required]],
       dealerOutlet: ['', [Validators.required]],
       remark: ['', [Validators.required]],
-      items: this.fb.array([]),
+      // items: this.fb.array([]),
     });
   }
 
@@ -105,14 +104,10 @@ export class AddOutletProductComponent implements OnInit {
       if (params['data']) {
         const rowData = JSON.parse(params['data']);
         console.log('Received row data:', rowData);
-
-        // ✅ Patch simple fields
         this.grnForm.patchValue({
           dealerOutlet: rowData.dealerOutlet,
           remark: rowData.remark,
         });
-
-        // ✅ Disable dealerOutlet only in edit mode
         if (rowData.id) {
           this.isEditMode = true;
           this.data = rowData;
@@ -120,16 +115,14 @@ export class AddOutletProductComponent implements OnInit {
           // Disable dealerOutlet so user cannot change it
           this.grnForm.get('dealerOutlet')?.disable();
         }
-
-        // ✅ If there are items, load them into addedProducts
-        if (rowData.items && Array.isArray(rowData.items)) {
-          this.addedProducts = rowData.items.map((item: any) => ({
-            ...item,
-            varient: item.varient ?? item.variant,
-            openingStock: item.openingStock ?? 1,
-            __isNew: false,
-          }));
-        }
+        // if (rowData.items && Array.isArray(rowData.items)) {
+        //   this.addedProducts = rowData.items.map((item: any) => ({
+        //     ...item,
+        //     varient: item.varient ?? item.variant,
+        //     openingStock: item.openingStock ?? 1,
+        //     __isNew: false,
+        //   }));
+        // }
       }
     });
   }
@@ -235,7 +228,7 @@ export class AddOutletProductComponent implements OnInit {
   async submitForm() {
     try {
       const formValues = this.grnForm.getRawValue();
-      delete formValues.products;
+      delete formValues.products;  // Remove 'products' from the form values
 
       const isMainFormValid =
         this.grnForm.get('dealerOutlet')?.valid &&
@@ -246,6 +239,7 @@ export class AddOutletProductComponent implements OnInit {
         return;
       }
 
+      // Confirmation prompt before submitting
       const result = await Swal.fire({
         title: this.isEditMode ? 'Update GRN Details?' : 'Add GRN Details?',
         text: 'Are you sure you want to proceed?',
@@ -257,86 +251,61 @@ export class AddOutletProductComponent implements OnInit {
 
       if (!result.isConfirmed) return;
 
+      // Get user data from localStorage
       const userData = JSON.parse(localStorage.getItem('userData') || '{}');
       const username = userData.userName || 'Unknown User';
       const timestamp = Date.now();
 
-      // Get dealerId from the FULL list (not the filtered one)
+      // Get dealerId based on selected dealer
       const selectedName = (formValues.dealerOutlet || '').trim();
-      const selectedDealer =
-        this.allDealers.find((d: any) => (d.name || '').trim() === selectedName) ||
+      const selectedDealer = this.allDealers.find((d: any) => (d.name || '').trim() === selectedName) ||
         this.dealers.find((d: any) => (d.name || '').trim() === selectedName);
       const dealerId = selectedDealer?.id ?? '';
 
-      // Build payload
-      const transformedData: any = {
+      const payload = {
         ...formValues,
         dealerId,
-        items: this.addedProducts.map((p) => {
-          // decide if this row is new in the context of this GRN
-          const isNew = p.__isNew === true || !p.sku || (dealerId && !String(p.sku).includes(dealerId));
-
-          // SKU rules
-          let outSku = p.sku ?? '';
-          if (!this.isEditMode) {
-            // ADD mode: always generate
-            outSku = `${p.id ?? ''}${dealerId}`;
-          } else {
-            // EDIT mode:
-            // keep existing rows’ sku; only generate for rows marked new (or missing dealer suffix)
-            if (isNew) outSku = `${p.id ?? ''}${dealerId}`;
-          }
-
-          return {
-            id: p.id ?? '',
-            sku: outSku,
-            name: p.name ?? '',
-            brand: p.brand ?? '',
-            model: p.model ?? '',
-            variant: p.variant ?? p.varient ?? '',
-            unit: p.unit ?? '',
-            openingStock: p.openingStock ?? 0
-          };
-        })
+        createdAt: timestamp,
+        createdBy: username,
       };
 
-      // clean undefined at top-level (items are constructed clean)
-      Object.keys(transformedData).forEach(k => {
-        if (transformedData[k] === undefined) transformedData[k] = '';
+      // Use runInInjectionContext to execute outside of Angular lifecycle
+      runInInjectionContext(this.injector, async () => {
+        // Loop through the added products and add them to Firestore
+        for (let i = 0; i < this.addedProducts.length; i++) {
+          const product = this.addedProducts[i];
+
+          // Determine if this product is new or not
+          const isNew = product.__isNew === true || !product.sku || (dealerId && !String(product.sku).includes(dealerId));
+
+          let outSku = product.sku ?? '';
+          if (!this.isEditMode) {
+            outSku = `${product.id ?? ''}${dealerId}`;
+          } else {
+            if (isNew) outSku = `${product.id ?? ''}${dealerId}`;
+          }
+
+          const productData = {
+            ...payload,
+            sku: outSku,
+            name: product.name ?? '',
+            brand: product.brand ?? '',
+            model: product.model ?? '',
+            variant: product.variant ?? product.varient ?? '',
+            unit: product.unit ?? '',
+            openingStock: product.openingStock ?? 0,
+          };
+
+          await this.outletProductService.addOutletProduct({
+            ...productData,
+            outletId: dealerId  // Add dealer-specific sub-collection
+          });
+        }
+
+        Swal.fire('Added!', 'GRN Details added successfully.', 'success');
+        this.goBack();
       });
 
-      if (this.isEditMode && this.data.id) {
-        transformedData.updateBy = username;
-        transformedData.updatedAt = timestamp;
-
-        runInInjectionContext(this.injector, () => {
-          this.outletProductService.updateOutletProduct(this.data.id, transformedData)
-            .then(() => {
-              Swal.fire('Updated!', 'GRN Details updated successfully.', 'success');
-              this.goBack();
-            })
-            .catch(error => {
-              console.error('Update error:', error);
-              Swal.fire('Error', 'Something went wrong.', 'error');
-            });
-        });
-      } else {
-        transformedData.status = 'Active';
-        transformedData.createBy = username;
-        transformedData.createdAt = timestamp;
-
-        runInInjectionContext(this.injector, () => {
-          this.outletProductService.addOutletProduct(transformedData)
-            .then(() => {
-              Swal.fire('Added!', 'GRN Details added successfully.', 'success');
-              this.goBack();
-            })
-            .catch(error => {
-              console.error('Add error:', error);
-              Swal.fire('Error', 'Something went wrong.', 'error');
-            });
-        });
-      }
     } catch (err) {
       console.error('Global submit error:', err);
       Swal.fire('Error', 'Something went wrong while submitting.', 'error');

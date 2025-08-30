@@ -15,7 +15,7 @@ export class OutletProductService {
     return this.firestore
       .collection(this.collectionName, (ref) => {
         let query = ref.orderBy('createdAt', 'desc');
-        if (startAfter) query = query.startAfter(startAfter);
+        if (startAfter) query = query.startAfter(startAfter); // for pagination
         return query;
       })
       .snapshotChanges()
@@ -24,30 +24,52 @@ export class OutletProductService {
           actions.map((a) => {
             const data = a.payload.doc.data();
             const id = a.payload.doc.id;
-            return { id, ...(data as any) };
+            return { id, ...(data as any) };  // Add the document ID to the data
           })
         )
       );
   }
 
-  // 📌 Add new GRN
+
+  // // 📌 Add new GRN
+  // addOutletProduct(grnData: any): Promise<any> {
+  //   const payload = {
+  //     ...grnData,
+  //     createdAt: new Date()
+  //   };
+  //   return this.firestore
+  //     .collection(this.collectionName)
+  //     .add(payload)
+  //     .then((result) => {
+  //       console.log('✅ Outlet Product added successfully:', result);
+  //       return result;
+  //     })
+  //     .catch((error) => {
+  //       console.error('❌ Error adding GRN:', error);
+  //       throw error;
+  //     });
+  // }
+
   addOutletProduct(grnData: any): Promise<any> {
     const payload = {
       ...grnData,
-      createdAt: new Date()
+      createdAt: new Date(),
+      // Add any additional fields as needed
     };
+    console.log(grnData)
     return this.firestore
-      .collection(this.collectionName)
-      .add(payload)
+      .collection(this.collectionName)  // main collection
+      .doc(grnData.outletId)        // outletID (document ID)
+      .collection('products')       // sub-collection for products
+      .add(payload)                 // add product to the sub-collection
       .then((result) => {
-        console.log('✅ Outlet Product added successfully:', result);
         return result;
       })
       .catch((error) => {
-        console.error('❌ Error adding GRN:', error);
         throw error;
       });
   }
+
 
   // 📌 Update GRN
   updateOutletProduct(id: string, grnData: any): Promise<any> {

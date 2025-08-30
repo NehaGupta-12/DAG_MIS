@@ -2,20 +2,17 @@ import {Component, EnvironmentInjector, OnInit, runInInjectionContext, ViewChild
 import {FeatherIconsComponent} from "@shared/components/feather-icons/feather-icons.component";
 import {
   MatCell,
-  MatCellDef,
   MatColumnDef,
   MatHeaderCell,
   MatHeaderRow,
-  MatHeaderRowDef,
-  MatRow, MatRowDef, MatTable, MatTableDataSource, MatTableModule
+  MatRow, MatTable, MatTableDataSource, MatTableModule
 } from "@angular/material/table";
 import {MatIconButton} from "@angular/material/button";
-import {CommonModule, DatePipe, NgIf} from "@angular/common";
+import {CommonModule} from "@angular/common";
 import {MatPaginator} from "@angular/material/paginator";
 import {MatSort} from "@angular/material/sort";
 import {MatDialog} from "@angular/material/dialog";
 import {Router} from "@angular/router";
-import {GrnService} from "../grn.service";
 import {AddUserComponent} from "../add-user/add-user.component";
 import Swal from "sweetalert2";
 import {MatIcon} from "@angular/material/icon";
@@ -38,7 +35,6 @@ import {OutletProductService} from "../outlet-product.service";
       MatTooltip,
       MatColumnDef,
       MatTableModule,
-      DatePipe,
       FeatherIconsComponent,
       CommonModule
     ],
@@ -88,14 +84,31 @@ export class OutletProductListComponent implements OnInit {
 
   loadOutletProduct() {
     runInInjectionContext(this.injector, () => {
-      this.outletProductService.getOutletProductList().subscribe((data) => {
-        this.dataSource.data = data;
+      // Directly subscribe to the service method within the injection context
+      this.outletProductService.getOutletProductList().subscribe((data: any) => {
+        console.log(data);
+        this.dataSource.data = data;  // Assign fetched data to the table's dataSource
+        // Check the length of the data to display or use it for conditions
+        const dataLength = data.length;
+        console.log("Fetched Data Length:", dataLength);
+
+        // Example: You could display a message based on the data length
+        if (dataLength === 0) {
+          console.log("No data found in the collection");
+        } else {
+          console.log(`Fetched ${dataLength} records`);
+        }
+
+        // Set paginator and sorter for the table
         this.dataSource.paginator = this.paginator;
         this.dataSource.sort = this.sort;
-        console.log(this.dataSource.data)
+
+        console.log("Table Data:", this.dataSource.data);
       });
+
     });
   }
+
 
   editloadOutletProduct(row: any) {
     this.router.navigate(['module/add-outlet-product'], {
