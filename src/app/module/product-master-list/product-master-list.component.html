@@ -110,6 +110,9 @@
                     <button mat-icon-button color="accent" (click)="delete(row.id)">
                       <app-feather-icons [icon]="'trash-2'" [class]="'tbl-fav-delete'"></app-feather-icons>
                     </button>
+                    <button mat-icon-button color="accent" (click)="openAssignDialog()">
+                      <app-feather-icons [icon]="'corner-down-right'" [class]="'tbl-fav-assign'"></app-feather-icons>
+                    </button>
                   </td>
                 </ng-container>
 
@@ -141,7 +144,6 @@
               [pageSize]="10"
               [pageSizeOptions]="[5, 10, 25, 100]">
             </mat-paginator>
-
           </div>
         </div>
       </div>

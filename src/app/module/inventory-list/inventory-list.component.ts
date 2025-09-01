@@ -1,5 +1,5 @@
-import {Component, ViewChild} from '@angular/core';
-import {CommonModule, DatePipe} from "@angular/common";
+import {Component, EnvironmentInjector, OnInit, runInInjectionContext, ViewChild} from '@angular/core';
+import {CommonModule, DatePipe, NgForOf, NgIf} from "@angular/common";
 import {
   MatCell,
   MatCellDef,
@@ -9,98 +9,105 @@ import {
   MatHeaderRowDef,
   MatRow, MatRowDef, MatTable, MatTableDataSource, MatTableModule
 } from "@angular/material/table";
-import {MatIconButton} from "@angular/material/button";
+import {MatButtonModule, MatIconButton} from "@angular/material/button";
 import {MatPaginator} from "@angular/material/paginator";
 import {MatSort} from "@angular/material/sort";
-import {MatDialog} from "@angular/material/dialog";
+import {MatDialog, MatDialogModule} from "@angular/material/dialog";
 import {Router} from "@angular/router";
 import {AddUserComponent} from "../add-user/add-user.component";
-import {MatIcon} from "@angular/material/icon";
+import {MatIcon, MatIconModule} from "@angular/material/icon";
 import {MatProgressSpinner} from "@angular/material/progress-spinner";
 import {MatTooltip} from "@angular/material/tooltip";
 import {FeatherIconsComponent} from "@shared/components/feather-icons/feather-icons.component";
+import {ProductMasterService} from "../product-master.service";
+import Swal from "sweetalert2";
+import {AddShowroomComponent} from "../add-showroom/add-showroom.component";
+import {MatFormField, MatInputModule} from "@angular/material/input";
+import {MatOption, MatSelect, MatSelectModule} from "@angular/material/select";
+import {FormsModule, ReactiveFormsModule} from "@angular/forms";
+import {MatFormFieldModule} from "@angular/material/form-field";
+import {MatOptionModule} from "@angular/material/core";
+import {MatCheckboxModule} from "@angular/material/checkbox";
+import {AddDealerService} from "../add-dealer.service";
+import {OutletProductService} from "../outlet-product.service";
 
 @Component({
   selector: 'app-inventory-list',
-    imports: [
-        MatCell,
-        MatHeaderCell,
-        MatHeaderRow,
-        MatIcon,
-        MatIconButton,
-        MatPaginator,
-        MatProgressSpinner,
-        MatRow,
-        MatTable,
-        MatTooltip,
-        MatColumnDef,
-        MatTableModule,
-        DatePipe,
-        FeatherIconsComponent,
-        CommonModule
-    ],
+  imports: [
+    MatCell,
+    MatHeaderCell,
+    MatHeaderRow,
+    MatIcon,
+    MatIconButton,
+    MatPaginator,
+    MatProgressSpinner,
+    MatRow,
+    MatTable,
+    MatTooltip,
+    MatColumnDef,
+    MatTableModule,
+    DatePipe,
+    FeatherIconsComponent,
+    CommonModule,
+    NgIf,
+    MatDialogModule,
+    MatFormField,
+    MatSelect,
+    MatOption,
+    FormsModule,
+    ReactiveFormsModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatIconModule,
+    MatSelectModule,
+    MatOptionModule,
+    MatCheckboxModule,
+    MatButtonModule,
+    NgForOf,
+    MatCell,
+    MatCellDef,
+    MatColumnDef,
+    MatHeaderCell,
+    MatHeaderRow,
+    MatHeaderRowDef,
+    MatRow,
+    MatRowDef,
+    MatTable,
+    CommonModule,
+    MatTableModule
+  ],
   templateUrl: './inventory-list.component.html',
   styleUrl: './inventory-list.component.scss'
 })
-export class InventoryListComponent {
+export class InventoryListComponent implements OnInit {
 
-  users = [
-    {
-      id: 1,
-      firstName: 'John Doe',
-      email: 'john.doe@example.com',
-      gender: 'Male',
-      birthDate: '1990-01-15',
-      mobile: '9876543210',
-      address: '123 Main St, New York',
-      country: 'USA'
-    },
-    {
-      id: 2,
-      firstName: 'Jane Smith',
-      email: 'jane.smith@example.com',
-      gender: 'Female',
-      birthDate: '1985-05-23',
-      mobile: '9876501234',
-      address: '456 Park Ave, London',
-      country: 'UK'
-    },
-    {
-      id: 3,
-      firstName: 'Raj Kumar',
-      email: 'raj.kumar@example.com',
-      gender: 'Male',
-      birthDate: '1992-09-10',
-      mobile: '9876123456',
-      address: 'MG Road, Bangalore',
-      country: 'India'
-    }
-  ];
 
-  dataSource = new MatTableDataSource<any>(this.users);
+  dataSource = new MatTableDataSource<any>();
+  dealerdataSource = new MatTableDataSource<any>();
+  allOutletProducts: any[] = [];
 
   // Define columns
   columnDefinitions = [
     { def: 'id', label: 'ID' },
-    { def: 'firstName', label: 'First Name' },
-    { def: 'email', label: 'Email' },
-    { def: 'gender', label: 'Gender' },
-    { def: 'birthDate', label: 'Birth Date' },
-    { def: 'mobile', label: 'Mobile' },
-    { def: 'address', label: 'Address' },
-    { def: 'country', label: 'Country' },
+    { def: 'sku', label: 'Sku' },
+    { def: 'name', label: 'Name' },
+    { def: 'model', label: 'Model' },
+    { def: 'brand', label: 'Brand' },
+    { def: 'varient', label: 'Varient' },
+    { def: 'quantity', label: 'Quantity' },
+    // { def: 'engineCc', label: 'Engine CC' },
   ];
 
   displayedColumns: string[] = [
     'id',
-    'firstName',
-    'email',
-    'gender',
-    'birthDate',
-    'mobile',
-    'address',
-    'country',
-    'action'
+    'name',
+    'sku',
+    'model',
+    'brand',
+    'varient',
+    // 'engineCc',
+    'unit',
+    'quantity',
   ];
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
@@ -112,17 +119,60 @@ export class InventoryListComponent {
   // isLoading = false;
 
 
-  constructor(private dialog: MatDialog, private router: Router) {
+  constructor(private dialog: MatDialog,
+              private router: Router,
+              private productService: ProductMasterService,
+              private injector: EnvironmentInjector,
+              private addDealerService: AddDealerService,
+              private outletProductService: OutletProductService,
+  ) {
   }
 
   ngOnInit() {
-    // this.loadDummyData();
+    this.productList();
+    this. DealerList();
   }
 
-  // ✅ Dynamically get columns to display
-  // getDisplayedColumns(): string[] {
-  //   return this.columnDefinitions.filter(cd => cd.visible).map(cd => cd.def);
-  // }
+  DealerList() {
+    runInInjectionContext(this.injector, () => {
+      this.addDealerService.getDealerList().subscribe((data) => {
+        this.dealerdataSource.data = data;
+      });
+    });
+  }
+
+  productList() {
+    runInInjectionContext(this.injector, () => {
+      this.outletProductService.getOutletProductList().subscribe((data) => {
+        console.log("All outlet products:", data);
+        this.allOutletProducts = data;   // keep all
+        this.dataSource.data = [];       // empty table by default
+        this.dataSource.paginator = this.paginator;
+        this.dataSource.sort = this.sort;
+      });
+    });
+  }
+
+
+  onOutletChange(selectedOutlet: string) {
+    if (!selectedOutlet) {
+      this.dataSource.data = []; // reset table
+      return;
+    }
+
+    const outlet = this.allOutletProducts.find(
+      o => (o.dealerOutlet || '').trim() === selectedOutlet.trim()
+    );
+
+    // If found, bind its items; else show empty
+    this.dataSource.data = outlet ? outlet.items || [] : [];
+    console.log("Filtered items:", this.dataSource.data);
+
+    this.dataSource.paginator = this.paginator;
+    this.dataSource.sort = this.sort;
+  }
+
+
 
   openDialog() {
     this.dialog.open(AddUserComponent, {
@@ -131,8 +181,8 @@ export class InventoryListComponent {
     });
   }
 
-  navigateToAddInventory(){
-    this.router.navigate(['module/add-inventory']);
+  navigateToAddProductMaster(){
+    this.router.navigate(['module/add-products-master']);
   }
 
   ngAfterViewInit() {
@@ -152,6 +202,53 @@ export class InventoryListComponent {
 
   isLoading: any;
 
+  delete(id: string) {
+    Swal.fire({
+      title: 'Are you sure?',
+      text: 'You will not be able to recover this Product!',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, delete it!',
+      cancelButtonText: 'No, cancel',
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // Proceed with deletion
+        runInInjectionContext(this.injector, () => {
+          this.productService.deleteProduct(id).then(() => {
+            this.productList();
 
+            // // Log activity
+            // const activity = {
+            //   date: new Date().getTime(),
+            //   section: 'Installation List',
+            //   action: 'Delete',
+            //   description: `Installation deleted by user`,
+            //   currentIp: localStorage.getItem('currentip')!,
+            // };
+            // this.mLogService.addLog(activity);
+
+            // Optional: Show success alert
+            Swal.fire('Deleted!', 'Product has been deleted.', 'success');
+          });
+        });
+      } else if (result.dismiss === Swal.DismissReason.cancel) {
+        Swal.fire('Cancelled', 'Product is safe.', 'info');
+      }
+    });
+  }
+
+
+  openAssignDialog(): void {
+    const dialogRef = this.dialog.open(AddShowroomComponent, {
+      width: '400px',
+      data: { /* you can pass data here */ }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        console.log('Assigned successfully!');
+      }
+    });
+  }
 
 }

@@ -54,6 +54,14 @@
           "class": "ml-menu",
           "groupTitle": false,
           "submenu": []
+        },
+        {
+          "path": "module/outlet-product-list",
+          "title": "Outlet/Dealer Product List",
+          "icon": "",
+          "class": "ml-menu",
+          "groupTitle": false,
+          "submenu": []
         }
       ]
     },
@@ -75,6 +83,14 @@
         {
           "path": "module/inventory-list",
           "title": "Inventory List",
+          "icon": "",
+          "class": "ml-menu",
+          "groupTitle": false,
+          "submenu": []
+        },
+        {
+          "path": "module/stock-transfer-list",
+          "title": "Stock Transfer",
           "icon": "",
           "class": "ml-menu",
           "groupTitle": false,

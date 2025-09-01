@@ -1,41 +1,59 @@
 import {Component, EnvironmentInjector, OnInit, runInInjectionContext, ViewChild} from '@angular/core';
-import {MatTable, MatTableDataSource} from "@angular/material/table";
+import {FeatherIconsComponent} from "@shared/components/feather-icons/feather-icons.component";
+import {
+  MatCell,
+  MatColumnDef,
+  MatHeaderCell,
+  MatHeaderRow,
+  MatRow, MatTable, MatTableDataSource, MatTableModule
+} from "@angular/material/table";
+import {MatIconButton} from "@angular/material/button";
+import {CommonModule} from "@angular/common";
 import {MatPaginator} from "@angular/material/paginator";
 import {MatSort} from "@angular/material/sort";
 import {MatDialog} from "@angular/material/dialog";
 import {Router} from "@angular/router";
-import {GrnService} from "../grn.service";
 import {AddUserComponent} from "../add-user/add-user.component";
 import Swal from "sweetalert2";
-import {OutletProductService} from "../outlet-product.service";
 import {MatIcon} from "@angular/material/icon";
-import {FeatherIconsComponent} from "@shared/components/feather-icons/feather-icons.component";
 import {MatProgressSpinner} from "@angular/material/progress-spinner";
+import {MatTooltip} from "@angular/material/tooltip";
+import {OutletProductService} from "../outlet-product.service";
 
 @Component({
   selector: 'app-outlet-product-list',
-  imports: [
-    MatIcon,
-    FeatherIconsComponent,
-    MatProgressSpinner,
-    MatPaginator,
-    MatTable
-  ],
+    imports: [
+      MatCell,
+      MatHeaderCell,
+      MatHeaderRow,
+      MatIcon,
+      MatIconButton,
+      MatPaginator,
+      MatProgressSpinner,
+      MatRow,
+      MatTable,
+      MatTooltip,
+      MatColumnDef,
+      MatTableModule,
+      FeatherIconsComponent,
+      CommonModule
+    ],
   templateUrl: './outlet-product-list.component.html',
-  standalone: true,
   styleUrl: './outlet-product-list.component.scss'
 })
-export class OutletProductListComponent  implements OnInit {
+export class OutletProductListComponent implements OnInit {
+
+
   dataSource = new MatTableDataSource<any>();
 
   // Define columns
   columnDefinitions = [
     {def: 'serial', label: 'Serial'},
     {def: 'location', label: 'Location'},
-    {def: 'openingStock', label: 'OpeningStock'},
-    // {def: 'grnQuantity', label: 'GrnQuantity'},
-    {def: 'products', label: 'Products'},
-    {def: 'typeOfGrn', label: 'GrnType'},
+    {def: 'remark', label: 'Remark'},
+    {def: 'productCount', label: 'ProductCount'},
+    {def: 'quantityCount', label: 'QuantityCount'},
+    {def: 'action', label: 'Action'},
   ];
 
 
@@ -43,9 +61,8 @@ export class OutletProductListComponent  implements OnInit {
   displayedColumns: string[] = [
     'serial',
     'location',
-    'openingStock',
-    // 'grnQuantity',
-    'typeOfGrn',
+    'remark',
+    'productCount',
     'quantityCount',
     'action'
   ];
@@ -56,27 +73,44 @@ export class OutletProductListComponent  implements OnInit {
 
   constructor(private dialog: MatDialog,
               private router: Router,
-              private grnService: OutletProductService,
+              private outletProductService: OutletProductService,
               private injector: EnvironmentInjector,
   ) {
   }
 
   ngOnInit() {
-    this.loadLocationList()
+    this.loadOutletProduct()
   }
 
-  loadLocationList() {
+  loadOutletProduct() {
     runInInjectionContext(this.injector, () => {
-      this.grnService.getOutletProductList().subscribe((data) => {
-        this.dataSource.data = data;
+      // Directly subscribe to the service method within the injection context
+      this.outletProductService.getOutletProductList().subscribe((data: any) => {
+        console.log(data);
+        this.dataSource.data = data;  // Assign fetched data to the table's dataSource
+        // Check the length of the data to display or use it for conditions
+        const dataLength = data.length;
+        console.log("Fetched Data Length:", dataLength);
+
+        // Example: You could display a message based on the data length
+        if (dataLength === 0) {
+          console.log("No data found in the collection");
+        } else {
+          console.log(`Fetched ${dataLength} records`);
+        }
+
+        // Set paginator and sorter for the table
         this.dataSource.paginator = this.paginator;
         this.dataSource.sort = this.sort;
-        console.log(this.dataSource.data)
+
+        console.log("Table Data:", this.dataSource.data);
       });
+
     });
   }
 
-  editGrn(row: any) {
+
+  editloadOutletProduct(row: any) {
     this.router.navigate(['module/add-outlet-product'], {
       queryParams: {data: JSON.stringify(row)}
     });
@@ -90,7 +124,7 @@ export class OutletProductListComponent  implements OnInit {
     });
   }
 
-  navigateToAddGrn() {
+  navigateToAddloadOutletProduct() {
     this.router.navigate(['module/add-outlet-product']);
   }
 
@@ -111,11 +145,36 @@ export class OutletProductListComponent  implements OnInit {
 
   isLoading: any;
 
+  deleteOutletProduct(id: string) {
+    Swal.fire({
+      title: 'Are you sure?',
+      text: 'You will not be able to recover this Dealer/Outlet Product!',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, delete it!',
+      cancelButtonText: 'No, cancel',
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // Proceed with deletion
+        runInInjectionContext(this.injector, () => {
+          this.outletProductService.deleteOutletProduct(id).then(() => {
+            this.loadOutletProduct();
+
+
+            // Optional: Show success alert
+            Swal.fire('Deleted!', 'Dealer/Outlet Product has been deleted.', 'success');
+          });
+        });
+      } else if (result.dismiss === Swal.DismissReason.cancel) {
+        Swal.fire('Cancelled', 'Dealer/Outlet Product is safe.', 'info');
+      }
+    });
+  }
 
   getTotalQuantity(row: any): number {
     if (!row?.items) return 0;
     return row.items
-      .map((i: any) => i.quantity || 0)
+      .map((i: any) => i.openingStock || 0)
       .reduce((acc: number, val: number) => acc + val, 0);
   }
 

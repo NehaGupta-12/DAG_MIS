@@ -9,7 +9,7 @@
             <div class="left">
               <ul class="header-buttons-left ms-0">
                 <li class="tbl-title">
-                  <h2 class="fs-4">Outlet Product List</h2>
+                  <h2 class="fs-4">Stock Transfer List</h2>
                 </li>
                 <li class="tbl-search-box">
                   <label for="search-input">
@@ -27,7 +27,7 @@
             </div>
             <div class="right">
               <div class="right-side-btn">
-                <button mat-icon-button  class="tbl-header-btn col-green" matTooltip="Add" (click)="navigateToAddloadOutletProduct()">
+                <button mat-icon-button  class="tbl-header-btn col-green" matTooltip="Add" (click)="navigateToAddStockTransfer()">
                   <mat-icon>add_circle_outline</mat-icon>
                 </button>
               </div>
@@ -48,23 +48,19 @@
                 </ng-container>
 
                 <!-- First Name -->
-                <ng-container matColumnDef="location">
-                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Outlet/dealer</th>
-                  <td mat-cell *matCellDef="let row">{{ row.dealerOutlet }}</td>
+                <ng-container matColumnDef="fromOutletDealer">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>From Outlet/dealer</th>
+                  <td mat-cell *matCellDef="let row">{{ row.fromDealerOutlet }}</td>
                 </ng-container>
 
 
                 <!-- Gender -->
-                <ng-container matColumnDef="remark">
-                  <th mat-header-cell *matHeaderCellDef mat-sort-header>remark</th>
-                  <td mat-cell *matCellDef="let row">{{ row.remark }}</td>
+                <ng-container matColumnDef="toOutletDealer">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>To Outlet/dealer</th>
+                  <td mat-cell *matCellDef="let row">{{ row.toDealerOutlet }}</td>
                 </ng-container>
 
 
-                <ng-container matColumnDef="productCount">
-                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Product Count</th>
-                  <td mat-cell *matCellDef="let row">{{ row.items.length || 0 }}</td>
-                </ng-container>
 
 
                 <!-- Quantity -->
@@ -75,15 +71,31 @@
                   </td>
                 </ng-container>
 
+                <!-- Quantity -->
+                <ng-container matColumnDef="productsCount">
+                  <th mat-header-cell *matHeaderCellDef> Products Count </th>
+                  <td mat-cell *matCellDef="let row">
+                    {{ row.items.length || 0 }}
+                  </td>
+                </ng-container>
+
+                <!-- Quantity -->
+                <ng-container matColumnDef="createdAt">
+                  <th mat-header-cell *matHeaderCellDef>CreatedAt</th>
+                  <td mat-cell *matCellDef="let row">
+                    {{ row.createdAt?.toDate() | date:'dd/MM/yyyy' }}
+                  </td>
+                </ng-container>
+
 
                 <!-- Action -->
                 <ng-container matColumnDef="action">
                   <th mat-header-cell *matHeaderCellDef mat-sort-header>Action</th>
                   <td mat-cell *matCellDef="let row">
-                    <button mat-icon-button color="accent" (click)="editloadOutletProduct(row)" >
-                      <app-feather-icons [icon]="'edit'" [class]="'tbl-fav-edit'"></app-feather-icons>
+                    <button mat-icon-button color="accent" (click)="openAssignDialog(row)">
+                      <app-feather-icons [icon]="'eye'" [class]="'tbl-fav-edit'"></app-feather-icons>
                     </button>
-                    <button mat-icon-button color="accent" (click)="deleteOutletProduct(row.id)" >
+                    <button mat-icon-button color="accent" (click)="deleteGrn(row.id)" >
                       <app-feather-icons [icon]="'trash-2'" [class]="'tbl-fav-delete'"></app-feather-icons>
                     </button>
                   </td>

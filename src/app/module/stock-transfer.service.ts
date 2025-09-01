@@ -6,16 +6,16 @@ import {map} from "rxjs/operators";
 @Injectable({
   providedIn: 'root'
 })
-export class OutletProductService {
-  private collectionName = 'outletProduct';   // Firestore collection name
+export class StockTransferService {
+  private collectionName = 'stockTransfer';   // Firestore collection name
 
   constructor(private firestore: AngularFirestore) {}
 
-  getOutletProductList(startAfter?: any): Observable<any[]> {
+  getStockTransferList(startAfter?: any): Observable<any[]> {
     return this.firestore
       .collection(this.collectionName, (ref) => {
         let query = ref.orderBy('createdAt', 'desc');
-        if (startAfter) query = query.startAfter(startAfter); // for pagination
+        if (startAfter) query = query.startAfter(startAfter);
         return query;
       })
       .snapshotChanges()
@@ -24,61 +24,39 @@ export class OutletProductService {
           actions.map((a) => {
             const data = a.payload.doc.data();
             const id = a.payload.doc.id;
-            return { id, ...(data as any) };  // Add the document ID to the data
+            return { id, ...(data as any) };
           })
         )
       );
   }
 
-
-  // // 📌 Add new GRN
-  // addOutletProduct(grnData: any): Promise<any> {
-  //   const payload = {
-  //     ...grnData,
-  //     createdAt: new Date()
-  //   };
-  //   return this.firestore
-  //     .collection(this.collectionName)
-  //     .add(payload)
-  //     .then((result) => {
-  //       console.log('✅ Outlet Product added successfully:', result);
-  //       return result;
-  //     })
-  //     .catch((error) => {
-  //       console.error('❌ Error adding GRN:', error);
-  //       throw error;
-  //     });
-  // }
-
-  addOutletProduct(grnData: any): Promise<any> {
+  // 📌 Add new GRN
+  addStockTransfer(grnData: any): Promise<any> {
     const payload = {
       ...grnData,
-      createdAt: new Date(),
-      // Add any additional fields as needed
+      createdAt: new Date()
     };
-    console.log(grnData)
     return this.firestore
-      .collection(this.collectionName)  // main collection
-      .doc(grnData.outletId)        // outletID (document ID)
-      .collection('products')       // sub-collection for products
-      .add(payload)                 // add product to the sub-collection
+      .collection(this.collectionName)
+      .add(payload)
       .then((result) => {
+        console.log('✅ GRN added successfully:', result);
         return result;
       })
       .catch((error) => {
+        console.error('❌ Error adding GRN:', error);
         throw error;
       });
   }
 
-
   // 📌 Update GRN
-  updateOutletProduct(id: string, grnData: any): Promise<any> {
+  updateStockTransfer(id: string, grnData: any): Promise<any> {
     return this.firestore
       .collection(this.collectionName)
       .doc(id)
       .update(grnData)
       .then((result) => {
-        console.log('✅ Outlet Product updated successfully:', result);
+        console.log('✅ Stock Transfer updated successfully:', result);
         return result;
       })
       .catch((error) => {
@@ -88,12 +66,12 @@ export class OutletProductService {
   }
 
   // 📌 Delete GRN
-  deleteOutletProduct(id: string): Promise<void> {
+  deleteStockTransfer(id: string): Promise<void> {
     return this.firestore.doc(`${this.collectionName}/${id}`).delete();
   }
 
   // 📌 Get GRN by ID
-  getOutletProductById(id: string): Observable<any> {
+  getStockTransferById(id: string): Observable<any> {
     return this.firestore
       .collection(this.collectionName)
       .doc(id)

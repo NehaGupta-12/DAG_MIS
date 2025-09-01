@@ -106,15 +106,32 @@ export class TypesComponent implements OnInit {
 
       mDatabase.object<any[]>(`typelist/${key}/subcategories`)
         .valueChanges()
-        .pipe(take(1)) // ✅ Only take the first value and auto-unsubscribe
+        .pipe(take(1))
         .subscribe((subcats) => {
           const updatedSubcategories = subcats ? [...subcats, field] : [field];
+
+          // ✅ Update DB
           mDatabase.object(`typelist/${key}/subcategories`)
             .set(updatedSubcategories)
-            .then(() => console.log(`Subcategory "${field}" added to ${this.selectedCategory.name}`));
+            .then(() => {
+              console.log(`Subcategory "${field}" added to ${this.selectedCategory.name}`);
+
+              // ✅ Keep dropdown selected and update local reference
+              this.selectedCategory = {
+                ...this.selectedCategory,
+                subcategories: updatedSubcategories
+              };
+
+              // ✅ Also update categories array in memory
+              const index = this.categories.findIndex(c => c.name === this.selectedCategory.name);
+              if (index > -1) {
+                this.categories[index] = this.selectedCategory;
+              }
+            });
         });
     });
   }
+
 
 
 
@@ -131,13 +148,30 @@ export class TypesComponent implements OnInit {
         .subscribe((subcats) => {
           if (subcats && Array.isArray(subcats)) {
             const updatedSubcategories = subcats.filter(item => item !== subCategory);
+
+            // ✅ Update DB
             mDatabase.object(`typelist/${key}/subcategories`)
               .set(updatedSubcategories)
-              .then(() => console.log(`Subcategory "${subCategory}" deleted from ${this.selectedCategory.name}`));
+              .then(() => {
+                console.log(`Subcategory "${subCategory}" deleted from ${this.selectedCategory.name}`);
+
+                // ✅ Keep dropdown selected and update local reference
+                this.selectedCategory = {
+                  ...this.selectedCategory,
+                  subcategories: updatedSubcategories
+                };
+
+                // ✅ Also update categories array in memory
+                const index = this.categories.findIndex(c => c.name === this.selectedCategory.name);
+                if (index > -1) {
+                  this.categories[index] = this.selectedCategory;
+                }
+              });
           }
         });
     });
   }
+
 
 
   private saveToDatabase() {

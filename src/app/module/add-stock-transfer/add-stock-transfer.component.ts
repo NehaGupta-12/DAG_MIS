@@ -1,38 +1,33 @@
-import {Component, EnvironmentInjector, Inject, OnInit, runInInjectionContext} from '@angular/core';
-import {
-  FormGroup,
-  FormsModule,
-  ReactiveFormsModule,
-  UntypedFormBuilder,
-  UntypedFormGroup,
-  Validators
-} from "@angular/forms";
-import {MatButton, MatButtonModule} from "@angular/material/button";
-import {MatCheckbox, MatCheckboxModule} from "@angular/material/checkbox";
-import {MatInput, MatInputModule, MatLabel, MatSuffix} from "@angular/material/input";
-import {MatFormFieldModule} from "@angular/material/form-field";
-import {MatIconModule} from "@angular/material/icon";
-import {MatSelectModule} from "@angular/material/select";
-import {MatOptionModule} from "@angular/material/core";
-import {CommonModule, Location, NgForOf} from "@angular/common";
-import {GrnService} from "../grn.service";
-import {ActivatedRoute} from "@angular/router";
-import {MAT_DIALOG_DATA} from "@angular/material/dialog";
-import Swal from "sweetalert2";
-import {AddDealerService} from "../add-dealer.service";
+import {Component, EnvironmentInjector, Inject, runInInjectionContext} from '@angular/core';
+import {FormGroup, FormsModule, ReactiveFormsModule, UntypedFormBuilder, Validators} from "@angular/forms";
+import {MatButton, MatButtonModule, MatIconButton} from "@angular/material/button";
 import {
   MatCell,
   MatCellDef,
   MatColumnDef,
   MatHeaderCell,
-  MatHeaderRow, MatHeaderRowDef, MatRow, MatRowDef, MatTable,
-  MatTableDataSource, MatTableModule
+  MatHeaderRow,
+  MatHeaderRowDef,
+  MatRow, MatRowDef, MatTable, MatTableDataSource, MatTableModule
 } from "@angular/material/table";
+import {MatInput, MatInputModule, MatLabel} from "@angular/material/input";
+import {CommonModule, Location, NgForOf, NgIf} from "@angular/common";
+import {GrnService} from "../grn.service";
+import {ActivatedRoute} from "@angular/router";
+import {AddDealerService} from "../add-dealer.service";
 import {ProductMasterService} from "../product-master.service";
+import {MAT_DIALOG_DATA} from "@angular/material/dialog";
+import Swal from "sweetalert2";
+import {MatFormFieldModule} from "@angular/material/form-field";
+import {MatIconModule} from "@angular/material/icon";
+import {MatSelectModule} from "@angular/material/select";
+import {MatOptionModule} from "@angular/material/core";
+import {MatCheckboxModule} from "@angular/material/checkbox";
+import {StockTransferService} from "../stock-transfer.service";
 import {OutletProductService} from "../outlet-product.service";
 
 @Component({
-  selector: 'app-add-grn',
+  selector: 'app-add-stock-transfer',
   imports: [
     FormsModule,
     ReactiveFormsModule,
@@ -59,19 +54,19 @@ import {OutletProductService} from "../outlet-product.service";
   providers: [
     {provide: MAT_DIALOG_DATA, useValue: {}} // ✅ Fallback
   ],
-  templateUrl: './add-grn.component.html',
-  standalone: true,
-  styleUrl: './add-grn.component.scss'
+  templateUrl: './add-stock-transfer.component.html',
+  styleUrl: './add-stock-transfer.component.scss'
 })
-export class AddGRNComponent implements OnInit{
+export class AddStockTransferComponent {
 
   isEditMode: boolean = false;
-  grnForm: FormGroup;
+  stockTransferForm: FormGroup;
   displayedColumns: string[] = ['sku', 'name', 'brand', 'model', 'variant', 'unit', 'quantity', 'action'];
   dealerdataSource = new MatTableDataSource<any>();
   vehicledataSource = new MatTableDataSource<any>();
   addedProducts: any[] = [];
   dataSource = new MatTableDataSource<any>();
+
 
   breadscrums = [
     {
@@ -83,7 +78,7 @@ export class AddGRNComponent implements OnInit{
 
   constructor(private fb: UntypedFormBuilder,
               private dealer: Location,
-              private grnService: GrnService,
+              private stockTransferService: StockTransferService,
               private injector: EnvironmentInjector,
               private route: ActivatedRoute,
               private addDealerService: AddDealerService,
@@ -93,20 +88,25 @@ export class AddGRNComponent implements OnInit{
   ) {
     // this.initForm();
     this.isEditMode = !!data?.id;
-    this.grnForm = this.fb.group({
+    this.stockTransferForm = this.fb.group({
       products: ['', [Validators.required]],
-      // openingStock: ['', [Validators.required]],
-      // grnQuantity: ['', [Validators.required]],
-      typeOfGrn: ['', [Validators.required]],
-      dealerOutlet: ['', [Validators.required]],
+      fromDealerOutlet: ['', [Validators.required]],
+      toDealerOutlet: ['', [Validators.required]],
       items: this.fb.array([]),
     });
   }
+
 
   ngOnInit() {
     this.DealerList();
     this.productList();
     this.loadOutletProduct();
+
+    // disable products until both dealers selected
+    this.stockTransferForm.get('products')?.disable();
+
+    this.stockTransferForm.get('fromDealerOutlet')?.valueChanges.subscribe(() => this.toggleProducts());
+    this.stockTransferForm.get('toDealerOutlet')?.valueChanges.subscribe(() => this.toggleProducts());
 
     this.route.queryParams.subscribe(params => {
       if (params['data']) {
@@ -114,9 +114,9 @@ export class AddGRNComponent implements OnInit{
         console.log('Received row data:', rowData);
 
         // ✅ Patch simple fields
-        this.grnForm.patchValue({
+        this.stockTransferForm.patchValue({
           dealerOutlet: rowData.dealerOutlet,
-          // openingStock: rowData.openingStock,
+          openingStock: rowData.openingStock,
           typeOfGrn: rowData.typeOfGrn
         });
 
@@ -124,7 +124,7 @@ export class AddGRNComponent implements OnInit{
         if (rowData.items && Array.isArray(rowData.items)) {
           this.addedProducts = rowData.items.map((item: any) => ({
             ...item,
-            varient: item.variant ?? item.variant,  // fallback if rowData has 'variant'
+            varient: item.varient ?? item.variant,  // fallback if rowData has 'variant'
             quantity: item.quantity ?? 1
           }));
         }
@@ -139,13 +139,47 @@ export class AddGRNComponent implements OnInit{
     });
   }
 
+  toggleProducts() {
+    const fromOutletName = this.stockTransferForm.get('fromDealerOutlet')?.value;
+    const toOutletName = this.stockTransferForm.get('toDealerOutlet')?.value;
+
+    if (fromOutletName && toOutletName) {
+      const fromOutlet = this.dataSource.data.find(
+        (o: any) => o.dealerOutlet === fromOutletName
+      );
+      const toOutlet = this.dataSource.data.find(
+        (o: any) => o.dealerOutlet === toOutletName
+      );
+
+      if (fromOutlet && toOutlet) {
+        // find products common to both outlets (match by id OR name)
+        const commonProducts = fromOutlet.items.filter((fromItem: any) =>
+          toOutlet.items.some(
+            (toItem: any) => toItem.id === fromItem.id || toItem.name === fromItem.name
+          )
+        );
+
+        this.vehicledataSource.data = commonProducts;
+      } else {
+        this.vehicledataSource.data = [];
+      }
+
+      this.stockTransferForm.get('products')?.enable();
+    } else {
+      this.vehicledataSource.data = [];
+      this.stockTransferForm.get('products')?.disable();
+    }
+  }
+
+
+
+
 
 
   DealerList() {
     runInInjectionContext(this.injector, () => {
       this.addDealerService.getDealerList().subscribe((data) => {
         this.dealerdataSource.data = data;
-        console.log(this.dealerdataSource.data)
       });
     });
   }
@@ -156,7 +190,6 @@ export class AddGRNComponent implements OnInit{
     runInInjectionContext(this.injector, () => {
       this.productService.getProductList().subscribe((data) => {
         this.vehicledataSource.data = data;
-        console.log(this.vehicledataSource.data)
       });
     });
   }
@@ -170,37 +203,23 @@ export class AddGRNComponent implements OnInit{
     });
   }
 
-  onOutletChange(selectedOutlet: string) {
-    // Find the selected outlet from dealer data
-    const selectedOutletData = this.dealerdataSource.data.find(dealer => dealer.name === selectedOutlet);
-
-    if (selectedOutletData) {
-      // Find the products associated with this outlet from all outlet products
-      const outletProducts = this.dataSource.data.find(o => o.dealerOutlet === selectedOutletData.name)?.items;
-
-      // Bind to vehicledataSource for products dropdown
-      this.vehicledataSource.data = outletProducts || [];
-    } else {
-      this.vehicledataSource.data = []; // Reset if no outlet found
-    }
-  }
-
-
   isSubmitEnabled(): boolean {
     const formValid =
-      !!this.grnForm.get('dealerOutlet')?.valid &&
-      // !!this.grnForm.get('openingStock')?.valid &&
-      !!this.grnForm.get('typeOfGrn')?.valid;
+      this.stockTransferForm.get('fromDealerOutlet')?.valid &&
+      this.stockTransferForm.get('toDealerOutlet')?.valid;
 
     const hasProducts = this.addedProducts.length > 0;
-    const allQuantitiesValid = this.addedProducts.every(p => p.quantity && p.quantity > 0);
+    const allQuantitiesValid = this.addedProducts.every(
+      p => p.quantity && p.quantity > 0
+    );
 
-    return formValid && hasProducts && allQuantitiesValid;
+    return !!formValid && hasProducts && allQuantitiesValid;
   }
+
 
 
   addProduct() {
-    const selectedProductName = this.grnForm.get('products')?.value;
+    const selectedProductName = this.stockTransferForm.get('products')?.value;
 
     if (!selectedProductName) {
       Swal.fire('Error', 'Please select a product before adding.', 'error');
@@ -221,7 +240,7 @@ export class AddGRNComponent implements OnInit{
     }
 
     // Reset product dropdown
-    this.grnForm.get('products')?.reset();
+    this.stockTransferForm.get('products')?.reset();
   }
 
 
@@ -233,17 +252,16 @@ export class AddGRNComponent implements OnInit{
 
   submitForm() {
     try {
-      const formValues = this.grnForm.getRawValue();
-      delete formValues.products; // remove dropdown value
+      const formValues = this.stockTransferForm.getRawValue();
+      delete formValues.products; // remove temporary dropdown value
 
       const isMainFormValid =
-        this.grnForm.get('dealerOutlet')?.valid &&
-        // this.grnForm.get('openingStock')?.valid &&
-        this.grnForm.get('typeOfGrn')?.valid;
+        this.stockTransferForm.get('fromDealerOutlet')?.valid &&
+        this.stockTransferForm.get('toDealerOutlet')?.valid;
 
       if (isMainFormValid && this.addedProducts.length > 0) {
         Swal.fire({
-          title: this.isEditMode ? 'Update GRN Details?' : 'Add GRN Details?',
+          title: this.isEditMode ? 'Update Stock Transfer?' : 'Add Stock Transfer?',
           text: 'Are you sure you want to proceed?',
           icon: 'question',
           showCancelButton: true,
@@ -265,13 +283,13 @@ export class AddGRNComponent implements OnInit{
                   name: p.name ?? '',
                   brand: p.brand ?? '',
                   model: p.model ?? '',
-                  variant: p.variant ?? p.variant ?? '',
+                  variant: p.variant ?? p.varient ?? '',
                   unit: p.unit ?? '',
                   quantity: p.quantity ?? 0
                 }))
               };
 
-              // Remove undefined fields recursively
+              // Remove undefined fields
               Object.keys(transformedData).forEach(k => {
                 if (transformedData[k] === undefined) {
                   transformedData[k] = '';
@@ -283,13 +301,14 @@ export class AddGRNComponent implements OnInit{
                 transformedData.updatedAt = timestamp;
 
                 runInInjectionContext(this.injector, () => {
-                  this.grnService.updateGrn(this.data.id, transformedData)
+                  this.stockTransferService
+                    .updateStockTransfer(this.data.id, transformedData)
                     .then(() => {
-                      Swal.fire('Updated!', 'GRN Details updated successfully.', 'success');
+                      Swal.fire('Updated!', 'Stock Transfer updated successfully.', 'success');
                       this.goBack();
                     })
                     .catch(error => {
-                      console.error('Error updating GRN:', error);
+                      console.error('Error updating stock transfer:', error);
                       Swal.fire('Error', 'Something went wrong.', 'error');
                     });
                 });
@@ -299,37 +318,35 @@ export class AddGRNComponent implements OnInit{
                 transformedData.createdAt = timestamp;
 
                 runInInjectionContext(this.injector, () => {
-                  this.grnService.addGrn(transformedData)
+                  this.stockTransferService
+                    .addStockTransfer(transformedData)
                     .then(() => {
-                      Swal.fire('Added!', 'GRN Details added successfully.', 'success');
+                      Swal.fire('Added!', 'Stock Transfer added successfully.', 'success');
                       this.goBack();
                     })
                     .catch(error => {
-                      console.error('Error adding GRN:', error);
+                      console.error('Error adding stock transfer:', error);
                       Swal.fire('Error', 'Something went wrong.', 'error');
                     });
                 });
               }
             } catch (innerErr) {
-              console.error('Unexpected error during GRN submission:', innerErr);
+              console.error('Unexpected error during submission:', innerErr);
               Swal.fire('Error', 'Unexpected issue occurred.', 'error');
             }
           }
         });
       } else {
-        Swal.fire('Error', 'Please fill in all required fields and add at least one product.', 'error');
+        Swal.fire('Error', 'Please fill in From/To dealers and add at least one product.', 'error');
       }
     } catch (err) {
-      console.error('Global GRN submit error:', err);
+      console.error('Global submit error:', err);
       Swal.fire('Error', 'Something went wrong while submitting.', 'error');
     }
   }
 
-
-
-
-
   goBack() {
     this.dealer.back();
   }
+
 }

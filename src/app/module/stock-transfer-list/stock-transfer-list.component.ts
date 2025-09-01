@@ -1,5 +1,6 @@
 import {Component, EnvironmentInjector, OnInit, runInInjectionContext, ViewChild} from '@angular/core';
-import {CommonModule, DatePipe} from "@angular/common";
+import {CommonModule, DatePipe, NgIf} from "@angular/common";
+import {FeatherIconsComponent} from "@shared/components/feather-icons/feather-icons.component";
 import {
   MatCell,
   MatCellDef,
@@ -10,22 +11,22 @@ import {
   MatRow, MatRowDef, MatTable, MatTableDataSource, MatTableModule
 } from "@angular/material/table";
 import {MatIconButton} from "@angular/material/button";
-import {MatIcon} from "@angular/material/icon";
 import {MatPaginator} from "@angular/material/paginator";
-import {MatProgressSpinner} from "@angular/material/progress-spinner";
-import {MatTooltip} from "@angular/material/tooltip";
 import {MatSort} from "@angular/material/sort";
 import {MatDialog} from "@angular/material/dialog";
 import {Router} from "@angular/router";
 import {AddUserComponent} from "../add-user/add-user.component";
-import {FeatherIconsComponent} from "@shared/components/feather-icons/feather-icons.component";
-import {AddDealerService} from "../add-dealer.service";
-import Swal from "sweetalert2";
+import {MatIcon} from "@angular/material/icon";
+import {MatProgressSpinner} from "@angular/material/progress-spinner";
+import {MatTooltip} from "@angular/material/tooltip";
 import {GrnService} from "../grn.service";
-import {Validators} from "@angular/forms";
+import Swal from "sweetalert2";
+import {StockTransferService} from "../stock-transfer.service";
+import {AddShowroomComponent} from "../add-showroom/add-showroom.component";
+import {ViewStockTransferComponent} from "../view-stock-transfer/view-stock-transfer.component";
 
 @Component({
-  selector: 'app-grn-list',
+  selector: 'app-stock-transfer-list',
   imports: [
     MatCell,
     MatHeaderCell,
@@ -43,21 +44,21 @@ import {Validators} from "@angular/forms";
     FeatherIconsComponent,
     CommonModule
   ],
-  templateUrl: './grn-list.component.html',
-  standalone: true,
-  styleUrl: './grn-list.component.scss'
+  templateUrl: './stock-transfer-list.component.html',
+  styleUrl: './stock-transfer-list.component.scss'
 })
-export class GRNListComponent implements OnInit {
+export class StockTransferListComponent implements OnInit {
 
   dataSource = new MatTableDataSource<any>();
 
   // Define columns
   columnDefinitions = [
     {def: 'serial', label: 'Serial'},
-    {def: 'location', label: 'Location'},
-    // {def: 'openingStock', label: 'OpeningStock'},
-    // {def: 'grnQuantity', label: 'GrnQuantity'},
-    {def: 'products', label: 'Products'},
+    {def: 'fromOutletDealer', label: 'FromOutletDealer'},
+    {def: 'toOutletDealer', label: 'ToOutletDealer'},
+    {def: 'quantityCount', label: 'QuantityCount'},
+    {def: 'productsCount', label: 'ProductsCount'},
+    {def: 'createdAt', label: 'CreatedAt'},
     {def: 'typeOfGrn', label: 'GrnType'},
   ];
 
@@ -65,11 +66,11 @@ export class GRNListComponent implements OnInit {
 
   displayedColumns: string[] = [
     'serial',
-    'location',
-    // 'openingStock',
-    // 'grnQuantity',
-    'typeOfGrn',
+    'fromOutletDealer',
+    'toOutletDealer',
     'quantityCount',
+    'productsCount',
+    'createdAt',
     'action'
   ];
 
@@ -79,7 +80,7 @@ export class GRNListComponent implements OnInit {
 
   constructor(private dialog: MatDialog,
               private router: Router,
-              private grnService: GrnService,
+              private stockTransferService: StockTransferService,
               private injector: EnvironmentInjector,
   ) {
   }
@@ -90,7 +91,7 @@ export class GRNListComponent implements OnInit {
 
   loadLocationList() {
     runInInjectionContext(this.injector, () => {
-      this.grnService.getGrnList().subscribe((data) => {
+      this.stockTransferService.getStockTransferList().subscribe((data) => {
         this.dataSource.data = data;
         this.dataSource.paginator = this.paginator;
         this.dataSource.sort = this.sort;
@@ -113,8 +114,8 @@ export class GRNListComponent implements OnInit {
     });
   }
 
-  navigateToAddGrn() {
-    this.router.navigate(['module/add-grn']);
+  navigateToAddStockTransfer() {
+    this.router.navigate(['module/add-stock-transfer']);
   }
 
   ngAfterViewInit() {
@@ -146,7 +147,7 @@ export class GRNListComponent implements OnInit {
       if (result.isConfirmed) {
         // Proceed with deletion
         runInInjectionContext(this.injector, () => {
-          this.grnService.deleteGrn(id).then(() => {
+          this.stockTransferService.deleteStockTransfer(id).then(() => {
             this.loadLocationList();
 
 
@@ -165,6 +166,22 @@ export class GRNListComponent implements OnInit {
     return row.items
       .map((i: any) => i.quantity || 0)
       .reduce((acc: number, val: number) => acc + val, 0);
+  }
+
+
+  openAssignDialog(row: any): void {
+    const dialogRef = this.dialog.open(ViewStockTransferComponent, {
+      width: '70vw',   // 90% of viewport width
+      height: '70vh',  // 90% of viewport height
+      maxWidth: '100vw',
+      data: row
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        console.log('Dialog closed with:', result);
+      }
+    });
   }
 
 

@@ -12,7 +12,7 @@ import {
 import {MatIconButton} from "@angular/material/button";
 import {MatPaginator} from "@angular/material/paginator";
 import {MatSort} from "@angular/material/sort";
-import {MatDialog} from "@angular/material/dialog";
+import {MatDialog, MatDialogModule} from "@angular/material/dialog";
 import {Router} from "@angular/router";
 import {AddUserComponent} from "../add-user/add-user.component";
 import {MatIcon} from "@angular/material/icon";
@@ -21,6 +21,7 @@ import {MatTooltip} from "@angular/material/tooltip";
 import {FeatherIconsComponent} from "@shared/components/feather-icons/feather-icons.component";
 import {ProductMasterService} from "../product-master.service";
 import Swal from "sweetalert2";
+import {AddShowroomComponent} from "../add-showroom/add-showroom.component";
 
 @Component({
   selector: 'app-product-master-list',
@@ -40,7 +41,8 @@ import Swal from "sweetalert2";
     DatePipe,
     FeatherIconsComponent,
     CommonModule,
-    NgIf
+    NgIf,
+    MatDialogModule,
   ],
   templateUrl: './product-master-list.component.html',
   standalone: true,
@@ -195,6 +197,20 @@ export class ProductMasterListComponent implements OnInit {
         });
       } else if (result.dismiss === Swal.DismissReason.cancel) {
         Swal.fire('Cancelled', 'Product is safe.', 'info');
+      }
+    });
+  }
+
+
+  openAssignDialog(): void {
+    const dialogRef = this.dialog.open(AddShowroomComponent, {
+      width: '400px',
+      data: { /* you can pass data here */ }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        console.log('Assigned successfully!');
       }
     });
   }
