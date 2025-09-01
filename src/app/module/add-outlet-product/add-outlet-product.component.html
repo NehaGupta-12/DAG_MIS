@@ -64,7 +64,15 @@
 
               <div class="row">
                 <div class="col-12 d-flex justify-content-center">
-                  <button class="btn-space" type="button" mat-raised-button color="accent" (click)="addProduct()">Add</button> &nbsp;&nbsp;
+                  <button
+                    class="btn-space"
+                    type="button"
+                    mat-raised-button
+                    color="accent"
+                    (click)="addProduct()"
+                    [disabled]="isEditMode">
+                    Add
+                  </button>
                   <button class="btn-back" type="button" mat-raised-button color="warn" (click)="goBack()">Back</button>
                 </div>
               </div>

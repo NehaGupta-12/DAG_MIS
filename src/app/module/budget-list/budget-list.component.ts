@@ -1,27 +1,30 @@
 import {Component, EnvironmentInjector, OnInit, runInInjectionContext, ViewChild} from '@angular/core';
-import {FeatherIconsComponent} from "@shared/components/feather-icons/feather-icons.component";
 import {
   MatCell,
   MatColumnDef,
   MatHeaderCell,
   MatHeaderRow,
-  MatRow, MatTable, MatTableDataSource, MatTableModule
+  MatRow,
+  MatTable,
+  MatTableDataSource, MatTableModule
 } from "@angular/material/table";
-import {MatIconButton} from "@angular/material/button";
-import {CommonModule} from "@angular/common";
 import {MatPaginator} from "@angular/material/paginator";
 import {MatSort} from "@angular/material/sort";
 import {MatDialog} from "@angular/material/dialog";
 import {Router} from "@angular/router";
+import {OutletProductService} from "../outlet-product.service";
 import {AddUserComponent} from "../add-user/add-user.component";
 import Swal from "sweetalert2";
 import {MatIcon} from "@angular/material/icon";
+import {MatIconButton} from "@angular/material/button";
 import {MatProgressSpinner} from "@angular/material/progress-spinner";
 import {MatTooltip} from "@angular/material/tooltip";
-import {OutletProductService} from "../outlet-product.service";
+import {FeatherIconsComponent} from "@shared/components/feather-icons/feather-icons.component";
+import {CommonModule} from "@angular/common";
+import {BudgetService} from "../budget.service";
 
 @Component({
-  selector: 'app-outlet-product-list',
+  selector: 'app-budget-list',
   imports: [
     MatCell,
     MatHeaderCell,
@@ -38,11 +41,10 @@ import {OutletProductService} from "../outlet-product.service";
     FeatherIconsComponent,
     CommonModule
   ],
-  templateUrl: './outlet-product-list.component.html',
-  standalone: true,
-  styleUrl: './outlet-product-list.component.scss'
+  templateUrl: './budget-list.component.html',
+  styleUrl: './budget-list.component.scss'
 })
-export class OutletProductListComponent implements OnInit {
+export class BudgetListComponent implements OnInit {
 
 
   dataSource = new MatTableDataSource<any>();
@@ -52,10 +54,10 @@ export class OutletProductListComponent implements OnInit {
     {def: 'serial', label: 'Serial'},
     {def: 'name', label: 'Name'},
     {def: 'sku', label: 'Sku'},
-    {def: 'variant', label: 'Variant'},
-    {def: 'outlet', label: 'Outlet'},
-    {def: 'openingStock', label: 'OpeningStock'},
-    {def: 'remark', label: 'Remark'},
+    {def: 'country', label: 'Country'},
+    {def: 'year', label: 'Year'},
+    {def: 'period', label: 'Period'},
+    {def: 'budgetQuantity', label: 'BudgetQuantity'},
     {def: 'action', label: 'Action'},
   ];
 
@@ -65,10 +67,10 @@ export class OutletProductListComponent implements OnInit {
     'serial',
     'name',
     'sku',
-    'variant',
-    'outlet',
-    'openingStock',
-    'remark',
+    'country',
+    'year',
+    'period',
+    'budgetQuantity',
     'action'
   ];
 
@@ -79,6 +81,7 @@ export class OutletProductListComponent implements OnInit {
   constructor(private dialog: MatDialog,
               private router: Router,
               private outletProductService: OutletProductService,
+              private budgetService: BudgetService,
               private injector: EnvironmentInjector,
   ) {
   }
@@ -90,21 +93,9 @@ export class OutletProductListComponent implements OnInit {
   loadOutletProduct() {
     runInInjectionContext(this.injector, () => {
       // Directly subscribe to the service method within the injection context
-      this.outletProductService.getOutletProductList().subscribe((data: any) => {
+      this.budgetService.getBudgetList().subscribe((data: any) => {
         console.log(data);
         this.dataSource.data = data;  // Assign fetched data to the table's dataSource
-        // Check the length of the data to display or use it for conditions
-        // const dataLength = data.length;
-        // console.log("Fetched Data Length:", dataLength);
-        //
-        // // Example: You could display a message based on the data length
-        // if (dataLength === 0) {
-        //   console.log("No data found in the collection");
-        // } else {
-        //   console.log(`Fetched ${dataLength} records`);
-        // }
-
-        // Set paginator and sorter for the table
         this.dataSource.paginator = this.paginator;
         this.dataSource.sort = this.sort;
 
@@ -116,7 +107,7 @@ export class OutletProductListComponent implements OnInit {
 
 
   editloadOutletProduct(row: any) {
-    this.router.navigate(['module/add-outlet-product'], {
+    this.router.navigate(['module/add-budget'], {
       queryParams: {data: JSON.stringify(row)}
     });
   }
@@ -130,7 +121,7 @@ export class OutletProductListComponent implements OnInit {
   }
 
   navigateToAddloadOutletProduct() {
-    this.router.navigate(['module/add-outlet-product']);
+    this.router.navigate(['module/add-budget']);
   }
 
   ngAfterViewInit() {

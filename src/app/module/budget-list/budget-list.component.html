@@ -9,7 +9,7 @@
             <div class="left">
               <ul class="header-buttons-left ms-0">
                 <li class="tbl-title">
-                  <h2 class="fs-4">Outlet Product List</h2>
+                  <h2 class="fs-4">Budget List</h2>
                 </li>
                 <li class="tbl-search-box">
                   <label for="search-input">
@@ -58,27 +58,31 @@
                   <td mat-cell *matCellDef="let row">{{ row.sku }}</td>
                 </ng-container>
 
-                <ng-container matColumnDef="variant">
-                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Variant</th>
-                  <td mat-cell *matCellDef="let row">{{ row.variant }}</td>
+                <ng-container matColumnDef="country">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Country</th>
+                  <td mat-cell *matCellDef="let row">{{ row.country }}</td>
                 </ng-container>
 
-                <!-- First Name -->
-                <ng-container matColumnDef="outlet">
-                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Outlet/dealer</th>
-                  <td mat-cell *matCellDef="let row">{{ row.dealerOutlet }}</td>
-                </ng-container>
 
-                <ng-container matColumnDef="openingStock">
-                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Opening Stock</th>
-                  <td mat-cell *matCellDef="let row">{{ row.openingStock }}</td>
+                <ng-container matColumnDef="year">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Year</th>
+                  <td mat-cell *matCellDef="let row">{{ row.year }}</td>
                 </ng-container>
 
 
                 <!-- Gender -->
-                <ng-container matColumnDef="remark">
-                  <th mat-header-cell *matHeaderCellDef mat-sort-header>remark</th>
-                  <td mat-cell *matCellDef="let row">{{ row.remark }}</td>
+                <ng-container matColumnDef="period">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Period</th>
+                  <td mat-cell *matCellDef="let row">
+                    {{ row.period.start.seconds * 1000 | date:'dd/MM/yyyy' }}
+                    -
+                    {{ row.period.end.seconds * 1000 | date:'dd/MM/yyyy' }}
+                  </td>
+                </ng-container>
+
+                <ng-container matColumnDef="budgetQuantity">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Budget Quantity</th>
+                  <td mat-cell *matCellDef="let row">{{ row.quantity }}</td>
                 </ng-container>
 
 

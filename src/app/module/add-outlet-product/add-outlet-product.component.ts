@@ -1,4 +1,4 @@
-import {Component, EnvironmentInjector, Inject, OnInit, runInInjectionContext} from '@angular/core';
+import {Component, EnvironmentInjector, OnInit, runInInjectionContext} from '@angular/core';
 import {FormGroup, FormsModule, ReactiveFormsModule, UntypedFormBuilder, Validators} from "@angular/forms";
 import {MatButtonModule} from "@angular/material/button";
 import {
@@ -23,6 +23,7 @@ import {MatSelectModule} from "@angular/material/select";
 import {MatOptionModule} from "@angular/material/core";
 import {MatCheckboxModule} from "@angular/material/checkbox";
 import {OutletProductService} from "../outlet-product.service";
+import {AngularFirestore} from "@angular/fire/compat/firestore";
 
 @Component({
   selector: 'app-add-outlet-product',
@@ -68,7 +69,8 @@ export class AddOutletProductComponent implements OnInit {
   outletProducts: any[] = [];
   dealers: any[] = [];
   allDealers: any[] = [];
-
+editProductId: string = '';
+data:any ={}
   breadscrums = [
     {
       title: 'Examples',
@@ -84,10 +86,18 @@ export class AddOutletProductComponent implements OnInit {
               private route: ActivatedRoute,
               private addDealerService: AddDealerService,
               private productService:ProductMasterService,
-              @Inject(MAT_DIALOG_DATA) public data: any,
+              private readonly  mFirestore:AngularFirestore,
   ) {
     // this.initForm();
-    this.isEditMode = !!data?.id;
+    this.route.queryParams.subscribe(params => {
+      this.data =JSON.parse( params['data']);
+      this.isEditMode = this.data?.id!= null ;
+      console.log("Edit Mode:", this.isEditMode, "Data:", this.data);
+      // alert(this.data.id)
+      this.editProductId  = this.data?.id || '';
+
+    })
+
     this.grnForm = this.fb.group({
       products: ['', [Validators.required]],
       dealerOutlet: ['', [Validators.required]],
@@ -97,6 +107,8 @@ export class AddOutletProductComponent implements OnInit {
   }
 
   ngOnInit() {
+    // this.changeVariant()
+
     this.loadOutletProduct();
     this.DealerList();
     this.productList();
@@ -105,28 +117,36 @@ export class AddOutletProductComponent implements OnInit {
       if (params['data']) {
         const rowData = JSON.parse(params['data']);
         console.log('Received row data:', rowData);
+
         this.grnForm.patchValue({
           dealerOutlet: rowData.dealerOutlet,
           remark: rowData.remark,
+          products: rowData.name   // 🟢 patch the product dropdown
         });
+
         if (rowData.id) {
           this.isEditMode = true;
           this.data = rowData;
 
-          // Disable dealerOutlet so user cannot change it
+          // Disable dealerOutlet and products so user cannot change them
           this.grnForm.get('dealerOutlet')?.disable();
+          this.grnForm.get('products')?.disable();   // 🟢 disable product field
+
+          // 🔑 Only show the selected product in addedProducts
+          this.addedProducts = [{
+            ...rowData,
+            varient: rowData.varient ?? rowData.variant,
+            openingStock: rowData.openingStock ?? 1,
+            __isNew: false
+          }];
+
+          console.log('Product restored for edit:', this.addedProducts);
         }
-        // if (rowData.items && Array.isArray(rowData.items)) {
-        //   this.addedProducts = rowData.items.map((item: any) => ({
-        //     ...item,
-        //     varient: item.varient ?? item.variant,
-        //     openingStock: item.openingStock ?? 1,
-        //     __isNew: false,
-        //   }));
-        // }
       }
     });
   }
+
+
 
 
   loadOutletProduct() {
@@ -145,27 +165,14 @@ export class AddOutletProductComponent implements OnInit {
   DealerList() {
     runInInjectionContext(this.injector, () => {
       this.addDealerService.getDealerList().subscribe((data) => {
-        this.allDealers = data; // <— save unfiltered
-
-        const usedOutlets = this.outletProducts.map((p) => (p.dealerOutlet || '').trim());
-        const filtered = data.filter((dealer: any) => !usedOutlets.includes((dealer.name || '').trim()));
-
-        // In edit mode, ensure the currently selected dealer is still in the dropdown
-        const currentName = (this.grnForm.get('dealerOutlet')?.value || '').trim();
-        if (this.isEditMode && currentName) {
-          const alreadyIn = filtered.some((d: any) => (d.name || '').trim() === currentName);
-          if (!alreadyIn) {
-            const currentDealer = this.allDealers.find((d: any) => (d.name || '').trim() === currentName);
-            if (currentDealer) filtered.unshift(currentDealer);
-          }
-        }
-
-        this.dealers = filtered;
+        this.allDealers = data;       // store all dealers
+        this.dealers = data;          // directly assign without filtering
         this.dealerdataSource.data = this.dealers;
-        console.log("Filtered Dealers:", this.dealerdataSource.data);
+        console.log("All Dealers:", this.dealerdataSource.data);
       });
     });
   }
+
 
 
 
@@ -180,20 +187,26 @@ export class AddOutletProductComponent implements OnInit {
   }
 
   isSubmitEnabled(): boolean {
-    const formValid =
-      !!this.grnForm.get('dealerOutlet')?.valid &&
-      !!this.grnForm.get('remark')?.valid;
+    // Check dealerOutlet value, even if disabled
+    const dealerValue = this.grnForm.getRawValue().dealerOutlet;
+    const remarkValid = !!this.grnForm.get('remark')?.valid;
 
     const hasProducts = this.addedProducts.length > 0;
     const allQuantitiesValid = this.addedProducts.every(
       p => p.openingStock && p.openingStock > 0
     );
 
-    return formValid && hasProducts && allQuantitiesValid;
+    return !!dealerValue && remarkValid && hasProducts && allQuantitiesValid;
   }
 
 
+
   addProduct() {
+    // if (!this.isEditMode ) {
+    //   Swal.fire('Info', 'You can only add one product in create mode.', 'info');
+    //   return;
+    // }
+
     const selectedProductName = this.grnForm.get('products')?.value;
     if (!selectedProductName) {
       Swal.fire('Error', 'Please select a product before adding.', 'error');
@@ -208,15 +221,15 @@ export class AddOutletProductComponent implements OnInit {
         return;
       }
 
-      // mark as new and keep sku blank so table won’t show junk
       this.addedProducts = [
         ...this.addedProducts,
-        { ...product, openingStock: 1, sku: '', __isNew: true } // <— HERE
+        { ...product, openingStock: 1, __isNew: true }
       ];
     }
 
     this.grnForm.get('products')?.reset();
   }
+
 
 
 
@@ -231,8 +244,9 @@ export class AddOutletProductComponent implements OnInit {
       const formValues = this.grnForm.getRawValue();
       delete formValues.products;  // Remove 'products' from the form values
 
+      // ✅ Validate form + products
       const isMainFormValid =
-        this.grnForm.get('dealerOutlet')?.valid &&
+        !!formValues.dealerOutlet &&   // must have dealer selected
         this.grnForm.get('remark')?.valid;
 
       if (!isMainFormValid || this.addedProducts.length === 0) {
@@ -240,7 +254,7 @@ export class AddOutletProductComponent implements OnInit {
         return;
       }
 
-      // Confirmation prompt before submitting
+      // ✅ Confirm before save/update
       const result = await Swal.fire({
         title: this.isEditMode ? 'Update GRN Details?' : 'Add GRN Details?',
         text: 'Are you sure you want to proceed?',
@@ -252,43 +266,32 @@ export class AddOutletProductComponent implements OnInit {
 
       if (!result.isConfirmed) return;
 
-      // Get user data from localStorage
+      // ✅ Get user info
       const userData = JSON.parse(localStorage.getItem('userData') || '{}');
       const username = userData.userName || 'Unknown User';
       const timestamp = Date.now();
 
-      // Get dealerId based on selected dealer
+      // ✅ Find dealerId based on dealer name
       const selectedName = (formValues.dealerOutlet || '').trim();
-      const selectedDealer = this.allDealers.find((d: any) => (d.name || '').trim() === selectedName) ||
+      const selectedDealer =
+        this.allDealers.find((d: any) => (d.name || '').trim() === selectedName) ||
         this.dealers.find((d: any) => (d.name || '').trim() === selectedName);
       const dealerId = selectedDealer?.id ?? '';
 
-      const payload = {
+      const basePayload = {
         ...formValues,
         dealerId,
         createdAt: timestamp,
         createdBy: username,
       };
 
-      // Use runInInjectionContext to execute outside of Angular lifecycle
+      // ✅ Process products
       runInInjectionContext(this.injector, async () => {
-        // Loop through the added products and add them to Firestore
-        for (let i = 0; i < this.addedProducts.length; i++) {
-          const product = this.addedProducts[i];
-
-          // Determine if this product is new or not
-          const isNew = product.__isNew === true || !product.sku || (dealerId && !String(product.sku).includes(dealerId));
-
-          let outSku = product.sku ?? '';
-          if (!this.isEditMode) {
-            outSku = `${product.id ?? ''}${dealerId}`;
-          } else {
-            if (isNew) outSku = `${product.id ?? ''}${dealerId}`;
-          }
-
-          const productData = {
-            ...payload,
-            sku: outSku,
+      const productsData:any = []
+        for (const product of this.addedProducts) {
+          const mProduct = {
+            ...basePayload,
+            sku: product.sku ?? '',
             name: product.name ?? '',
             brand: product.brand ?? '',
             model: product.model ?? '',
@@ -296,17 +299,42 @@ export class AddOutletProductComponent implements OnInit {
             unit: product.unit ?? '',
             openingStock: product.openingStock ?? 0,
           };
-
-          await this.outletProductService.addOutletProduct({
-            ...productData,
-            outletId: dealerId  // Add dealer-specific sub-collection
-          });
+          productsData.push(mProduct)
         }
+          // FOR EDIT MODE
+        // alert(this.editProductId)
 
-        Swal.fire('Added!', 'GRN Details added successfully.', 'success');
+          if (this.isEditMode && this.editProductId) {
+            await this.outletProductService.updateOutletProduct(
+              dealerId,
+            this.editProductId,
+              productsData[0]  // only one product in edit mode
+            );
+          }
+
+          // FOR ADD MODE
+        else {
+
+        if(!this.isEditMode)    productsData.forEach((product: any) => {
+              this.outletProductService.addOutletProduct({
+                ...product,
+                outletId: dealerId
+              });
+            })
+
+          }
+
+
+
+
+
+        Swal.fire(
+          this.isEditMode ? 'Updated!' : 'Added!',
+          `GRN Details ${this.isEditMode ? 'updated' : 'added'} successfully.`,
+          'success'
+        );
         this.goBack();
       });
-
     } catch (err) {
       console.error('Global submit error:', err);
       Swal.fire('Error', 'Something went wrong while submitting.', 'error');
@@ -314,8 +342,23 @@ export class AddOutletProductComponent implements OnInit {
   }
 
 
+
   goBack() {
     this.dealer.back();
   }
 
+  private changeVariant() {
+    runInInjectionContext(this.injector, async () => {
+      this.mFirestore.collection('product').get().subscribe(res => {
+        res.forEach(doc => {
+          const data = doc.data();
+          // @ts-expect-error: Firestore data may have 'varient' instead of 'variant'
+          this.mFirestore.collection('product').doc(doc.id).update({ variant: data?.varient }).then(r => {
+            console.log(r);
+            console.log('product updated');
+          });
+        });
+      });
+    });
+  }
 }

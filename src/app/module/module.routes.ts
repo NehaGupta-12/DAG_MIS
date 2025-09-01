@@ -26,6 +26,8 @@ import {AddStockTransferComponent} from "./add-stock-transfer/add-stock-transfer
 import {AddOutletProductComponent} from "./add-outlet-product/add-outlet-product.component";
 import {OutletProductListComponent} from "./outlet-product-list/outlet-product-list.component";
 import {OutletDealerReportComponent} from "./outlet-dealer-report/outlet-dealer-report.component";
+import {BudgetListComponent} from "./budget-list/budget-list.component";
+import {AddBudgetComponent} from "./add-budget/add-budget.component";
 
 export const MODULES_ROUTE: Route[] = [
   {
@@ -128,10 +130,6 @@ export const MODULES_ROUTE: Route[] = [
   {
     path: 'outlet-product-list',
     component: OutletProductListComponent
-  },
-  {
-    path:'outlet-dealer-report',
-    component: OutletDealerReportComponent
   },
   { path: '**', component: Page404Component },
 ];
