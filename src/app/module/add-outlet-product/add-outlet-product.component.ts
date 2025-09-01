@@ -26,33 +26,34 @@ import {OutletProductService} from "../outlet-product.service";
 
 @Component({
   selector: 'app-add-outlet-product',
-    imports: [
-      FormsModule,
-      ReactiveFormsModule,
-      MatFormFieldModule,
-      MatInputModule,
-      MatIconModule,
-      MatSelectModule,
-      MatOptionModule,
-      MatCheckboxModule,
-      MatButtonModule,
-      NgForOf,
-      MatCell,
-      MatCellDef,
-      MatColumnDef,
-      MatHeaderCell,
-      MatHeaderRow,
-      MatHeaderRowDef,
-      MatRow,
-      MatRowDef,
-      MatTable,
-      CommonModule,
-      MatTableModule
-    ],
+  imports: [
+    FormsModule,
+    ReactiveFormsModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatIconModule,
+    MatSelectModule,
+    MatOptionModule,
+    MatCheckboxModule,
+    MatButtonModule,
+    NgForOf,
+    MatCell,
+    MatCellDef,
+    MatColumnDef,
+    MatHeaderCell,
+    MatHeaderRow,
+    MatHeaderRowDef,
+    MatRow,
+    MatRowDef,
+    MatTable,
+    CommonModule,
+    MatTableModule
+  ],
   providers: [
     {provide: MAT_DIALOG_DATA, useValue: {}} // ✅ Fallback
   ],
   templateUrl: './add-outlet-product.component.html',
+  standalone: true,
   styleUrl: './add-outlet-product.component.scss'
 })
 export class AddOutletProductComponent implements OnInit {
