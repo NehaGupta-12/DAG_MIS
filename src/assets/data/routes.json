@@ -122,6 +122,26 @@
           "submenu": []
         }
       ]
+    },
+
+    {
+      "path": "",
+      "title": "Reports",
+      "icon": "monitor",
+      "class": "menu-toggle",
+      "groupTitle": false,
+      "submenu": [
+        {
+          "path": "module/outlet-dealer-report",
+          "title": "Outlet/Dealer Report",
+          "icon": "",
+          "class": "ml-menu",
+          "groupTitle": false,
+          "submenu": []
+        }
+
+      ]
     }
+
   ]
 }

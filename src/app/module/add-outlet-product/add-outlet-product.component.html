@@ -19,10 +19,10 @@
                   <mat-form-field class="example-full-width" appearance="outline">
                     <mat-label>Outlet/Dealer</mat-label>
                     <mat-select formControlName="dealerOutlet" required>
-                      <mat-option *ngFor="let dealer of dealerdataSource.data" [value]="dealer.name">
-                        {{ dealer.name }}
-                      </mat-option>
-                    </mat-select>
+                    <mat-option *ngFor="let dealer of dealerdataSource.data" [value]="dealer.name">
+                      {{ dealer.name }}
+                    </mat-option>
+                  </mat-select>
                     <!--                    <mat-icon class="material-icons-outlined color-icon p-3" matSuffix>flag</mat-icon>-->
                     @if (grnForm?.get('dealerOutlet')?.hasError('required')) {
                       <mat-error>
