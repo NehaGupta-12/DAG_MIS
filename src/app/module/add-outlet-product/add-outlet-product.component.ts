@@ -1,4 +1,4 @@
-import {Component, EnvironmentInjector, Inject, OnInit, runInInjectionContext} from '@angular/core';
+import {Component, EnvironmentInjector, OnInit, runInInjectionContext} from '@angular/core';
 import {FormGroup, FormsModule, ReactiveFormsModule, UntypedFormBuilder, Validators} from "@angular/forms";
 import {MatButtonModule} from "@angular/material/button";
 import {
@@ -24,7 +24,6 @@ import {MatOptionModule} from "@angular/material/core";
 import {MatCheckboxModule} from "@angular/material/checkbox";
 import {OutletProductService} from "../outlet-product.service";
 import {AngularFirestore} from "@angular/fire/compat/firestore";
-import {Product} from "../../interfaces/products.interface";
 
 @Component({
   selector: 'app-add-outlet-product',
@@ -65,7 +64,7 @@ export class AddOutletProductComponent implements OnInit {
   dealerdataSource = new MatTableDataSource<any>();
   vehicledataSource = new MatTableDataSource<any>();
   dataSource = new MatTableDataSource<any>();
-  addedProducts: Product[] = [];
+  addedProducts: any[] = [];
   outletProducts: any[] = [];
   dealers: any[] = [];
   allDealers: any[] = [];
@@ -360,4 +359,5 @@ data:any ={}
         });
       });
     });
-  }}
+  }
+}

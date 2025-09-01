@@ -11,24 +11,21 @@ export class OutletProductService {
 
   constructor(private firestore: AngularFirestore) {}
 
-  getOutletProductList(startAfter?: any): Observable<any[]> {
+  getOutletProductList(): Observable<any[]> {
     return this.firestore
-      .collection(this.collectionName, (ref) => {
-        let query = ref.orderBy('createdAt', 'desc');
-        if (startAfter) query = query.startAfter(startAfter); // for pagination
-        return query;
-      })
+      .collectionGroup('products') // fetches all products under all outlet docs
       .snapshotChanges()
       .pipe(
         map((actions) =>
           actions.map((a) => {
             const data = a.payload.doc.data();
             const id = a.payload.doc.id;
-            return { id, ...(data as any) };  // Add the document ID to the data
+            return { id, ...(data as any) };
           })
         )
       );
   }
+
 
 
   // // 📌 Add new GRN
@@ -60,26 +57,23 @@ export class OutletProductService {
     return this.firestore
       .collection(this.collectionName)  // main collection
       .doc(grnData.outletId)        // outletID (document ID)
-      .collection('products')       // sub-collection for products
-      .add(payload)                 // add product to the sub-collection
-      .then((result) => {
-        return result;
-      })
-      .catch((error) => {
-        throw error;
-      });
+      .collection('products')// sub-collection for products
+      .doc(grnData.sku)    //adding docId as Sku to avoid duplicate entries
+      .set(payload)                 // add product to the sub-collection
+
   }
 
 
   // 📌 Update GRN
-  updateOutletProduct(id: string, grnData: any): Promise<any> {
+  updateOutletProduct(outletId: string, productId: string, grnData: any): Promise<any> {
     return this.firestore
-      .collection(this.collectionName)
-      .doc(id)
+      .collection(this.collectionName)   // outletProduct
+      .doc(outletId)                     // specific outlet
+      .collection('products')            // products sub-collection
+      .doc(productId)                    // specific product
       .update(grnData)
-      .then((result) => {
-        console.log('✅ Outlet Product updated successfully:', result);
-        return result;
+      .then(() => {
+        console.log('✅ Outlet Product updated successfully');
       })
       .catch((error) => {
         console.error('❌ Error updating GRN:', error);
@@ -87,10 +81,17 @@ export class OutletProductService {
       });
   }
 
-  // 📌 Delete GRN
-  deleteOutletProduct(id: string): Promise<void> {
-    return this.firestore.doc(`${this.collectionName}/${id}`).delete();
+
+// outlet-product.service.ts
+  deleteOutletProduct(outletId: string, productId: string): Promise<void> {
+    return this.firestore
+      .collection(this.collectionName)    // 'outletProduct'
+      .doc(outletId)                      // outlet doc (e.g. VWC014)
+      .collection('products')             // subcollection
+      .doc(productId)                     // product doc id (e.g. EKPsTW9N...)
+      .delete();
   }
+
 
   // 📌 Get GRN by ID
   getOutletProductById(id: string): Observable<any> {
@@ -106,4 +107,7 @@ export class OutletProductService {
       );
   }
 
+
+  //collection >document > sub-collection > document > sub-collection > document > data
+  //
 }

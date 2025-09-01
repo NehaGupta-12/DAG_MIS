@@ -49,10 +49,12 @@ export class OutletProductListComponent implements OnInit {
   // Define columns
   columnDefinitions = [
     {def: 'serial', label: 'Serial'},
-    {def: 'location', label: 'Location'},
+    {def: 'name', label: 'Name'},
+    {def: 'sku', label: 'Sku'},
+    {def: 'variant', label: 'Variant'},
+    {def: 'outlet', label: 'Outlet'},
+    {def: 'openingStock', label: 'OpeningStock'},
     {def: 'remark', label: 'Remark'},
-    {def: 'productCount', label: 'ProductCount'},
-    {def: 'quantityCount', label: 'QuantityCount'},
     {def: 'action', label: 'Action'},
   ];
 
@@ -60,10 +62,12 @@ export class OutletProductListComponent implements OnInit {
 
   displayedColumns: string[] = [
     'serial',
-    'location',
+    'name',
+    'sku',
+    'variant',
+    'outlet',
+    'openingStock',
     'remark',
-    'productCount',
-    'quantityCount',
     'action'
   ];
 
@@ -89,15 +93,15 @@ export class OutletProductListComponent implements OnInit {
         console.log(data);
         this.dataSource.data = data;  // Assign fetched data to the table's dataSource
         // Check the length of the data to display or use it for conditions
-        const dataLength = data.length;
-        console.log("Fetched Data Length:", dataLength);
-
-        // Example: You could display a message based on the data length
-        if (dataLength === 0) {
-          console.log("No data found in the collection");
-        } else {
-          console.log(`Fetched ${dataLength} records`);
-        }
+        // const dataLength = data.length;
+        // console.log("Fetched Data Length:", dataLength);
+        //
+        // // Example: You could display a message based on the data length
+        // if (dataLength === 0) {
+        //   console.log("No data found in the collection");
+        // } else {
+        //   console.log(`Fetched ${dataLength} records`);
+        // }
 
         // Set paginator and sorter for the table
         this.dataSource.paginator = this.paginator;
@@ -145,7 +149,15 @@ export class OutletProductListComponent implements OnInit {
 
   isLoading: any;
 
-  deleteOutletProduct(id: string) {
+  deleteOutletProduct(row: any) {
+    const outletId = row.outletId || row.dealerId; // whichever you use
+    const productId = row.id;
+
+    if (!outletId || !productId) {
+      Swal.fire('Error', 'Missing outletId or productId on this row.', 'error');
+      return;
+    }
+
     Swal.fire({
       title: 'Are you sure?',
       text: 'You will not be able to recover this Dealer/Outlet Product!',
@@ -154,22 +166,34 @@ export class OutletProductListComponent implements OnInit {
       confirmButtonText: 'Yes, delete it!',
       cancelButtonText: 'No, cancel',
     }).then((result) => {
-      if (result.isConfirmed) {
-        // Proceed with deletion
-        runInInjectionContext(this.injector, () => {
-          this.outletProductService.deleteOutletProduct(id).then(() => {
-            this.loadOutletProduct();
+      if (!result.isConfirmed) return;
 
+      // (optional) show a small loading state
+      this.isLoading = true;
 
-            // Optional: Show success alert
+      // delete from subcollection
+      runInInjectionContext(this.injector, () => {
+        this.outletProductService.deleteOutletProduct(outletId, productId)
+          .then(() => {
+            // Optimistic remove from table (faster UI)
+            this.dataSource.data = this.dataSource.data.filter((p: any) => p.id !== productId);
+
+            // Or reload list:
+            // this.loadOutletProduct();
+
             Swal.fire('Deleted!', 'Dealer/Outlet Product has been deleted.', 'success');
+          })
+          .catch((err) => {
+            console.error('Delete failed:', err);
+            Swal.fire('Error', 'Failed to delete the product. Please try again.', 'error');
+          })
+          .finally(() => {
+            this.isLoading = false;
           });
-        });
-      } else if (result.dismiss === Swal.DismissReason.cancel) {
-        Swal.fire('Cancelled', 'Dealer/Outlet Product is safe.', 'info');
-      }
+      });
     });
   }
+
 
   getTotalQuantity(row: any): number {
     if (!row?.items) return 0;

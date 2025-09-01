@@ -48,9 +48,30 @@
                 </ng-container>
 
                 <!-- First Name -->
-                <ng-container matColumnDef="location">
+                <ng-container matColumnDef="name">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Name</th>
+                  <td mat-cell *matCellDef="let row">{{ row.name }}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="sku">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Sku</th>
+                  <td mat-cell *matCellDef="let row">{{ row.sku }}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="variant">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Variant</th>
+                  <td mat-cell *matCellDef="let row">{{ row.variant }}</td>
+                </ng-container>
+
+                <!-- First Name -->
+                <ng-container matColumnDef="outlet">
                   <th mat-header-cell *matHeaderCellDef mat-sort-header>Outlet/dealer</th>
                   <td mat-cell *matCellDef="let row">{{ row.dealerOutlet }}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="openingStock">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Opening Stock</th>
+                  <td mat-cell *matCellDef="let row">{{ row.openingStock }}</td>
                 </ng-container>
 
 
@@ -61,21 +82,6 @@
                 </ng-container>
 
 
-                <ng-container matColumnDef="productCount">
-                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Product Count</th>
-                  <td mat-cell *matCellDef="let row">{{ row.items.length || 0 }}</td>
-                </ng-container>
-
-
-                <!-- Quantity -->
-                <ng-container matColumnDef="quantityCount">
-                  <th mat-header-cell *matHeaderCellDef> Quantity Count </th>
-                  <td mat-cell *matCellDef="let row">
-                    {{ getTotalQuantity(row) }}
-                  </td>
-                </ng-container>
-
-
                 <!-- Action -->
                 <ng-container matColumnDef="action">
                   <th mat-header-cell *matHeaderCellDef mat-sort-header>Action</th>
@@ -83,7 +89,7 @@
                     <button mat-icon-button color="accent" (click)="editloadOutletProduct(row)" >
                       <app-feather-icons [icon]="'edit'" [class]="'tbl-fav-edit'"></app-feather-icons>
                     </button>
-                    <button mat-icon-button color="accent" (click)="deleteOutletProduct(row.id)" >
+                    <button mat-icon-button color="accent" (click)="deleteOutletProduct(row)">
                       <app-feather-icons [icon]="'trash-2'" [class]="'tbl-fav-delete'"></app-feather-icons>
                     </button>
                   </td>
