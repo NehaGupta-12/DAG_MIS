@@ -1,0 +1,133 @@
+<section class="content">
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-lg-12">
+        <div class="card">
+
+          <!-- Header -->
+          <div class="materialTableHeader">
+            <div class="left">
+              <ul class="header-buttons-left ms-0">
+                <li class="tbl-title">
+                  <h2 class="fs-4">GRN List</h2>
+                </li>
+                <li class="tbl-search-box">
+                  <label for="search-input">
+                    <i class="material-icons search-icon">search</i>
+                  </label>
+                  <input
+                    id="search-input"
+                    placeholder="Search"
+                    type="text"
+                    (keyup)="applyFilter($event)"
+                    class="browser-default search-field"
+                  />
+                </li>
+              </ul>
+            </div>
+            <div class="right">
+              <div class="right-side-btn">
+                <button mat-icon-button  class="tbl-header-btn col-green" matTooltip="Add" (click)="navigateToAddGrn()">
+                  <mat-icon>add_circle_outline</mat-icon>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Body -->
+          <div class="body overflow-auto">
+            <div class="responsive_table">
+              <table mat-table [dataSource]="dataSource" matSort class="mat-cell advance-table">
+
+                <!-- ID -->
+                <ng-container matColumnDef="serial">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Sr.No.</th>
+                  <td mat-cell *matCellDef="let row; let i = index">
+                    {{ i + 1 }}
+                  </td>
+                </ng-container>
+
+                <!-- First Name -->
+                <ng-container matColumnDef="location">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Outlet/dealer</th>
+                  <td mat-cell *matCellDef="let row">{{ row.dealerOutlet }}</td>
+                </ng-container>
+
+
+                <!-- Gender -->
+                <ng-container matColumnDef="openingStock">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Opening Stock</th>
+                  <td mat-cell *matCellDef="let row">{{ row.openingStock }}</td>
+                </ng-container>
+
+                <!--                &lt;!&ndash; Birth Date &ndash;&gt;-->
+                <!--                <ng-container matColumnDef="grnQuantity">-->
+                <!--                  <th mat-header-cell *matHeaderCellDef mat-sort-header>GRN Quantity</th>-->
+                <!--                  <td mat-cell *matCellDef="let row">{{ row.grnQuantity }}</td>-->
+                <!--                </ng-container>-->
+
+                <!-- Mobile -->
+                <ng-container matColumnDef="typeOfGrn">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Type Of GRN</th>
+                  <td mat-cell *matCellDef="let row">{{ row.typeOfGrn }}</td>
+                </ng-container>
+
+
+                <!-- Quantity -->
+                <ng-container matColumnDef="quantityCount">
+                  <th mat-header-cell *matHeaderCellDef> Quantity Count </th>
+                  <td mat-cell *matCellDef="let row">
+                    {{ getTotalQuantity(row) }}
+                  </td>
+                </ng-container>
+
+
+                <!-- Action -->
+                <ng-container matColumnDef="action">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Action</th>
+                  <td mat-cell *matCellDef="let row">
+                    <button mat-icon-button color="accent" (click)="editGrn(row)" >
+                      <app-feather-icons [icon]="'edit'" [class]="'tbl-fav-edit'"></app-feather-icons>
+                    </button>
+                    <button mat-icon-button color="accent"  >
+                      <app-feather-icons [icon]="'trash-2'" [class]="'tbl-fav-delete'"></app-feather-icons>
+                    </button>
+                  </td>
+                </ng-container>
+
+
+                <!-- Table Rows -->
+                <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+              </table>
+
+
+            </div>
+
+            <!-- Loading spinner -->
+            <div *ngIf="isLoading" class="tbl-spinner">
+              <mat-progress-spinner color="primary" [diameter]="40" mode="indeterminate">
+              </mat-progress-spinner>
+            </div>
+
+            <!-- No results -->
+            <div class="no-results" *ngIf="!isLoading && dataSource.data.length === 0">
+              No results
+            </div>
+
+            <!-- Pagination -->
+            <mat-paginator
+              #paginator
+              [length]="dataSource.filteredData.length"
+              [pageIndex]="0"
+              [pageSize]="10"
+              [pageSizeOptions]="[5, 10, 25, 100]">
+            </mat-paginator>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
