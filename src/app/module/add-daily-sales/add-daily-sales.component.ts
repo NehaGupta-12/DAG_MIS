@@ -81,35 +81,47 @@ export class AddDailySalesComponent implements OnInit {
 
   ngOnInit() {
     this.DealerList();
-    // this.productList();
     this.loadOutletProduct();
 
-    // Edit mode handling
     this.route.queryParams.subscribe(params => {
       if (params['data']) {
         const rowData = JSON.parse(params['data']);
+        console.log('Edit Mode Row Data:', rowData);
+
+        // ✅ Patch dealer/outlet info
         this.dailySalesForm.patchValue({
           dealerOutlet: rowData.dealerOutlet,
           division: rowData.division,
           country: rowData.country,
-          town: rowData.town
+          town: rowData.town,
+          vehicle: rowData.name,
         });
 
-        if (rowData.products && Array.isArray(rowData.products)) {
-          this.addedProducts = rowData.products.map((p: any) => ({
-            ...p,
-            variant: p.variant ?? p.varient,
-            quantity: p.quantity ?? 1
-          }));
-        }
+        // ✅ Put product into addedProducts with docId
+        this.addedProducts = [{
+          docId: rowData.docId,  // Firestore document ID
+          sku: rowData.sku ?? '',
+          name: rowData.name ?? '',
+          brand: rowData.brand ?? '',
+          model: rowData.model ?? '',
+          variant: rowData.variant ?? rowData.varient ?? '',
+          unit: rowData.unit ?? '',
+          quantity: rowData.quantity ?? 1
+        }];
 
-        if (rowData.id) {
-          this.isEditMode = true;
-          this.data = rowData;
-        }
+        // ✅ Patch vehicle field & disable it
+        this.dailySalesForm.patchValue({ vehicle: rowData.name });
+        // this.dailySalesForm.get('dealerOutlet')?.disable();
+        this.dailySalesForm.get('vehicle')?.disable();
+
+        // ✅ Mark edit mode
+        this.isEditMode = true;
+        this.data = rowData;
       }
     });
+
   }
+
 
   DealerList() {
     runInInjectionContext(this.injector, () => {
@@ -151,22 +163,18 @@ export class AddDailySalesComponent implements OnInit {
       });
     }
 
-    // 2. Find outlet products using dealer.id (since outletProduct.dealerId matches dealer.id)
-    const outlet = this.dataSource.data.find((o: any) => o.dealerId === dealer.id);
-    if (outlet && outlet.items) {
-      // 3. Filter items where stock > 0
-      const availableProducts = outlet.items.filter((item: any) => item.openingStock > 0);
+    // 2. Filter outlet products directly (since each doc is already one product)
+    const availableProducts = this.dataSource.data.filter(
+      (p: any) => p.dealerId === dealer.id && p.openingStock > 0
+    );
 
-      // ✅ Bind filtered products into vehicle dropdown
-      this.vehicledataSource.data = availableProducts;
-    } else {
-      // No products found
-      this.vehicledataSource.data = [];
-    }
+    // 3. Bind to vehicle dropdown
+    this.vehicledataSource.data = availableProducts;
 
     // reset vehicle selection
     this.dailySalesForm.get('vehicle')?.reset();
   }
+
 
 
   isSubmitEnabled(): boolean {
@@ -221,87 +229,105 @@ export class AddDailySalesComponent implements OnInit {
     try {
       const formValues = this.dailySalesForm.getRawValue();
 
-      if (this.isSubmitEnabled()) {
-        Swal.fire({
-          title: this.isEditMode ? 'Update Daily Sales?' : 'Add Daily Sales?',
-          icon: 'question',
-          showCancelButton: true,
-          confirmButtonText: 'Yes',
-          cancelButtonText: 'No'
-        }).then((result) => {
-          if (result.isConfirmed) {
-            try {
-              const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-              const username = userData.userName || 'Unknown User';
-              const timestamp = Date.now();
+      if (this.addedProducts.length === 0) {
+        Swal.fire('Error', 'Please add at least one product.', 'error');
+        return;
+      }
 
-              // ✅ Transform + sanitize data
-              const transformedData: any = {
-                ...formValues,
-                products: this.addedProducts.map(p => ({
-                  ...p,
-                  variant: p.variant ?? p.variant ?? '',   // fix variant/varient mismatch
-                  sku: p.sku ?? '',
-                  brand: p.brand ?? '',
-                  model: p.model ?? '',
-                  unit: p.unit ?? '',
-                  quantity: p.quantity ?? 0
-                }))
+      Swal.fire({
+        title: this.isEditMode ? 'Update Daily Sales?' : 'Add Daily Sales?',
+        text: 'Are you sure you want to proceed?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Yes',
+        cancelButtonText: 'No'
+      }).then((result: any) => {
+        if (result.isConfirmed) {
+          try {
+            const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+            const username = userData.userName || 'Unknown User';
+            const timestamp = Date.now();
+
+            // 🔹 Base info from form
+            const baseInfo = {
+              dealerOutlet: formValues.dealerOutlet,
+              division: formValues.division,
+              country: formValues.country,
+              town: formValues.town,
+              status: 'Active',
+              updatedBy: username,
+              updatedAt: timestamp
+            };
+
+            if (this.isEditMode) {
+              const productToUpdate = this.addedProducts[0]; // only one in edit mode
+
+              const productDoc = {
+                ...baseInfo,
+                sku: productToUpdate.sku,
+                name: productToUpdate.name,
+                brand: productToUpdate.brand,
+                model: productToUpdate.model,
+                variant: productToUpdate.variant,
+                unit: productToUpdate.unit,
+                quantity: productToUpdate.quantity
               };
 
-              // Remove undefined fields recursively
-              Object.keys(transformedData).forEach(k => {
-                if (transformedData[k] === undefined) {
-                  transformedData[k] = '';
-                }
+              runInInjectionContext(this.injector, () =>
+                this.dailySalesService.updateDailySales(productToUpdate.docId, productDoc)
+              )
+                .then(() => {
+                  Swal.fire('Updated!', 'Daily Sales updated successfully.', 'success');
+                  this.goBack();
+                })
+                .catch(err => {
+                  console.error('Error updating daily sales:', err);
+                  Swal.fire('Error', 'Something went wrong while updating.', 'error');
+                });
+            } else {
+              // 🔹 Create one document per product (Add Mode)
+              const createPromises = this.addedProducts.map(p => {
+                const productDoc = {
+                  ...baseInfo,
+                  id: p.id ?? '',
+                  sku: p.sku ?? '',
+                  name: p.name ?? '',
+                  brand: p.brand ?? '',
+                  model: p.model ?? '',
+                  variant: p.variant ?? p.varient ?? '',
+                  unit: p.unit ?? '',
+                  quantity: p.quantity ?? 0,
+                  createdBy: username,
+                  createdAt: timestamp
+                };
+
+                return runInInjectionContext(this.injector, () =>
+                  this.dailySalesService.addDailySales(productDoc)
+                );
               });
 
-              if (this.isEditMode && this.data.id) {
-                transformedData.updateBy = username;
-                transformedData.updatedAt = timestamp;
-
-                runInInjectionContext(this.injector, () => {
-                  this.dailySalesService.updateDailySales(this.data.id, transformedData)
-                    .then(() => {
-                      Swal.fire('Updated!', 'Daily Sales updated successfully.', 'success');
-                      this.goBack();
-                    })
-                    .catch(err => {
-                      console.error('Error updating daily sales:', err);
-                      Swal.fire('Error', 'Something went wrong.', 'error');
-                    });
+              Promise.all(createPromises)
+                .then(() => {
+                  Swal.fire('Added!', 'All products saved as separate documents.', 'success');
+                  this.router.navigate(['/module/daily-sales-list']);
+                })
+                .catch(err => {
+                  console.error('Error adding daily sales:', err);
+                  Swal.fire('Error', 'Something went wrong while adding.', 'error');
                 });
-              } else {
-                transformedData.status = 'Active';
-                transformedData.createBy = username;
-                transformedData.createdAt = timestamp;
-
-                runInInjectionContext(this.injector, () => {
-                  this.dailySalesService.addDailySales(transformedData)
-                    .then(() => {
-                      Swal.fire('Added!', 'Daily Sales added successfully.', 'success');
-                      this.router.navigate(['/module/daily-sales-list']);
-                    })
-                    .catch(err => {
-                      console.error('Error adding daily sales:', err);
-                      Swal.fire('Error', 'Something went wrong.', 'error');
-                    });
-                });
-              }
-            } catch (innerErr) {
-              console.error('Unexpected error during submission:', innerErr);
-              Swal.fire('Error', 'Unexpected issue occurred.', 'error');
             }
+          } catch (innerErr) {
+            console.error('Unexpected error during submission:', innerErr);
+            Swal.fire('Error', 'Unexpected issue occurred.', 'error');
           }
-        });
-      } else {
-        Swal.fire('Error', 'Please fill required fields and add at least one product.', 'error');
-      }
+        }
+      });
     } catch (err) {
       console.error('Global submit error:', err);
       Swal.fire('Error', 'Something went wrong while submitting.', 'error');
     }
   }
+
 
 
   goBack() {
