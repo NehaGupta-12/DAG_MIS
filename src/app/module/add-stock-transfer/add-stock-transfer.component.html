@@ -19,7 +19,9 @@
                   <mat-form-field class="example-full-width" appearance="outline">
                     <mat-label>From Outlet/Dealer</mat-label>
                     <mat-select formControlName="fromDealerOutlet" required>
-                      <mat-option *ngFor="let dealer of dealerdataSource.data" [value]="dealer.name">
+                      <mat-option *ngFor="let dealer of dealerdataSource.data"
+                                  [value]="dealer.name"
+                                  [disabled]="dealer.name === stockTransferForm.get('toDealerOutlet')?.value">
                         {{ dealer.name }}
                       </mat-option>
                     </mat-select>
@@ -27,13 +29,16 @@
                       From Dealer is required
                     </mat-error>
                   </mat-form-field>
+
                 </div>
 
                 <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 mb-2">
                   <mat-form-field class="example-full-width" appearance="outline">
                     <mat-label>To Outlet/Dealer</mat-label>
                     <mat-select formControlName="toDealerOutlet" required>
-                      <mat-option *ngFor="let dealer of dealerdataSource.data" [value]="dealer.name">
+                      <mat-option *ngFor="let dealer of dealerdataSource.data"
+                                  [value]="dealer.name"
+                                  [disabled]="dealer.name === stockTransferForm.get('fromDealerOutlet')?.value">
                         {{ dealer.name }}
                       </mat-option>
                     </mat-select>
@@ -41,6 +46,7 @@
                       To Dealer is required
                     </mat-error>
                   </mat-form-field>
+
                 </div>
               </div>
 

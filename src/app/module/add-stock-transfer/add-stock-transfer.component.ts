@@ -1,6 +1,6 @@
-import {Component, EnvironmentInjector, Inject, runInInjectionContext} from '@angular/core';
+import {Component, EnvironmentInjector, Inject, OnInit, runInInjectionContext} from '@angular/core';
 import {FormGroup, FormsModule, ReactiveFormsModule, UntypedFormBuilder, Validators} from "@angular/forms";
-import {MatButton, MatButtonModule, MatIconButton} from "@angular/material/button";
+import { MatButtonModule} from "@angular/material/button";
 import {
   MatCell,
   MatCellDef,
@@ -10,9 +10,8 @@ import {
   MatHeaderRowDef,
   MatRow, MatRowDef, MatTable, MatTableDataSource, MatTableModule
 } from "@angular/material/table";
-import {MatInput, MatInputModule, MatLabel} from "@angular/material/input";
-import {CommonModule, Location, NgForOf, NgIf} from "@angular/common";
-import {GrnService} from "../grn.service";
+import { MatInputModule} from "@angular/material/input";
+import {CommonModule, Location, NgForOf} from "@angular/common";
 import {ActivatedRoute} from "@angular/router";
 import {AddDealerService} from "../add-dealer.service";
 import {ProductMasterService} from "../product-master.service";
@@ -57,7 +56,7 @@ import {OutletProductService} from "../outlet-product.service";
   templateUrl: './add-stock-transfer.component.html',
   styleUrl: './add-stock-transfer.component.scss'
 })
-export class AddStockTransferComponent {
+export class AddStockTransferComponent implements OnInit {
 
   isEditMode: boolean = false;
   stockTransferForm: FormGroup;
@@ -137,6 +136,20 @@ export class AddStockTransferComponent {
         }
       }
     });
+
+    // custom validator: prevent same outlet
+    this.stockTransferForm.valueChanges.subscribe(values => {
+      const fromOutlet = values.fromDealerOutlet;
+      const toOutlet = values.toDealerOutlet;
+
+      if (fromOutlet && toOutlet && fromOutlet === toOutlet) {
+        this.stockTransferForm.get('toDealerOutlet')?.setErrors({ sameOutlet: true });
+      } else {
+        if (this.stockTransferForm.get('toDealerOutlet')?.hasError('sameOutlet')) {
+          this.stockTransferForm.get('toDealerOutlet')?.setErrors(null);
+        }
+      }
+    });
   }
 
   toggleProducts() {
@@ -144,36 +157,26 @@ export class AddStockTransferComponent {
     const toOutletName = this.stockTransferForm.get('toDealerOutlet')?.value;
 
     if (fromOutletName && toOutletName) {
-      const fromOutlet = this.dataSource.data.find(
-        (o: any) => o.dealerOutlet === fromOutletName
+      // get all products for each outlet
+      const fromProducts = this.dataSource.data.filter(
+        (p: any) => p.dealerOutlet === fromOutletName
       );
-      const toOutlet = this.dataSource.data.find(
-        (o: any) => o.dealerOutlet === toOutletName
+      const toProducts = this.dataSource.data.filter(
+        (p: any) => p.dealerOutlet === toOutletName
       );
 
-      if (fromOutlet && toOutlet) {
-        // find products common to both outlets (match by id OR name)
-        const commonProducts = fromOutlet.items.filter((fromItem: any) =>
-          toOutlet.items.some(
-            (toItem: any) => toItem.id === fromItem.id || toItem.name === fromItem.name
-          )
-        );
+      // find common products (match by id OR name)
+      const commonProducts = fromProducts.filter((fp: any) =>
+        toProducts.some((tp: any) => tp.id === fp.id || tp.name === fp.name)
+      );
 
-        this.vehicledataSource.data = commonProducts;
-      } else {
-        this.vehicledataSource.data = [];
-      }
-
+      this.vehicledataSource.data = commonProducts;
       this.stockTransferForm.get('products')?.enable();
     } else {
       this.vehicledataSource.data = [];
       this.stockTransferForm.get('products')?.disable();
     }
   }
-
-
-
-
 
 
   DealerList() {

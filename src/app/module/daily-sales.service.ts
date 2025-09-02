@@ -22,12 +22,13 @@ export class DailySalesService {
         map((actions) =>
           actions.map((a) => {
             const data = a.payload.doc.data();
-            const id = a.payload.doc.id;
-            return { id, ...(data as any) };
+            const docId = a.payload.doc.id;   // ✅ Firestore id
+            return { docId, ...(data as any) }; // don't clash with "id" field in data
           })
         )
       );
   }
+
 
   // 📌 Add daily sales (dealer + all products)
   addDailySales(salesData: any): Promise<any> {

@@ -49,140 +49,25 @@ import Swal from "sweetalert2";
 })
 export class DailySalesListComponent implements OnInit {
 
-  users = [
-    {
-      id: 1,
-      location: 'Mumbai Central',
-      dealerOutlet: 'John Doe',
-      vehicle: 'Swift VXI',
-      salesQuantity: 12,
-      typeOfCustomer: 'Active Customers',
-      division: 'europe-west',
-      country: 'India',
-      town: 'Hingna',
-
-    },
-    {
-      id: 2,
-      location: 'Pune East',
-      dealerOutlet: 'Jane Smith',
-      vehicle: 'Honda City ZX',
-      salesQuantity: 8,
-      typeOfCustomer: 'Lapsed Customers',
-      division: 'asia-northeast',
-      country: 'India',
-      town: 'Thane'
-    },
-    {
-      id: 3,
-      location: 'Nagpur Central',
-      dealerOutlet: 'Raj Kumar',
-      vehicle: 'Hyundai Creta',
-      salesQuantity: 15,
-      typeOfCustomer: 'Referring Customers',
-      division: 'asia-southeast',
-      country: 'India',
-      town: 'Kharadi'
-    },
-    {
-      id: 4,
-      location: 'Amravati Depot',
-      dealerOutlet: 'Prashant T',
-      vehicle: 'Royal Enfield Classic 350',
-      salesQuantity: 5,
-      typeOfCustomer: 'Wandering Customers',
-      division: 'asia-south',
-      country: 'India',
-      town: 'Khamla'
-    },
-    {
-      id: 5,
-      location: 'Mumbai Central',
-      dealerOutlet: 'Saurav S',
-      vehicle: 'KTM Duke 200',
-      salesQuantity: 10,
-      typeOfCustomer: 'Active Customers',
-      division: 'asia-east',
-      country: 'India',
-      town: 'Pimpri'
-    },
-    {
-      id: 6,
-      location: 'Pune East',
-      dealerOutlet: 'Jane Smith',
-      vehicle: 'Swift VXI',
-      salesQuantity: 7,
-      typeOfCustomer: 'Wandering Customers',
-      division: 'us-west',
-      country: 'India',
-      town: 'Dadar'
-    },
-    {
-      id: 7,
-      location: 'Nagpur Central',
-      dealerOutlet: 'Raj Kumar',
-      vehicle: 'Honda City ZX',
-      salesQuantity: 11,
-      typeOfCustomer: 'Active Customers',
-      division: 'us-east',
-      country: 'India',
-      town: 'Hingna'
-    },
-    {
-      id: 8,
-      location: 'Amravati Depot',
-      dealerOutlet: 'Prashant T',
-      vehicle: 'Hyundai Creta',
-      salesQuantity: 6,
-      typeOfCustomer: 'Lapsed Customers',
-      division: 'us-central',
-      country: 'India',
-      town: 'Thane'
-    },
-    {
-      id: 9,
-      location: 'Mumbai Central',
-      dealerOutlet: 'John Doe',
-      vehicle: 'Royal Enfield Classic 350',
-      salesQuantity: 9,
-      typeOfCustomer: 'Referring Customers',
-      division: 'south-africa',
-      country: 'India',
-      town: 'Dadar'
-    },
-    {
-      id: 10,
-      location: 'Pune East',
-      dealerOutlet: 'Saurav S',
-      vehicle: 'KTM Duke 200',
-      salesQuantity: 13,
-      typeOfCustomer: 'Active Customers',
-      division: 'south-africa',
-      country: 'India',
-      town: 'Pimpri'
-    }
-  ];
-
-
   dataSource = new MatTableDataSource<any>();
 
   // Define columns
   columnDefinitions = [
     { def: 'id', label: 'ID' },
+    { def: 'name', label: 'Name' },
+    { def: 'sku', label: 'Sku' },
+    { def: 'variant', label: 'Variant' },
     { def: 'dealerOutlet', label: 'Dealer Outlet' },
-    { def: 'productCount', label: 'Product' },
-    { def: 'division', label: 'Division' },
-    { def: 'country', label: 'Country' },
-    { def: 'town', label: 'Town' },
+    { def: 'quantity', label: 'Quantity' },
   ];
 
   displayedColumns: string[] = [
     'id',
+    'name',
+    'sku',
+    'variant',
     'dealerOutlet',
-    'division',
-    'country',
-    'town',
-    'productCount',   // ✅ New column
+    'quantity',
     'action'
   ];
 
@@ -215,10 +100,11 @@ export class DailySalesListComponent implements OnInit {
         }));
         this.dataSource.paginator = this.paginator;
         this.dataSource.sort = this.sort;
-        console.log(this.dataSource.data)
+        console.log(this.dataSource.data);
       });
     });
   }
+
 
 
   goToEdit(row: any) {
@@ -255,31 +141,45 @@ export class DailySalesListComponent implements OnInit {
 
   isLoading: any;
 
-  delete(id: string) {
-    Swal.fire({
-      title: 'Are you sure?',
-      text: 'You will not be able to recover this Daily Sales!',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonText: 'Yes, delete it!',
-      cancelButtonText: 'No, cancel',
-    }).then((result) => {
-      if (result.isConfirmed) {
-        // Proceed with deletion
-        runInInjectionContext(this.injector, () => {
-          this.dailySlaes.deleteDailySales(id).then(() => {
-            this.loadLocationList();
+    deleteDailySales(row: any) {
+      const docId = row.docId; // ✅ Firestore document ID
 
-
-            // Optional: Show success alert
-            Swal.fire('Deleted!', 'Daily Sales has been deleted.', 'success');
-          });
-        });
-      } else if (result.dismiss === Swal.DismissReason.cancel) {
-        Swal.fire('Cancelled', 'Daily Sales is safe.', 'info');
+      if (!docId) {
+        Swal.fire('Error', 'Missing document ID for this Daily Sale.', 'error');
+        return;
       }
-    });
-  }
+
+      Swal.fire({
+        title: 'Are you sure?',
+        text: 'You will not be able to recover this Daily Sale!',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, delete it!',
+        cancelButtonText: 'No, cancel',
+      }).then((result) => {
+        if (!result.isConfirmed) return;
+
+        this.isLoading = true;
+
+        runInInjectionContext(this.injector, () => {
+          this.dailySlaes.deleteDailySales(docId) // ✅ use docId
+            .then(() => {
+              // ✅ Optimistically update UI (remove row)
+              this.dataSource.data = this.dataSource.data.filter((p: any) => p.docId !== docId);
+
+              Swal.fire('Deleted!', 'Daily Sale has been deleted.', 'success');
+            })
+            .catch((err) => {
+              console.error('Delete failed:', err);
+              Swal.fire('Error', 'Failed to delete the Daily Sale. Please try again.', 'error');
+            })
+            .finally(() => {
+              this.isLoading = false;
+            });
+        });
+      });
+    }
+
 
   getTotalQuantity(row: any): number {
     if (!row?.products) return 0;

@@ -54,10 +54,11 @@ export class GRNListComponent implements OnInit {
   // Define columns
   columnDefinitions = [
     {def: 'serial', label: 'Serial'},
-    {def: 'location', label: 'Location'},
-    // {def: 'openingStock', label: 'OpeningStock'},
-    // {def: 'grnQuantity', label: 'GrnQuantity'},
-    {def: 'products', label: 'Products'},
+    { def: 'name', label: 'Name' },
+    { def: 'sku', label: 'Sku' },
+    { def: 'variant', label: 'Variant' },
+    { def: 'dealerOutlet', label: 'Dealer Outlet' },
+    { def: 'quantity', label: 'Quantity' },
     {def: 'typeOfGrn', label: 'GrnType'},
   ];
 
@@ -65,11 +66,12 @@ export class GRNListComponent implements OnInit {
 
   displayedColumns: string[] = [
     'serial',
-    'location',
-    // 'openingStock',
-    // 'grnQuantity',
+    'name',
+    'sku',
+    'variant',
+    'dealerOutlet',
+    'quantity',
     'typeOfGrn',
-    'quantityCount',
     'action'
   ];
 
@@ -134,31 +136,45 @@ export class GRNListComponent implements OnInit {
 
   isLoading: any;
 
-  deleteGrn(id: string) {
+  deleteGrn(row: any) {
+    const docId = row.docId; // ✅ Firestore document ID
+
+    if (!docId) {
+      Swal.fire('Error', 'Missing document ID for this GRN.', 'error');
+      return;
+    }
+
     Swal.fire({
       title: 'Are you sure?',
-      text: 'You will not be able to recover this Installation!',
+      text: 'You will not be able to recover this GRN!',
       icon: 'warning',
       showCancelButton: true,
       confirmButtonText: 'Yes, delete it!',
       cancelButtonText: 'No, cancel',
     }).then((result) => {
-      if (result.isConfirmed) {
-        // Proceed with deletion
-        runInInjectionContext(this.injector, () => {
-          this.grnService.deleteGrn(id).then(() => {
-            this.loadLocationList();
+      if (!result.isConfirmed) return;
 
+      this.isLoading = true;
 
-            // Optional: Show success alert
-            Swal.fire('Deleted!', 'Installation has been deleted.', 'success');
+      runInInjectionContext(this.injector, () => {
+        this.grnService.deleteGrn(docId) // ✅ use docId
+          .then(() => {
+            // ✅ Optimistically update UI (remove row from table)
+            this.dataSource.data = this.dataSource.data.filter((p: any) => p.docId !== docId);
+
+            Swal.fire('Deleted!', 'GRN has been deleted.', 'success');
+          })
+          .catch((err) => {
+            console.error('Delete failed:', err);
+            Swal.fire('Error', 'Failed to delete the GRN. Please try again.', 'error');
+          })
+          .finally(() => {
+            this.isLoading = false;
           });
-        });
-      } else if (result.dismiss === Swal.DismissReason.cancel) {
-        Swal.fire('Cancelled', 'Installation is safe.', 'info');
-      }
+      });
     });
   }
+
 
   getTotalQuantity(row: any): number {
     if (!row?.items) return 0;
