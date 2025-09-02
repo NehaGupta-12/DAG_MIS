@@ -31,7 +31,6 @@ import {
 import {map} from "rxjs/operators";
 import {AngularFireDatabase} from "@angular/fire/compat/database";
 import {Observable} from "rxjs";
-import {GrnService} from "../grn.service";
 import {BudgetService} from "../budget.service";
 
 @Component({
@@ -137,6 +136,7 @@ export class AddBudgetComponent implements OnInit {
   ngOnInit() {
     this.loadOutletProduct();
     this.productList();
+    this.loadbudget();
 
     // 🔹 Watch for year selection change
     this.budgetForm.get('year')?.valueChanges.subscribe((yearValue: string) => {
@@ -202,10 +202,6 @@ export class AddBudgetComponent implements OnInit {
   }
 
 
-
-
-
-
   loadOutletProduct() {
     runInInjectionContext(this.injector, () => {
       this.productMasterService.getProductList().subscribe((data) => {
@@ -225,6 +221,18 @@ export class AddBudgetComponent implements OnInit {
     });
   }
 
+  loadbudget() {
+    runInInjectionContext(this.injector, () => {
+      this.budgetService.getBudgetList().subscribe((data: any) => {
+        console.log(data);
+        this.dataSource.data = data;
+
+        console.log("Table Data:", this.dataSource.data);
+      });
+
+    });
+  }
+
   isSubmitEnabled(): boolean {
     const hasProducts = this.addedProducts.length > 0;
     const allQuantitiesValid = this.addedProducts.every(
@@ -238,6 +246,9 @@ export class AddBudgetComponent implements OnInit {
 
   addProduct() {
     const selectedProductName = this.budgetForm.get('products')?.value;
+    const selectedCountry = this.budgetForm.get('country')?.value;
+    const selectedYear = this.budgetForm.get('year')?.value;
+
     if (!selectedProductName) {
       Swal.fire('Error', 'Please select a product before adding.', 'error');
       return;
@@ -245,13 +256,41 @@ export class AddBudgetComponent implements OnInit {
 
     const product = this.vehicledataSource.data.find(p => p.name === selectedProductName);
     if (product) {
-      // check by name instead of id
-      const exists = this.addedProducts.some(p => p.name === product.name);
-      if (exists) {
-        Swal.fire('Info', 'This product is already added.', 'info');
+      // 🔹 Rule 1: Same country + same year → block
+      const existsInSessionYear = this.addedProducts.some(
+        p => p.name === product.name && p.country === selectedCountry && p.year === selectedYear
+      );
+      const existsInDBYear = this.dataSource.data.some(
+        (p: any) => p.name === product.name && p.country === selectedCountry && p.year === selectedYear
+      );
+
+      if (existsInSessionYear || existsInDBYear) {
+        Swal.fire(
+          'Info',
+          `Product "${product.name}" is already added for ${selectedCountry} (${selectedYear}).`,
+          'info'
+        );
         return;
       }
 
+      // 🔹 Rule 2: Same country (any year) → block
+      const existsInSessionCountry = this.addedProducts.some(
+        p => p.name === product.name && p.country === selectedCountry
+      );
+      // const existsInDBCountry = this.dataSource.data.some(
+      //   (p: any) => p.name === product.name && p.country === selectedCountry
+      // );
+
+      if (existsInSessionCountry) {
+        Swal.fire(
+          'Info',
+          `Product "${product.name}" is already added for ${selectedCountry}.`,
+          'info'
+        );
+        return;
+      }
+
+      // ✅ If no duplicate → add product
       const formValues = this.budgetForm.getRawValue();
 
       this.addedProducts = [
@@ -261,16 +300,17 @@ export class AddBudgetComponent implements OnInit {
           country: formValues.country,
           year: formValues.year,
           period: formValues.period,
-          quantity: 1,   // default
+          quantity: 1, // default
           __isNew: true
         }
       ];
     }
 
-    // reset product dropdown so user can pick another
+    // Reset product dropdown
     this.budgetForm.get('products')?.setValue(null);
     this.budgetForm.get('products')?.markAsPristine();
   }
+
 
 
 
@@ -282,7 +322,7 @@ export class AddBudgetComponent implements OnInit {
   submitForm() {
     try {
       const formValues = this.budgetForm.getRawValue();
-      delete formValues.products; // remove dropdown value
+      delete formValues.products;
 
       if (this.addedProducts.length === 0) {
         Swal.fire('Error', 'Please add at least one product.', 'error');
@@ -303,45 +343,72 @@ export class AddBudgetComponent implements OnInit {
             const username = userData.userName || 'Unknown User';
             const timestamp = Date.now();
 
-            // 🔹 Prepare base info (shared for all products)
             const baseInfo = {
               country: formValues.country,
               year: formValues.year,
               period: formValues.period,
               status: 'Active',
-              createBy: username,
-              createdAt: timestamp
+              updatedBy: username,
+              updatedAt: timestamp
             };
 
-            // 🔹 Create one document per product
-            const createPromises = this.addedProducts.map(p => {
+            if (this.isEditMode) {
+              // 🔹 Update ONLY the patched product
+              const productToUpdate = this.addedProducts[0]; // only one in edit mode
               const productDoc = {
                 ...baseInfo,
-                id: p.id ?? '',
-                sku: p.sku ?? '',
-                name: p.name ?? '',
-                brand: p.brand ?? '',
-                model: p.model ?? '',
-                variant: p.variant ?? p.varient ?? '',
-                unit: p.unit ?? '',
-                quantity: p.quantity ?? 0
+                id: productToUpdate.id ?? '',
+                sku: productToUpdate.sku ?? '',
+                name: productToUpdate.name ?? '',
+                brand: productToUpdate.brand ?? '',
+                model: productToUpdate.model ?? '',
+                variant: productToUpdate.variant ?? productToUpdate.varient ?? '',
+                unit: productToUpdate.unit ?? '',
+                quantity: productToUpdate.quantity ?? 0
               };
 
-              return runInInjectionContext(this.injector, () =>
-                this.budgetService.addBudget(productDoc)
-              );
-            });
+              runInInjectionContext(this.injector, () =>
+                this.budgetService.updateBudget(productToUpdate.docId, productDoc) // 🔹 update service
+              )
+                .then(() => {
+                  Swal.fire('Updated!', 'Product updated successfully.', 'success');
+                  this.goBack();
+                })
+                .catch(error => {
+                  console.error('Error updating product:', error);
+                  Swal.fire('Error', 'Something went wrong while updating.', 'error');
+                });
 
-            Promise.all(createPromises)
-              .then(() => {
-                Swal.fire('Added!', 'All products saved as separate documents.', 'success');
-                this.goBack();
-              })
-              .catch(error => {
-                console.error('Error adding multiple products:', error);
-                Swal.fire('Error', 'Something went wrong.', 'error');
+            } else {
+              // 🔹 Create one document per product (Add Mode)
+              const createPromises = this.addedProducts.map(p => {
+                const productDoc = {
+                  ...baseInfo,
+                  id: p.id ?? '',
+                  sku: p.sku ?? '',
+                  name: p.name ?? '',
+                  brand: p.brand ?? '',
+                  model: p.model ?? '',
+                  variant: p.variant ?? p.varient ?? '',
+                  unit: p.unit ?? '',
+                  quantity: p.quantity ?? 0
+                };
+
+                return runInInjectionContext(this.injector, () =>
+                  this.budgetService.addBudget(productDoc)
+                );
               });
 
+              Promise.all(createPromises)
+                .then(() => {
+                  Swal.fire('Added!', 'All products saved as separate documents.', 'success');
+                  this.goBack();
+                })
+                .catch(error => {
+                  console.error('Error adding multiple products:', error);
+                  Swal.fire('Error', 'Something went wrong.', 'error');
+                });
+            }
           } catch (innerErr) {
             console.error('Unexpected error during submission:', innerErr);
             Swal.fire('Error', 'Unexpected issue occurred.', 'error');
@@ -353,7 +420,6 @@ export class AddBudgetComponent implements OnInit {
       Swal.fire('Error', 'Something went wrong while submitting.', 'error');
     }
   }
-
 
 
 
@@ -369,6 +435,4 @@ export class AddBudgetComponent implements OnInit {
       this.budgetForm.get('products')?.value
     );
   }
-
-
 }

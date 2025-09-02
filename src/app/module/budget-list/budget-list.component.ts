@@ -87,10 +87,10 @@ export class BudgetListComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.loadOutletProduct()
+    this.loadbudget()
   }
 
-  loadOutletProduct() {
+  loadbudget() {
     runInInjectionContext(this.injector, () => {
       // Directly subscribe to the service method within the injection context
       this.budgetService.getBudgetList().subscribe((data: any) => {
@@ -141,18 +141,17 @@ export class BudgetListComponent implements OnInit {
 
   isLoading: any;
 
-  deleteOutletProduct(row: any) {
-    const outletId = row.outletId || row.dealerId; // whichever you use
-    const productId = row.id;
+  deleteBudget(row: any) {
+    const docId = row.docId; // ✅ use Firestore document ID
 
-    if (!outletId || !productId) {
-      Swal.fire('Error', 'Missing outletId or productId on this row.', 'error');
+    if (!docId) {
+      Swal.fire('Error', 'Missing document ID for this budget.', 'error');
       return;
     }
 
     Swal.fire({
       title: 'Are you sure?',
-      text: 'You will not be able to recover this Dealer/Outlet Product!',
+      text: 'You will not be able to recover this Budget Product!',
       icon: 'warning',
       showCancelButton: true,
       confirmButtonText: 'Yes, delete it!',
@@ -160,24 +159,19 @@ export class BudgetListComponent implements OnInit {
     }).then((result) => {
       if (!result.isConfirmed) return;
 
-      // (optional) show a small loading state
       this.isLoading = true;
 
-      // delete from subcollection
       runInInjectionContext(this.injector, () => {
-        this.outletProductService.deleteOutletProduct(outletId, productId)
+        this.budgetService.deleteBudget(docId)
           .then(() => {
-            // Optimistic remove from table (faster UI)
-            this.dataSource.data = this.dataSource.data.filter((p: any) => p.id !== productId);
+            // ✅ Optimistic remove from UI
+            this.dataSource.data = this.dataSource.data.filter((p: any) => p.docId !== docId);
 
-            // Or reload list:
-            // this.loadOutletProduct();
-
-            Swal.fire('Deleted!', 'Dealer/Outlet Product has been deleted.', 'success');
+            Swal.fire('Deleted!', 'Budget Product has been deleted.', 'success');
           })
           .catch((err) => {
             console.error('Delete failed:', err);
-            Swal.fire('Error', 'Failed to delete the product. Please try again.', 'error');
+            Swal.fire('Error', 'Failed to delete the Budget product. Please try again.', 'error');
           })
           .finally(() => {
             this.isLoading = false;
@@ -185,6 +179,7 @@ export class BudgetListComponent implements OnInit {
       });
     });
   }
+
 
 
   getTotalQuantity(row: any): number {

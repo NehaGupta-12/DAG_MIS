@@ -24,12 +24,13 @@ export class BudgetService {
         map((actions) =>
           actions.map((a) => {
             const data = a.payload.doc.data();
-            const id = a.payload.doc.id;
-            return { id, ...(data as any) };
+            const docId = a.payload.doc.id;   // Firestore ID
+            return { docId, ...(data as any) }; // ✅ avoid overwrite
           })
         )
       );
   }
+
 
   // 📌 Add new GRN
   addBudget(grnData: any): Promise<any> {
