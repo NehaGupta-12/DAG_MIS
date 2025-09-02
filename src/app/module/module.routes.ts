@@ -131,5 +131,17 @@ export const MODULES_ROUTE: Route[] = [
     path: 'outlet-product-list',
     component: OutletProductListComponent
   },
+  {
+    path:'budget-list',
+    component: BudgetListComponent
+  },
+  {
+    path:'add-budget',
+    component: AddBudgetComponent
+  },
+  {
+    path:'outlet-dealer-report',
+    component: OutletDealerReportComponent
+  },
   { path: '**', component: Page404Component },
 ];
