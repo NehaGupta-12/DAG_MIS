@@ -11,6 +11,10 @@ export class OutletProductService {
 
   constructor(private firestore: AngularFirestore) {}
 
+  getInventoryData(){
+    return this.firestore.collection('inventory').valueChanges({idField: 'id'});
+  }
+
   getOutletProductList(): Observable<any[]> {
     return this.firestore
       .collectionGroup('products') // fetches all products under all outlet docs
@@ -62,6 +66,24 @@ export class OutletProductService {
       .set(payload)                 // add product to the sub-collection
 
   }
+  addInventoryProduct(inventoryData: any): Promise<any> {
+    const payload = {
+      ...inventoryData,
+      createdAt: new Date(),
+    };
+    return this.firestore
+      .collection('inventory')                      // inventory main collection
+      .doc(inventoryData.dealerId)              // dealer/site document
+      .set(
+        {products: {[inventoryData.sku]: payload}}, // SKU-based map inside products
+        {merge: true}                                 // merge into existing products map
+      );
+  }
+    //   return this.firestore
+  //     .collection('inventory')           // inventory main collection
+  //     .doc(inventoryData.dealerOutlet)            // use SKU as document ID
+  //     .set(payload);                     // add to inventory
+  // }
 
 
   // 📌 Update GRN
