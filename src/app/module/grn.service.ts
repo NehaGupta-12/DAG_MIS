@@ -24,8 +24,8 @@ export class GrnService {
         map((actions) =>
           actions.map((a) => {
             const data = a.payload.doc.data();
-            const id = a.payload.doc.id;
-            return { id, ...(data as any) };
+            const docId = a.payload.doc.id;
+            return { docId, ...(data as any) };
           })
         )
       );

@@ -141,44 +141,44 @@ export class DailySalesListComponent implements OnInit {
 
   isLoading: any;
 
-  deleteDailySales(row: any) {
-    const docId = row.docId; // ✅ Firestore document ID
+    deleteDailySales(row: any) {
+      const docId = row.docId; // ✅ Firestore document ID
 
-    if (!docId) {
-      Swal.fire('Error', 'Missing document ID for this Daily Sale.', 'error');
-      return;
-    }
+      if (!docId) {
+        Swal.fire('Error', 'Missing document ID for this Daily Sale.', 'error');
+        return;
+      }
 
-    Swal.fire({
-      title: 'Are you sure?',
-      text: 'You will not be able to recover this Daily Sale!',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonText: 'Yes, delete it!',
-      cancelButtonText: 'No, cancel',
-    }).then((result) => {
-      if (!result.isConfirmed) return;
+      Swal.fire({
+        title: 'Are you sure?',
+        text: 'You will not be able to recover this Daily Sale!',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, delete it!',
+        cancelButtonText: 'No, cancel',
+      }).then((result) => {
+        if (!result.isConfirmed) return;
 
-      this.isLoading = true;
+        this.isLoading = true;
 
-      runInInjectionContext(this.injector, () => {
-        this.dailySlaes.deleteDailySales(docId) // ✅ use docId
-          .then(() => {
-            // ✅ Optimistically update UI (remove row)
-            this.dataSource.data = this.dataSource.data.filter((p: any) => p.docId !== docId);
+        runInInjectionContext(this.injector, () => {
+          this.dailySlaes.deleteDailySales(docId) // ✅ use docId
+            .then(() => {
+              // ✅ Optimistically update UI (remove row)
+              this.dataSource.data = this.dataSource.data.filter((p: any) => p.docId !== docId);
 
-            Swal.fire('Deleted!', 'Daily Sale has been deleted.', 'success');
-          })
-          .catch((err) => {
-            console.error('Delete failed:', err);
-            Swal.fire('Error', 'Failed to delete the Daily Sale. Please try again.', 'error');
-          })
-          .finally(() => {
-            this.isLoading = false;
-          });
+              Swal.fire('Deleted!', 'Daily Sale has been deleted.', 'success');
+            })
+            .catch((err) => {
+              console.error('Delete failed:', err);
+              Swal.fire('Error', 'Failed to delete the Daily Sale. Please try again.', 'error');
+            })
+            .finally(() => {
+              this.isLoading = false;
+            });
+        });
       });
-    });
-  }
+    }
 
 
   getTotalQuantity(row: any): number {
