@@ -1,0 +1,199 @@
+
+<section class="content">
+  <div class="content-block">
+    <div class="row p-3">
+      <div class="col-md-12">
+        <h4 class="text-center">Outlet / Dealer Report</h4>
+      </div>
+    </div>
+
+    <div class="card shadow p-4">
+      <form [formGroup]="dealerForm" class="row g-3 align-items-center">
+
+        <!-- Country -->
+        <div class="col-md-4">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Select Country</mat-label>
+            <mat-select formControlName="country">
+              <mat-option>
+                <input
+                  matInput
+                  placeholder="Search Country"
+                  [formControl]="countryFilter"
+                  class="form-control"
+                />
+              </mat-option>
+              <mat-option *ngFor="let item of filteredOptions.country" [value]="item">
+                {{ item }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <!-- Town -->
+        <div class="col-md-4">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Select Town</mat-label>
+            <mat-select formControlName="town">
+              <mat-option>
+                <input
+                  matInput
+                  placeholder="Search Town"
+                  [formControl]="townFilter"
+                  class="form-control"
+                />
+              </mat-option>
+              <mat-option *ngFor="let item of filteredOptions.town" [value]="item">
+                {{ item }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <!-- Division -->
+        <div class="col-md-4">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Select Division</mat-label>
+            <mat-select formControlName="division">
+              <mat-option>
+                <input
+                  matInput
+                  placeholder="Search Division"
+                  [formControl]="divisionFilter"
+                  class="form-control"
+                />
+              </mat-option>
+              <mat-option *ngFor="let item of filteredOptions.division" [value]="item">
+                {{ item }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <!-- Showroom Name -->
+        <div class="col-md-4">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Select Showroom</mat-label>
+            <mat-select formControlName="name">
+              <mat-option>
+                <input
+                  matInput
+                  placeholder="Search Showroom"
+                  [formControl]="nameFilter"
+                  class="form-control"
+                />
+              </mat-option>
+              <mat-option *ngFor="let dealer of filteredOptions.name" [value]="dealer">
+                {{ dealer }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <!-- Outlet Type -->
+        <div class="col-md-4">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Select Outlet Type</mat-label>
+            <mat-select formControlName="outletType">
+              <mat-option>
+                <input
+                  matInput
+                  placeholder="Search Outlet Type"
+                  [formControl]="outletTypeFilter"
+                  class="form-control"
+                />
+              </mat-option>
+              <mat-option *ngFor="let item of filteredOptions.outletType" [value]="item">
+                {{ item }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <!-- Category -->
+        <div class="col-md-4">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Select Category</mat-label>
+            <mat-select formControlName="category">
+              <mat-option>
+                <input
+                  matInput
+                  placeholder="Search Category"
+                  [formControl]="categoryFilter"
+                  class="form-control"
+                />
+              </mat-option>
+              <mat-option *ngFor="let item of filteredOptions.category" [value]="item">
+                {{ item }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+
+
+
+
+        <!-- Action Buttons -->
+        <div class="col-md-12 d-flex justify-content-end gap-2 mt-2">
+          <button mat-mini-fab color="accent" matTooltip="Search" (click)="onSubmit()" [disabled]="dealerForm.invalid">
+            <mat-icon>search</mat-icon>
+          </button>
+          <button mat-mini-fab color="warn" matTooltip="Clear" (click)="onCancel()">
+            <mat-icon>clear</mat-icon>
+          </button>
+          <button mat-mini-fab color="primary" matTooltip="Export to Excel" (click)="exportToExcel()">
+            <mat-icon>download</mat-icon>
+          </button>
+        </div>
+      </form>
+
+      <!-- Table -->
+      <hr />
+      <table mat-table [dataSource]="filteredProducts" class="mat-elevation-z1 w-100">
+        <ng-container matColumnDef="srNo">
+          <th mat-header-cell *matHeaderCellDef> Sr.No </th>
+          <td mat-cell *matCellDef="let element; let i = index"> {{ i + 1 }} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="showroomName">
+          <th mat-header-cell *matHeaderCellDef> Showroom Name </th>
+          <td mat-cell *matCellDef="let element"> {{ element.name }} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="outletType">
+          <th mat-header-cell *matHeaderCellDef> Outlet Type </th>
+          <td mat-cell *matCellDef="let element"> {{ element.outletType }} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="division">
+          <th mat-header-cell *matHeaderCellDef> Division </th>
+          <td mat-cell *matCellDef="let element"> {{ element.division }} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="category">
+          <th mat-header-cell *matHeaderCellDef> Category </th>
+          <td mat-cell *matCellDef="let element"> {{ element.category }} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="country">
+          <th mat-header-cell *matHeaderCellDef> Country </th>
+          <td mat-cell *matCellDef="let element"> {{ element.country }} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="town">
+          <th mat-header-cell *matHeaderCellDef> Town </th>
+          <td mat-cell *matCellDef="let element"> {{ element.town }} </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="['srNo','showroomName','outletType','division','category','country','town']"></tr>
+        <tr mat-row *matRowDef="let row; columns: ['srNo','showroomName','outletType','division','category','country','town'];"></tr>
+      </table>
+    </div>
+  </div>
+</section>
+
+
+
+
+

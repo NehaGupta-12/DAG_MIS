@@ -22,23 +22,24 @@ import {OutletProductService} from "../outlet-product.service";
 
 @Component({
   selector: 'app-outlet-product-list',
-    imports: [
-      MatCell,
-      MatHeaderCell,
-      MatHeaderRow,
-      MatIcon,
-      MatIconButton,
-      MatPaginator,
-      MatProgressSpinner,
-      MatRow,
-      MatTable,
-      MatTooltip,
-      MatColumnDef,
-      MatTableModule,
-      FeatherIconsComponent,
-      CommonModule
-    ],
+  imports: [
+    MatCell,
+    MatHeaderCell,
+    MatHeaderRow,
+    MatIcon,
+    MatIconButton,
+    MatPaginator,
+    MatProgressSpinner,
+    MatRow,
+    MatTable,
+    MatTooltip,
+    MatColumnDef,
+    MatTableModule,
+    FeatherIconsComponent,
+    CommonModule
+  ],
   templateUrl: './outlet-product-list.component.html',
+  standalone: true,
   styleUrl: './outlet-product-list.component.scss'
 })
 export class OutletProductListComponent implements OnInit {
