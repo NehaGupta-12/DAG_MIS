@@ -17,6 +17,7 @@
       "rules": {
         "@angular-eslint/prefer-inject": "off",
         "@typescript-eslint/no-explicit-any": "off",
+        "no-debugger": "off",
         "@angular-eslint/directive-selector": [
           "error",
           {

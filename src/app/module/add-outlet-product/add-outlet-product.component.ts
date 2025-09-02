@@ -320,8 +320,11 @@ data:any ={}
                 ...product,
                 outletId: dealerId
               });
+          this.outletProductService.addInventoryProduct({
+            ...product,
+            outletId: dealerId
+          });
             })
-
           }
         Swal.fire(
           this.isEditMode ? 'Updated!' : 'Added!',
