@@ -136,7 +136,6 @@ export class AddDealerComponent implements OnInit{
   }
 
 
-
   submitForm() {
     if (this.dealerForm.valid) {
       Swal.fire({

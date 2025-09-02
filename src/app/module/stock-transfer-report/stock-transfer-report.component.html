@@ -1,0 +1,100 @@
+<section class="content">
+  <div class="content-block">
+    <div class="row p-3">
+      <div class="col-md-12">
+        <h4 class="text-center">Stock Transfer Record</h4>
+      </div>
+    </div>
+
+    <div class="card shadow p-4">
+      <form [formGroup]="stockTransferForm" class="row g-3 align-items-center">
+        <!-- From Outlet/Dealer -->
+        <div class="col-md-6">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>From Outlet/Dealer</mat-label>
+            <mat-select formControlName="fromDealerOutlet">
+              <mat-option *ngFor="let dealer of dealerdataSource.data" [value]="dealer.name">
+                {{ dealer.name }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <!-- To Outlet/Dealer -->
+        <div class="col-md-6">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>To Outlet/Dealer</mat-label>
+            <mat-select formControlName="toDealerOutlet">
+              <mat-option *ngFor="let dealer of dealerdataSource.data" [value]="dealer.name">
+                {{ dealer.name }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="col-md-12 d-flex justify-content-end gap-2 mt-2">
+          <button mat-mini-fab color="accent" matTooltip="Search" type="button" (click)="submitForm()">
+            <mat-icon>search</mat-icon>
+          </button>
+          <button mat-mini-fab color="warn" matTooltip="Clear" type="button" (click)="onCancel()">
+            <mat-icon>clear</mat-icon>
+          </button>
+          <button mat-mini-fab color="primary" matTooltip="Export to Excel" type="button" (click)="exportToExcel()">
+            <mat-icon>download</mat-icon>
+          </button>
+        </div>
+      </form>
+
+      <!-- Table -->
+      <hr />
+      <table mat-table [dataSource]="filteredTransfers" class="mat-elevation-z1 w-100">
+        <!-- Sr. No -->
+        <ng-container matColumnDef="srNo">
+          <th mat-header-cell *matHeaderCellDef> Sr.No </th>
+          <td mat-cell *matCellDef="let element; let i = index"> {{ i + 1 }} </td>
+        </ng-container>
+
+        <!-- From Outlet/Dealer -->
+        <ng-container matColumnDef="fromDealerOutlet">
+          <th mat-header-cell *matHeaderCellDef> From Outlet/Dealer </th>
+          <td mat-cell *matCellDef="let element"> {{ element.fromDealerOutlet }} </td>
+        </ng-container>
+
+        <!-- To Outlet/Dealer -->
+        <ng-container matColumnDef="toDealerOutlet">
+          <th mat-header-cell *matHeaderCellDef> To Outlet/Dealer </th>
+          <td mat-cell *matCellDef="let element"> {{ element.toDealerOutlet }} </td>
+        </ng-container>
+
+        <!-- CreatedAt -->
+        <ng-container matColumnDef="createdAt">
+          <th mat-header-cell *matHeaderCellDef> Created At </th>
+          <td mat-cell *matCellDef="let element">
+            {{ element.createdAt?.toDate() | date:'dd/MM/yyyy' }}
+          </td>
+        </ng-container>
+
+        <!-- Action -->
+        <ng-container matColumnDef="action">
+          <th mat-header-cell *matHeaderCellDef> Action </th>
+          <td mat-cell *matCellDef="let element">
+            <button mat-icon-button color="warn" matTooltip="Delete" (click)="deleteStockTransfer(element.id)">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </td>
+        </ng-container>
+
+        <!-- Header + Row -->
+        <tr mat-header-row *matHeaderRowDef="['srNo','fromDealerOutlet','toDealerOutlet','createdAt']"></tr>
+        <tr mat-row *matRowDef="let row; columns: ['srNo','fromDealerOutlet','toDealerOutlet','createdAt'];"></tr>
+      </table>
+
+      <!-- No Data Message -->
+      <div *ngIf="filteredTransfers.length === 0" class="text-center text-muted mt-3">
+        No records found. Please apply filters and click Search.
+      </div>
+
+    </div>
+  </div>
+</section>

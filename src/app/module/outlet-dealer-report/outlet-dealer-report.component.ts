@@ -37,6 +37,7 @@ import {
   MatTable,
   MatTableDataSource
 } from '@angular/material/table';
+import {MatAutocomplete, MatAutocompleteTrigger} from "@angular/material/autocomplete";
 
 @Component({
   selector: 'app-outlet-dealer-report',
@@ -64,6 +65,8 @@ import {
     MatCellDef,
     MatHeaderRowDef,
     MatRowDef,
+    MatAutocompleteTrigger,
+    MatAutocomplete,
   ],
   providers: [{ provide: MAT_DIALOG_DATA, useValue: {} }],
   templateUrl: './outlet-dealer-report.component.html',
@@ -75,6 +78,7 @@ export class OutletDealerReportComponent implements OnInit {
   dealerForm: FormGroup;
   dataSource: any[] = [];
   filteredProducts: any[] = [];
+
 
   // Filters
   nameFilter = new FormControl('');
@@ -156,12 +160,43 @@ export class OutletDealerReportComponent implements OnInit {
     this.DealerList();
 
     // 🔹 Filter subscription
-    this.nameFilter.valueChanges.subscribe(val => this.filterOptions('name', val || ''));
-    this.outletTypeFilter.valueChanges.subscribe(val => this.filterOptions('outletType', val || ''));
-    this.categoryFilter.valueChanges.subscribe(val => this.filterOptions('category', val || ''));
-    this.divisionFilter.valueChanges.subscribe(val => this.filterOptions('division', val || ''));
-    this.countryFilter.valueChanges.subscribe(val => this.filterOptions('country', val || ''));
-    this.townFilter.valueChanges.subscribe(val => this.filterOptions('town', val || ''));
+    // this.nameFilter.valueChanges.subscribe(val => this.filterOptions('name', val || ''));
+    // this.outletTypeFilter.valueChanges.subscribe(val => this.filterOptions('outletType', val || ''));
+    // this.categoryFilter.valueChanges.subscribe(val => this.filterOptions('category', val || ''));
+    // this.divisionFilter.valueChanges.subscribe(val => this.filterOptions('division', val || ''));
+    // this.countryFilter.valueChanges.subscribe(val => this.filterOptions('country', val || ''));
+    // this.townFilter.valueChanges.subscribe(val => this.filterOptions('town', val || ''));
+
+    // 🔹 Hook filters to filtering logic
+    this.nameFilter.valueChanges.subscribe(val => {
+      this.filterOptions('name', val || '');
+      this.dealerForm.patchValue({ name: val });
+    });
+
+    this.outletTypeFilter.valueChanges.subscribe(val => {
+      this.filterOptions('outletType', val || '');
+      this.dealerForm.patchValue({ outletType: val });
+    });
+
+    this.categoryFilter.valueChanges.subscribe(val => {
+      this.filterOptions('category', val || '');
+      this.dealerForm.patchValue({ category: val });
+    });
+
+    this.divisionFilter.valueChanges.subscribe(val => {
+      this.filterOptions('division', val || '');
+      this.dealerForm.patchValue({ division: val });
+    });
+
+    this.countryFilter.valueChanges.subscribe(val => {
+      this.filterOptions('country', val || '');
+      this.dealerForm.patchValue({ country: val });
+    });
+
+    this.townFilter.valueChanges.subscribe(val => {
+      this.filterOptions('town', val || '');
+      this.dealerForm.patchValue({ town: val });
+    });
   }
 
   DealerList() {
@@ -177,12 +212,27 @@ export class OutletDealerReportComponent implements OnInit {
     });
   }
 
+  // filterOptions(field: string, value: string) {
+  //   const searchTerm = value?.toLowerCase() || '';
+  //   this.filteredOptions[field] = this.options[field].filter((item: string) =>
+  //     item.toLowerCase().includes(searchTerm)
+  //   );
+  // }
+
+  // Filter options logic
   filterOptions(field: string, value: string) {
     const searchTerm = value?.toLowerCase() || '';
-    this.filteredOptions[field] = this.options[field].filter((item: string) =>
+    const matched = this.options[field].filter((item: string) =>
       item.toLowerCase().includes(searchTerm)
     );
+    this.filteredOptions[field] = [...matched];
   }
+
+// Display selected value in input
+  displayFn(value: string) {
+    return value ? value : '';
+  }
+
 
   onSubmit() {
     const filters = this.dealerForm.value;
