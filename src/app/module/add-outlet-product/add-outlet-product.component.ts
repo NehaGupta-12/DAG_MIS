@@ -113,6 +113,12 @@ data:any ={}
     this.DealerList();
     this.productList();
 
+    this.grnForm.get('dealerOutlet')?.valueChanges.subscribe(selectedOutlet => {
+      if (selectedOutlet) {
+        this.filterProductsForOutlet(selectedOutlet);
+      }
+    });
+
     this.route.queryParams.subscribe(params => {
       if (params['data']) {
         const rowData = JSON.parse(params['data']);
@@ -146,9 +152,6 @@ data:any ={}
     });
   }
 
-
-
-
   loadOutletProduct() {
     runInInjectionContext(this.injector, () => {
       this.outletProductService.getOutletProductList().subscribe((data) => {
@@ -174,17 +177,54 @@ data:any ={}
   }
 
 
-
-
   //product
   productList() {
     runInInjectionContext(this.injector, () => {
       this.productService.getProductList().subscribe((data) => {
+        // Keep a master copy of all products
+        (this.productService as any).cachedProducts = data;
         this.vehicledataSource.data = data;
-        console.log(this.vehicledataSource.data)
+        console.log("All Products:", data);
       });
     });
   }
+
+  filterProductsForOutlet(selectedOutlet: string) {
+    const dealer = this.allDealers.find(
+      d => (d.name || '').trim() === (selectedOutlet || '').trim()
+    );
+    const outletId = dealer?.id;
+
+    if (!outletId) {
+      this.vehicledataSource.data = [];
+      return;
+    }
+
+    // Get SKUs already assigned for this outlet
+    const existingSkus = this.outletProducts
+      .filter(p => p.outletId === outletId)
+      .map(p => p.sku);
+
+    // Add disabled flag (true if already exists in outlet)
+    let processedProducts = (this.productService as any).cachedProducts.map((p: any) => ({
+      ...p,
+      disabled: existingSkus.includes(p.sku)
+    }));
+
+    // In edit mode → allow current product (force enable)
+    if (this.isEditMode && this.data?.sku) {
+      processedProducts = processedProducts.map((p: any) => ({
+        ...p,
+        disabled: p.sku === this.data.sku ? false : p.disabled
+      }));
+    }
+
+    this.vehicledataSource.data = processedProducts;
+    console.log("Products with disabled flag:", processedProducts);
+  }
+
+
+
 
   isSubmitEnabled(): boolean {
     // Check dealerOutlet value, even if disabled
