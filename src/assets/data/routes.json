@@ -148,16 +148,14 @@
           "submenu": []
         },
         {
-          "path": "module/stock-transfer-report",
-          "title": "Stock Transfer Report",
+          "path": "module/daily-sale-reports",
+          "title": "Sales Report",
           "icon": "",
           "class": "ml-menu",
           "groupTitle": false,
           "submenu": []
         }
-
       ]
     }
-
   ]
 }

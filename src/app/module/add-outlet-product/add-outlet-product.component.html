@@ -35,17 +35,14 @@
                   <mat-form-field class="example-full-width" appearance="outline">
                     <mat-label>Products</mat-label>
                     <mat-select required formControlName="products">
-                      <mat-option *ngFor="let product of vehicledataSource.data" [value]="product?.name">
+                      <mat-option *ngFor="let product of vehicledataSource.data"
+                                  [value]="product?.name"
+                                  [disabled]="product?.disabled">
                         {{ product?.name }}
-                      </mat-option>
+                      </mat-option  >
                     </mat-select>
-                    <!--                    <mat-icon class="material-icons-outlined color-icon p-3" matSuffix>flag</mat-icon>-->
-                    <!--                    @if (grnForm?.get('products')?.hasError('required')) {-->
-                    <!--                      <mat-error>-->
-                    <!--                        Products is required-->
-                    <!--                      </mat-error>-->
-                    <!--                    }-->
                   </mat-form-field>
+
                 </div>
               </div>
               <div class="row">
