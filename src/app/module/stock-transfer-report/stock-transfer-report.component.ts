@@ -6,6 +6,7 @@ import {
   runInInjectionContext,
 } from '@angular/core';
 import {
+  FormControl,
   FormGroup,
   ReactiveFormsModule,
   UntypedFormBuilder,
@@ -92,11 +93,60 @@ export class StockTransferReportComponent implements OnInit {
     });
   }
 
+  // Form Controls
+  fromDealerFilter = new FormControl('');
+  toDealerFilter = new FormControl('');
+
+// Filtered lists
+  filteredFromDealers: any[] = [];
+  filteredToDealers: any[] = [];
+
   ngOnInit() {
     this.filteredTransfers = []; // start empty on init
 
     this.DealerList();
     this.loadStockTransfers();
+
+
+    this.filteredFromDealers = this.dealerdataSource.data;
+    this.filteredToDealers = this.dealerdataSource.data;
+
+    this.fromDealerFilter.valueChanges.subscribe(val => {
+      this.filteredFromDealers = this._filterDealers(val || "");
+    });
+
+    this.toDealerFilter.valueChanges.subscribe(val => {
+      this.filteredToDealers = this._filterDealers(val || "");
+    });
+  }
+
+// Open dropdown with full list on first click
+  openFromDealerDropdown() {
+    if (!this.fromDealerFilter.value) {
+      this.filteredFromDealers = this.dealerdataSource.data;
+    }
+  }
+
+  openToDealerDropdown() {
+    if (!this.toDealerFilter.value) {
+      this.filteredToDealers = this.dealerdataSource.data;
+    }
+
+
+  }
+
+
+  // Filtering logic
+  private _filterDealers(value: string): any[] {
+    const filterValue = value?.toLowerCase() || '';
+    return this.dealerdataSource.data.filter((dealer: any) =>
+      dealer.name.toLowerCase().includes(filterValue)
+    );
+  }
+
+// Show name after selection
+  displayDealerFn(dealer: any): string {
+    return dealer && dealer.name ? dealer.name : '';
   }
 
   DealerList() {

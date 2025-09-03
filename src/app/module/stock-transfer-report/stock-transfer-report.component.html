@@ -6,17 +6,29 @@
       </div>
     </div>
 
+
+
     <div class="card shadow p-4">
       <form [formGroup]="stockTransferForm" class="row g-3 align-items-center">
+        <!-- From Outlet/Dealer -->
         <!-- From Outlet/Dealer -->
         <div class="col-md-6">
           <mat-form-field appearance="outline" class="w-100">
             <mat-label>From Outlet/Dealer</mat-label>
-            <mat-select formControlName="fromDealerOutlet">
-              <mat-option *ngFor="let dealer of dealerdataSource.data" [value]="dealer.name">
+            <input
+              type="text"
+              matInput
+              placeholder="Search Outlet/Dealer"
+              [formControl]="fromDealerFilter"
+              [matAutocomplete]="autoFromDealer"
+              (focus)="openFromDealerDropdown()"
+            />
+            <mat-icon matSuffix>arrow_drop_down</mat-icon>
+            <mat-autocomplete #autoFromDealer="matAutocomplete" [displayWith]="displayDealerFn">
+              <mat-option *ngFor="let dealer of filteredFromDealers" [value]="dealer">
                 {{ dealer.name }}
               </mat-option>
-            </mat-select>
+            </mat-autocomplete>
           </mat-form-field>
         </div>
 
@@ -24,13 +36,24 @@
         <div class="col-md-6">
           <mat-form-field appearance="outline" class="w-100">
             <mat-label>To Outlet/Dealer</mat-label>
-            <mat-select formControlName="toDealerOutlet">
-              <mat-option *ngFor="let dealer of dealerdataSource.data" [value]="dealer.name">
+            <input
+              type="text"
+              matInput
+              placeholder="Search Outlet/Dealer"
+              [formControl]="toDealerFilter"
+              [matAutocomplete]="autoToDealer"
+              (focus)="openToDealerDropdown()"
+            />
+            <mat-icon matSuffix>arrow_drop_down</mat-icon>
+            <mat-autocomplete #autoToDealer="matAutocomplete" [displayWith]="displayDealerFn">
+              <mat-option *ngFor="let dealer of filteredToDealers" [value]="dealer">
                 {{ dealer.name }}
               </mat-option>
-            </mat-select>
+            </mat-autocomplete>
           </mat-form-field>
         </div>
+
+
 
         <!-- Action Buttons -->
         <div class="col-md-12 d-flex justify-content-end gap-2 mt-2">
