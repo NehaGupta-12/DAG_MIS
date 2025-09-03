@@ -33,6 +33,8 @@ import {OutletProductService} from "../outlet-product.service";
 import {DailySalesService} from "../daily-sales.service";
 import {InventoryService} from "../add-inventory/inventory.service";
 import firebase from "firebase/compat/app";
+import {AngularFirestore} from "@angular/fire/compat/firestore";
+import { increment } from 'firebase/firestore';
 
 @Component({
   selector: 'app-add-grn',
@@ -364,6 +366,7 @@ export class AddGRNComponent implements OnInit{
     private injector: EnvironmentInjector,
     private route: ActivatedRoute,
     private addDealerService: AddDealerService,
+    private afs: AngularFirestore,
     private grnService: GrnService,
     private productService: ProductMasterService,
     private router: Router,
@@ -629,123 +632,121 @@ export class AddGRNComponent implements OnInit{
   //   }
   // }
 
-  submitForm() {
+  async submitForm() {
     try {
       const formValues = this.grnForm.getRawValue();
+
       if (this.addedProducts.length === 0) {
         Swal.fire('Error', 'Please add at least one product.', 'error');
         return;
       }
-      Swal.fire({
+
+      const result = await Swal.fire({
         title: this.isEditMode ? 'Update Grn?' : 'Add Grn?',
         text: 'Are you sure you want to proceed?',
         icon: 'question',
         showCancelButton: true,
         confirmButtonText: 'Yes',
         cancelButtonText: 'No'
-      }).then(async (result: any) => {
-        if (result.isConfirmed) {
-          try {
-            const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-            const username = userData.userName || 'Unknown User';
-            const timestamp = Date.now();
-
-            const baseInfo = {
-              dealerOutlet: formValues.dealerOutlet,
-              typeOfGrn: formValues.typeOfGrn,
-              status: 'Active',
-              updatedBy: username,
-              updatedAt: timestamp
-            };
-
-            // Get Firestore batch instance
-            const batch = firebase.firestore().batch();
-            const increment = firebase.firestore.FieldValue.increment;
-
-            if (this.isEditMode) {
-              const productToUpdate = this.addedProducts[0]; // only one in edit mode
-
-              // Update GRN document
-              await runInInjectionContext(this.injector, () =>
-                this.grnService.updateGrn(productToUpdate.docId, {
-                  ...baseInfo,
-                  sku: productToUpdate.sku,
-                  name: productToUpdate.name,
-                  brand: productToUpdate.brand,
-                  model: productToUpdate.model,
-                  variant: productToUpdate.variant,
-                  unit: productToUpdate.unit,
-                  quantity: productToUpdate.quantity
-                })
-              );
-
-              // Inventory increment (single product in edit)
-              const inventoryRef = firebase.firestore().collection('inventory').doc(productToUpdate.id);
-              batch.set(
-                inventoryRef,
-                { quantity: increment(productToUpdate.quantity) },
-                { merge: true }
-              );
-            } else {
-              // Add mode: create GRN docs and build batch inventory increment for each product
-              const createPromises = this.addedProducts.map(p => {
-                const productDoc = {
-                  ...baseInfo,
-                  id: p.id ?? '',
-                  sku: p.sku ?? '',
-                  name: p.name ?? '',
-                  brand: p.brand ?? '',
-                  model: p.model ?? '',
-                  variant: p.variant ?? p.varient ?? '',
-                  unit: p.unit ?? '',
-                  quantity: p.quantity ?? 0,
-                  createdBy: username,
-                  createdAt: timestamp
-                };
-                return runInInjectionContext(this.injector, () =>
-                  this.grnService.addGrn(productDoc)
-                );
-              });
-
-              await Promise.all(createPromises);
-
-              // Build inventory batch for all products
-              this.addedProducts.forEach(p => {
-                const inventoryRef = firebase.firestore().collection('centreInventory').doc(p.sku);
-                batch.set(
-                  inventoryRef,
-                  { quantity: increment(p.quantity) },
-                  { merge: true }
-                );
-              });
-            }
-
-            // Commit inventory batch once for all products
-            await batch.commit();
-
-            // Success handling
-            Swal.fire(
-              this.isEditMode ? 'Updated!' : 'Added!',
-              this.isEditMode ? 'Grn updated and inventory incremented.' : 'All products saved and inventory updated.',
-              'success'
-            );
-            if (!this.isEditMode) {
-              this.router.navigate(['/module/grn-list']);
-            } else {
-              this.goBack();
-            }
-          } catch (innerErr) {
-            console.error('Unexpected error during submission:', innerErr);
-            Swal.fire('Error', 'Unexpected issue occurred.', 'error');
-          }
-        }
       });
+
+      if (!result.isConfirmed) return;
+
+      const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+      const username = userData.userName || 'Unknown User';
+      const timestamp = Date.now();
+
+      const baseInfo = {
+        dealerOutlet: formValues.dealerOutlet,
+        typeOfGrn: formValues.typeOfGrn,
+        status: 'Active',
+        updatedBy: username,
+        updatedAt: timestamp
+      };
+
+      const batch = this.afs.firestore.batch();
+      const increments = increment;
+      // const increments = firebase.firestore.FieldValue.increment;
+
+      if (this.isEditMode) {
+        const productToUpdate = this.addedProducts[0]; // Usually single product
+
+        // Update GRN doc
+        await runInInjectionContext(this.injector, () =>
+          this.grnService.updateGrn(productToUpdate.docId, {
+            ...baseInfo,
+            sku: productToUpdate.sku,
+            name: productToUpdate.name,
+            brand: productToUpdate.brand,
+            model: productToUpdate.model,
+            variant: productToUpdate.variant,
+            unit: productToUpdate.unit,
+            quantity: productToUpdate.quantity
+          })
+        );
+
+        // Inventory increment in batch
+        const inventoryRef = this.afs.firestore.collection('inventory').doc(productToUpdate.dealerId);
+        batch.set(
+          inventoryRef,
+          { openingStock: increments(productToUpdate.quantity) },
+          { merge: true }
+        );
+
+      } else {
+        // Add mode: Add multiple GRN docs
+        const createPromises = this.addedProducts.map(p => {
+          const productDoc = {
+            ...baseInfo,
+            id: p.id ?? '',
+            sku: p.sku ?? '',
+            name: p.name ?? '',
+            brand: p.brand ?? '',
+            model: p.model ?? '',
+            variant: p.variant ?? p.varient ?? '',
+            unit: p.unit ?? '',
+            quantity: p.quantity ?? 0,
+            createdBy: username,
+            createdAt: timestamp
+          };
+          return runInInjectionContext(this.injector, () =>
+            this.grnService.addGrn(productDoc)
+          );
+        });
+        await Promise.all(createPromises);
+
+        // Inventory batch increments
+        this.addedProducts.forEach(p => {
+          console.log(p)
+          const inventoryRef = this.afs.firestore.collection('inventory').doc(p.dealerId);
+          batch.set(
+            inventoryRef,
+            { openingStock: increments(p.quantity) },
+            { merge: true }
+          );
+        });
+      }
+
+      // Commit batch once
+      await batch.commit();
+
+      Swal.fire(
+        this.isEditMode ? 'Updated!' : 'Added!',
+        this.isEditMode ? 'Grn updated and inventory incremented.' : 'All products saved and inventory updated.',
+        'success'
+      );
+
+      if (!this.isEditMode) {
+        this.router.navigate(['/module/grn-list']);
+      } else {
+        this.goBack();
+      }
+
     } catch (err) {
-      console.error('Global submit error:', err);
-      Swal.fire('Error', 'Something went wrong while submitting.', 'error');
+      console.error('Error during submission:', err);
+      Swal.fire('Error', 'Unexpected issue occurred.', 'error');
     }
   }
-
   goBack() {
     this.location.back();
   }
