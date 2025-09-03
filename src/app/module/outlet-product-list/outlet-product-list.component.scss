@@ -1,0 +1,31 @@
+.remark-container {
+  max-width: 250px;
+  word-wrap: break-word;
+}
+
+.truncate-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rest-text {
+  white-space: normal;
+  margin-top: 4px;
+}
+
+.dots {
+  color: #007bff;
+  cursor: pointer;
+  font-weight: bold;
+  margin-left: 2px;
+}
+
+
+//.remark-container {
+//  max-width: 250px;         /* Adjust based on column width */
+//  white-space: nowrap;      /* Force single line */
+//  overflow: hidden;         /* Hide overflow */
+//  text-overflow: ellipsis;  /* Add "..." at the end */
+//  cursor: pointer;          /* Show pointer cursor on hover */
+//}

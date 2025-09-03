@@ -203,4 +203,6 @@ export class OutletProductListComponent implements OnInit {
       .reduce((acc: number, val: number) => acc + val, 0);
   }
 
+
+
 }

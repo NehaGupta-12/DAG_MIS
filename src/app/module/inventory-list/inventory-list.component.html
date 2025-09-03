@@ -2,7 +2,7 @@
   <div class="container-fluid">
     <!-- 🔽 Dropdown above table -->
     <div class="d-flex justify-content-start mb-2">
-      <mat-form-field appearance="outline" class="example-full-width" style="width: 400px;">
+      <mat-form-field appearance="outline" class="compact-select">
         <mat-label>Filter by Outlet</mat-label>
         <mat-select (selectionChange)="onOutletChange($event.value)">
           <mat-option *ngFor="let dealer of dealerdataSource.data" [value]="dealer.name">
@@ -11,6 +11,7 @@
         </mat-select>
       </mat-form-field>
     </div>
+
     <div class="row">
 
       <div class="col-lg-12">

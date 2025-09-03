@@ -1,0 +1,25 @@
+/* Make form field compact */
+.compact-select {
+  width: 300px;               /* reduced width */
+  font-size: 13px;            /* smaller font */
+}
+
+.compact-select .mat-mdc-form-field-flex {
+  height: 32px;               /* reduced height */
+  padding: 0 6px !important;  /* less padding */
+  border-radius: 6px;         /* smoother corners */
+}
+
+.compact-select .mat-mdc-text-field-wrapper {
+  min-height: 32px;           /* override Material default height */
+}
+
+/* Make dropdown panel smooth & compact */
+.mat-mdc-select-panel {
+  padding: 0 !important;
+}
+
+.mat-mdc-option {
+  font-size: 13px;
+  min-height: 32px;           /* smaller option rows */
+}

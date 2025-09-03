@@ -29,6 +29,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatOptionModule } from '@angular/material/core';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatTooltip } from '@angular/material/tooltip';
+
 import {
   MatCell, MatCellDef,
   MatColumnDef,
@@ -38,6 +39,15 @@ import {
   MatTableDataSource
 } from '@angular/material/table';
 import {MatAutocomplete, MatAutocompleteTrigger} from "@angular/material/autocomplete";
+
+interface ReadonlyFlags {
+  name: boolean;
+  outletType: boolean;
+  category: boolean;
+  division: boolean;
+  country: boolean;
+  town: boolean;
+}
 
 @Component({
   selector: 'app-outlet-dealer-report',
@@ -74,11 +84,10 @@ import {MatAutocomplete, MatAutocompleteTrigger} from "@angular/material/autocom
   styleUrl: './outlet-dealer-report.component.scss',
 })
 export class OutletDealerReportComponent implements OnInit {
-  isEditMode: boolean = false;
+  isEditMode = false;
   dealerForm: FormGroup;
   dataSource: any[] = [];
   filteredProducts: any[] = [];
-
 
   // Filters
   nameFilter = new FormControl('');
@@ -113,6 +122,16 @@ export class OutletDealerReportComponent implements OnInit {
     division: [],
     country: [],
     town: [],
+  };
+
+  // 2) explicit readonly states to allow dot-access in template
+  isReadonly: ReadonlyFlags = {
+    name: false,
+    outletType: false,
+    category: false,
+    division: false,
+    country: false,
+    town: false,
   };
 
   constructor(
@@ -159,15 +178,7 @@ export class OutletDealerReportComponent implements OnInit {
 
     this.DealerList();
 
-    // 🔹 Filter subscription
-    // this.nameFilter.valueChanges.subscribe(val => this.filterOptions('name', val || ''));
-    // this.outletTypeFilter.valueChanges.subscribe(val => this.filterOptions('outletType', val || ''));
-    // this.categoryFilter.valueChanges.subscribe(val => this.filterOptions('category', val || ''));
-    // this.divisionFilter.valueChanges.subscribe(val => this.filterOptions('division', val || ''));
-    // this.countryFilter.valueChanges.subscribe(val => this.filterOptions('country', val || ''));
-    // this.townFilter.valueChanges.subscribe(val => this.filterOptions('town', val || ''));
-
-    // 🔹 Hook filters to filtering logic
+    // Hook filters to filtering logic + patch form value
     this.nameFilter.valueChanges.subscribe(val => {
       this.filterOptions('name', val || '');
       this.dealerForm.patchValue({ name: val });
@@ -212,27 +223,19 @@ export class OutletDealerReportComponent implements OnInit {
     });
   }
 
-  // filterOptions(field: string, value: string) {
-  //   const searchTerm = value?.toLowerCase() || '';
-  //   this.filteredOptions[field] = this.options[field].filter((item: string) =>
-  //     item.toLowerCase().includes(searchTerm)
-  //   );
-  // }
-
   // Filter options logic
   filterOptions(field: string, value: string) {
     const searchTerm = value?.toLowerCase() || '';
-    const matched = this.options[field].filter((item: string) =>
+    const matched = (this.options[field] || []).filter((item: string) =>
       item.toLowerCase().includes(searchTerm)
     );
     this.filteredOptions[field] = [...matched];
   }
 
-// Display selected value in input
+  // Display selected value in input
   displayFn(value: string) {
     return value ? value : '';
   }
-
 
   onSubmit() {
     const filters = this.dealerForm.value;
@@ -246,21 +249,75 @@ export class OutletDealerReportComponent implements OnInit {
         (!filters.town || item.town === filters.town)
       );
     });
-    Swal.fire('Filtered', `${this.filteredProducts.length} record(s) found`, 'success');
+    Swal.fire('Filtered', `${this.filteredProducts.length} record's found`, 'success');
+  }
+
+  // helper to safely get the FormControl for a field
+  private getFilterControl(field: string): FormControl | undefined {
+    const map: Record<string, FormControl> = {
+      name: this.nameFilter,
+      outletType: this.outletTypeFilter,
+      category: this.categoryFilter,
+      division: this.divisionFilter,
+      country: this.countryFilter,
+      town: this.townFilter,
+    };
+    return map[field];
+  }
+
+  // 3) after selecting an option → lock input and keep selected text
+  onOptionSelected(field: string, value: string) {
+    this.isReadonly[field as keyof ReadonlyFlags] = true;
+
+    // put the selected value into both the form and its filter control
+    this.dealerForm.patchValue({ [field]: value });
+
+    // set the filter control value without triggering valueChanges
+    const ctrl = this.getFilterControl(field);
+    if (ctrl) ctrl.setValue(value, { emitEvent: false });
+
+    // ensure filteredOptions shows only matched (or keep full list if you prefer)
+    this.filteredOptions[field] = this.options[field] ? [...this.options[field]] : [];
+  }
+
+  // 4) open/close panel from the suffix arrow; show full list when readonly
+  togglePanel(trigger: MatAutocompleteTrigger, field: string) {
+    if (trigger.panelOpen) {
+      trigger.closePanel();
+    } else {
+      // ensure full list when readonly
+      if (this.isReadonly[field as keyof ReadonlyFlags]) {
+        this.filteredOptions[field] = [...(this.options[field] || [])];
+      }
+      trigger.openPanel();
+    }
+  }
+
+  // 5) if the user focuses a readonly input, auto-open the list
+  onInputFocus(trigger: MatAutocompleteTrigger, field: string) {
+    if (this.isReadonly[field as keyof ReadonlyFlags]) {
+      this.filteredOptions[field] = [...(this.options[field] || [])];
+      trigger.openPanel();
+    }
   }
 
   onCancel() {
     this.dealerForm.reset();
     this.filteredProducts = [];
+
     Object.keys(this.options).forEach(key => {
       this.filteredOptions[key] = [...this.options[key]];
     });
+
     this.nameFilter.reset();
     this.outletTypeFilter.reset();
     this.categoryFilter.reset();
     this.divisionFilter.reset();
     this.countryFilter.reset();
     this.townFilter.reset();
+
+    // 🔁 unlock all inputs again
+    Object.keys(this.isReadonly).forEach(k => (this.isReadonly[k as keyof ReadonlyFlags] = false));
   }
 
   exportToExcel() {

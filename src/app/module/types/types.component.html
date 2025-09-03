@@ -1,17 +1,12 @@
 
-<section class="content d-flex justify-content-center align-items-center">
+<section class="content d-flex justify-content-center align-items-start">
   <div class="content-block w-100">
-    <div class="container py-4">
-
+    <div class="container py-2"><!-- reduced py-4 to py-3 -->
 
       <!-- Category + Add Button -->
-      <div class="row mb-3">
-        <div class="col-md-6 mb-2">
-          <h4 class="fw-bold">Types</h4>
-        </div>
-        <div class="col-md-6 d-flex justify-content-end mb-2">
-          <button mat-fab color="primary" (click)="openModal()">Add</button>
-        </div>
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="fw-bold mb-0">Types</h4>
+        <button mat-fab color="primary" (click)="openModal()" class="btn-add">Add</button>
       </div>
 
       <!-- Modal with Fade Background -->
@@ -44,10 +39,10 @@
 
       <!-- Category Table -->
       <div class="card mb-4">
-        <div class="card-body">
+        <div class="card-body p-3">
           <h5 class="mb-3">Types List</h5>
-          <div class="table-responsive">
-            <table class="table table-bordered align-middle">
+          <div class="table-responsive table-scroll">
+            <table class="table table-bordered align-middle mb-0">
               <thead>
               <tr>
                 <th>Category</th>
@@ -74,7 +69,7 @@
         <div class="col-md-6 mb-2">
           <label class="form-label fw-bold">Select Type</label>
           <select class="form-select" [(ngModel)]="selectedCategory">
-            <option [ngValue]="null" disabled>Select...</option>
+            <option [ngValue]="null" abled>Select...</option>
             <option *ngFor="let cat of categories" [ngValue]="cat">{{ cat.name }}</option>
           </select>
 
@@ -104,7 +99,7 @@
 <!--      <h4 class="fw-bold mt-3 ">Sub Category</h4>-->
       <div *ngIf="selectedCategory" class="card mb-3">
         <div class="card-body">
-          <h5 class="mb-3">{{ selectedCategory.name }} Fields</h5>
+          <h5 class="mb-3">{{ selectedCategory.name }}</h5>
           <div class="table-responsive">
             <table class="table table-bordered align-middle">
               <thead>

@@ -41,3 +41,32 @@
   }
 }
 
+/* Reduce top space */
+.container {
+  padding-top: 10px !important;
+}
+
+/* Add button aligned properly */
+.btn-add {
+  margin: 0;
+  margin-right: 0.2rem;
+}
+
+/* Scrollable table */
+.table-scroll {
+  max-height: 250px; /* adjust as per need */
+  overflow-y: auto;
+}
+
+/* Keep table header fixed when scrolling */
+.table-scroll thead th {
+  position: sticky;
+  top: 0;
+  background: #fff;
+  z-index: 2;
+}
+.form-select{
+
+}
+
+

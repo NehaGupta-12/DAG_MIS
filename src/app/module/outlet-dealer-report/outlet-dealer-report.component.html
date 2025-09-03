@@ -1,4 +1,3 @@
-
 <section class="content">
   <div class="content-block">
     <div class="row p-3">
@@ -10,26 +9,6 @@
     <div class="card shadow p-4">
       <form [formGroup]="dealerForm" class="row g-3 align-items-center">
 
-<!--         Country -->
-<!--        <div class="col-md-4">-->
-<!--          <mat-form-field appearance="outline" class="w-100">-->
-<!--            <mat-label>Select Country</mat-label>-->
-<!--            <mat-select formControlName="country">-->
-<!--              <mat-option>-->
-<!--                <input-->
-<!--                  matInput-->
-<!--                  placeholder="Search Country"-->
-<!--                  [formControl]="countryFilter"-->
-<!--                  class="form-control"-->
-<!--                />-->
-<!--              </mat-option>-->
-<!--              <mat-option *ngFor="let item of filteredOptions.country" [value]="item">-->
-<!--                {{ item }}-->
-<!--              </mat-option>-->
-<!--            </mat-select>-->
-<!--          </mat-form-field>-->
-<!--        </div>-->
-
         <!-- Country -->
         <div class="col-md-4">
           <mat-form-field appearance="outline" class="w-100">
@@ -40,9 +19,25 @@
               placeholder="Search Country"
               [formControl]="countryFilter"
               [matAutocomplete]="autoCountry"
+              [readonly]="isReadonly.country"
+              autocomplete="off"
+              #countryTrigger="matAutocompleteTrigger"
+              (focus)="onInputFocus(countryTrigger, 'country')"
             />
-            <mat-icon matSuffix>arrow_drop_down</mat-icon>
-            <mat-autocomplete #autoCountry="matAutocomplete" [displayWith]="displayFn">
+            <button
+              mat-icon-button
+              matSuffix
+              type="button"
+              (mousedown)="$event.preventDefault()"
+              (click)="togglePanel(countryTrigger, 'country')"
+            >
+              <mat-icon>arrow_drop_down</mat-icon>
+            </button>
+            <mat-autocomplete
+              #autoCountry="matAutocomplete"
+              [displayWith]="displayFn"
+              (optionSelected)="onOptionSelected('country', $event.option.value)"
+            >
               <mat-option *ngFor="let item of filteredOptions.country" [value]="item">
                 {{ item }}
               </mat-option>
@@ -60,9 +55,25 @@
               placeholder="Search Town"
               [formControl]="townFilter"
               [matAutocomplete]="autoTown"
+              [readonly]="isReadonly.town"
+              autocomplete="off"
+              #townTrigger="matAutocompleteTrigger"
+              (focus)="onInputFocus(townTrigger, 'town')"
             />
-            <mat-icon matSuffix>arrow_drop_down</mat-icon>
-            <mat-autocomplete #autoTown="matAutocomplete" [displayWith]="displayFn">
+            <button
+              mat-icon-button
+              matSuffix
+              type="button"
+              (mousedown)="$event.preventDefault()"
+              (click)="togglePanel(townTrigger, 'town')"
+            >
+              <mat-icon>arrow_drop_down</mat-icon>
+            </button>
+            <mat-autocomplete
+              #autoTown="matAutocomplete"
+              [displayWith]="displayFn"
+              (optionSelected)="onOptionSelected('town', $event.option.value)"
+            >
               <mat-option *ngFor="let item of filteredOptions.town" [value]="item">
                 {{ item }}
               </mat-option>
@@ -80,10 +91,25 @@
               placeholder="Search Division"
               [formControl]="divisionFilter"
               [matAutocomplete]="autoDivision"
+              [readonly]="isReadonly.division"
+              autocomplete="off"
+              #divisionTrigger="matAutocompleteTrigger"
+              (focus)="onInputFocus(divisionTrigger, 'division')"
             />
-            <mat-icon matSuffix>arrow_drop_down</mat-icon>
-
-            <mat-autocomplete #autoDivision="matAutocomplete" [displayWith]="displayFn">
+            <button
+              mat-icon-button
+              matSuffix
+              type="button"
+              (mousedown)="$event.preventDefault()"
+              (click)="togglePanel(divisionTrigger, 'division')"
+            >
+              <mat-icon>arrow_drop_down</mat-icon>
+            </button>
+            <mat-autocomplete
+              #autoDivision="matAutocomplete"
+              [displayWith]="displayFn"
+              (optionSelected)="onOptionSelected('division', $event.option.value)"
+            >
               <mat-option *ngFor="let item of filteredOptions.division" [value]="item">
                 {{ item }}
               </mat-option>
@@ -101,9 +127,25 @@
               placeholder="Search Showroom"
               [formControl]="nameFilter"
               [matAutocomplete]="autoName"
+              [readonly]="isReadonly.name"
+              autocomplete="off"
+              #nameTrigger="matAutocompleteTrigger"
+              (focus)="onInputFocus(nameTrigger, 'name')"
             />
-            <mat-icon matSuffix>arrow_drop_down</mat-icon>
-            <mat-autocomplete #autoName="matAutocomplete" [displayWith]="displayFn">
+            <button
+              mat-icon-button
+              matSuffix
+              type="button"
+              (mousedown)="$event.preventDefault()"
+              (click)="togglePanel(nameTrigger, 'name')"
+            >
+              <mat-icon>arrow_drop_down</mat-icon>
+            </button>
+            <mat-autocomplete
+              #autoName="matAutocomplete"
+              [displayWith]="displayFn"
+              (optionSelected)="onOptionSelected('name', $event.option.value)"
+            >
               <mat-option *ngFor="let dealer of filteredOptions.name" [value]="dealer">
                 {{ dealer }}
               </mat-option>
@@ -121,10 +163,25 @@
               placeholder="Search Outlet Type"
               [formControl]="outletTypeFilter"
               [matAutocomplete]="autoOutletType"
+              [readonly]="isReadonly.outletType"
+              autocomplete="off"
+              #outletTypeTrigger="matAutocompleteTrigger"
+              (focus)="onInputFocus(outletTypeTrigger, 'outletType')"
             />
-            <mat-icon matSuffix>arrow_drop_down</mat-icon>
-
-            <mat-autocomplete #autoOutletType="matAutocomplete" [displayWith]="displayFn">
+            <button
+              mat-icon-button
+              matSuffix
+              type="button"
+              (mousedown)="$event.preventDefault()"
+              (click)="togglePanel(outletTypeTrigger, 'outletType')"
+            >
+              <mat-icon>arrow_drop_down</mat-icon>
+            </button>
+            <mat-autocomplete
+              #autoOutletType="matAutocomplete"
+              [displayWith]="displayFn"
+              (optionSelected)="onOptionSelected('outletType', $event.option.value)"
+            >
               <mat-option *ngFor="let item of filteredOptions.outletType" [value]="item">
                 {{ item }}
               </mat-option>
@@ -142,18 +199,31 @@
               placeholder="Search Category"
               [formControl]="categoryFilter"
               [matAutocomplete]="autoCategory"
+              [readonly]="isReadonly.category"
+              autocomplete="off"
+              #categoryTrigger="matAutocompleteTrigger"
+              (focus)="onInputFocus(categoryTrigger, 'category')"
             />
-            <mat-icon matSuffix>arrow_drop_down</mat-icon>
-
-            <mat-autocomplete #autoCategory="matAutocomplete" [displayWith]="displayFn">
+            <button
+              mat-icon-button
+              matSuffix
+              type="button"
+              (mousedown)="$event.preventDefault()"
+              (click)="togglePanel(categoryTrigger, 'category')"
+            >
+              <mat-icon>arrow_drop_down</mat-icon>
+            </button>
+            <mat-autocomplete
+              #autoCategory="matAutocomplete"
+              [displayWith]="displayFn"
+              (optionSelected)="onOptionSelected('category', $event.option.value)"
+            >
               <mat-option *ngFor="let item of filteredOptions.category" [value]="item">
                 {{ item }}
               </mat-option>
             </mat-autocomplete>
           </mat-form-field>
         </div>
-
-
 
         <!-- Action Buttons -->
         <div class="col-md-12 d-flex justify-content-end gap-2 mt-2">
@@ -213,8 +283,3 @@
     </div>
   </div>
 </section>
-
-
-
-
-

@@ -75,11 +75,47 @@
                 </ng-container>
 
 
-                <!-- Gender -->
+                 Gender
                 <ng-container matColumnDef="remark">
-                  <th mat-header-cell *matHeaderCellDef mat-sort-header>remark</th>
-                  <td mat-cell *matCellDef="let row">{{ row.remark }}</td>
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Remark</th>
+                  <td mat-cell *matCellDef="let row">
+                    <div class="remark-container">
+
+                      <!-- Collapsed view -->
+                      <div *ngIf="!row.expanded" class="truncate-text">
+                        {{ row.remark | slice:0:30 }}
+                        <span *ngIf="row.remark?.length > 30" class="dots" (click)="row.expanded = true">
+          ...
+        </span>
+                      </div>
+
+                      <!-- Expanded view -->
+                      <div *ngIf="row.expanded" class="rest-text">
+                        {{ row.remark }}
+                        <span class="dots" (click)="row.expanded = false">
+          ...
+        </span>
+                      </div>
+
+                    </div>
+                  </td>
                 </ng-container>
+
+
+                <!--                <ng-container matColumnDef="remark">-->
+<!--                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Remark</th>-->
+<!--                  <td mat-cell *matCellDef="let row">-->
+<!--                    <div class="remark-container" [matTooltip]="row.remark" matTooltipPosition="above">-->
+<!--                      {{ row.remark }}-->
+<!--                    </div>-->
+<!--                  </td>-->
+<!--                </ng-container>-->
+
+
+
+
+
+
 
 
                 <!-- Action -->

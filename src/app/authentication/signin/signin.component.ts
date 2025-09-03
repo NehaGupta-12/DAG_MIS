@@ -45,6 +45,9 @@ export class SigninComponent
   ) {
     super();
   }
+
+  hidePassword: boolean = true;
+
   // ngOnInit() {
   //   this.loginForm = this.formBuilder.group({
   //     email: [

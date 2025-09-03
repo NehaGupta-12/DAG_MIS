@@ -19,7 +19,7 @@
     {
       "path": "",
       "title": "Master",
-      "icon": "monitor",
+      "icon": "database",
       "class": "menu-toggle",
       "groupTitle": false,
       "submenu": [
@@ -76,7 +76,7 @@
     {
       "path": "Product",
       "title": "Product",
-      "icon": "monitor",
+      "icon": "box",
       "class": "menu-toggle",
       "groupTitle": false,
       "submenu": [
@@ -109,7 +109,7 @@
     {
       "path": "",
       "title": "Operation",
-      "icon": "monitor",
+      "icon": "activity",
       "class": "menu-toggle",
       "groupTitle": false,
       "submenu": [
@@ -135,7 +135,7 @@
     {
       "path": "",
       "title": "Reports",
-      "icon": "monitor",
+      "icon": "bar-chart-2",
       "class": "menu-toggle",
       "groupTitle": false,
       "submenu": [

@@ -46,3 +46,27 @@
 
   }
 }
+
+.eye-toggle {
+  position: absolute;
+  right: 10px;
+  background: none;
+  border: none;
+  outline: none;
+  cursor: pointer;
+}
+
+.form-group input {
+  padding-right: 40px; /* space for the eye icon */
+}
+
+#dattiimg {
+  width: 120px;          /* adjust size */
+  height: 120px;         /* make it square */
+  border-radius: 50%;    /* makes it circular */
+  object-fit: cover;     /* crops to fit nicely */
+  box-shadow: none;      /* remove unwanted shadow */
+  background: transparent !important;
+}
+
+
