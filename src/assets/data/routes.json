@@ -146,6 +146,14 @@
           "class": "ml-menu",
           "groupTitle": false,
           "submenu": []
+        },
+        {
+          "path": "module/stock-transfer-report",
+          "title": "Stock Transfer Report",
+          "icon": "",
+          "class": "ml-menu",
+          "groupTitle": false,
+          "submenu": []
         }
 
       ]

@@ -10,23 +10,43 @@
     <div class="card shadow p-4">
       <form [formGroup]="dealerForm" class="row g-3 align-items-center">
 
+<!--         Country -->
+<!--        <div class="col-md-4">-->
+<!--          <mat-form-field appearance="outline" class="w-100">-->
+<!--            <mat-label>Select Country</mat-label>-->
+<!--            <mat-select formControlName="country">-->
+<!--              <mat-option>-->
+<!--                <input-->
+<!--                  matInput-->
+<!--                  placeholder="Search Country"-->
+<!--                  [formControl]="countryFilter"-->
+<!--                  class="form-control"-->
+<!--                />-->
+<!--              </mat-option>-->
+<!--              <mat-option *ngFor="let item of filteredOptions.country" [value]="item">-->
+<!--                {{ item }}-->
+<!--              </mat-option>-->
+<!--            </mat-select>-->
+<!--          </mat-form-field>-->
+<!--        </div>-->
+
         <!-- Country -->
         <div class="col-md-4">
           <mat-form-field appearance="outline" class="w-100">
             <mat-label>Select Country</mat-label>
-            <mat-select formControlName="country">
-              <mat-option>
-                <input
-                  matInput
-                  placeholder="Search Country"
-                  [formControl]="countryFilter"
-                  class="form-control"
-                />
-              </mat-option>
+            <input
+              type="text"
+              matInput
+              placeholder="Search Country"
+              [formControl]="countryFilter"
+              [matAutocomplete]="autoCountry"
+            />
+            <mat-icon matSuffix>arrow_drop_down</mat-icon>
+            <mat-autocomplete #autoCountry="matAutocomplete" [displayWith]="displayFn">
               <mat-option *ngFor="let item of filteredOptions.country" [value]="item">
                 {{ item }}
               </mat-option>
-            </mat-select>
+            </mat-autocomplete>
           </mat-form-field>
         </div>
 
@@ -34,19 +54,19 @@
         <div class="col-md-4">
           <mat-form-field appearance="outline" class="w-100">
             <mat-label>Select Town</mat-label>
-            <mat-select formControlName="town">
-              <mat-option>
-                <input
-                  matInput
-                  placeholder="Search Town"
-                  [formControl]="townFilter"
-                  class="form-control"
-                />
-              </mat-option>
+            <input
+              type="text"
+              matInput
+              placeholder="Search Town"
+              [formControl]="townFilter"
+              [matAutocomplete]="autoTown"
+            />
+            <mat-icon matSuffix>arrow_drop_down</mat-icon>
+            <mat-autocomplete #autoTown="matAutocomplete" [displayWith]="displayFn">
               <mat-option *ngFor="let item of filteredOptions.town" [value]="item">
                 {{ item }}
               </mat-option>
-            </mat-select>
+            </mat-autocomplete>
           </mat-form-field>
         </div>
 
@@ -54,19 +74,20 @@
         <div class="col-md-4">
           <mat-form-field appearance="outline" class="w-100">
             <mat-label>Select Division</mat-label>
-            <mat-select formControlName="division">
-              <mat-option>
-                <input
-                  matInput
-                  placeholder="Search Division"
-                  [formControl]="divisionFilter"
-                  class="form-control"
-                />
-              </mat-option>
+            <input
+              type="text"
+              matInput
+              placeholder="Search Division"
+              [formControl]="divisionFilter"
+              [matAutocomplete]="autoDivision"
+            />
+            <mat-icon matSuffix>arrow_drop_down</mat-icon>
+
+            <mat-autocomplete #autoDivision="matAutocomplete" [displayWith]="displayFn">
               <mat-option *ngFor="let item of filteredOptions.division" [value]="item">
                 {{ item }}
               </mat-option>
-            </mat-select>
+            </mat-autocomplete>
           </mat-form-field>
         </div>
 
@@ -74,19 +95,19 @@
         <div class="col-md-4">
           <mat-form-field appearance="outline" class="w-100">
             <mat-label>Select Showroom</mat-label>
-            <mat-select formControlName="name">
-              <mat-option>
-                <input
-                  matInput
-                  placeholder="Search Showroom"
-                  [formControl]="nameFilter"
-                  class="form-control"
-                />
-              </mat-option>
+            <input
+              type="text"
+              matInput
+              placeholder="Search Showroom"
+              [formControl]="nameFilter"
+              [matAutocomplete]="autoName"
+            />
+            <mat-icon matSuffix>arrow_drop_down</mat-icon>
+            <mat-autocomplete #autoName="matAutocomplete" [displayWith]="displayFn">
               <mat-option *ngFor="let dealer of filteredOptions.name" [value]="dealer">
                 {{ dealer }}
               </mat-option>
-            </mat-select>
+            </mat-autocomplete>
           </mat-form-field>
         </div>
 
@@ -94,19 +115,20 @@
         <div class="col-md-4">
           <mat-form-field appearance="outline" class="w-100">
             <mat-label>Select Outlet Type</mat-label>
-            <mat-select formControlName="outletType">
-              <mat-option>
-                <input
-                  matInput
-                  placeholder="Search Outlet Type"
-                  [formControl]="outletTypeFilter"
-                  class="form-control"
-                />
-              </mat-option>
+            <input
+              type="text"
+              matInput
+              placeholder="Search Outlet Type"
+              [formControl]="outletTypeFilter"
+              [matAutocomplete]="autoOutletType"
+            />
+            <mat-icon matSuffix>arrow_drop_down</mat-icon>
+
+            <mat-autocomplete #autoOutletType="matAutocomplete" [displayWith]="displayFn">
               <mat-option *ngFor="let item of filteredOptions.outletType" [value]="item">
                 {{ item }}
               </mat-option>
-            </mat-select>
+            </mat-autocomplete>
           </mat-form-field>
         </div>
 
@@ -114,19 +136,20 @@
         <div class="col-md-4">
           <mat-form-field appearance="outline" class="w-100">
             <mat-label>Select Category</mat-label>
-            <mat-select formControlName="category">
-              <mat-option>
-                <input
-                  matInput
-                  placeholder="Search Category"
-                  [formControl]="categoryFilter"
-                  class="form-control"
-                />
-              </mat-option>
+            <input
+              type="text"
+              matInput
+              placeholder="Search Category"
+              [formControl]="categoryFilter"
+              [matAutocomplete]="autoCategory"
+            />
+            <mat-icon matSuffix>arrow_drop_down</mat-icon>
+
+            <mat-autocomplete #autoCategory="matAutocomplete" [displayWith]="displayFn">
               <mat-option *ngFor="let item of filteredOptions.category" [value]="item">
                 {{ item }}
               </mat-option>
-            </mat-select>
+            </mat-autocomplete>
           </mat-form-field>
         </div>
 
