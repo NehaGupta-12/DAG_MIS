@@ -32,6 +32,7 @@ import {ProductMasterService} from "../product-master.service";
 import {OutletProductService} from "../outlet-product.service";
 import {DailySalesService} from "../daily-sales.service";
 import {InventoryService} from "../add-inventory/inventory.service";
+import firebase from "firebase/compat/app";
 
 @Component({
   selector: 'app-add-grn',
@@ -527,15 +528,114 @@ export class AddGRNComponent implements OnInit{
     this.addedProducts.splice(index, 1);
   }
 
+  // submitForm() {
+  //   try {
+  //     const formValues = this.grnForm.getRawValue();
+  //
+  //     if (this.addedProducts.length === 0) {
+  //       Swal.fire('Error', 'Please add at least one product.', 'error');
+  //       return;
+  //     }
+  //
+  //     Swal.fire({
+  //       title: this.isEditMode ? 'Update Grn?' : 'Add Grn?',
+  //       text: 'Are you sure you want to proceed?',
+  //       icon: 'question',
+  //       showCancelButton: true,
+  //       confirmButtonText: 'Yes',
+  //       cancelButtonText: 'No'
+  //     }).then((result: any) => {
+  //       if (result.isConfirmed) {
+  //         try {
+  //           const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+  //           const username = userData.userName || 'Unknown User';
+  //           const timestamp = Date.now();
+  //
+  //           // 🔹 Base info from form
+  //           const baseInfo = {
+  //             dealerOutlet: formValues.dealerOutlet,
+  //             typeOfGrn: formValues.typeOfGrn,
+  //             status: 'Active',
+  //             updatedBy: username,
+  //             updatedAt: timestamp
+  //           };
+  //
+  //           if (this.isEditMode) {
+  //             const productToUpdate = this.addedProducts[0]; // only one in edit mode
+  //
+  //             const productDoc = {
+  //               ...baseInfo,
+  //               sku: productToUpdate.sku,
+  //               name: productToUpdate.name,
+  //               brand: productToUpdate.brand,
+  //               model: productToUpdate.model,
+  //               variant: productToUpdate.variant,
+  //               unit: productToUpdate.unit,
+  //               quantity: productToUpdate.quantity
+  //             };
+  //
+  //             runInInjectionContext(this.injector, () =>
+  //               this.grnService.updateGrn(productToUpdate.docId, productDoc)
+  //             )
+  //               .then(() => {
+  //                 Swal.fire('Updated!', 'Grn updated successfully.', 'success');
+  //                 this.goBack();
+  //               })
+  //               .catch(err => {
+  //                 console.error('Error updating Grn:', err);
+  //                 Swal.fire('Error', 'Something went wrong while updating.', 'error');
+  //               });
+  //           } else {
+  //             // 🔹 Create one document per product (Add Mode)
+  //             const createPromises = this.addedProducts.map(p => {
+  //               const productDoc = {
+  //                 ...baseInfo,
+  //                 id: p.id ?? '',
+  //                 sku: p.sku ?? '',
+  //                 name: p.name ?? '',
+  //                 brand: p.brand ?? '',
+  //                 model: p.model ?? '',
+  //                 variant: p.variant ?? p.varient ?? '',
+  //                 unit: p.unit ?? '',
+  //                 quantity: p.quantity ?? 0,
+  //                 createdBy: username,
+  //                 createdAt: timestamp
+  //               };
+  //
+  //               return runInInjectionContext(this.injector, () =>
+  //                 this.grnService.addGrn(productDoc)
+  //               );
+  //             });
+  //
+  //             Promise.all(createPromises)
+  //               .then(() => {
+  //                 Swal.fire('Added!', 'All products saved as separate documents.', 'success');
+  //                 this.router.navigate(['/module/grn-list']);
+  //               })
+  //               .catch(err => {
+  //                 console.error('Error adding Grn:', err);
+  //                 Swal.fire('Error', 'Something went wrong while adding.', 'error');
+  //               });
+  //           }
+  //         } catch (innerErr) {
+  //           console.error('Unexpected error during submission:', innerErr);
+  //           Swal.fire('Error', 'Unexpected issue occurred.', 'error');
+  //         }
+  //       }
+  //     });
+  //   } catch (err) {
+  //     console.error('Global submit error:', err);
+  //     Swal.fire('Error', 'Something went wrong while submitting.', 'error');
+  //   }
+  // }
+
   submitForm() {
     try {
       const formValues = this.grnForm.getRawValue();
-
       if (this.addedProducts.length === 0) {
         Swal.fire('Error', 'Please add at least one product.', 'error');
         return;
       }
-
       Swal.fire({
         title: this.isEditMode ? 'Update Grn?' : 'Add Grn?',
         text: 'Are you sure you want to proceed?',
@@ -543,14 +643,13 @@ export class AddGRNComponent implements OnInit{
         showCancelButton: true,
         confirmButtonText: 'Yes',
         cancelButtonText: 'No'
-      }).then((result: any) => {
+      }).then(async (result: any) => {
         if (result.isConfirmed) {
           try {
             const userData = JSON.parse(localStorage.getItem('userData') || '{}');
             const username = userData.userName || 'Unknown User';
             const timestamp = Date.now();
 
-            // 🔹 Base info from form
             const baseInfo = {
               dealerOutlet: formValues.dealerOutlet,
               typeOfGrn: formValues.typeOfGrn,
@@ -559,33 +658,36 @@ export class AddGRNComponent implements OnInit{
               updatedAt: timestamp
             };
 
+            // Get Firestore batch instance
+            const batch = firebase.firestore().batch();
+            const increment = firebase.firestore.FieldValue.increment;
+
             if (this.isEditMode) {
               const productToUpdate = this.addedProducts[0]; // only one in edit mode
 
-              const productDoc = {
-                ...baseInfo,
-                sku: productToUpdate.sku,
-                name: productToUpdate.name,
-                brand: productToUpdate.brand,
-                model: productToUpdate.model,
-                variant: productToUpdate.variant,
-                unit: productToUpdate.unit,
-                quantity: productToUpdate.quantity
-              };
-
-              runInInjectionContext(this.injector, () =>
-                this.grnService.updateGrn(productToUpdate.docId, productDoc)
-              )
-                .then(() => {
-                  Swal.fire('Updated!', 'Grn updated successfully.', 'success');
-                  this.goBack();
+              // Update GRN document
+              await runInInjectionContext(this.injector, () =>
+                this.grnService.updateGrn(productToUpdate.docId, {
+                  ...baseInfo,
+                  sku: productToUpdate.sku,
+                  name: productToUpdate.name,
+                  brand: productToUpdate.brand,
+                  model: productToUpdate.model,
+                  variant: productToUpdate.variant,
+                  unit: productToUpdate.unit,
+                  quantity: productToUpdate.quantity
                 })
-                .catch(err => {
-                  console.error('Error updating Grn:', err);
-                  Swal.fire('Error', 'Something went wrong while updating.', 'error');
-                });
+              );
+
+              // Inventory increment (single product in edit)
+              const inventoryRef = firebase.firestore().collection('inventory').doc(productToUpdate.id);
+              batch.set(
+                inventoryRef,
+                { quantity: increment(productToUpdate.quantity) },
+                { merge: true }
+              );
             } else {
-              // 🔹 Create one document per product (Add Mode)
+              // Add mode: create GRN docs and build batch inventory increment for each product
               const createPromises = this.addedProducts.map(p => {
                 const productDoc = {
                   ...baseInfo,
@@ -600,21 +702,37 @@ export class AddGRNComponent implements OnInit{
                   createdBy: username,
                   createdAt: timestamp
                 };
-
                 return runInInjectionContext(this.injector, () =>
                   this.grnService.addGrn(productDoc)
                 );
               });
 
-              Promise.all(createPromises)
-                .then(() => {
-                  Swal.fire('Added!', 'All products saved as separate documents.', 'success');
-                  this.router.navigate(['/module/grn-list']);
-                })
-                .catch(err => {
-                  console.error('Error adding Grn:', err);
-                  Swal.fire('Error', 'Something went wrong while adding.', 'error');
-                });
+              await Promise.all(createPromises);
+
+              // Build inventory batch for all products
+              this.addedProducts.forEach(p => {
+                const inventoryRef = firebase.firestore().collection('centreInventory').doc(p.sku);
+                batch.set(
+                  inventoryRef,
+                  { quantity: increment(p.quantity) },
+                  { merge: true }
+                );
+              });
+            }
+
+            // Commit inventory batch once for all products
+            await batch.commit();
+
+            // Success handling
+            Swal.fire(
+              this.isEditMode ? 'Updated!' : 'Added!',
+              this.isEditMode ? 'Grn updated and inventory incremented.' : 'All products saved and inventory updated.',
+              'success'
+            );
+            if (!this.isEditMode) {
+              this.router.navigate(['/module/grn-list']);
+            } else {
+              this.goBack();
             }
           } catch (innerErr) {
             console.error('Unexpected error during submission:', innerErr);
@@ -627,8 +745,6 @@ export class AddGRNComponent implements OnInit{
       Swal.fire('Error', 'Something went wrong while submitting.', 'error');
     }
   }
-
-
 
   goBack() {
     this.location.back();
