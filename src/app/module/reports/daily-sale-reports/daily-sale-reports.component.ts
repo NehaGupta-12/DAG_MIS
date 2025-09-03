@@ -279,7 +279,7 @@ export class DailySaleReportsComponent {
       );
     });
 
-    Swal.fire('Filtered', `${this.filteredProducts.length} record(s) found`, 'success');
+    Swal.fire('Filtered', `${this.filteredProducts.length} record's found`, 'success');
   }
 
 
