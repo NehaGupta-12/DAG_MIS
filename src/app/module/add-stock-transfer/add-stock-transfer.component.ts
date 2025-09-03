@@ -24,6 +24,7 @@ import {MatOptionModule} from "@angular/material/core";
 import {MatCheckboxModule} from "@angular/material/checkbox";
 import {StockTransferService} from "../stock-transfer.service";
 import {OutletProductService} from "../outlet-product.service";
+import {InventoryService} from "../add-inventory/inventory.service";
 
 @Component({
   selector: 'app-add-stock-transfer',
@@ -83,6 +84,7 @@ export class AddStockTransferComponent implements OnInit {
               private addDealerService: AddDealerService,
               private productService:ProductMasterService,
               private outletProductService: OutletProductService,
+              private inventoryService : InventoryService,
               @Inject(MAT_DIALOG_DATA) public data: any,
   ) {
     // this.initForm();
@@ -99,7 +101,8 @@ export class AddStockTransferComponent implements OnInit {
   ngOnInit() {
     this.DealerList();
     this.productList();
-    this.loadOutletProduct();
+    // this.loadOutletProduct();
+    this.loadInventoryDaata();
 
     // disable products until both dealers selected
     this.stockTransferForm.get('products')?.disable();
@@ -197,11 +200,20 @@ export class AddStockTransferComponent implements OnInit {
     });
   }
 
-  loadOutletProduct() {
+  // loadOutletProduct() {
+  //   runInInjectionContext(this.injector, () => {
+  //     this.outletProductService.getOutletProductList().subscribe((data) => {
+  //       this.dataSource.data = data;
+  //       console.log(this.dataSource.data)
+  //     });
+  //   });
+  // }
+
+  loadInventoryDaata() {
     runInInjectionContext(this.injector, () => {
-      this.outletProductService.getOutletProductList().subscribe((data) => {
+      this.inventoryService.getInventoryAllData().subscribe(data => {
+        console.log('Inventory data:', data);
         this.dataSource.data = data;
-        console.log(this.dataSource.data)
       });
     });
   }
