@@ -92,8 +92,9 @@ export class InventoryListComponent implements OnInit {
   // Define columns
   columnDefinitions = [
     { def: 'id', label: 'ID' },
-    { def: 'sku', label: 'Sku' },
+    { def: 'outlet', label: 'Outlet' },
     { def: 'name', label: 'Name' },
+    { def: 'sku', label: 'Sku' },
     { def: 'model', label: 'Model' },
     { def: 'brand', label: 'Brand' },
     { def: 'varient', label: 'Varient' },
@@ -103,12 +104,12 @@ export class InventoryListComponent implements OnInit {
 
   displayedColumns: string[] = [
     'id',
+    'outlet',
     'name',
     'sku',
     'model',
     'brand',
     'varient',
-    // 'engineCc',
     'unit',
     'quantity',
   ];
@@ -267,7 +268,7 @@ export class InventoryListComponent implements OnInit {
 inventoryData: any[] = [];
  loadInventoryDaata() {
    runInInjectionContext(this.injector, () => {
-    this.mFirestore.collection('inventory').valueChanges().subscribe(data => {
+    this.inventoryService.getInventoryAllData().subscribe(data => {
       console.log('Inventory data:', data);
       this.inventoryData = data;
     });

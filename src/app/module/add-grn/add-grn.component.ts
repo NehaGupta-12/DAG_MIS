@@ -31,6 +31,7 @@ import {
 import {ProductMasterService} from "../product-master.service";
 import {OutletProductService} from "../outlet-product.service";
 import {DailySalesService} from "../daily-sales.service";
+import {InventoryService} from "../add-inventory/inventory.service";
 
 @Component({
   selector: 'app-add-grn',
@@ -366,6 +367,7 @@ export class AddGRNComponent implements OnInit{
     private productService: ProductMasterService,
     private router: Router,
     private outletProductService: OutletProductService,
+    private inventoryService : InventoryService,
     @Inject(MAT_DIALOG_DATA) public data: any,
   ) {
     this.isEditMode = !!data?.id;
@@ -379,7 +381,8 @@ export class AddGRNComponent implements OnInit{
 
   ngOnInit() {
     this.DealerList();
-    this.loadOutletProduct();
+    // this.loadOutletProduct();
+    this.loadInventoryDaata();
 
     this.route.queryParams.subscribe(params => {
       if (params['data']) {
@@ -429,11 +432,20 @@ export class AddGRNComponent implements OnInit{
   }
 
 
-  loadOutletProduct() {
+  // loadOutletProduct() {
+  //   runInInjectionContext(this.injector, () => {
+  //     this.outletProductService.getOutletProductList().subscribe((data) => {
+  //       this.dataSource.data = data;
+  //       console.log(this.dataSource.data)
+  //     });
+  //   });
+  // }
+
+  loadInventoryDaata() {
     runInInjectionContext(this.injector, () => {
-      this.outletProductService.getOutletProductList().subscribe((data) => {
+      this.inventoryService.getInventoryAllData().subscribe(data => {
+        console.log('Inventory data:', data);
         this.dataSource.data = data;
-        console.log(this.dataSource.data)
       });
     });
   }
@@ -485,14 +497,16 @@ export class AddGRNComponent implements OnInit{
 
     const product = this.vehicledataSource.data.find(p => p.name === selectedProductId);
     if (product) {
-      const exists = this.addedProducts.some(p => p.productId === product.name);
+      // ✅ Check duplicate by `id` (recommended) or fallback to `sku`
+      const exists = this.addedProducts.some(p => p.productId === product.id);
       if (exists) {
         Swal.fire('Info', 'This product is already added.', 'info');
         return;
       }
 
+      // ✅ Push product into table
       this.addedProducts = [...this.addedProducts, {
-        productId: product.id,
+        productId: product.id,   // 🔹 unique ID
         sku: product.sku,
         name: product.name,
         brand: product.brand,
@@ -501,11 +515,13 @@ export class AddGRNComponent implements OnInit{
         unit: product.unit,
         quantity: 1
       }];
-      console.log(this.addedProducts)
+      console.log(this.addedProducts);
     }
 
-    // this.dailySalesForm.get('vehicle')?.reset();
+    // reset after adding
+    this.grnForm.get('products')?.reset();
   }
+
 
   removeProduct(index: number) {
     this.addedProducts.splice(index, 1);

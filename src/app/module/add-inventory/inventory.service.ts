@@ -28,4 +28,28 @@ export class InventoryService {
       );
   }
 
+  // getInventoryAllData() {
+  //   return this.firestore.collection(this.collectionName).valueChanges();
+  // }
+
+  getInventoryAllData() {
+    return this.firestore.collection(this.collectionName).valueChanges().pipe(
+      map((docs: any[]) => {
+        const products: any[] = [];
+        docs.forEach(doc => {
+          if (doc.products) {
+            Object.entries(doc.products).forEach(([key, value]: [string, any]) => {
+              products.push({
+                id: key,
+                ...value
+              });
+            });
+          }
+        });
+        return products;
+      })
+    );
+  }
+
+
 }
