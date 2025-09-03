@@ -23,6 +23,7 @@ import {Location} from "@angular/common";
     MatButtonModule,
   ],
   templateUrl: './add-inventory.component.html',
+  standalone: true,
   styleUrl: './add-inventory.component.scss'
 })
 export class AddInventoryComponent {
