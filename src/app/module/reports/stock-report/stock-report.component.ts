@@ -271,45 +271,6 @@ export class StockReportComponent {
   }
 
 
-  generateReport(filteredData: any[], reportDate: Date) {
-    const { monthStart, fyStart } = this.getDateRanges(reportDate);
-    const report: any = {};
-
-    filteredData.forEach(item => {
-      const product = item.name;   // 🔹 Match strictly by product name
-      const qty = Number(item.quantity) || 0;
-
-      // Handle Firestore timestamp
-      const itemDate = item.createdAt?.seconds
-        ? new Date(item.createdAt.seconds * 1000)
-        : new Date(item.createdAt);
-
-      if (!report[product]) {
-        report[product] = { YTD: 0, Month: 0, Day: 0 };
-      }
-
-      // YTD
-      if (itemDate >= fyStart && itemDate <= reportDate) {
-        report[product].YTD += qty;
-      }
-
-      // Month
-      if (itemDate >= monthStart && itemDate <= reportDate) {
-        report[product].Month += qty;
-      }
-
-      // Day
-      if (
-        itemDate.getFullYear() === reportDate.getFullYear() &&
-        itemDate.getMonth() === reportDate.getMonth() &&
-        itemDate.getDate() === reportDate.getDate()
-      ) {
-        report[product].Day += qty;
-      }
-    });
-
-    return report;
-  }
 
 
   generateHorizontalInventoryReport() {
@@ -317,44 +278,70 @@ export class StockReportComponent {
     const allProducts = this.vehicledataSource;
     const inventoryData = this.inventorydataSource;
 
-    const allProductNames = new Set<string>();
+    const filters = this.dealerForm.value;
+
+    // Map product name => model
+    const nameToModelMap: Record<string, string> = {};
     allProducts.forEach(product => {
-      if (product.name) {
-        allProductNames.add(product.name);
+      if (product.name && product.model) {
+        nameToModelMap[product.name] = product.model;
       }
     });
+
+    // Get unique model names from active products
+    const allModelNames = Array.from(
+      new Set(allProducts.filter(p => p.status === 'Active' && p.model).map(p => p.model))
+    );
 
     const finalReport: any[] = [];
 
     allDealers.forEach(dealer => {
-      if (dealer.status === 'Active') {
-        const dealerRow: any = {
-          // Change 'dealerName' to 'name' to match the HTML template
-          name: dealer.name || '',
-          id: dealer.id || '',
-          division: dealer.division || '',
-          country: dealer.country || '',
-          town: dealer.town || ''
-        };
+      if (dealer.status !== 'Active') return;
 
-        allProductNames.forEach(productName => {
-          const productInventory = inventoryData.find(inv =>
-            inv.dealerOutlet === dealer.name && inv.name === productName
-          );
-
-          const quantity = productInventory ? (Number(productInventory.quantity) || 0) : 0;
-          dealerRow[productName] = quantity;
-        });
-
-        finalReport.push(dealerRow);
+      // Apply filters
+      if (
+        (filters.country && dealer.country !== filters.country) ||
+        (filters.division && dealer.division !== filters.division) ||
+        (filters.town && dealer.town !== filters.town) ||
+        (filters.name && dealer.name !== filters.name)
+      ) {
+        return;
       }
+
+      const dealerRow: any = {
+        name: dealer.name || '',
+        id: dealer.id || '',
+        division: dealer.division || '',
+        country: dealer.country || '',
+        town: dealer.town || '',
+      };
+
+      // Initialize product models with 0
+      allModelNames.forEach(model => {
+        dealerRow[model] = 0;
+      });
+
+      // Sum inventory for this dealer
+      const dealerInventories = inventoryData.filter(inv => inv.dealerOutlet === dealer.name);
+      dealerInventories.forEach(inv => {
+        const modelName = nameToModelMap[inv.name];
+        if (modelName && dealerRow.hasOwnProperty(modelName)) {
+          dealerRow[modelName] += Number(inv.quantity) || 0;
+        }
+      });
+
+      // Calculate Total
+      const totalQty = allModelNames.reduce((sum, model) => sum + (dealerRow[model] || 0), 0);
+      dealerRow['total'] = totalQty;
+
+      finalReport.push(dealerRow);
     });
 
     this.finalTableData = finalReport;
-    this.productHeaders = Array.from(allProductNames);
-    // Remove 'dealerName' from the tableColumns as it is no longer used
-    this.tableColumns = ['division', 'country', 'town', 'name', ...this.productHeaders];
+    this.productHeaders = allModelNames;
+    this.tableColumns = ['division', 'country', 'town', 'name', ...this.productHeaders, 'total'];
   }
+
 
 
   // Filter options logic
@@ -410,6 +397,7 @@ export class StockReportComponent {
   onCancel() {
     this.dealerForm.reset();
     this.filteredProducts = [];
+    this.finalTableData = []; // <- clear table
     Object.keys(this.options).forEach(key => {
       this.filteredOptions[key] = [...this.options[key]];
     });
@@ -420,92 +408,76 @@ export class StockReportComponent {
     this.productFilter.reset();
   }
 
+
   exportToExcel() {
-    if (!this.filteredProducts || this.filteredProducts.length === 0) {
+    if (!this.finalTableData || this.finalTableData.length === 0) {
       Swal.fire('Info', 'No data available to export', 'info');
       return;
     }
 
     const workbook = new Workbook();
-    const worksheet = workbook.addWorksheet('Sales Report');
+    const worksheet = workbook.addWorksheet('Inventory Report');
 
-    const colCount = this.filteredProducts.length + 1; // +1 for "Particulars"
+    const headers = [
+      'S.N', 'Division', 'Country', 'Town', 'Dealer Name',
+      ...this.productHeaders,
+      'Total'
+    ];
 
-    // 🔹 Report title row (yellow background)
-    const titleRow = worksheet.addRow([this.reportTitle || 'Cumulative for the month']);
-    worksheet.mergeCells(1, 1, 1, colCount);
-    titleRow.font = { bold: true, size: 14 };
-    titleRow.alignment = { vertical: 'middle', horizontal: 'center' };
-    titleRow.height = 20;
-    titleRow.eachCell(cell => {
-      cell.fill = {
-        type: 'pattern',
-        pattern: 'solid',
-        fgColor: { argb: 'FFFF00' } // Yellow
-      };
-    });
-
-    // 🔹 Report date row (yellow background)
-    const dateRow = worksheet.addRow([this.reportDate || '']);
-    worksheet.mergeCells(2, 1, 2, colCount);
-    dateRow.alignment = { vertical: 'middle', horizontal: 'center' };
-    dateRow.height = 20;
-    dateRow.eachCell(cell => {
-      cell.fill = {
-        type: 'pattern',
-        pattern: 'solid',
-        fgColor: { argb: 'FFFF00' } // Yellow
-      };
-    });
-
-    worksheet.addRow([]); // empty row
-
-    // 🔹 Header row (orange background, products horizontally)
-    const headers = ['Particulars', ...this.filteredProducts.map(p => p.product)];
     const headerRow = worksheet.addRow(headers);
     headerRow.font = { bold: true };
-    headerRow.height = 40; // make room for wrapping
-    headerRow.eachCell(c => {
-      c.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
-      c.fill = {
+    headerRow.eachCell(cell => {
+      cell.fill = {
         type: 'pattern',
         pattern: 'solid',
-        fgColor: { argb: 'F4B083' } // Orange (you can change to ED7D31 for darker orange)
+        fgColor: { argb: 'F4B083' },
       };
+      cell.border = {
+        top: { style: 'thin' },
+        bottom: { style: 'thin' },
+        left: { style: 'thin' },
+        right: { style: 'thin' },
+      };
+      cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
     });
 
-    // 🔹 Data rows
-// 🔹 Data rows (new order: Day → Month → YTD)
-    const dayRow   = worksheet.addRow(['Sales for the day', ...this.filteredProducts.map(p => p.Day)]);
-    const monthRow = worksheet.addRow(['Cumulative for the month', ...this.filteredProducts.map(p => p.Month)]);
-    const ytdRow   = worksheet.addRow(['YTD', ...this.filteredProducts.map(p => p.YTD)]);
+    this.finalTableData.forEach((dealer, index) => {
+      const rowData = [
+        index + 1,
+        dealer.division || '',
+        dealer.country || '',
+        dealer.town || '',
+        dealer.name || '',
+        ...this.productHeaders.map(model => dealer[model] || 0),
+      ];
 
+      const total = this.productHeaders.reduce((sum, model) => sum + (dealer[model] || 0), 0);
+      rowData.push(total);
 
-    // 🔹 Apply border + center alignment to all cells
-    worksheet.eachRow((row, rowNumber) => {
+      const row = worksheet.addRow(rowData);
       row.eachCell(cell => {
         cell.border = {
           top: { style: 'thin' },
-          left: { style: 'thin' },
           bottom: { style: 'thin' },
+          left: { style: 'thin' },
           right: { style: 'thin' },
         };
-        if (rowNumber !== headerRow.number) {
-          cell.alignment = { vertical: 'middle', horizontal: 'center' };
-        }
+        cell.alignment = { horizontal: 'center', vertical: 'middle' };
       });
     });
 
-    // 🔹 Adjust column widths
     worksheet.columns.forEach((col, index) => {
-      col.width = index === 0 ? 25 : 12;
+      if (index === 0) col.width = 6;
+      else if (index === 4) col.width = 30;
+      else if (index >= 5 && index < 5 + this.productHeaders.length) col.width = 10;
+      else col.width = 15;
     });
 
-    // 🔹 Save file
     workbook.xlsx.writeBuffer().then(data => {
       const blob = new Blob([data], { type: 'application/octet-stream' });
-      FileSaver.saveAs(blob, `Sales_Report_${this.reportDate}.xlsx`);
+      FileSaver.saveAs(blob, `Inventory_Report_${new Date().toISOString().slice(0, 10)}.xlsx`);
     });
   }
+
 
 }
