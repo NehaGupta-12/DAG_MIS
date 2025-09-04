@@ -1,0 +1,11 @@
+.custom-bordered th,
+.custom-bordered td {
+  border: 2px solid #000 !important;
+  text-align: center;       /* ⬅️ centers text horizontally */
+  vertical-align: middle;   /* ⬅️ centers text vertically */
+}
+
+.custom-bordered tr:last-child td {
+  font-weight: bold;
+  background: #f1f1f1; /* light grey for distinction */
+}
