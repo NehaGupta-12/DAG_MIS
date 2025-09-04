@@ -107,7 +107,7 @@ export class AddDealerComponent implements OnInit{
     // this.initForm();
     this.isEditMode = !!data?.id;
     this.dealerForm = this.fb.group({
-      name: ['', [Validators.required, Validators.pattern('[a-zA-Z]+')]],
+      name: ['', [Validators.required]],
       country: ['', [Validators.required]],
       outletType: ['', [Validators.required]],
       division: ['', [Validators.required]],
