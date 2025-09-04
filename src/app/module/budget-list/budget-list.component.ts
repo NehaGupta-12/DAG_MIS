@@ -22,6 +22,7 @@ import {MatTooltip} from "@angular/material/tooltip";
 import {FeatherIconsComponent} from "@shared/components/feather-icons/feather-icons.component";
 import {CommonModule} from "@angular/common";
 import {BudgetService} from "../budget.service";
+import { ViewBudgetProductComponent } from '../view-budget-product/view-budget-product.component';
 
 @Component({
   selector: 'app-budget-list',
@@ -42,18 +43,16 @@ import {BudgetService} from "../budget.service";
     CommonModule
   ],
   templateUrl: './budget-list.component.html',
+  standalone: true,
   styleUrl: './budget-list.component.scss'
 })
 export class BudgetListComponent implements OnInit {
-
 
   dataSource = new MatTableDataSource<any>();
 
   // Define columns
   columnDefinitions = [
     {def: 'serial', label: 'Serial'},
-    {def: 'name', label: 'Name'},
-    {def: 'sku', label: 'Sku'},
     {def: 'country', label: 'Country'},
     {def: 'year', label: 'Year'},
     {def: 'period', label: 'Period'},
@@ -61,12 +60,8 @@ export class BudgetListComponent implements OnInit {
     {def: 'action', label: 'Action'},
   ];
 
-
-
   displayedColumns: string[] = [
     'serial',
-    'name',
-    'sku',
     'country',
     'year',
     'period',
@@ -77,34 +72,113 @@ export class BudgetListComponent implements OnInit {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
 
+  isLoading: any;
 
-  constructor(private dialog: MatDialog,
-              private router: Router,
-              private outletProductService: OutletProductService,
-              private budgetService: BudgetService,
-              private injector: EnvironmentInjector,
-  ) {
-  }
+  constructor(
+    private dialog: MatDialog,
+    private router: Router,
+    private outletProductService: OutletProductService,
+
+    private budgetService: BudgetService,
+    private injector: EnvironmentInjector,
+  ) {}
 
   ngOnInit() {
-    this.loadbudget()
+    this.loadbudget();
+
+    this.budgetService.getBudgetList().subscribe((budgets) => {
+      this.dataSource = new MatTableDataSource(budgets);
+      this.dataSource.paginator = this.paginator;
+      this.dataSource.sort = this.sort;
+    });
   }
 
   loadbudget() {
     runInInjectionContext(this.injector, () => {
-      // Directly subscribe to the service method within the injection context
-      this.budgetService.getBudgetList().subscribe((data: any) => {
-        console.log(data);
-        this.dataSource.data = data;  // Assign fetched data to the table's dataSource
+      this.budgetService.getBudgetList().subscribe((data: any[]) => {
+        console.log("Raw Data:", data);
+
+        // 🔹 Group by country + year + period
+        const grouped = data.reduce((acc: any[], curr: any) => {
+          const key = `${curr.country}_${curr.year}_${curr.period.start.seconds}_${curr.period.end.seconds}`;
+
+          let existing = acc.find(
+            (x: any) =>
+              x.country === curr.country &&
+              x.year === curr.year &&
+              x.period.start.seconds === curr.period.start.seconds &&
+              x.period.end.seconds === curr.period.end.seconds
+          );
+
+          if (!existing) {
+            existing = {
+              id:curr.docId,
+              country: curr.country,
+              year: curr.year,
+              period: curr.period,
+              products: [],
+              quantity: 0   // ✅ total budgetQuantity
+            };
+            acc.push(existing);
+          }
+
+          // 🔹 Push each product
+          existing.products.push({
+            id:curr.docId,
+            sku: curr.sku,
+            productName: curr.name,       // map Firestore name -> productName
+            budgetQuantity: curr.quantity // map quantity -> budgetQuantity
+          });
+
+          // 🔹 Update total for list page
+          existing.quantity += curr.quantity || 0;
+
+          return acc;
+        }, []);
+
+        console.log("Grouped Data:", grouped);
+
+        // ✅ This goes to table
+        this.dataSource.data = grouped;
         this.dataSource.paginator = this.paginator;
         this.dataSource.sort = this.sort;
-
-        console.log("Table Data:", this.dataSource.data);
       });
-
     });
   }
 
+
+
+  // ✅ Group products into one row per country-year-period
+  private groupBudgets(data: any[]) {
+    const grouped: any = {};
+
+    data.forEach(item => {
+      const key = `${item.country}-${item.year}-${item.period.start}-${item.period.end}`;
+
+      if (!grouped[key]) {
+        grouped[key] = {
+          docId: item.docId,  // keep docId for delete
+          country: item.country,
+          year: item.year,
+          period: item.period,
+          budgetQuantity: 0,
+          products: []
+        };
+      }
+
+      // push product
+      grouped[key].products.push({
+        sku: item.sku,
+        productName: item.productName,
+        budgetQuantity: item.budgetQuantity
+      });
+
+      // sum quantity
+      grouped[key].budgetQuantity += item.budgetQuantity;
+    });
+
+    return Object.values(grouped);
+  }
 
   editloadOutletProduct(row: any) {
     this.router.navigate(['module/add-budget'], {
@@ -112,11 +186,9 @@ export class BudgetListComponent implements OnInit {
     });
   }
 
-
   openDialog() {
     this.dialog.open(AddUserComponent, {
-      // width: '400px',   // set width
-      autoFocus: false  // optional
+      autoFocus: false
     });
   }
 
@@ -133,16 +205,13 @@ export class BudgetListComponent implements OnInit {
     return this.columnDefinitions.map(c => c.def);
   }
 
-  // Filtering
   applyFilter(event: Event) {
     const filterValue = (event.target as HTMLInputElement).value;
     this.dataSource.filter = filterValue.trim().toLowerCase();
   }
 
-  isLoading: any;
-
   deleteBudget(row: any) {
-    const docId = row.docId; // ✅ use Firestore document ID
+    const docId = row.docId;
 
     if (!docId) {
       Swal.fire('Error', 'Missing document ID for this budget.', 'error');
@@ -164,9 +233,7 @@ export class BudgetListComponent implements OnInit {
       runInInjectionContext(this.injector, () => {
         this.budgetService.deleteBudget(docId)
           .then(() => {
-            // ✅ Optimistic remove from UI
             this.dataSource.data = this.dataSource.data.filter((p: any) => p.docId !== docId);
-
             Swal.fire('Deleted!', 'Budget Product has been deleted.', 'success');
           })
           .catch((err) => {
@@ -180,13 +247,23 @@ export class BudgetListComponent implements OnInit {
     });
   }
 
-
-
-  getTotalQuantity(row: any): number {
-    if (!row?.items) return 0;
-    return row.items
-      .map((i: any) => i.openingStock || 0)
-      .reduce((acc: number, val: number) => acc + val, 0);
+  openViewDialog(row: any) {
+    console.log(row)
+    this.dialog.open(ViewBudgetProductComponent, {
+      width: '90vw',          // ✅ use viewport width (90% of screen width)
+      maxWidth: '70vw',      // ✅ allow full width if needed
+      height: '80vh',         // optional: control height too
+      panelClass: 'custom-dialog-container',
+      data: {
+        id: row.id,
+        country: row.country,
+        year: row.year,
+        period: row.period,
+        items: row.products  // ✅ product-wise details
+      }
+    });
   }
+
+
 
 }

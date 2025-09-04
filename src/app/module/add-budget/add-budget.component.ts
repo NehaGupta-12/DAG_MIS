@@ -1,127 +1,76 @@
 import {Component, EnvironmentInjector, Inject, OnInit, runInInjectionContext} from '@angular/core';
 import {FormGroup, FormsModule, ReactiveFormsModule, UntypedFormBuilder, Validators} from "@angular/forms";
-import {
-  MatCell,
-  MatCellDef,
-  MatColumnDef,
-  MatHeaderCell,
-  MatHeaderRow, MatHeaderRowDef, MatRow, MatRowDef, MatTable,
-  MatTableDataSource, MatTableModule
-} from "@angular/material/table";
-import {CommonModule, Location, NgForOf} from "@angular/common";
-import {OutletProductService} from "../outlet-product.service";
-import {ActivatedRoute} from "@angular/router";
-import {AddDealerService} from "../add-dealer.service";
-import {ProductMasterService} from "../product-master.service";
-import {MAT_DIALOG_DATA} from "@angular/material/dialog";
+import { CommonModule, Location, NgForOf } from "@angular/common";
+import { ActivatedRoute } from "@angular/router";
+import { MAT_DIALOG_DATA } from "@angular/material/dialog";
 import Swal from "sweetalert2";
-import {MatButton, MatButtonModule} from "@angular/material/button";
-import { MatInputModule} from "@angular/material/input";
-import {MatFormFieldModule} from "@angular/material/form-field";
-import {MatIconModule} from "@angular/material/icon";
-import {MatSelectModule} from "@angular/material/select";
-import {MatNativeDateModule, MatOptionModule} from "@angular/material/core";
-import {MatCheckboxModule} from "@angular/material/checkbox";
-import {
-  MatDatepickerModule,
-  MatDatepickerToggle,
-  MatDateRangeInput,
-  MatDateRangePicker
-} from "@angular/material/datepicker";
-import {map} from "rxjs/operators";
-import {AngularFireDatabase} from "@angular/fire/compat/database";
-import {Observable} from "rxjs";
-import {BudgetService} from "../budget.service";
+import { MatTableModule, MatTableDataSource } from "@angular/material/table";
+import { MatButtonModule } from "@angular/material/button";
+import { MatInputModule } from "@angular/material/input";
+import { MatFormFieldModule } from "@angular/material/form-field";
+import { MatIconModule } from "@angular/material/icon";
+import { MatSelectModule } from "@angular/material/select";
+import { MatDatepickerModule } from "@angular/material/datepicker";
+import { MatNativeDateModule } from "@angular/material/core";
+import { map } from "rxjs/operators";
+import { AngularFireDatabase } from "@angular/fire/compat/database";
+import { Observable } from "rxjs";
+import { BudgetService } from "../budget.service";
+import { ProductMasterService } from "../product-master.service";
 
 @Component({
   selector: 'app-add-budget',
+  standalone: true,
+  templateUrl: './add-budget.component.html',
+  styleUrl: './add-budget.component.scss',
   imports: [
-    FormsModule,
-    MatButton,
-    FormsModule,
+    CommonModule,
     ReactiveFormsModule,
+    NgForOf,
     MatFormFieldModule,
     MatInputModule,
     MatIconModule,
     MatSelectModule,
-    MatOptionModule,
-    MatCheckboxModule,
     MatButtonModule,
-    NgForOf,
-    MatCell,
-    MatCellDef,
-    MatColumnDef,
-    MatHeaderCell,
-    MatHeaderRow,
-    MatHeaderRowDef,
-    MatRow,
-    MatRowDef,
-    MatTable,
-    CommonModule,
     MatTableModule,
-    MatDateRangeInput,
-    MatDatepickerToggle,
-    MatDateRangePicker,
-    MatFormFieldModule,
-    MatInputModule,
     MatDatepickerModule,
     MatNativeDateModule,
-  ],
-  providers: [
-    {provide: MAT_DIALOG_DATA, useValue: {}}
-  ],
-  templateUrl: './add-budget.component.html',
-  styleUrl: './add-budget.component.scss'
+    FormsModule,
+  ]
 })
 export class AddBudgetComponent implements OnInit {
 
   isEditMode: boolean = false;
   budgetForm: FormGroup;
   displayedColumns: string[] = ['country', 'year', 'period', 'name', 'sku', 'quantity', 'action'];
-  dealerdataSource = new MatTableDataSource<any>();
-  vehicledataSource = new MatTableDataSource<any>();
   dataSource = new MatTableDataSource<any>();
   addedProducts: any[] = [];
-  outletProducts: any[] = [];
-  dealers: any[] = [];
-  allDealers: any[] = [];
+  vehicledataSource = new MatTableDataSource<any>();
+
   _countriesTypes$!: Observable<string[]>;
   _yearTypes$!: Observable<string[]>;
 
-  breadscrums = [
-    {
-      title: 'Examples',
-      items: ['Forms'],
-      active: 'Examples',
-    },
-  ];
-
-  constructor(private fb: UntypedFormBuilder,
-              private dealer: Location,
-              private productMasterService: ProductMasterService,
-              private outletProductService: OutletProductService,
-              private injector: EnvironmentInjector,
-              private route: ActivatedRoute,
-              private addDealerService: AddDealerService,
-              private productService:ProductMasterService,
-              private mDatabase: AngularFireDatabase,
-              private budgetService: BudgetService,
-              @Inject(MAT_DIALOG_DATA) public data: any,
+  constructor(
+    private fb: UntypedFormBuilder,
+    private dealer: Location,
+    private route: ActivatedRoute,
+    private productService: ProductMasterService,
+    private mDatabase: AngularFireDatabase,
+    private budgetService: BudgetService,
+    private injector: EnvironmentInjector,
   ) {
     this._countriesTypes$ = this.mDatabase
       .object<{ subcategories: string[] }>('typelist/Countries')
       .valueChanges()
-      .pipe(
-        map(data => data?.subcategories || [])
-      );
+      .pipe(map(data => data?.subcategories || []));
+
     this._yearTypes$ = this.mDatabase
       .object<{ subcategories: string[] }>('typelist/Year')
       .valueChanges()
-      .pipe(
-        map(data => data?.subcategories || [])
-      );
-    // this.initForm();
-    this.isEditMode = !!data?.id;
+      .pipe(map(data => data?.subcategories || []));
+
+    this.isEditMode = false;
+
     this.budgetForm = this.fb.group({
       products: ['', [Validators.required]],
       period: this.fb.group({
@@ -134,305 +83,173 @@ export class AddBudgetComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.loadOutletProduct();
-    this.productList();
-    this.loadbudget();
-
-    // 🔹 Watch for year selection change
+    this.loadProducts();
+    this.loadBudgets();
+    runInInjectionContext(this.injector, () => {
     this.budgetForm.get('year')?.valueChanges.subscribe((yearValue: string) => {
-      if (yearValue) {
-        this.setFinancialYearDates(yearValue);
-      }
+      if (yearValue) this.setFinancialYearDates(yearValue);
+    });
     });
 
     this.route.queryParams.subscribe(params => {
-      if (params['data']) {
-        const rowData = JSON.parse(params['data']);
-        console.log('Received row data:', rowData);
+      if (params['docId']) {
+        this.isEditMode = true;
+        const periodObj = params['period'] ? JSON.parse(params['period']) : null;
 
-        // Patch ALL form fields
         this.budgetForm.patchValue({
-          country: rowData.country,
-          year: rowData.year,
-          period: {
-            start: rowData.period?.start ? new Date(rowData.period.start.seconds * 1000) : null,
-            end: rowData.period?.end ? new Date(rowData.period.end.seconds * 1000) : null,
-          },
-          products: rowData.name
+          country: params['country'] || '',
+          year: params['year'] || '',
+          products: params['name'] || params['productName'] || '',
+          period: periodObj
         });
 
-        if (rowData.id) {
-          this.isEditMode = true;
-          this.data = rowData;
-
-          // disable product dropdown when editing
-          this.budgetForm.get('products')?.disable();
-
-          // push into addedProducts with period patched
-          this.addedProducts = [{
-            ...rowData,
-            varient: rowData.varient ?? rowData.variant,
-            quantity: rowData.quantity ?? rowData.openingStock ?? 1,
-            period: {
-              start: rowData.period?.start ? new Date(rowData.period.start.seconds * 1000) : null,
-              end: rowData.period?.end ? new Date(rowData.period.end.seconds * 1000) : null,
-            },
-            __isNew: false
-          }];
-        }
-
+        this.addedProducts = [{
+          id: params['docId'],
+          sku: params['sku'],
+          name: params['name'] || params['productName'],
+          quantity: params['budgetQuantity'] ? Number(params['budgetQuantity']) : 0,
+          country: params['country'],
+          year: params['year'],
+          period: periodObj
+        }];
       }
     });
-
   }
-
 
   setFinancialYearDates(yearValue: string) {
     const [startYear, endYear] = yearValue.split('-').map(Number);
-
     if (startYear && endYear) {
-      const startDate = new Date(startYear, 3, 1);   // 01-Apr-startYear
-      const endDate = new Date(endYear, 2, 31);      // 31-Mar-endYear
-
       this.budgetForm.get('period')?.patchValue({
-        start: startDate,
-        end: endDate
+        start: new Date(startYear, 3, 1),
+        end: new Date(endYear, 2, 31)
       });
     }
   }
 
-
-  loadOutletProduct() {
+  loadProducts() {
     runInInjectionContext(this.injector, () => {
-      this.productMasterService.getProductList().subscribe((data) => {
-        this.outletProducts = data; // save for filtering
-        this.dataSource.data = data;
-      });
+    this.productService.getProductList().subscribe((data) => {
+      this.vehicledataSource.data = data;
+    });
     });
   }
 
-  //product
-  productList() {
-    runInInjectionContext(this.injector, () => {
-      this.productService.getProductList().subscribe((data) => {
-        this.vehicledataSource.data = data;
-        console.log(this.vehicledataSource.data)
-      });
-    });
-  }
-
-  loadbudget() {
+  loadBudgets() {
     runInInjectionContext(this.injector, () => {
       this.budgetService.getBudgetList().subscribe((data: any) => {
-        console.log(data);
         this.dataSource.data = data;
-
-        console.log("Table Data:", this.dataSource.data);
       });
-
-    });
+      });
   }
-
-  isSubmitEnabled(): boolean {
-    const hasProducts = this.addedProducts.length > 0;
-    const allQuantitiesValid = this.addedProducts.every(
-      p => p.quantity && p.quantity > 0   // use quantity, not openingStock
-    );
-
-    return hasProducts && allQuantitiesValid;
-  }
-
-
 
   addProduct() {
-    const selectedProductName = this.budgetForm.get('products')?.value;
-    const selectedCountry = this.budgetForm.get('country')?.value;
-    const selectedYear = this.budgetForm.get('year')?.value;
+    const formValues = this.budgetForm.getRawValue();
+    const product = this.vehicledataSource.data.find(p => p.name === formValues.products);
 
-    if (!selectedProductName) {
-      Swal.fire('Error', 'Please select a product before adding.', 'error');
+    if (!product) {
+      Swal.fire('Error', 'Please select a valid product.', 'error');
       return;
     }
 
-    const product = this.vehicledataSource.data.find(p => p.name === selectedProductName);
-    if (product) {
-      // 🔹 Rule 1: Same country + same year → block
-      const existsInSessionYear = this.addedProducts.some(
-        p => p.name === product.name && p.country === selectedCountry && p.year === selectedYear
-      );
-      const existsInDBYear = this.dataSource.data.some(
-        (p: any) => p.name === product.name && p.country === selectedCountry && p.year === selectedYear
-      );
+    const exists = this.addedProducts.some(
+      p => p.name === product.name && p.country === formValues.country && p.year === formValues.year
+    ) || this.dataSource.data.some(
+      (p: any) => p.name === product.name && p.country === formValues.country && p.year === formValues.year
+    );
 
-      if (existsInSessionYear || existsInDBYear) {
-        Swal.fire(
-          'Info',
-          `Product "${product.name}" is already added for ${selectedCountry} (${selectedYear}).`,
-          'info'
-        );
-        return;
-      }
-
-      // 🔹 Rule 2: Same country (any year) → block
-      const existsInSessionCountry = this.addedProducts.some(
-        p => p.name === product.name && p.country === selectedCountry
-      );
-      // const existsInDBCountry = this.dataSource.data.some(
-      //   (p: any) => p.name === product.name && p.country === selectedCountry
-      // );
-
-      if (existsInSessionCountry) {
-        Swal.fire(
-          'Info',
-          `Product "${product.name}" is already added for ${selectedCountry}.`,
-          'info'
-        );
-        return;
-      }
-
-      // ✅ If no duplicate → add product
-      const formValues = this.budgetForm.getRawValue();
-
-      this.addedProducts = [
-        ...this.addedProducts,
-        {
-          ...product,
-          country: formValues.country,
-          year: formValues.year,
-          period: formValues.period,
-          quantity: 1, // default
-          __isNew: true
-        }
-      ];
+    if (exists) {
+      Swal.fire('Info', `Product "${product.name}" already exists for ${formValues.country} (${formValues.year}).`, 'info');
+      return;
     }
 
-    // Reset product dropdown
-    this.budgetForm.get('products')?.setValue(null);
-    this.budgetForm.get('products')?.markAsPristine();
+    this.addedProducts.push({
+      ...product,
+      country: formValues.country,
+      year: formValues.year,
+      period: formValues.period,
+      quantity: 1,
+      __isNew: true
+    });
+
+    this.budgetForm.get('products')?.reset();
   }
-
-
-
 
   removeProduct(index: number) {
     this.addedProducts.splice(index, 1);
   }
 
-
   submitForm() {
-    try {
-      const formValues = this.budgetForm.getRawValue();
-      delete formValues.products;
+    const formValues = this.budgetForm.getRawValue();
+    delete formValues.products;
 
-      if (this.addedProducts.length === 0) {
-        Swal.fire('Error', 'Please add at least one product.', 'error');
-        return;
-      }
-
-      Swal.fire({
-        title: this.isEditMode ? 'Update Budget?' : 'Add Budget?',
-        text: 'Are you sure you want to proceed?',
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonText: 'Yes',
-        cancelButtonText: 'No'
-      }).then((result: any) => {
-        if (result.isConfirmed) {
-          try {
-            const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-            const username = userData.userName || 'Unknown User';
-            const timestamp = Date.now();
-
-            const baseInfo = {
-              country: formValues.country,
-              year: formValues.year,
-              period: formValues.period,
-              status: 'Active',
-              updatedBy: username,
-              updatedAt: timestamp
-            };
-
-            if (this.isEditMode) {
-              // 🔹 Update ONLY the patched product
-              const productToUpdate = this.addedProducts[0]; // only one in edit mode
-              const productDoc = {
-                ...baseInfo,
-                id: productToUpdate.id ?? '',
-                sku: productToUpdate.sku ?? '',
-                name: productToUpdate.name ?? '',
-                brand: productToUpdate.brand ?? '',
-                model: productToUpdate.model ?? '',
-                variant: productToUpdate.variant ?? productToUpdate.varient ?? '',
-                unit: productToUpdate.unit ?? '',
-                quantity: productToUpdate.quantity ?? 0
-              };
-
-              runInInjectionContext(this.injector, () =>
-                this.budgetService.updateBudget(productToUpdate.docId, productDoc) // 🔹 update service
-              )
-                .then(() => {
-                  Swal.fire('Updated!', 'Product updated successfully.', 'success');
-                  this.goBack();
-                })
-                .catch(error => {
-                  console.error('Error updating product:', error);
-                  Swal.fire('Error', 'Something went wrong while updating.', 'error');
-                });
-
-            } else {
-              // 🔹 Create one document per product (Add Mode)
-              const createPromises = this.addedProducts.map(p => {
-                const productDoc = {
-                  ...baseInfo,
-                  id: p.id ?? '',
-                  sku: p.sku ?? '',
-                  name: p.name ?? '',
-                  brand: p.brand ?? '',
-                  model: p.model ?? '',
-                  variant: p.variant ?? p.varient ?? '',
-                  unit: p.unit ?? '',
-                  quantity: p.quantity ?? 0
-                };
-
-                return runInInjectionContext(this.injector, () =>
-                  this.budgetService.addBudget(productDoc)
-                );
-              });
-
-              Promise.all(createPromises)
-                .then(() => {
-                  Swal.fire('Added!', 'All products saved as separate documents.', 'success');
-                  this.goBack();
-                })
-                .catch(error => {
-                  console.error('Error adding multiple products:', error);
-                  Swal.fire('Error', 'Something went wrong.', 'error');
-                });
-            }
-          } catch (innerErr) {
-            console.error('Unexpected error during submission:', innerErr);
-            Swal.fire('Error', 'Unexpected issue occurred.', 'error');
-          }
-        }
-      });
-    } catch (err) {
-      console.error('Global submit error:', err);
-      Swal.fire('Error', 'Something went wrong while submitting.', 'error');
+    if (this.addedProducts.length === 0) {
+      Swal.fire('Error', 'Please add at least one product.', 'error');
+      return;
     }
+
+    Swal.fire({
+      title: this.isEditMode ? 'Update Budget?' : 'Add Budget?',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Yes'
+    }).then((result) => {
+      if (!result.isConfirmed) return;
+
+      const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+      const username = userData.userName || 'Unknown User';
+      const timestamp = Date.now();
+
+      const baseInfo = {
+        country: formValues.country,
+        year: formValues.year,
+        period: formValues.period,
+        status: 'Active',
+        updatedBy: username,
+        updatedAt: timestamp
+      };
+
+      if (this.isEditMode) {
+        const productToUpdate = this.addedProducts[0];
+        const productDoc = {
+          ...baseInfo,
+          id: productToUpdate.id,
+          sku: productToUpdate.sku,
+          name: productToUpdate.name,
+          quantity: productToUpdate.quantity
+        };
+        runInInjectionContext(this.injector, () => {
+          this.budgetService.updateBudget(productToUpdate.id, productDoc)
+            .then(() => Swal.fire('Updated!', 'Product updated successfully.', 'success'))
+            .then(() => this.goBack())
+            .catch(() => Swal.fire('Error', 'Something went wrong while updating.', 'error'));
+        });
+      } else {
+        Promise.all(this.addedProducts.map(p => {
+          const productDoc = {
+            ...baseInfo,
+            sku: p.sku,
+            name: p.name,
+            brand: p.brand,
+            model: p.model,
+            variant: p.variant ?? p.varient,
+            unit: p.unit,
+            quantity: p.quantity
+          };
+          return this.budgetService.addBudget(productDoc);
+        }))
+          .then(() => Swal.fire('Added!', 'All products saved successfully.', 'success'))
+          .then(() => this.goBack())
+          .catch(() => Swal.fire('Error', 'Something went wrong.', 'error'));
+      }
+    });
   }
-
-
 
   goBack() {
     this.dealer.back();
   }
 
   get canAddProduct(): boolean {
-    return !!(
-      this.budgetForm.get('country')?.value &&
-      this.budgetForm.get('year')?.value &&
-      this.budgetForm.get('period')?.value &&
-      this.budgetForm.get('products')?.value
-    );
+    const f = this.budgetForm.value;
+    return !!(f.country && f.year && f.period && f.products);
   }
 }
