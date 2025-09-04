@@ -72,19 +72,13 @@ export class OutletProductService {
       createdAt: new Date(),
     };
     return this.firestore
-      .collection('inventory')                      // inventory main collection
-      .doc(inventoryData.dealerId)              // dealer/site document
+      .collection('inventory')
+      .doc(inventoryData.dealerOutlet)
       .set(
-        {products: {[inventoryData.sku]: payload}}, // SKU-based map inside products
-        {merge: true}                                 // merge into existing products map
+        {products: {[inventoryData.sku]: payload}},
+        {merge: true}
       );
   }
-    //   return this.firestore
-  //     .collection('inventory')           // inventory main collection
-  //     .doc(inventoryData.dealerOutlet)            // use SKU as document ID
-  //     .set(payload);                     // add to inventory
-  // }
-
 
   // 📌 Update GRN
   updateOutletProduct(outletId: string, productId: string, grnData: any): Promise<any> {

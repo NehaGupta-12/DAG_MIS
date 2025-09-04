@@ -140,16 +140,16 @@
       "groupTitle": false,
       "submenu": [
         {
-          "path": "module/outlet-dealer-report",
-          "title": "Outlet/Dealer Report",
+          "path": "module/daily-sale-reports",
+          "title": "Sales Report",
           "icon": "",
           "class": "ml-menu",
           "groupTitle": false,
           "submenu": []
         },
         {
-          "path": "module/daily-sale-reports",
-          "title": "Sales Report",
+          "path": "module/stock-reports",
+          "title": "Stock Report",
           "icon": "",
           "class": "ml-menu",
           "groupTitle": false,

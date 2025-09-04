@@ -29,6 +29,7 @@ import {OutletDealerReportComponent} from "./outlet-dealer-report/outlet-dealer-
 import {BudgetListComponent} from "./budget-list/budget-list.component";
 import {AddBudgetComponent} from "./add-budget/add-budget.component";
 import {StockTransferReportComponent} from "./stock-transfer-report/stock-transfer-report.component";
+import {StockReportComponent} from "./reports/stock-report/stock-report.component";
 
 export const MODULES_ROUTE: Route[] = [
   {
@@ -111,6 +112,10 @@ export const MODULES_ROUTE: Route[] = [
   {
     path: 'daily-sale-reports',
     component: DailySaleReportsComponent
+  },
+  {
+    path: 'stock-reports',
+    component: StockReportComponent
   },
   {
     path: 'showroom-list',

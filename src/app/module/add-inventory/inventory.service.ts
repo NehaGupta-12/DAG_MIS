@@ -1,7 +1,8 @@
-import { Injectable } from '@angular/core';
+import {Injectable, runInInjectionContext} from '@angular/core';
 import {AngularFirestore} from "@angular/fire/compat/firestore";
 import {Observable} from "rxjs";
 import {map} from "rxjs/operators";
+import firebase from "firebase/compat/app";
 
 @Injectable({
   providedIn: 'root'
@@ -27,6 +28,29 @@ export class InventoryService {
         })
       );
   }
+  // inventory update function
+  updateInventoryQuantity(
+    outletId: string,
+    sku: string,
+    quantityChange: number
+  ): Promise<void> {
+    const docRef = this.firestore.collection('inventory').doc(outletId);
+    return docRef.get().toPromise().then((doc: any) => {
+      if (!doc.exists) {
+        return docRef.set({
+          products: {
+            [sku]: { quantity: quantityChange }
+          }
+        });
+      } else {
+        return docRef.update({
+          [`products.${sku}.quantity`]:
+          (doc.data()?.products?.[sku]?.quantity || 0) + quantityChange
+        });
+      }
+    });
+  }
+
 
   // getInventoryAllData() {
   //   return this.firestore.collection(this.collectionName).valueChanges();

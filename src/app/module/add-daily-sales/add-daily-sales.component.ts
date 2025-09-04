@@ -293,6 +293,7 @@ export class AddDailySalesComponent implements OnInit {
                 this.dailySalesService.updateDailySales(productToUpdate.docId, productDoc)
               )
                 .then(() => {
+                  this.updateInventory(productDoc, 'decrease');
                   Swal.fire('Updated!', 'Daily Sales updated successfully.', 'success');
                   this.goBack();
                 })
@@ -319,7 +320,7 @@ export class AddDailySalesComponent implements OnInit {
 
                 return runInInjectionContext(this.injector, () =>
                   this.dailySalesService.addDailySales(productDoc)
-                );
+                ).then( () => this.updateInventory(productDoc, 'decrease'));
               });
 
               Promise.all(createPromises)
@@ -345,7 +346,12 @@ export class AddDailySalesComponent implements OnInit {
   }
 
 
-
+  updateInventory(product: any, action: 'increase' | 'decrease'): Promise<void> {
+    const quantityChange = action === 'increase' ? product.quantity : -product.quantity;
+    return runInInjectionContext(this.injector, () =>
+      this.inventoryService.updateInventoryQuantity(product.dealerOutlet, product.sku, quantityChange)
+    );
+  }
   goBack() {
     this.location.back();
   }
