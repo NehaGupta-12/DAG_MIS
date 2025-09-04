@@ -81,13 +81,13 @@ export class AddDealerComponent implements OnInit{
         map(data => data?.subcategories || [])
       );
     this._outletTypes$ = this.mDatabase
-      .object<{ subcategories: string[] }>('typelist/outletType')
+      .object<{ subcategories: string[] }>('/typelist/Outlet_Type')
       .valueChanges()
       .pipe(
         map(data => data?.subcategories || [])
       );
     this._outletCategoryTypes$ = this.mDatabase
-      .object<{ subcategories: string[] }>('typelist/outletCategory')
+      .object<{ subcategories: string[] }>('/typelist/Outlet_Category')
       .valueChanges()
       .pipe(
         map(data => data?.subcategories || [])
