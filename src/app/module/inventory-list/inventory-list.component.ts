@@ -111,6 +111,7 @@ export class InventoryListComponent implements OnInit {
     'brand',
     'varient',
     'unit',
+    'openingStock',
     'quantity',
   ];
 
@@ -162,7 +163,7 @@ export class InventoryListComponent implements OnInit {
   }
 
 
-  onOutletChange(selectedOutlet: string) {
+  onOutletChange(selectedOutlet: string) {debugger
     if (!selectedOutlet) {
       this.dataSource.data = [];
       return;
@@ -170,7 +171,7 @@ export class InventoryListComponent implements OnInit {
 
     // Find the dealer ID from the allDealers array
     const selectedDealer = this.allDealers.find((d: any) => d.name === selectedOutlet);
-    const dealerId = selectedDealer?.id;
+    const dealerId = selectedDealer?.name;
 
     if (!dealerId) {
       console.error('Error: Could not find dealer ID for selected outlet.');
