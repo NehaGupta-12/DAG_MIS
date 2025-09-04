@@ -42,7 +42,7 @@ export class AddBudgetComponent implements OnInit {
 
   isEditMode: boolean = false;
   budgetForm: FormGroup;
-  displayedColumns: string[] = ['country', 'year',  'name', 'sku', 'quantity', 'action'];
+  displayedColumns: string[] = ['country', 'year', 'period', 'name', 'sku', 'quantity', 'action'];
   dataSource = new MatTableDataSource<any>();
   addedProducts: any[] = [];
   vehicledataSource = new MatTableDataSource<any>();
@@ -73,10 +73,10 @@ export class AddBudgetComponent implements OnInit {
 
     this.budgetForm = this.fb.group({
       products: ['', [Validators.required]],
-      // period: this.fb.group({
-      //   start: ['', Validators.required],
-      //   end: ['', Validators.required],
-      // }),
+      period: this.fb.group({
+        start: ['', Validators.required],
+        end: ['', Validators.required],
+      }),
       country: ['', [Validators.required]],
       year: ['', [Validators.required]],
     });
@@ -215,7 +215,6 @@ export class AddBudgetComponent implements OnInit {
           id: productToUpdate.id,
           sku: productToUpdate.sku,
           name: productToUpdate.name,
-          period: productToUpdate.period,
           quantity: productToUpdate.quantity
         };
         runInInjectionContext(this.injector, () => {

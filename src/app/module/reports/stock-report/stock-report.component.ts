@@ -72,8 +72,9 @@ import {InventoryService} from "../../add-inventory/inventory.service";
     MatDatepickerModule,
     MatNativeDateModule,
   ],
-  providers: [{ provide: MAT_DIALOG_DATA, useValue: {} }],
+  providers: [{provide: MAT_DIALOG_DATA, useValue: {}}],
   templateUrl: './stock-report.component.html',
+  standalone: true,
   styleUrl: './stock-report.component.scss'
 })
 export class StockReportComponent {
