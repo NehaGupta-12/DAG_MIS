@@ -69,8 +69,9 @@ import * as FileSaver from 'file-saver';
     MatDatepickerModule,
     MatNativeDateModule,
   ],
-  providers: [{ provide: MAT_DIALOG_DATA, useValue: {} }],
+  providers: [{provide: MAT_DIALOG_DATA, useValue: {}}],
   templateUrl: './daily-sale-reports.component.html',
+  standalone: true,
   styleUrl: './daily-sale-reports.component.scss'
 })
 export class DailySaleReportsComponent {

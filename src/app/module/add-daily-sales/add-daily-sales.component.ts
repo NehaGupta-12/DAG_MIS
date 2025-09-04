@@ -293,6 +293,7 @@ export class AddDailySalesComponent implements OnInit {
                 this.dailySalesService.updateDailySales(productToUpdate.docId, productDoc)
               )
                 .then(() => {
+                  this.updateInventory(productDoc, 'decrease');
                   Swal.fire('Updated!', 'Daily Sales updated successfully.', 'success');
                   this.goBack();
                 })
