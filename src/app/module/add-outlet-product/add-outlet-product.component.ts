@@ -298,6 +298,7 @@ data:any ={}
             variant: product.variant ?? product.varient ?? '',
             unit: product.unit ?? '',
             openingStock: product.openingStock ?? 0,
+            quantity: product.openingStock ?? 0,
           };
           productsData.push(mProduct)
         }
