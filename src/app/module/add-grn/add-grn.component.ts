@@ -400,6 +400,7 @@ export class AddGRNComponent implements OnInit{
                 this.grnService.updateGrn(productToUpdate.docId, productDoc)
               )
                 .then(() => {
+                  this.updateInventory(productDoc, 'increase')
                   Swal.fire('Updated!', 'GRN updated successfully.', 'success');
                   this.goBack();
                 })
