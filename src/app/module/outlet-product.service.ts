@@ -73,7 +73,7 @@ export class OutletProductService {
     };
     return this.firestore
       .collection('inventory')                      // inventory main collection
-      .doc(inventoryData.dealerId)              // dealer/site document
+      .doc(inventoryData.dealerOutlet)              // dealer/site document
       .set(
         {products: {[inventoryData.sku]: payload}}, // SKU-based map inside products
         {merge: true}                                 // merge into existing products map
