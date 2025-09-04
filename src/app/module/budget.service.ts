@@ -25,6 +25,7 @@ export class BudgetService {
           actions.map((a) => {
             const data = a.payload.doc.data();
             const docId = a.payload.doc.id;   // Firestore ID
+
             return { docId, ...(data as any) }; // ✅ avoid overwrite
           })
         )
