@@ -30,6 +30,9 @@ import {BudgetListComponent} from "./budget-list/budget-list.component";
 import {AddBudgetComponent} from "./add-budget/add-budget.component";
 import {StockTransferReportComponent} from "./stock-transfer-report/stock-transfer-report.component";
 import {StockReportComponent} from "./reports/stock-report/stock-report.component";
+import {AddMonthlyBudgetComponent} from "./add-monthly-budget/add-monthly-budget.component";
+import {ViewMonthlyBudgetComponent} from "./view-monthly-budget/view-monthly-budget.component";
+import {MonthlyBudgetListComponent} from "./monthly-budget-list/monthly-budget-list.component";
 
 export const MODULES_ROUTE: Route[] = [
   {
@@ -148,6 +151,18 @@ export const MODULES_ROUTE: Route[] = [
   {
     path:'add-budget',
     component: AddBudgetComponent
+  },
+  {
+    path:'add-monthly-budget',
+    component:AddMonthlyBudgetComponent
+  },
+  {
+    path:'view-monthly-budget',
+    component: ViewMonthlyBudgetComponent
+  },
+  {
+    path:'monthly-budget-list',
+    component: MonthlyBudgetListComponent
   },
   {
     path:'product-master-list',

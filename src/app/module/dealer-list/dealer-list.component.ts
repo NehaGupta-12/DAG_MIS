@@ -138,7 +138,7 @@ export class DealerListComponent implements OnInit{
   deleteDealer(id: string) {
     Swal.fire({
       title: 'Are you sure?',
-      text: 'You will not be able to recover this Installation!',
+      text: 'You will not be able to recover this Dealer/Outlet!',
       icon: 'warning',
       showCancelButton: true,
       confirmButtonText: 'Yes, delete it!',
@@ -152,11 +152,11 @@ export class DealerListComponent implements OnInit{
 
 
             // Optional: Show success alert
-            Swal.fire('Deleted!', 'Installation has been deleted.', 'success');
+            Swal.fire('Deleted!', 'Dealer/Outlet has been deleted.', 'success');
           });
         });
       } else if (result.dismiss === Swal.DismissReason.cancel) {
-        Swal.fire('Cancelled', 'Installation is safe.', 'info');
+        Swal.fire('Cancelled', 'Dealer/Outlet data is safe.', 'info');
       }
     });
   }

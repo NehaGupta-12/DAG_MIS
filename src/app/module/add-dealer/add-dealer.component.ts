@@ -134,7 +134,7 @@ export class AddDealerComponent implements OnInit{
   submitForm() {
     if (this.dealerForm.valid) {
       Swal.fire({
-        title: this.isEditMode ? 'Update Location Details?' : 'Add Location Details?',
+        title: this.isEditMode ? 'Update Dealer/Outlet Details?' : 'Add Dealer/Outlet Details?',
         text: 'Are you sure you want to proceed?',
         icon: 'question',
         showCancelButton: true,
@@ -159,11 +159,11 @@ export class AddDealerComponent implements OnInit{
             runInInjectionContext(this.injector, () => {
               this.addDealerService.updateDealer(this.data.id, transformedData)
                 .then(() => {
-                  Swal.fire('Updated!', 'Location Details updated successfully.', 'success');
+                  Swal.fire('Updated!', 'Dealer/Outlet Details updated successfully.', 'success');
                   this.goBack();
                 })
                 .catch(error => {
-                  console.error('Error updating Location Details:', error);
+                  console.error('Error updating Dealer/Outlet Details:', error);
                   Swal.fire('Error', 'Something went wrong.', 'error');
                 });
             });
@@ -176,11 +176,11 @@ export class AddDealerComponent implements OnInit{
             runInInjectionContext(this.injector, () => {
               this.addDealerService.addDealer(transformedData)
                 .then(() => {
-                  Swal.fire('Added!', 'Location Details added successfully.', 'success');
+                  Swal.fire('Added!', 'Dealer/Outlet Details added successfully.', 'success');
                   this.goBack();
                 })
                 .catch(error => {
-                  console.error('Error adding Location Details:', error);
+                  console.error('Error adding Dealer/Outlet Details:', error);
                   Swal.fire('Error', 'Something went wrong.', 'error');
                 });
             });

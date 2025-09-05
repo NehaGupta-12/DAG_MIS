@@ -24,7 +24,13 @@ import { NewOrderListComponent } from '@shared/components/new-order-list/new-ord
 import { TableCardComponent } from '@shared/components/table-card/table-card.component';
 import {DailySalesService} from "../../module/daily-sales.service";
 import {MatTableDataSource} from "@angular/material/table";
-import {DecimalPipe} from "@angular/common";
+import {AsyncPipe, DecimalPipe, NgForOf} from "@angular/common";
+import {FormControl, FormsModule, ReactiveFormsModule} from "@angular/forms";
+import {map, startWith} from "rxjs/operators";
+import {Observable} from "rxjs";
+import {AngularFireDatabase} from "@angular/fire/compat/database";
+import {MatError, MatFormField, MatLabel} from "@angular/material/input";
+import {MatOption, MatSelect} from "@angular/material/select";
 
 export type ChartOptions = {
   series: ApexAxisChartSeries;
@@ -55,6 +61,15 @@ export type ChartOptions = {
     NewOrderListComponent,
     TableCardComponent,
     DecimalPipe,
+    AsyncPipe,
+    FormsModule,
+    MatError,
+    MatFormField,
+    MatLabel,
+    MatOption,
+    MatSelect,
+    NgForOf,
+    ReactiveFormsModule,
   ],
 })
 export class MainComponent implements OnInit {
@@ -78,12 +93,21 @@ export class MainComponent implements OnInit {
   monthlyChartLabels: string[] = [];
   yesterdaySales: number = 0;
   totalSalesQuantity: number = 0;
+  _countriesTypes$!: Observable<string[]>;
+  countryControl = new FormControl('All');
 
   constructor(
     private dailySlaes: DailySalesService,
     private injector: EnvironmentInjector,
+    private mDatabase: AngularFireDatabase,
   ) {
     //constructor
+    this._countriesTypes$ = this.mDatabase
+      .object<{ subcategories: string[] }>('typelist/Countries')
+      .valueChanges()
+      .pipe(
+        map(data => data?.subcategories || [])
+      );
   }
 
   ngOnInit() {
@@ -91,42 +115,41 @@ export class MainComponent implements OnInit {
     this.chart2();
     this.areachart();
     this.barchart();
-    this.loadSalesList();
+    // this.loadSalesList();
+
+    // Subscribe to country dropdown changes
+    this.countryControl.valueChanges
+      .pipe(startWith(this.countryControl.value)) // Trigger an initial load
+      .subscribe((selectedCountry:any) => {
+        this.loadSalesList(selectedCountry);
+      });
 
   }
 
-  loadSalesList() {
+  loadSalesList(selectedCountry: string) {
     runInInjectionContext(this.injector, () => {
       this.dailySlaes.getDailySalesList().subscribe((data) => {
-        this.dataSource.data = data;
-        console.log(this.dataSource.data);
+        let filteredData = data;
 
-        // ✅ Calculate total quantity from all products
-        this.totalSalesQuantity = data.reduce((sum, item) => sum + item.quantity, 0);
+        if (selectedCountry && selectedCountry !== 'All') {
+          filteredData = data.filter(item => item.country === selectedCountry);
+        }
 
-        // Call all data calculation methods
-        this.calculateDailySales(data);
-        this.calculateMonthlySales(data);
-        this.calculateFiscalYearSales(data);
-        this.calculateLast12MonthsSales(data);
+        this.dataSource.data = filteredData;
 
-        // Then, call the chart methods to render the charts with the new data
+        // Recalculate all metrics and update charts with the filtered data
+        this.totalSalesQuantity = filteredData.reduce((sum, item) => sum + item.quantity, 0);
+        this.calculateDailySales(filteredData);
+        this.calculateMonthlySales(filteredData);
+        this.calculateFiscalYearSales(filteredData);
+        this.calculateLast12MonthsSales(filteredData);
+
+        // Call chart methods to render with the new, filtered data
         this.chart1();
-        const dailySalesData = this.getLast10DaysSales(data);
+        const dailySalesData = this.getLast10DaysSales(filteredData);
         this.barchart(dailySalesData);
-        const yearlyData = this.calculateYearlySales(data);
+        const yearlyData = this.calculateYearlySales(filteredData);
         this.areachart(yearlyData.years, yearlyData.quantities);
-
-        console.log('Updated Sales Data:', {
-          todaySales: this.todaySales,
-          todayPercentage: this.todayPercentage,
-          monthlySales: this.monthlySales,
-          monthlyPercentage: this.monthlyPercentage,
-          totalSalesFY: this.totalSalesFY,
-          totalPercentageFY: this.totalPercentageFY,
-          fiscalYearTitle: this.fiscalYearTitle,
-          totalSalesQuantity: this.totalSalesQuantity // ✅ log it
-        });
       });
     });
   }

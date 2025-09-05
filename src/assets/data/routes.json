@@ -65,7 +65,15 @@
         },
         {
           "path": "module/budget-list",
-          "title": "Budget",
+          "title": "Yearly Budget",
+          "icon": "",
+          "class": "ml-menu",
+          "groupTitle": false,
+          "submenu": []
+        },
+        {
+          "path": "module/monthly-budget-list",
+          "title": "Monthly Budget",
           "icon": "",
           "class": "ml-menu",
           "groupTitle": false,

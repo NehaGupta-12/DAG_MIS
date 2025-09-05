@@ -296,7 +296,7 @@ data:any ={}
 
       // ✅ Confirm before save/update
       const result = await Swal.fire({
-        title: this.isEditMode ? 'Update GRN Details?' : 'Add GRN Details?',
+        title: this.isEditMode ? 'Update Outlet Product Details?' : 'Add Outlet Product Details?',
         text: 'Are you sure you want to proceed?',
         icon: 'question',
         showCancelButton: true,
@@ -369,7 +369,7 @@ data:any ={}
           }
         Swal.fire(
           this.isEditMode ? 'Updated!' : 'Added!',
-          `GRN Details ${this.isEditMode ? 'updated' : 'added'} successfully.`,
+          `Outlet Product Details ${this.isEditMode ? 'updated' : 'added'} successfully.`,
           'success'
         );
         this.goBack();

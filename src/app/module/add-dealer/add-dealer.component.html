@@ -11,7 +11,7 @@
       <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12">
         <div class="card shadow">
           <div class="header">
-            <h2>Add Outlet / Dealer</h2>
+            <h2>{{ data?.id ? 'Edit Outlet / Dealer' : 'Add Outlet / Dealer' }}</h2>
           </div>
           <div class="body">
             <form class="register-form m-4" [formGroup]="dealerForm!" (ngSubmit)="submitForm()">
