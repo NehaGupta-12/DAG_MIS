@@ -19,77 +19,81 @@
       </ul>
       <ul class="nav navbar-nav navbar-right">
         <!-- Full Screen Button -->
-        <li class="fullscreen">
-          <button mat-icon-button class="nav-notification-icons" (click)="callFullscreen()">
-            <app-feather-icons [icon]="'maximize'" [class]="'header-icon'"></app-feather-icons>
-          </button>
-        </li>
+<!--        <li class="fullscreen">-->
+<!--          <button mat-icon-button class="nav-notification-icons" (click)="callFullscreen()">-->
+<!--            <app-feather-icons [icon]="'maximize'" [class]="'header-icon'"></app-feather-icons>-->
+<!--          </button>-->
+<!--        </li>-->
+
+
         <!-- #END# Full Screen Button -->
-        <li class="languageMenu">
-          <button mat-icon-button [matMenuTriggerFor]="languagemenu" class="lang-dropdown nav-notification-icons"> @if
-          (flagvalue !== undefined) {
-            <img src="{{flagvalue}}" height="16">
-          }
-            @if (flagvalue === undefined) {
-              <img src="{{defaultFlag}}" height="16">
-            }</button>
-          <mat-menu #languagemenu="matMenu" class="lang-item-menu">
-            @for (item of listLang; track item) {
-              <div class="lang-item">
-                <button mat-menu-item class="dropdown-item lang-item-list"
-                        (click)="setLanguage(item.text, item.lang, item.flag)"
-                        [ngClass]="{'active': langStoreValue === item.lang}">
-                  <img src="{{item.flag}}" class="flag-img" height="12"> <span class="align-middle">{{item.text}}</span>
-                </button>
-              </div>
-            }
-          </mat-menu>
-        </li>
+<!--        <li class="languageMenu">-->
+<!--          <button mat-icon-button [matMenuTriggerFor]="languagemenu" class="lang-dropdown nav-notification-icons"> @if-->
+<!--          (flagvalue !== undefined) {-->
+<!--            <img src="{{flagvalue}}" height="16">-->
+<!--          }-->
+<!--            @if (flagvalue === undefined) {-->
+<!--              <img src="{{defaultFlag}}" height="16">-->
+<!--            }</button>-->
+<!--          <mat-menu #languagemenu="matMenu" class="lang-item-menu">-->
+<!--            @for (item of listLang; track item) {-->
+<!--              <div class="lang-item">-->
+<!--                <button mat-menu-item class="dropdown-item lang-item-list"-->
+<!--                        (click)="setLanguage(item.text, item.lang, item.flag)"-->
+<!--                        [ngClass]="{'active': langStoreValue === item.lang}">-->
+<!--                  <img src="{{item.flag}}" class="flag-img" height="12"> <span class="align-middle">{{item.text}}</span>-->
+<!--                </button>-->
+<!--              </div>-->
+<!--            }-->
+<!--          </mat-menu>-->
+<!--        </li>-->
+
+
         <!-- #START# Notifications-->
-        <li class="nav-item btnNotification" ngbDropdown>
-          <button mat-icon-button [matMenuTriggerFor]="notificationMenu" class="nav-notification-icons">
-            <app-feather-icons [icon]="'bell'" [class]="'header-icon'"></app-feather-icons>
-            <span class="notify"></span>
-            <span class="heartbeat"></span>
-          </button>
-          <mat-menu #notificationMenu="matMenu" class="nfc-menu">
-            <div class="nfc-header">
-              <h5 class="mb-0">Notitications</h5>
-              <a class="nfc-mark-as-read">Mark all as read</a>
-            </div>
-            <div class="nfc-dropdown">
-              <ng-scrollbar style="height: 350px" visibility="hover">
-                <div class="noti-list header-menu">
-                  <div class="menu">
-                    <div>
-                      @for (notification of notifications; track notification) {
-                        <button mat-menu-item onClick="return false;" [ngClass]="[notification.status]">
-                        <span class="table-img msg-user ">
-                          <i class="material-icons-outlined nfc-type-icon"
-                             [ngClass]="[notification.color]">{{notification.icon}}</i>
-                        </span>
-                          <span class="menu-info">
-                          <span class="menu-title">{{notification.message}}</span>
-                          <span class="menu-desc mt-2">
-                            <i class="material-icons">access_time</i> {{notification.time}}
-                          </span>
-                        </span>
-                          <span class="nfc-close">
-                          <app-feather-icons [icon]="'x'" [class]="'user-menu-icons'"></app-feather-icons>
-                        </span>
-                        </button>
-                      }
-                    </div>
-                  </div>
-                </div>
-              </ng-scrollbar>
-            </div>
-            <div class="nfc-footer">
-              <a class="nfc-read-all">Read
-                All Notifications</a>
-            </div>
-          </mat-menu>
-        </li>
+<!--        <li class="nav-item btnNotification" ngbDropdown>-->
+<!--          <button mat-icon-button [matMenuTriggerFor]="notificationMenu" class="nav-notification-icons">-->
+<!--            <app-feather-icons [icon]="'bell'" [class]="'header-icon'"></app-feather-icons>-->
+<!--            <span class="notify"></span>-->
+<!--            <span class="heartbeat"></span>-->
+<!--          </button>-->
+<!--          <mat-menu #notificationMenu="matMenu" class="nfc-menu">-->
+<!--            <div class="nfc-header">-->
+<!--              <h5 class="mb-0">Notitications</h5>-->
+<!--              <a class="nfc-mark-as-read">Mark all as read</a>-->
+<!--            </div>-->
+<!--            <div class="nfc-dropdown">-->
+<!--              <ng-scrollbar style="height: 350px" visibility="hover">-->
+<!--                <div class="noti-list header-menu">-->
+<!--                  <div class="menu">-->
+<!--                    <div>-->
+<!--                      @for (notification of notifications; track notification) {-->
+<!--                        <button mat-menu-item onClick="return false;" [ngClass]="[notification.status]">-->
+<!--                        <span class="table-img msg-user ">-->
+<!--                          <i class="material-icons-outlined nfc-type-icon"-->
+<!--                             [ngClass]="[notification.color]">{{notification.icon}}</i>-->
+<!--                        </span>-->
+<!--                          <span class="menu-info">-->
+<!--                          <span class="menu-title">{{notification.message}}</span>-->
+<!--                          <span class="menu-desc mt-2">-->
+<!--                            <i class="material-icons">access_time</i> {{notification.time}}-->
+<!--                          </span>-->
+<!--                        </span>-->
+<!--                          <span class="nfc-close">-->
+<!--                          <app-feather-icons [icon]="'x'" [class]="'user-menu-icons'"></app-feather-icons>-->
+<!--                        </span>-->
+<!--                        </button>-->
+<!--                      }-->
+<!--                    </div>-->
+<!--                  </div>-->
+<!--                </div>-->
+<!--              </ng-scrollbar>-->
+<!--            </div>-->
+<!--            <div class="nfc-footer">-->
+<!--              <a class="nfc-read-all">Read-->
+<!--                All Notifications</a>-->
+<!--            </div>-->
+<!--          </mat-menu>-->
+<!--        </li>-->
         <!-- #END# Notifications-->
         <li class="nav-item user_profile">
           <button mat-button [matMenuTriggerFor]="profilemenu">
@@ -97,19 +101,19 @@
               <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRH87TKQrWcl19xly2VNs0CjBzy8eaKNM-ZpA&s" class="rounded-circle" width="32" height="32" alt="User">
             </div>
           </button>
-          <mat-menu #profilemenu="matMenu" class="profile-menu">
+          <mat-menu #profilemenu="matMenu" class="profile-menu mt-2">
             <div class="noti-list">
               <div class="menu ">
-                <div class="user_dw_menu">
-                  <a routerLink="/profile1" ><button mat-menu-item class="user-item-list">
-                    <app-feather-icons [icon]="'user'" [class]="'user-menu-icons'"></app-feather-icons>Account
-                  </button></a>
-                  <a routerLink="/traveler-details"> <button mat-menu-item class="user-item-list">
-                    <app-feather-icons [icon]="'mail'" [class]="'user-menu-icons'"></app-feather-icons>Inbox
-                  </button></a>
-                  <a routerLink="required-documents-usa"><button mat-menu-item class="user-item-list">
-                    <app-feather-icons [icon]="'settings'" [class]="'user-menu-icons'"></app-feather-icons>Settings
-                  </button></a>
+                <div class="user_dw_menu ">
+<!--                  <a routerLink="/profile1" ><button mat-menu-item class="user-item-list">-->
+<!--                    <app-feather-icons [icon]="'user'" [class]="'user-menu-icons'"></app-feather-icons>Account-->
+<!--                  </button></a>-->
+<!--                  <a routerLink="/traveler-details"> <button mat-menu-item class="user-item-list">-->
+<!--                    <app-feather-icons [icon]="'mail'" [class]="'user-menu-icons'"></app-feather-icons>Inbox-->
+<!--                  </button></a>-->
+<!--                  <a routerLink="required-documents-usa"><button mat-menu-item class="user-item-list">-->
+<!--                    <app-feather-icons [icon]="'settings'" [class]="'user-menu-icons'"></app-feather-icons>Settings-->
+<!--                  </button></a>-->
                   <button mat-menu-item (click)="logout()" class="user-item-list">
                     <app-feather-icons [icon]="'log-out'" [class]="'user-menu-icons'"></app-feather-icons>Logout
                   </button>

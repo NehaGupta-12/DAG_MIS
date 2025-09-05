@@ -46,25 +46,25 @@
                 </div>
 
               </div>
-              <div class="row">
-                <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 mb-2">
-                  <mat-form-field class="example-full-width" appearance="outline">
-                    <mat-label>Category</mat-label>
-                    <mat-select formControlName="category" required>
-                      <mat-option *ngFor="let outletCategory of (_outletCategoryTypes$ | async)" [value]="outletCategory">
-                        {{ outletCategory }}
-                      </mat-option>
-                    </mat-select>
-                    <!--                    <input matInput formControlName="address" required>-->
-                    <!--                    <mat-icon class="material-icons-outlined color-icon p-3" matSuffix>face</mat-icon>-->
-                    @if (dealerForm?.get('category')?.hasError('required')) {
-                      <mat-error>
-                        Category is required
-                      </mat-error>
-                    }
-                  </mat-form-field>
-                </div>
-              </div>
+<!--              <div class="row">-->
+<!--                <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 mb-2">-->
+<!--                  <mat-form-field class="example-full-width" appearance="outline">-->
+<!--                    <mat-label>Category</mat-label>-->
+<!--                    <mat-select formControlName="category" required>-->
+<!--                      <mat-option *ngFor="let outletCategory of (_outletCategoryTypes$ | async)" [value]="outletCategory">-->
+<!--                        {{ outletCategory }}-->
+<!--                      </mat-option>-->
+<!--                    </mat-select>-->
+<!--                    &lt;!&ndash;                    <input matInput formControlName="address" required>&ndash;&gt;-->
+<!--                    &lt;!&ndash;                    <mat-icon class="material-icons-outlined color-icon p-3" matSuffix>face</mat-icon>&ndash;&gt;-->
+<!--                    @if (dealerForm?.get('category')?.hasError('required')) {-->
+<!--                      <mat-error>-->
+<!--                        Category is required-->
+<!--                      </mat-error>-->
+<!--                    }-->
+<!--                  </mat-form-field>-->
+<!--                </div>-->
+<!--              </div>-->
               <div class="row">
 
                 <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 mb-2">

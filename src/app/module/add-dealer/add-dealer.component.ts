@@ -112,7 +112,7 @@ export class AddDealerComponent implements OnInit{
       outletType: ['', [Validators.required]],
       division: ['', [Validators.required]],
       town: ['', [Validators.required]],
-      category: ['', [Validators.required]],
+      // category: ['', [Validators.required]],
       // location: ['', [Validators.required]],
     });
   }

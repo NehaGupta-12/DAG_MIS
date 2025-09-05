@@ -52,11 +52,11 @@ export class DealerListComponent implements OnInit{
   columnDefinitions = [
     {def: 'serial', label: 'Serial'},
     {def: 'name', label: 'Name'},
-    {def: 'country', label: 'Country'},
     {def: 'outletType', label: 'Outlet Type'},
+    {def: 'country', label: 'Country'},
     {def: 'division', label: 'Division'},
     {def: 'town', label: 'Town'},
-    {def: 'category', label: 'category'},
+    // {def: 'category', label: 'category'},
     // {def: 'location', label: 'Location '},
   ];
 
@@ -65,11 +65,11 @@ export class DealerListComponent implements OnInit{
   displayedColumns: string[] = [
     'serial',
     'name',
-    'country',
     'outletType',
+    'country',
     'division',
     'town',
-    'category',
+    // 'category',
     // 'location',
     'action'
   ];

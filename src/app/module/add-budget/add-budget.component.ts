@@ -151,22 +151,36 @@ export class AddBudgetComponent implements OnInit {
       return;
     }
 
-    // Optional: prevent duplicates by name+country+year+period
-    const exists = this.addedProducts.some(
-      p =>
-        p.name === product.name &&
-        p.country === formValues.country &&
-        p.year === formValues.year &&
-        p.period?.start === formValues.period?.start &&
-        p.period?.end === formValues.period?.end
+    // 🔹 Normalize values
+    const newName = String(product.name).trim().toLowerCase();
+    const newCountry = String(formValues.country).trim().toLowerCase();
+    const newYear = String(formValues.year).trim();
+
+    // 🔹 1. Check duplicate in locally added products
+    const existsLocal = this.addedProducts.some(p =>
+      String(p.name).trim().toLowerCase() === newName &&
+      String(p.country).trim().toLowerCase() === newCountry &&
+      String(p.year).trim() === newYear
     );
 
-    if (exists) {
-      Swal.fire('Info', `Product "${product.name}" already exists for ${formValues.country} (${formValues.year}).`, 'info');
+    // 🔹 2. Check duplicate in already saved budgets (Firestore list)
+    const existsDb = this.dataSource.data.some((p: any) =>
+      String(p.name).trim().toLowerCase() === newName &&
+      String(p.country).trim().toLowerCase() === newCountry &&
+      String(p.year).trim() === newYear
+    );
+
+    if (existsLocal || existsDb) {
+      Swal.fire(
+        'Duplicate Entry',
+        `Product "${product.name}" is already added for ${formValues.country} (${formValues.year}).
+       Please update the existing entry instead of adding again.`,
+        'warning'
+      );
       return;
     }
 
-    // ✅ Reassign array to trigger change detection
+    // ✅ Add new product
     this.addedProducts = [
       ...this.addedProducts,
       {
@@ -179,8 +193,13 @@ export class AddBudgetComponent implements OnInit {
       }
     ];
 
+    // Reset product selection
     this.budgetForm.get('products')?.reset();
   }
+
+
+
+
 
 
   removeProduct(index: number) {
@@ -263,4 +282,11 @@ export class AddBudgetComponent implements OnInit {
     const f = this.budgetForm.value;
     return !!(f.country && f.year && f.period && f.products);
   }
+
+  preventDecimal(event: KeyboardEvent) {
+    if (event.key === '.' || event.key === ',') {
+      event.preventDefault();
+    }
+  }
+
 }
