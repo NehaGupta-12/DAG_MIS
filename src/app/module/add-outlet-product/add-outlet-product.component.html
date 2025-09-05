@@ -7,11 +7,14 @@
     <!--        <mat-icon>arrow_back</mat-icon> Back-->
     <!--      </button>-->
     <!--    </div>-->
-    <h5 class="text-center">Add Outlet Product</h5>
     <div class="row clearfix justify-content-center">
       <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12">
         <div class="card shadow">
-          <div class="header form-header"></div>
+          <div class="header form-header">
+            <div class="header">
+              <h2>{{ data?.id ? 'Edit Outlet Product' : 'Add Outlet Product' }}</h2>
+            </div>
+          </div>
           <div class="body">
             <form class="register-form m-4" [formGroup]="grnForm!" (ngSubmit)="submitForm()">
               <div class="row">
@@ -67,7 +70,7 @@
                     mat-raised-button
                     color="accent"
                     (click)="addProduct()"
-                    [disabled]="isEditMode">
+                    [disabled]="isEditMode || !grnForm.get('products')?.value">
                     Add
                   </button>
                   <button class="btn-back" type="button" mat-raised-button color="warn" (click)="goBack()">Back</button>
