@@ -138,7 +138,7 @@ export class StockTransferListComponent implements OnInit {
   deleteGrn(id: string) {
     Swal.fire({
       title: 'Are you sure?',
-      text: 'You will not be able to recover this Installation!',
+      text: 'You will not be able to recover this Stock Transfer!',
       icon: 'warning',
       showCancelButton: true,
       confirmButtonText: 'Yes, delete it!',
@@ -152,11 +152,11 @@ export class StockTransferListComponent implements OnInit {
 
 
             // Optional: Show success alert
-            Swal.fire('Deleted!', 'Installation has been deleted.', 'success');
+            Swal.fire('Deleted!', 'Stock Transfer has been deleted.', 'success');
           });
         });
       } else if (result.dismiss === Swal.DismissReason.cancel) {
-        Swal.fire('Cancelled', 'Installation is safe.', 'info');
+        Swal.fire('Cancelled', 'Stock Transfer is safe.', 'info');
       }
     });
   }
