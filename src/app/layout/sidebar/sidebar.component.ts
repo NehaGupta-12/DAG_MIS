@@ -94,7 +94,7 @@ export class SidebarComponent
   ngOnInit() {
     this.userData = JSON.parse(localStorage.getItem('userData')!) as UserDataModel
 
-    this.userName = this.userData.userName
+    this.userName = `${this.userData.first || ''} ${this.userData.last || ''}`.trim();
     this.role = this.userData.role
     if (this.authService.currentUserValue) {
       this.subs.sink = this.sidebarService

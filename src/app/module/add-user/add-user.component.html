@@ -1,11 +1,5 @@
 <section class="content d-flex justify-content-center align-items-center min-vh-100">
   <div class="content-block w-100" style="max-width: 800px;">
-    <!-- 🔙 Back Button (outside the card, top-left) -->
-    <div class="mb-3">
-      <button mat-stroked-button color="primary" (click)="goBack()">
-        <mat-icon>arrow_back</mat-icon> Back
-      </button>
-    </div>
     <div class="row clearfix justify-content-center">
       <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12">
         <div class="card shadow">
@@ -131,34 +125,14 @@
                   <mat-form-field class="example-full-width" appearance="outline">
                     <mat-label>Country</mat-label>
                     <mat-select formControlName="country" required>
-                      <mat-option [value]="'India'">
-                        India
-                      </mat-option>
-                      <mat-option [value]="'Algeria'">
-                        Algeria
-                      </mat-option>
-                      <mat-option [value]="'Brazil'">
-                        Brazil
-                      </mat-option>
-                      <mat-option [value]="'Poland'">
-                        Poland
-                      </mat-option>
-                      <mat-option [value]="'Sri Lanka'">
-                        Sri Lanka
-                      </mat-option>
-                      <mat-option [value]="'Thailand'">
-                        Thailand
-                      </mat-option>
-                      <mat-option [value]="'Japan'">
-                        Japan
+                      <mat-option *ngFor="let country of (_country$ | async)" [value]="country">
+                        {{ country }}
                       </mat-option>
                     </mat-select>
                     <mat-icon class="material-icons-outlined color-icon p-3" matSuffix>flag</mat-icon>
-                    @if (register?.get('country')?.hasError('required')) {
-                      <mat-error>
-                        Country is required
-                      </mat-error>
-                    }
+                    <mat-error *ngIf="register?.get('country')?.hasError('required')">
+                      Department is required
+                    </mat-error>
                   </mat-form-field>
                 </div>
               </div>
@@ -168,6 +142,22 @@
                     terms
                     and conditions
                   </mat-checkbox>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 mb-2">
+                <tr>
+                  <th>Change Password</th>
+                  <td>
+                    <div >
+                      <mat-form-field appearance="outline">
+                        <mat-label>Password</mat-label>
+                        <input matInput type="text" [formControl]="passwordControl"/>
+                      </mat-form-field>
+                      &nbsp; <button mat-stroked-button color="accent" (click)="changePassword()" >Change Password</button>
+                    </div>
+                  </td>
+                </tr>
                 </div>
               </div>
               <div class="row">

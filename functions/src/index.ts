@@ -8,6 +8,7 @@ interface CreateUserData {
   password: string;
 }
 
+
 export const createUserCallable = functions.https.onCall(
   async (request: functions.https.CallableRequest<CreateUserData>) => {
     const { email, password } = request.data;
@@ -28,6 +29,39 @@ export const createUserCallable = functions.https.onCall(
         success: false,
         error: error.message,
       };
+    }
+  }
+);
+
+interface ChangePasswordRequest {
+  uid: string;
+  newPassword: string;
+}
+
+export const changePassword = functions.https.onCall(
+  async (request: functions.https.CallableRequest<ChangePasswordRequest>) => {
+    const { uid, newPassword } = request.data;
+
+    if (!request.auth) {
+      throw new functions.https.HttpsError(
+        "unauthenticated",
+        "Only authenticated users can change a password."
+      );
+    }
+
+    if (!uid || !newPassword) {
+      throw new functions.https.HttpsError(
+        "invalid-argument",
+        "Missing required parameters: uid and newPassword."
+      );
+    }
+
+    try {
+      await admin.auth().updateUser(uid, { password: newPassword });
+      return { message: `Password for user ${uid} successfully updated.` };
+    } catch (error) {
+      console.error(`Error updating password for user ${uid}:`, error);
+      throw new functions.https.HttpsError("internal", "Failed to update password.");
     }
   }
 );

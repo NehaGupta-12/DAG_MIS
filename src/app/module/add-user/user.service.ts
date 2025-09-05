@@ -40,7 +40,8 @@ export class UserService {
       throw err;
     }
   }
-  getUserById(uid: string): Observable<UserDataModel | null> {
+
+  getUserById(uid: string | null): Observable<UserDataModel | null> {
     return runInInjectionContext(this.injector, () => {
       return this.db.object<UserDataModel>('users/' + uid).valueChanges();
     });

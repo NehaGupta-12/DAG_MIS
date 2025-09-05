@@ -1,5 +1,12 @@
 import {Component,OnInit} from '@angular/core';
-import {FormsModule, ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup, Validators} from "@angular/forms";
+import {
+  FormControl,
+  FormsModule,
+  ReactiveFormsModule,
+  UntypedFormBuilder,
+  UntypedFormGroup,
+  Validators
+} from "@angular/forms";
 import {MatInputModule} from "@angular/material/input";
 import { MatCheckboxModule} from "@angular/material/checkbox";
 import { MatIconModule} from "@angular/material/icon";
@@ -7,7 +14,7 @@ import { MatSelectModule} from "@angular/material/select";
 import { MatOptionModule} from "@angular/material/core";
 import { MatButtonModule} from "@angular/material/button";
 import {MatFormFieldModule} from "@angular/material/form-field";
-import {AsyncPipe, JsonPipe, Location, NgForOf} from "@angular/common";
+import {AsyncPipe, JsonPipe, Location, NgForOf, NgIf} from "@angular/common";
 import {AuthService} from "../../authentication/auth.service";
 import {UserService} from "./user.service";
 import Swal from "sweetalert2";
@@ -29,9 +36,9 @@ import {Observable} from "rxjs";
     MatOptionModule,
     MatCheckboxModule,
     MatButtonModule,
-    JsonPipe,
     AsyncPipe,
-    NgForOf
+    NgForOf,
+    NgIf
   ],
   templateUrl: './add-user.component.html',
   standalone: true,
@@ -60,6 +67,8 @@ export class AddUserComponent implements OnInit{
   userData!: UserDataModel | null;
   _roles$!: Observable<string[]>;
   _departments$!: Observable<any[]>;
+  _country$!: Observable<any[]>;
+  passwordControl: FormControl
   constructor(private fb: UntypedFormBuilder ,
               private location: Location,
               private router : Router,
@@ -74,6 +83,10 @@ export class AddUserComponent implements OnInit{
       .object<{ subcategories: any[] }>('/typelist/Role')
       .valueChanges()
       .pipe(map(data => data?.subcategories || []));
+    this._country$ = this.mDatabase
+      .object<{ subcategories: any[] }>('/typelist/Countries')
+      .valueChanges()
+      .pipe(map(data => data?.subcategories || []));
 
     this._departments$ = this.mDatabase
       .object<{ subcategories: any }>('/typelist/Department')
@@ -85,7 +98,7 @@ export class AddUserComponent implements OnInit{
           return depts;
         })
       );
-
+    this.passwordControl = new FormControl('', [Validators.minLength(6)]);
   }
 
     ngOnInit(): void {
@@ -105,6 +118,8 @@ export class AddUserComponent implements OnInit{
             mobile: user.mobile || '',
             address: user.address || '',
             city: user.city || '',
+            role: user.role || '',
+            department: user.department || '',
             state: user.state || '',
             country: user.country || '',
             termcondition: user.termcondition || false
@@ -233,7 +248,20 @@ export class AddUserComponent implements OnInit{
       console.log('INVALID CONTROLS', this.findInvalidControls());
     }
   }
+  changePassword() {
+    // if password control valid first
+    console.log(this.userId,)
+    console.log(this.passwordControl.value)
+    if (this.passwordControl.invalid) {
+      alert('Please enter a valid password')
+      return
+    } else this.authService.changePasswordOfAnotherUser(this.userId, this.passwordControl.value).then(res => {
+      //add snackabsr
+      this.passwordControl.reset()
 
+    })
+
+  }
   public findInvalidControls() {
     const invalid = [];
     const controls = this.register?.controls;

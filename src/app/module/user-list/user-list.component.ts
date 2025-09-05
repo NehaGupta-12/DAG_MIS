@@ -13,11 +13,11 @@ import {MatPaginator} from "@angular/material/paginator";
 import {MatSort} from "@angular/material/sort";
 import {MatDialog} from "@angular/material/dialog";
 import {MatProgressSpinner} from "@angular/material/progress-spinner";
-import {MatIcon} from "@angular/material/icon";
+import {MatIcon, MatIconModule} from "@angular/material/icon";
 import {MatTooltip} from "@angular/material/tooltip";
 import {AddUserComponent} from "../add-user/add-user.component";
 import {Router} from "@angular/router";
-import {DatePipe} from "@angular/common";
+import {DatePipe, NgIf} from "@angular/common";
 import {FeatherIconsComponent} from "@shared/components/feather-icons/feather-icons.component";
 import {AuthService} from "@core";
 import {UserService} from "../add-user/user.service";
@@ -39,8 +39,10 @@ import {deleteUser} from "@angular/fire/auth";
     MatTooltip,
     MatColumnDef,
     MatTableModule,
+    MatIconModule,
     DatePipe,
-    FeatherIconsComponent
+    FeatherIconsComponent,
+    NgIf
   ],
   templateUrl: './user-list.component.html',
   standalone: true,
@@ -51,8 +53,8 @@ export class UserListComponent implements OnInit{
   dataSource = new MatTableDataSource<any>(this.users);
   // Define columns
   displayedColumns: string[] = [
-    'first',
-    'last',
+    'sr',
+    'user',
     'email',
     'mobile',
     'country',
@@ -98,8 +100,9 @@ export class UserListComponent implements OnInit{
   isLoading: any;
 
   editDialog(element: any) {
-    if (element && element.uid) {
-      this.router.navigate(['module/edit-user', element.uid]);
+    console.log(element)
+    if (element && element.id) {
+      this.router.navigate(['module/edit-user', element.id]);
     } else {
       console.error('User ID not found');
     }
@@ -108,4 +111,12 @@ export class UserListComponent implements OnInit{
   deleteUser(element:any) {
   }
 
+  viewUser(element:any) {
+    console.log(element)
+    if (element) {
+      this.router.navigate(['module/view-user', element.id]);
+    } else {
+      console.error('User ID not found');
+    }
+  }
 }

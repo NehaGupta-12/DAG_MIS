@@ -33,6 +33,7 @@ import {StockReportComponent} from "./reports/stock-report/stock-report.componen
 import {AddMonthlyBudgetComponent} from "./add-monthly-budget/add-monthly-budget.component";
 import {ViewMonthlyBudgetComponent} from "./view-monthly-budget/view-monthly-budget.component";
 import {MonthlyBudgetListComponent} from "./monthly-budget-list/monthly-budget-list.component";
+import {ViewUserComponent} from "./view-user/view-user.component";
 
 export const MODULES_ROUTE: Route[] = [
   {
@@ -54,6 +55,10 @@ export const MODULES_ROUTE: Route[] = [
   {
     path: 'edit-user/:id',
     component: AddUserComponent
+  },
+  {
+    path: 'view-user/:id',
+    component: ViewUserComponent
   },
   {
     path: 'role-list',

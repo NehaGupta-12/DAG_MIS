@@ -88,5 +88,16 @@ export class AuthService {
     }
   }
 
+  async changePasswordOfAnotherUser(uid: string, password: string) {
+    const changePassword = this.functions.httpsCallable('changePassword');
+    try {
+      const res = await firstValueFrom(changePassword({ uid, newPassword: password }));
+      console.log(res);
+      this._snackBar.open('Password changed successfully', 'Close', { duration: 3000 });
+    } catch (error) {
+      console.error('Error changing password', error);
+      this._snackBar.open('Error changing password', 'Close', { duration: 3000 });
+    }
+  }
 
 }

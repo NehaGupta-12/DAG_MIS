@@ -1,6 +1,6 @@
 export interface UserDataModel {
   id?: string;
-  uid: string;
+  uid: any;
   userName: string;
   first: string;
   last: string;
