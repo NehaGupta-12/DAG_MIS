@@ -22,6 +22,7 @@ import { FeatherModule } from 'angular-feather';
 import { NgScrollbar } from 'ngx-scrollbar';
 import { UnsubscribeOnDestroyAdapter } from '@shared';
 import { SidebarService } from './sidebar.service';
+import {UserDataModel} from "../../module/add-user/UserData.model";
 
 @Component({
     selector: 'app-sidebar',
@@ -46,7 +47,9 @@ export class SidebarComponent
   listMaxHeight?: string;
   listMaxWidth?: string;
   headerHeight = 60;
-
+  userName :any;
+  role :any
+  userData!: UserDataModel
   constructor(
     @Inject(DOCUMENT) private document: Document,
     private renderer: Renderer2,
@@ -89,6 +92,10 @@ export class SidebarComponent
     }
   }
   ngOnInit() {
+    this.userData = JSON.parse(localStorage.getItem('userData')!) as UserDataModel
+
+    this.userName = this.userData.userName
+    this.role = this.userData.role
     if (this.authService.currentUserValue) {
       this.subs.sink = this.sidebarService
         .getRouteInfo()
