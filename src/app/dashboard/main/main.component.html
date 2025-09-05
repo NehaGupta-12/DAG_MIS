@@ -1,5 +1,16 @@
 <section class="content">
   <div class="container-fluid">
+    <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 mb-2">
+      <mat-form-field class="example-full-width" appearance="outline">
+        <mat-label>Country</mat-label>
+        <mat-select [formControl]="countryControl">
+          <mat-option value="All">All</mat-option>
+          <mat-option *ngFor="let country of (_countriesTypes$ | async)" [value]="country">
+            {{ country }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
     <!-- Widgets -->
     <div class="row">
       <div class="col-lg-3 col-sm-6">

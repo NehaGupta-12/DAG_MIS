@@ -98,7 +98,7 @@
           map(data => data?.subcategories || [])
         );
       this._unitTypes$ = this.mDatabase
-        .object<{ subcategories: string[] }>('typelist/unitOfMeasurement')
+        .object<{ subcategories: string[] }>('typelist/UnitOfMeasurement')
         .valueChanges()
         .pipe(
           map(data => data?.subcategories || [])

@@ -11,6 +11,7 @@ import { NgClass, NgForOf, NgIf } from "@angular/common";
 import {FeatherIconsComponent} from "@shared/components/feather-icons/feather-icons.component";
 import {AngularFireDatabase} from "@angular/fire/compat/database";
 import {take} from "rxjs";
+import Swal from "sweetalert2";
 
 @Component({
   selector: 'app-types',
@@ -88,14 +89,34 @@ export class TypesComponent implements OnInit {
   }
 
   deleteCategory(name: string) {
-    runInInjectionContext(this.injector, () => {
-      const mDatabase = this.injector.get(AngularFireDatabase);
-      const key = name.replace(/\s+/g, '_');
+    Swal.fire({
+      title: 'Are you sure?',
+      text: 'You will not be able to recover this Type!',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, delete it!',
+      cancelButtonText: 'No, cancel',
+    }).then((result) => {
+      if (result.isConfirmed) {
+        runInInjectionContext(this.injector, () => {
+          const mDatabase = this.injector.get(AngularFireDatabase);
+          const key = name.replace(/\s+/g, '_');
 
-      mDatabase.object(`typelist/${key}`).remove()
-        .then(() => console.log('Category deleted!'));
+          mDatabase.object(`typelist/${key}`).remove()
+            .then(() => {
+              Swal.fire('Deleted!', 'Type has been deleted.', 'success');
+            })
+            .catch((error) => {
+              Swal.fire('Error!', 'Something went wrong while deleting.', 'error');
+              console.error('Delete Type error:', error);
+            });
+        });
+      } else {
+        Swal.fire('Cancelled', 'Type is safe.', 'info');
+      }
     });
   }
+
 
   addSubCategory(field: string) {
     if (!field.trim() || !this.selectedCategory) return;
@@ -138,39 +159,55 @@ export class TypesComponent implements OnInit {
   deleteSubCategory(subCategory: string) {
     if (!this.selectedCategory) return;
 
-    runInInjectionContext(this.injector, () => {
-      const mDatabase = this.injector.get(AngularFireDatabase);
-      const key = this.selectedCategory.name.replace(/\s+/g, '_');
+    Swal.fire({
+      title: 'Are you sure?',
+      text: `You will not be able to recover the sub type "${subCategory}"!`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, delete it!',
+      cancelButtonText: 'No, cancel',
+    }).then((result) => {
+      if (result.isConfirmed) {
+        runInInjectionContext(this.injector, () => {
+          const mDatabase = this.injector.get(AngularFireDatabase);
+          const key = this.selectedCategory.name.replace(/\s+/g, '_');
 
-      mDatabase.object<any[]>(`typelist/${key}/subcategories`)
-        .valueChanges()
-        .pipe(take(1))
-        .subscribe((subcats) => {
-          if (subcats && Array.isArray(subcats)) {
-            const updatedSubcategories = subcats.filter(item => item !== subCategory);
+          mDatabase.object<any[]>(`typelist/${key}/subcategories`)
+            .valueChanges()
+            .pipe(take(1))
+            .subscribe((subcats) => {
+              if (subcats && Array.isArray(subcats)) {
+                const updatedSubcategories = subcats.filter(item => item !== subCategory);
 
-            // ✅ Update DB
-            mDatabase.object(`typelist/${key}/subcategories`)
-              .set(updatedSubcategories)
-              .then(() => {
-                console.log(`Subcategory "${subCategory}" deleted from ${this.selectedCategory.name}`);
+                mDatabase.object(`typelist/${key}/subcategories`)
+                  .set(updatedSubcategories)
+                  .then(() => {
+                    Swal.fire('Deleted!', `Sub Type "${subCategory}" deleted.`, 'success');
 
-                // ✅ Keep dropdown selected and update local reference
-                this.selectedCategory = {
-                  ...this.selectedCategory,
-                  subcategories: updatedSubcategories
-                };
+                    // Update local references
+                    this.selectedCategory = {
+                      ...this.selectedCategory,
+                      subcategories: updatedSubcategories
+                    };
 
-                // ✅ Also update categories array in memory
-                const index = this.categories.findIndex(c => c.name === this.selectedCategory.name);
-                if (index > -1) {
-                  this.categories[index] = this.selectedCategory;
-                }
-              });
-          }
+                    const index = this.categories.findIndex(c => c.name === this.selectedCategory.name);
+                    if (index > -1) {
+                      this.categories[index] = this.selectedCategory;
+                    }
+                  })
+                  .catch((error) => {
+                    Swal.fire('Error!', 'Failed to delete Sub Type.', 'error');
+                    console.error('Delete Sub Type error:', error);
+                  });
+              }
+            });
         });
+      } else {
+        Swal.fire('Cancelled', 'Sub Type is safe.', 'info');
+      }
     });
   }
+
 
 
 
