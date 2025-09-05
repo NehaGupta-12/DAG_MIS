@@ -72,7 +72,7 @@ export class AddBudgetComponent implements OnInit {
     this.isEditMode = false;
 
     this.budgetForm = this.fb.group({
-      products: ['', [Validators.required]],
+      products: [''],
       period: this.fb.group({
         start: ['', Validators.required],
         end: ['', Validators.required],
@@ -151,10 +151,14 @@ export class AddBudgetComponent implements OnInit {
       return;
     }
 
+    // Optional: prevent duplicates by name+country+year+period
     const exists = this.addedProducts.some(
-      p => p.name === product.name && p.country === formValues.country && p.year === formValues.year
-    ) || this.dataSource.data.some(
-      (p: any) => p.name === product.name && p.country === formValues.country && p.year === formValues.year
+      p =>
+        p.name === product.name &&
+        p.country === formValues.country &&
+        p.year === formValues.year &&
+        p.period?.start === formValues.period?.start &&
+        p.period?.end === formValues.period?.end
     );
 
     if (exists) {
@@ -162,17 +166,22 @@ export class AddBudgetComponent implements OnInit {
       return;
     }
 
-    this.addedProducts.push({
-      ...product,
-      country: formValues.country,
-      year: formValues.year,
-      period: formValues.period,
-      quantity: 1,
-      __isNew: true
-    });
+    // ✅ Reassign array to trigger change detection
+    this.addedProducts = [
+      ...this.addedProducts,
+      {
+        ...product,
+        country: formValues.country,
+        year: formValues.year,
+        period: formValues.period,
+        quantity: 1,
+        __isNew: true
+      }
+    ];
 
     this.budgetForm.get('products')?.reset();
   }
+
 
   removeProduct(index: number) {
     this.addedProducts.splice(index, 1);
@@ -224,6 +233,7 @@ export class AddBudgetComponent implements OnInit {
             .catch(() => Swal.fire('Error', 'Something went wrong while updating.', 'error'));
         });
       } else {
+        runInInjectionContext(this.injector, () => {
         Promise.all(this.addedProducts.map(p => {
           const productDoc = {
             ...baseInfo,
@@ -240,6 +250,7 @@ export class AddBudgetComponent implements OnInit {
           .then(() => Swal.fire('Added!', 'All products saved successfully.', 'success'))
           .then(() => this.goBack())
           .catch(() => Swal.fire('Error', 'Something went wrong.', 'error'));
+      })
       }
     });
   }
