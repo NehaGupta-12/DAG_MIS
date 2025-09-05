@@ -81,13 +81,13 @@ export class AddDealerComponent implements OnInit{
         map(data => data?.subcategories || [])
       );
     this._outletTypes$ = this.mDatabase
-      .object<{ subcategories: string[] }>('typelist/outletType')
+      .object<{ subcategories: string[] }>('/typelist/Outlet_Type')
       .valueChanges()
       .pipe(
         map(data => data?.subcategories || [])
       );
     this._outletCategoryTypes$ = this.mDatabase
-      .object<{ subcategories: string[] }>('typelist/outletCategory')
+      .object<{ subcategories: string[] }>('/typelist/Outlet_Category')
       .valueChanges()
       .pipe(
         map(data => data?.subcategories || [])
@@ -107,7 +107,7 @@ export class AddDealerComponent implements OnInit{
     // this.initForm();
     this.isEditMode = !!data?.id;
     this.dealerForm = this.fb.group({
-      name: ['', [Validators.required, Validators.pattern('[a-zA-Z]+')]],
+      name: ['', [Validators.required]],
       country: ['', [Validators.required]],
       outletType: ['', [Validators.required]],
       division: ['', [Validators.required]],
@@ -121,15 +121,10 @@ export class AddDealerComponent implements OnInit{
     this.route.queryParams.subscribe(params => {
       if (params['data']) {
         const rowData = JSON.parse(params['data']);
-        console.log('Received row data:', rowData);
-
-        // ✅ Patch data to form
         this.dealerForm.patchValue(rowData);
-
-        // ✅ Check if ID exists
         if (rowData.id) {
           this.isEditMode = true;
-          this.data = rowData; // ✅ Store it for later
+          this.data = rowData;
         }
       }
     });

@@ -314,25 +314,92 @@ export class DailySaleReportsComponent {
   }
 
 
+
   // onSubmit() {
   //   const filters = this.dealerForm.value;
+  //
+  //   const startDate = filters.period?.start ? new Date(filters.period.start) : null;
+  //   const endDate = filters.period?.end ? new Date(filters.period.end) : new Date();
   //   const today = new Date();
   //
-  //   const filtered = this.salesdataSource.filter(item =>
-  //     (!filters.country || item.country === filters.country) &&
-  //     (!filters.name || item.dealerOutlet === filters.name) // 👈 outlet filter
-  //   );
+  //   // 🔹 Filter sales data
+  //   const filtered = this.salesdataSource.filter(item => {
+  //     const itemDate = item.createdAt?.seconds
+  //       ? new Date(item.createdAt.seconds * 1000)
+  //       : new Date(item.createdAt);
   //
-  //   const report = this.generateReport(filtered, today);
+  //     return (
+  //       (!filters.country || item.country === filters.country) &&
+  //       (!filters.name || item.dealerOutlet === filters.name) &&
+  //       (!startDate || itemDate >= startDate) &&
+  //       (!endDate || itemDate <= endDate)
+  //     );
+  //   });
   //
-  //   this.filteredProducts = Object.keys(report).map(key => ({
-  //     product: key,
-  //     YTD: report[key].YTD,
-  //     Month: report[key].Month,
-  //     Day: report[key].Day,
-  //   }));
+  //   // 🔹 Normal report (for Month + YTD)
+  //   const report = this.generateReport(filtered, endDate);
   //
-  //   // 🔹 Dynamic header
+  //   // 🔹 Day report
+  //   let todayReport: any = {};
+  //   if (today >= (startDate || today) && today <= endDate) {
+  //     todayReport = this.generateReport(filtered, today);
+  //   }
+  //
+  //   // 🔹 Check if single day selection
+  //   const isSingleDay =
+  //     startDate &&
+  //     endDate &&
+  //     startDate.getFullYear() === endDate.getFullYear() &&
+  //     startDate.getMonth() === endDate.getMonth() &&
+  //     startDate.getDate() === endDate.getDate();
+  //
+  //   // 🔹 Step 1: Build raw rows
+  //   let tempRows = this.vehicledataSource.map(prod => {
+  //     const key = prod.name;
+  //     const displayName = prod.model || prod.name;
+  //
+  //     const day = isSingleDay
+  //       ? report[key]?.Day || 0
+  //       : todayReport[key]?.Day || 0;
+  //
+  //     const month = isSingleDay
+  //       ? report[key]?.Day || 0
+  //       : report[key]?.Month || 0;
+  //
+  //     const ytd = isSingleDay
+  //       ? report[key]?.Day || 0
+  //       : report[key]?.YTD || 0;
+  //
+  //     return {
+  //       product: displayName,  // 👈 use model name for grouping
+  //       Day: day,
+  //       Month: month,
+  //       YTD: ytd,
+  //     };
+  //   });
+  //
+  //   // 🔹 Step 2: Group by product (model) and sum values
+  //   const grouped: any = {};
+  //   tempRows.forEach(row => {
+  //     if (!grouped[row.product]) {
+  //       grouped[row.product] = { product: row.product, Day: 0, Month: 0, YTD: 0 };
+  //     }
+  //     grouped[row.product].Day += row.Day;
+  //     grouped[row.product].Month += row.Month;
+  //     grouped[row.product].YTD += row.YTD;
+  //   });
+  //
+  //   this.filteredProducts = Object.values(grouped);
+  //
+  //   // 🔹 Totals row
+  //   this.filteredProducts.push({
+  //     product: 'TOTAL',
+  //     Day: this.filteredProducts.reduce((s: number, r: any) => s + r.Day, 0),
+  //     Month: this.filteredProducts.reduce((s: number, r: any) => s + r.Month, 0),
+  //     YTD: this.filteredProducts.reduce((s: number, r: any) => s + r.YTD, 0),
+  //   });
+  //
+  //   // 🔹 Report title
   //   if (filters.name) {
   //     this.reportTitle = `Cumulative for the month - ${filters.name}`;
   //   } else if (filters.country) {
@@ -341,16 +408,42 @@ export class DailySaleReportsComponent {
   //     this.reportTitle = `Sales Report`;
   //   }
   //
-  //   this.reportDate = today.toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' });
+  //   // 🔹 Report date display
+  //   if (isSingleDay) {
+  //     this.reportDate = endDate.toLocaleDateString('en-GB', {
+  //       day: '2-digit',
+  //       month: 'long',
+  //       year: 'numeric'
+  //     });
+  //   } else if (startDate) {
+  //     const startStr = startDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' });
+  //     const endStr = endDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' });
+  //     this.reportDate = `${startStr} - ${endStr}`;
+  //   } else {
+  //     this.reportDate = endDate.toLocaleDateString('en-GB', {
+  //       day: '2-digit',
+  //       month: 'long',
+  //       year: 'numeric'
+  //     });
+  //   }
   // }
-
 
   onSubmit() {
     const filters = this.dealerForm.value;
 
-    const startDate = filters.period?.start ? new Date(filters.period.start) : null;
-    const endDate = filters.period?.end ? new Date(filters.period.end) : new Date();
+    let startDate = filters.period?.start ? new Date(filters.period.start) : null;
+    let endDate = filters.period?.end ? new Date(filters.period.end) : new Date();
     const today = new Date();
+
+    // ⏰ Normalize start date to 00:00:00
+    if (startDate) {
+      startDate.setHours(0, 0, 0, 0);
+    }
+
+    // ⏰ Normalize end date to 23:59:59
+    if (endDate) {
+      endDate.setHours(23, 59, 59, 999);
+    }
 
     // 🔹 Filter sales data
     const filtered = this.salesdataSource.filter(item => {
@@ -371,17 +464,18 @@ export class DailySaleReportsComponent {
 
     // 🔹 Day report
     let todayReport: any = {};
-    if (today >= (startDate || today) && today <= endDate) {
+    const todayNormalized = new Date();
+    todayNormalized.setHours(0, 0, 0, 0);
+
+    if (todayNormalized >= (startDate || todayNormalized) && todayNormalized <= endDate) {
       todayReport = this.generateReport(filtered, today);
     }
 
-    // 🔹 Check if single day selection
+    // 🔹 Check if single day selection (ignore time portion)
     const isSingleDay =
       startDate &&
       endDate &&
-      startDate.getFullYear() === endDate.getFullYear() &&
-      startDate.getMonth() === endDate.getMonth() &&
-      startDate.getDate() === endDate.getDate();
+      startDate.toDateString() === endDate.toDateString();
 
     // 🔹 Step 1: Build raw rows
     let tempRows = this.vehicledataSource.map(prod => {
@@ -457,7 +551,6 @@ export class DailySaleReportsComponent {
       });
     }
   }
-
 
 
 
