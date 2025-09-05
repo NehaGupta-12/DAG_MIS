@@ -63,6 +63,34 @@
                     }
                   </mat-form-field>
                 </div>
+
+              <div class="col-xl-6 col-lg-6 mb-2">
+                <mat-form-field class="example-full-width" appearance="outline">
+                  <mat-label>Role</mat-label>
+                  <mat-select formControlName="role" required>
+                    <mat-option *ngFor="let role of (_roles$ | async)" [value]="role">
+                      {{ role }}
+                    </mat-option>
+                  </mat-select>
+                  <mat-error *ngIf="register?.get('role')?.hasError('required')">
+                    Role is required
+                  </mat-error>
+                </mat-form-field>
+              </div>
+
+              <div class="col-xl-6 col-lg-6 mb-2">
+                <mat-form-field class="example-full-width" appearance="outline">
+                  <mat-label>Department</mat-label>
+                  <mat-select formControlName="department" required>
+                    <mat-option *ngFor="let dept of (_departments$ | async)" [value]="dept">
+                      {{ dept }}
+                    </mat-option>
+                  </mat-select>
+                  <mat-error *ngIf="register?.get('department')?.hasError('required')">
+                    Department is required
+                  </mat-error>
+                </mat-form-field>
+              </div>
               </div>
               <div class="row">
                 <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 mb-2">

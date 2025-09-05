@@ -1,11 +1,17 @@
 export interface UserDataModel {
+  id?: string;
+  uid: string;
+  userName: string;
   first: string;
   last: string;
-  password: string;
   email: string;
-  address: string;
-  city: string;
-  state: string;
-  country: string;
-  termcondition: boolean;
+  mobile?: string;
+  address?: string;
+  allowedShowroom?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  department?: string;
+  role?: string;
+  termcondition?: string;
 }

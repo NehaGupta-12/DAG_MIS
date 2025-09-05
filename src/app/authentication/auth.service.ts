@@ -88,21 +88,5 @@ export class AuthService {
     }
   }
 
-  async createUser(email: string, password: string): Promise<any> {
-    const callable = this.functions.httpsCallable<
-      { email: string; password: string },
-      UserDataModel
-    >('createUserCallable');
 
-    try {
-      return await firstValueFrom(callable({ email, password }));
-    } catch (err) {
-      if (err instanceof Error) {
-        console.error('Error creating user:', err.message);
-      } else {
-        console.error(String(err));
-      }
-      throw err;
-    }
-  }
 }
