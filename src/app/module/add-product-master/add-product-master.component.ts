@@ -74,13 +74,13 @@
           map(data => data?.subcategories || [])
         );
       this._categoryTypes$ = this.mDatabase
-        .object<{ subcategories: string[] }>('typelist/productCategory')
+        .object<{ subcategories: string[] }>('/typelist/Product_Category')
         .valueChanges()
         .pipe(
           map(data => data?.subcategories || [])
         );
       this._subCategoryTypes$ = this.mDatabase
-        .object<{ subcategories: string[] }>('typelist/productSubCategory')
+        .object<{ subcategories: string[] }>('/typelist/Sub_Category')
         .valueChanges()
         .pipe(
           map(data => data?.subcategories || [])
@@ -104,7 +104,7 @@
           map(data => data?.subcategories || [])
         );
       this.productForm = this.fb.group({
-        name: ['', [Validators.required, Validators.pattern('[a-zA-Z]+')]],
+        name: ['', [Validators.required]],
         // sku: ['', [Validators.required]],
         model: ['', [Validators.required]],
         brand: ['', [Validators.required]],

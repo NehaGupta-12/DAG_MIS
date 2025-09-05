@@ -121,15 +121,10 @@ export class AddDealerComponent implements OnInit{
     this.route.queryParams.subscribe(params => {
       if (params['data']) {
         const rowData = JSON.parse(params['data']);
-        console.log('Received row data:', rowData);
-
-        // ✅ Patch data to form
         this.dealerForm.patchValue(rowData);
-
-        // ✅ Check if ID exists
         if (rowData.id) {
           this.isEditMode = true;
-          this.data = rowData; // ✅ Store it for later
+          this.data = rowData;
         }
       }
     });
