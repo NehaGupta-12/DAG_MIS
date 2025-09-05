@@ -7,7 +7,7 @@ import { MatSelectModule} from "@angular/material/select";
 import { MatOptionModule} from "@angular/material/core";
 import { MatButtonModule} from "@angular/material/button";
 import {MatFormFieldModule} from "@angular/material/form-field";
-import {Location} from "@angular/common";
+import {JsonPipe, Location} from "@angular/common";
 import {AuthService} from "../../authentication/auth.service";
 
 @Component({
@@ -22,8 +22,10 @@ import {AuthService} from "../../authentication/auth.service";
     MatOptionModule,
     MatCheckboxModule,
     MatButtonModule,
+    JsonPipe,
   ],
   templateUrl: './add-user.component.html',
+  standalone: true,
   styleUrl: './add-user.component.scss'
 })
 export class AddUserComponent {
@@ -57,28 +59,46 @@ export class AddUserComponent {
     this.register = this.fb.group({
       first: ['', [Validators.required, Validators.pattern('[a-zA-Z]+')]],
       last: [''],
-      password: ['', [Validators.required]],
-      email: [
-        '',
-        [Validators.required, Validators.email, Validators.minLength(5)],
-      ],
+      mobile: ['', [Validators.required, Validators.pattern('^[0-9]*$')]],
+      email: ['', [Validators.required, Validators.email, Validators.minLength(5)],],
       address: [''],
       city: ['', [Validators.required]],
       state: ['', [Validators.required]],
       country: ['', [Validators.required]],
       termcondition: [false, [Validators.requiredTrue]],
     });
+    // Capitalize first letter for first and last name
+    this.register.get('first')?.valueChanges.subscribe(value => {
+      if (value) {
+        const capitalized = value.charAt(0).toUpperCase() + value.slice(1);
+        if (value !== capitalized) {
+          this.register?.get('first')?.setValue(capitalized, { emitEvent: false });
+        }
+      }
+    });
+
+    this.register.get('last')?.valueChanges.subscribe(value => {
+      if (value) {
+        const capitalized = value.charAt(0).toUpperCase() + value.slice(1);
+        if (value !== capitalized) {
+          this.register?.get('last')?.setValue(capitalized, { emitEvent: false });
+        }
+      }
+    });
+  }
+  allowOnlyNumbers(event: KeyboardEvent) {
+    const charCode = event.which ? event.which : event.keyCode;
+    if (charCode < 48 || charCode > 57) {
+      event.preventDefault(); // Block non-numeric input
+    }
   }
 
   initSecondForm() {
     this.secondForm = this.fb.group({
       first: ['', [Validators.required, Validators.pattern('[a-zA-Z]+')]],
       last: [''],
-      password: ['', [Validators.required]],
-      email: [
-        '',
-        [Validators.required, Validators.email, Validators.minLength(5)],
-      ],
+      email: ['', [Validators.required, Validators.email, Validators.minLength(5)],],
+      mobile: ['', [Validators.required, Validators.pattern('^[0-9]*$')]],
       address: [''],
       city: ['', [Validators.required]],
       state: ['', [Validators.required]],
@@ -104,15 +124,21 @@ export class AddUserComponent {
     });
   }
 
-  onRegister() {
-    console.log('Form Value', this.register?.value);
-  }
-  async createUser(): Promise<void> {
+  // onRegister() {
+  //   if(this.register?.invalid){
+  //     return
+  //   }
+  //   const formData = this.register?.value;
+  //   console.log('Form Value', this.register?.value);
+  // }
+
+
+  async onRegister(): Promise<void> {
     this.submitted = true;
     if (this.register && this.register.valid) {
       try {
         const email = this.register.get('email')?.value;
-        const password = this.register.get('password')?.value;
+        const password = "password@123";
 
         // Call backend Cloud Function through AuthService
         const response = await this.authService.createUser(email, password);

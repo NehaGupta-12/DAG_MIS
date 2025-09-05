@@ -5,18 +5,19 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 @Component({
-    selector: 'app-dialogform',
-    templateUrl: './dialogform.component.html',
-    styleUrls: ['./dialogform.component.scss'],
-    imports: [
-        MatDialogTitle,
-        MatDialogContent,
-        FormsModule,
-        ReactiveFormsModule,
-        MatFormFieldModule,
-        MatInputModule,
-        MatButtonModule,
-    ]
+  selector: 'app-dialogform',
+  templateUrl: './dialogform.component.html',
+  styleUrls: ['./dialogform.component.scss'],
+  standalone: true,
+  imports: [
+    MatDialogTitle,
+    MatDialogContent,
+    FormsModule,
+    ReactiveFormsModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatButtonModule,
+  ]
 })
 export class DialogformComponent implements OnInit {
   public fname = 'John';
