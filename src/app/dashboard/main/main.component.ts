@@ -1,4 +1,4 @@
-import { Component, ViewChild, OnInit } from '@angular/core';
+import {Component, ViewChild, OnInit, runInInjectionContext, EnvironmentInjector} from '@angular/core';
 
 import {
   ChartComponent,
@@ -22,6 +22,9 @@ import { OrderInfoBoxComponent } from '@shared/components/order-info-box/order-i
 import { MatCardModule } from '@angular/material/card';
 import { NewOrderListComponent } from '@shared/components/new-order-list/new-order-list.component';
 import { TableCardComponent } from '@shared/components/table-card/table-card.component';
+import {DailySalesService} from "../../module/daily-sales.service";
+import {MatTableDataSource} from "@angular/material/table";
+import {DecimalPipe} from "@angular/common";
 
 export type ChartOptions = {
   series: ApexAxisChartSeries;
@@ -51,6 +54,7 @@ export type ChartOptions = {
     MatCardModule,
     NewOrderListComponent,
     TableCardComponent,
+    DecimalPipe,
   ],
 })
 export class MainComponent implements OnInit {
@@ -59,8 +63,26 @@ export class MainComponent implements OnInit {
   public chartOptions2!: Partial<ChartOptions>;
   public areaChartOptions!: Partial<ChartOptions>;
   public barChartOptions!: Partial<ChartOptions>;
+  dataSource = new MatTableDataSource<any>();
+  // Component properties
+  todaySales: number = 0;
+  todayPercentage: string = '';
+  monthlySales: number = 0;
+  monthlyPercentage: string = '';
+  totalSalesFY: number = 0;
+  totalPercentageFY: string = '';
+  fiscalYearTitle: string = '';
+  currentYearSales: number = 0;
+  lastYearSales: number = 0;
+  monthlyChartData: number[] = [];
+  monthlyChartLabels: string[] = [];
+  yesterdaySales: number = 0;
+  totalSalesQuantity: number = 0;
 
-  constructor() {
+  constructor(
+    private dailySlaes: DailySalesService,
+    private injector: EnvironmentInjector,
+  ) {
     //constructor
   }
 
@@ -69,18 +91,294 @@ export class MainComponent implements OnInit {
     this.chart2();
     this.areachart();
     this.barchart();
+    this.loadSalesList();
+
   }
 
-  private areachart() {
+  loadSalesList() {
+    runInInjectionContext(this.injector, () => {
+      this.dailySlaes.getDailySalesList().subscribe((data) => {
+        this.dataSource.data = data;
+        console.log(this.dataSource.data);
+
+        // ✅ Calculate total quantity from all products
+        this.totalSalesQuantity = data.reduce((sum, item) => sum + item.quantity, 0);
+
+        // Call all data calculation methods
+        this.calculateDailySales(data);
+        this.calculateMonthlySales(data);
+        this.calculateFiscalYearSales(data);
+        this.calculateLast12MonthsSales(data);
+
+        // Then, call the chart methods to render the charts with the new data
+        this.chart1();
+        const dailySalesData = this.getLast10DaysSales(data);
+        this.barchart(dailySalesData);
+        const yearlyData = this.calculateYearlySales(data);
+        this.areachart(yearlyData.years, yearlyData.quantities);
+
+        console.log('Updated Sales Data:', {
+          todaySales: this.todaySales,
+          todayPercentage: this.todayPercentage,
+          monthlySales: this.monthlySales,
+          monthlyPercentage: this.monthlyPercentage,
+          totalSalesFY: this.totalSalesFY,
+          totalPercentageFY: this.totalPercentageFY,
+          fiscalYearTitle: this.fiscalYearTitle,
+          totalSalesQuantity: this.totalSalesQuantity // ✅ log it
+        });
+      });
+    });
+  }
+
+
+  processSalesData(data: any[]) {
+    this.dataSource.data = data;
+    this.calculateDailySales(data);
+    this.calculateMonthlySales(data);
+    this.calculateFiscalYearSales(data);
+    console.log('Updated Sales Data:', {
+      todaySales: this.todaySales,
+      todayPercentage: this.todayPercentage,
+      monthlySales: this.monthlySales,
+      monthlyPercentage: this.monthlyPercentage,
+      totalSalesFY: this.totalSalesFY,
+      totalPercentageFY: this.totalPercentageFY,
+      fiscalYearTitle: this.fiscalYearTitle
+    });
+  }
+
+  calculateDailySales(data: any[]) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    let todayQuantity = 0;
+    let yesterdayQuantity = 0;
+
+    data.forEach(item => {
+      const itemDate = new Date(item.createdAt.seconds * 1000);
+      itemDate.setHours(0, 0, 0, 0);
+
+      if (itemDate.getTime() === today.getTime()) {
+        todayQuantity += item.quantity;
+      } else if (itemDate.getTime() === yesterday.getTime()) {
+        yesterdayQuantity += item.quantity;
+      }
+    });
+
+    this.todaySales = todayQuantity;
+    this.yesterdaySales = yesterdayQuantity; // 👈 store it here
+
+    // Optional percentage message
+    if (yesterdayQuantity === 0) {
+      this.todayPercentage = todayQuantity > 0 ? '100% Higher Than Yesterday' : 'No sales yesterday';
+    } else {
+      const percentage = ((todayQuantity - yesterdayQuantity) / yesterdayQuantity) * 100;
+      this.todayPercentage = `${Math.abs(percentage).toFixed(0)}% ${percentage >= 0 ? 'Higher' : 'Lower'} Than Yesterday`;
+    }
+  }
+
+
+
+  calculateMonthlySales(data: any[]) {
+    const now = new Date();
+    const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
+
+    let currentMonthQuantity = 0;
+    let lastMonthQuantity = 0;
+
+    data.forEach(item => {
+      const itemDate = new Date(item.createdAt.seconds * 1000);
+
+      if (itemDate >= currentMonthStart) {
+        currentMonthQuantity += item.quantity;
+      } else if (itemDate >= lastMonthStart && itemDate <= lastMonthEnd) {
+        lastMonthQuantity += item.quantity;
+      }
+    });
+
+    this.monthlySales = currentMonthQuantity;
+    if (lastMonthQuantity === 0) {
+      this.monthlyPercentage = currentMonthQuantity > 0 ? '100% Higher Than Last Month' : 'No sales last month';
+    } else {
+      const percentage = ((currentMonthQuantity - lastMonthQuantity) / lastMonthQuantity) * 100;
+      this.monthlyPercentage = `${Math.abs(percentage).toFixed(0)}% ${percentage >= 0 ? 'Higher' : 'Lower'} Than Last Month`;
+    }
+  }
+
+  calculateFiscalYearSales(data: any[]) {
+    const now = new Date();
+    let currentFYStart: Date;
+    let lastFYStart: Date;
+    let lastFYEnd: Date;
+
+    const currentYear = now.getFullYear();
+
+    if (now.getMonth() >= 3) {
+      currentFYStart = new Date(currentYear, 3, 1);
+      lastFYStart = new Date(currentYear - 1, 3, 1);
+      lastFYEnd = new Date(currentYear, 2, 31);
+      this.fiscalYearTitle = `Total Sales FY-${currentYear.toString().slice(-2)}-${(currentYear + 1).toString().slice(-2)}`;
+    } else {
+      currentFYStart = new Date(currentYear - 1, 3, 1);
+      lastFYStart = new Date(currentYear - 2, 3, 1);
+      lastFYEnd = new Date(currentYear - 1, 2, 31);
+      this.fiscalYearTitle = `Total Sales FY-${(currentYear - 1).toString().slice(-2)}-${currentYear.toString().slice(-2)}`;
+    }
+
+    let currentFYQuantity = 0;
+    let lastFYQuantity = 0;
+
+    data.forEach(item => {
+      const itemDate = new Date(item.createdAt.seconds * 1000);
+      if (itemDate >= currentFYStart) {
+        currentFYQuantity += item.quantity;
+      } else if (itemDate >= lastFYStart && itemDate <= lastFYEnd) {
+        lastFYQuantity += item.quantity;
+      }
+    });
+
+    this.totalSalesFY = currentFYQuantity;
+    this.currentYearSales = currentFYQuantity; // Assign to new property
+    this.lastYearSales = lastFYQuantity; // Assign to new property
+
+    if (lastFYQuantity === 0) {
+      this.totalPercentageFY = currentFYQuantity > 0 ? '100% Higher Than Last Year' : 'No sales last year';
+    } else {
+      const percentage = ((currentFYQuantity - lastFYQuantity) / lastFYQuantity) * 100;
+      this.totalPercentageFY = `${Math.abs(percentage).toFixed(0)}% ${percentage >= 0 ? 'Higher' : 'Lower'} Than Last Year`;
+    }
+  }
+
+  calculateYearlySales(data: any[]): { years: string[], quantities: number[] } {
+    const now = new Date();
+    const yearlySalesMap = new Map<number, number>();
+
+    // Initialize a map for the last 5 years with a quantity of 0
+    for (let i = 0; i < 5; i++) {
+      yearlySalesMap.set(now.getFullYear() - i, 0);
+    }
+
+    // Iterate through the data and sum quantities by year
+    data.forEach(item => {
+      // Ensure the data has a valid createdAt timestamp
+      if (item.createdAt && item.createdAt.seconds) {
+        const itemYear = new Date(item.createdAt.seconds * 1000).getFullYear();
+        if (yearlySalesMap.has(itemYear)) {
+          yearlySalesMap.set(itemYear, yearlySalesMap.get(itemYear)! + item.quantity);
+        }
+      }
+    });
+
+    // Convert the map to sorted arrays for the chart
+    const sortedYears = Array.from(yearlySalesMap.keys()).sort((a, b) => a - b);
+    const sortedQuantities = sortedYears.map(year => yearlySalesMap.get(year)!);
+
+    // Return a formatted object with years and quantities
+    return {
+      years: sortedYears.map(String),
+      quantities: sortedQuantities
+    };
+  }
+
+  getLast10DaysSales(data: any[]): { x: string; y: number }[] {
+    const salesMap = new Map<string, number>();
+    const now = new Date();
+
+    // Prepare last 10 days map using local time
+    for (let i = 9; i >= 0; i--) {
+      const date = new Date(now);
+      date.setDate(now.getDate() - i);
+      date.setHours(0, 0, 0, 0); // Reset time to start of day
+
+      const dateKey = date.getFullYear() + '-' +
+        (date.getMonth() + 1).toString().padStart(2, '0') + '-' +
+        date.getDate().toString().padStart(2, '0');
+
+      salesMap.set(dateKey, 0);
+    }
+
+    // Sum up quantities for each day
+    data.forEach((item) => {
+      if (item.createdAt && item.createdAt.seconds) {
+        const itemDate = new Date(item.createdAt.seconds * 1000);
+        itemDate.setHours(0, 0, 0, 0); // Reset to midnight local time
+
+        const itemKey = itemDate.getFullYear() + '-' +
+          (itemDate.getMonth() + 1).toString().padStart(2, '0') + '-' +
+          itemDate.getDate().toString().padStart(2, '0');
+
+        if (salesMap.has(itemKey)) {
+          salesMap.set(itemKey, salesMap.get(itemKey)! + item.quantity);
+        }
+      }
+    });
+
+    // Format final array for chart (e.g., Sep 05)
+    return Array.from(salesMap.entries()).map(([dateStr, quantity]) => {
+      const [year, month, day] = dateStr.split('-').map(Number);
+      const date = new Date(year, month - 1, day);
+      const label = date.toLocaleDateString('default', { month: 'short', day: 'numeric' });
+
+      return {
+        x: label,
+        y: quantity,
+      };
+    });
+  }
+
+
+
+  calculateLast12MonthsSales(data: any[]) {
+    const salesByMonth = new Map<string, number>();
+    const now = new Date();
+
+    // Initialize map for the last 12 months with 0 sales
+    for (let i = 0; i < 12; i++) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const monthYearStr = `${d.getFullYear()}-${d.getMonth() + 1}`;
+      salesByMonth.set(monthYearStr, 0);
+    }
+
+    // Aggregate sales data by month
+    data.forEach(item => {
+      if (item.createdAt && item.createdAt.seconds) {
+        const itemDate = new Date(item.createdAt.seconds * 1000);
+        const monthYearStr = `${itemDate.getFullYear()}-${itemDate.getMonth() + 1}`;
+        if (salesByMonth.has(monthYearStr)) {
+          salesByMonth.set(monthYearStr, salesByMonth.get(monthYearStr)! + item.quantity);
+        }
+      }
+    });
+
+    // Extract and sort the data for the chart
+    const sortedMonths = Array.from(salesByMonth.keys()).sort((a, b) => {
+      const [yearA, monthA] = a.split('-').map(Number);
+      const [yearB, monthB] = b.split('-').map(Number);
+      if (yearA !== yearB) return yearA - yearB;
+      return monthA - monthB;
+    });
+
+    this.monthlyChartLabels = sortedMonths.map(str => {
+      const [year, month] = str.split('-');
+      const date = new Date(Number(year), Number(month) - 1, 1);
+      return date.toLocaleString('default', { month: 'short' });
+    });
+
+    this.monthlyChartData = sortedMonths.map(str => salesByMonth.get(str)!);
+  }
+
+  private areachart(years: string[] = [], quantities: number[] = []) {
     this.areaChartOptions = {
       series: [
         {
-          name: 'New Clients',
-          data: [31, 40, 28, 51, 42, 85, 77],
-        },
-        {
-          name: 'Old Clients',
-          data: [11, 32, 45, 32, 34, 52, 41],
+          name: 'Total Sales',
+          data: quantities,
         },
       ],
       chart: {
@@ -91,7 +389,7 @@ export class MainComponent implements OnInit {
         },
         foreColor: '#9aa0ac',
       },
-      colors: ['#FC8380', '#6973C6'],
+      colors: ['#6973C6'], // Use a single color since there's only one data series
       dataLabels: {
         enabled: false,
       },
@@ -99,16 +397,11 @@ export class MainComponent implements OnInit {
         curve: 'smooth',
       },
       xaxis: {
-        type: 'datetime',
-        categories: [
-          '2018-09-19',
-          '2018-09-20',
-          '2018-09-21',
-          '2018-09-22',
-          '2018-09-23',
-          '2018-09-24',
-          '2018-09-25',
-        ],
+        type: 'category', // Change type to 'category' for yearly labels
+        categories: years, // Use the calculated years for categories
+        title: {
+          text: 'Year',
+        },
       },
       legend: {
         show: true,
@@ -134,109 +427,12 @@ export class MainComponent implements OnInit {
     };
   }
 
-  private barchart() {
+  private barchart(dailySalesData: { x: string; y: number }[] = []) {
     this.barChartOptions = {
       series: [
         {
-          name: 'Actual',
-          data: [
-            {
-              x: '2011',
-              y: 1292,
-              goals: [
-                {
-                  name: 'Expected',
-                  value: 1400,
-                  strokeWidth: 10,
-                  strokeColor: '#fc8380',
-                },
-              ],
-            },
-            {
-              x: '2012',
-              y: 4432,
-              goals: [
-                {
-                  name: 'Expected',
-                  value: 5400,
-                  strokeWidth: 10,
-                  strokeColor: '#fc8380',
-                },
-              ],
-            },
-            {
-              x: '2013',
-              y: 5423,
-              goals: [
-                {
-                  name: 'Expected',
-                  value: 5200,
-                  strokeWidth: 10,
-                  strokeColor: '#fc8380',
-                },
-              ],
-            },
-            {
-              x: '2014',
-              y: 6653,
-              goals: [
-                {
-                  name: 'Expected',
-                  value: 6500,
-                  strokeWidth: 10,
-                  strokeColor: '#fc8380',
-                },
-              ],
-            },
-            {
-              x: '2015',
-              y: 8133,
-              goals: [
-                {
-                  name: 'Expected',
-                  value: 6600,
-                  strokeWidth: 10,
-                  strokeColor: '#fc8380',
-                },
-              ],
-            },
-            {
-              x: '2016',
-              y: 7132,
-              goals: [
-                {
-                  name: 'Expected',
-                  value: 7500,
-                  strokeWidth: 10,
-                  strokeColor: '#fc8380',
-                },
-              ],
-            },
-            {
-              x: '2017',
-              y: 7332,
-              goals: [
-                {
-                  name: 'Expected',
-                  value: 8700,
-                  strokeWidth: 10,
-                  strokeColor: '#fc8380',
-                },
-              ],
-            },
-            {
-              x: '2018',
-              y: 6553,
-              goals: [
-                {
-                  name: 'Expected',
-                  value: 7300,
-                  strokeWidth: 10,
-                  strokeColor: '#fc8380',
-                },
-              ],
-            },
-          ],
+          name: 'Daily Sales',
+          data: dailySalesData,
         },
       ],
       chart: {
@@ -251,7 +447,7 @@ export class MainComponent implements OnInit {
       },
       colors: ['#6973c6'],
       dataLabels: {
-        enabled: false,
+        enabled: true,
       },
       grid: {
         show: true,
@@ -268,30 +464,29 @@ export class MainComponent implements OnInit {
         },
       },
       legend: {
-        show: true,
-        showForSingleSeries: true,
-        offsetX: 0,
-        offsetY: 0,
-        position: 'top',
-        customLegendItems: ['Actual', 'Expected'],
-        markers: {
-          fillColors: ['#6973c6', '#fc8380'],
+        show: false,
+      },
+      xaxis: {
+        title: {
+          text: 'Date',
+        },
+      },
+      yaxis: {
+        title: {
+          text: 'Quantity',
         },
       },
     };
   }
+
 
   // Chart 1
   private chart1() {
     this.chartOptions = {
       series: [
         {
-          name: 'High - 2013',
-          data: [15, 13, 30, 23, 13, 32, 27],
-        },
-        {
-          name: 'Low - 2013',
-          data: [12, 25, 14, 18, 27, 13, 21],
+          name: 'Monthly Sales',
+          data: this.monthlyChartData,
         },
       ],
       chart: {
@@ -310,7 +505,7 @@ export class MainComponent implements OnInit {
           show: false,
         },
       },
-      colors: ['#9F78FF', '#858585'],
+      colors: ['#9F78FF'], // Use a single color since there's one data series
       stroke: {
         curve: 'smooth',
       },
@@ -323,14 +518,15 @@ export class MainComponent implements OnInit {
         size: 3,
       },
       xaxis: {
-        categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
+        categories: this.monthlyChartLabels, // Use the new labels
         title: {
           text: 'Month',
         },
       },
       yaxis: {
-        min: 5,
-        max: 40,
+        title: {
+          text: 'Quantity',
+        },
       },
       legend: {
         position: 'top',
@@ -420,89 +616,4 @@ export class MainComponent implements OnInit {
     };
   }
 
-  // order data
-
-  orderData = [
-    {
-      name: 'John Deo',
-      orderDate: '15-08-2019',
-      status: 'Paid',
-      phone: '(123)123456',
-      receiptIcon: 'far fa-file-pdf tbl-pdf',
-      img: 'assets/images/user/user8.jpg',
-      actionLink: '#/admin/orders/edit',
-    },
-    {
-      name: 'Jens Brincker',
-      orderDate: '16-08-2019',
-      status: 'Unpaid',
-      phone: '(123)123456',
-      receiptIcon: 'far fa-file-pdf tbl-pdf',
-      img: 'assets/images/user/user2.jpg',
-      actionLink: '#/admin/orders/edit',
-    },
-    {
-      name: 'Mark Hay',
-      orderDate: '18-08-2019',
-      status: 'Paid',
-      phone: '(123)123456',
-      receiptIcon: 'far fa-file-pdf tbl-pdf',
-      img: 'assets/images/user/user3.jpg',
-      actionLink: '#/admin/orders/edit',
-    },
-    {
-      name: 'Anthony Davie',
-      orderDate: '17-08-2019',
-      status: 'Unpaid',
-      phone: '(123)123456',
-      receiptIcon: 'far fa-file-pdf tbl-pdf',
-      img: 'assets/images/user/user4.jpg',
-      actionLink: '#/admin/orders/edit',
-    },
-    {
-      name: 'Alan Gilchrist',
-      orderDate: '23-08-2019',
-      status: 'Paid',
-      phone: '(123)123456',
-      receiptIcon: 'far fa-file-pdf tbl-pdf',
-      img: 'assets/images/user/user6.jpg',
-      actionLink: '#/admin/orders/edit',
-    },
-    {
-      name: 'Sue Woodger',
-      orderDate: '26-08-2019',
-      status: 'Pending',
-      phone: '(123)123456',
-      receiptIcon: 'far fa-file-pdf tbl-pdf',
-      img: 'assets/images/user/user7.jpg',
-      actionLink: '#/admin/orders/edit',
-    },
-    {
-      name: 'David Perry',
-      orderDate: '29-08-2019',
-      status: 'Unpaid',
-      phone: '(123)123456',
-      receiptIcon: 'far fa-file-pdf tbl-pdf',
-      img: 'assets/images/user/user8.jpg',
-      actionLink: '#/admin/orders/edit',
-    },
-    {
-      name: 'Sneha Pandit',
-      orderDate: '28-08-2019',
-      status: 'Paid',
-      phone: '(123)123456',
-      receiptIcon: 'far fa-file-pdf tbl-pdf',
-      img: 'assets/images/user/user9.jpg',
-      actionLink: '#/admin/orders/edit',
-    },
-  ];
-
-  orderColumnDefinitions = [
-    { def: 'name', label: 'Name', type: 'text' },
-    { def: 'orderDate', label: 'Order Date', type: 'text' },
-    { def: 'status', label: 'Status', type: 'badge' },
-    { def: 'phone', label: 'Phone', type: 'phone' },
-    { def: 'receiptIcon', label: 'Receipt', type: 'file' },
-    { def: 'actions', label: 'Actions', type: 'actionBtn' },
-  ];
 }

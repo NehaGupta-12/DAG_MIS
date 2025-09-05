@@ -339,7 +339,7 @@ export class StockReportComponent {
 
     this.finalTableData = finalReport;
     this.productHeaders = allModelNames;
-    this.tableColumns = ['division', 'country', 'town', 'name', ...this.productHeaders, 'total'];
+    this.tableColumns = ['country', 'division', 'town', 'name', ...this.productHeaders, 'total'];
   }
 
 
@@ -419,7 +419,7 @@ export class StockReportComponent {
     const worksheet = workbook.addWorksheet('Inventory Report');
 
     const headers = [
-      'S.N', 'Division', 'Country', 'Town', 'Dealer Name',
+      'S.N', 'Country', 'Division', 'Town', 'Dealer Name',
       ...this.productHeaders,
       'Total'
     ];
