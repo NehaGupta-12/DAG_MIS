@@ -2,3 +2,16 @@
   border-radius: 10px; /* rounded corners */
   padding: 10px;
 }
+
+.responsive_table {
+  width: 100%;
+  overflow-x: auto;   /* enable horizontal scrolling */
+}
+
+.advance-table {
+  min-width: 100%;    /* table should at least fill parent */
+  table-layout: auto; /* let columns size naturally */
+}
+.card {
+  overflow: hidden;   /* keep card from expanding */
+}

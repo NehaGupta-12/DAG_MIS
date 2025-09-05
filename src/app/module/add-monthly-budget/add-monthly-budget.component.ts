@@ -40,7 +40,7 @@ import { MonthlyBudgetService } from "../monthly-budget.service";
 export class AddMonthlyBudgetComponent implements OnInit {
 
   isEditMode = false;
-  editingDocId: string | null = null; // track edited product
+  editingDocId: string | null = null;
   budgetForm: FormGroup;
   displayedColumns: string[] = ['country', 'year', 'month', 'period', 'name', 'sku', 'quantity', 'action'];
   dataSource = new MatTableDataSource<any>();
@@ -78,9 +78,8 @@ export class AddMonthlyBudgetComponent implements OnInit {
       .pipe(map(data => data?.subcategories || []));
 
     // Form
-    // Remove required validator for 'products'
     this.budgetForm = this.fb.group({
-      products: [''], // <-- no Validators.required
+      products: [''],
       period: this.fb.group({
         start: ['', Validators.required],
         end: ['', Validators.required],
@@ -155,7 +154,6 @@ export class AddMonthlyBudgetComponent implements OnInit {
     const monthIndex = this.getMonthIndex(monthValue);
 
     if (monthIndex === -1) {
-      console.error('Invalid month name:', monthValue);
       this.budgetForm.get('period')?.reset();
       return;
     }
@@ -180,8 +178,7 @@ export class AddMonthlyBudgetComponent implements OnInit {
       'Feb': 1, 'February': 1,
       'Mar': 2, 'March': 2,
       'Apr': 3, 'April': 3,
-      'May': 4,
-      'Jun': 5, 'June': 5,
+      'May': 4, 'Jun': 5, 'June': 5,
       'Jul': 6, 'July': 6,
       'Aug': 7, 'August': 7,
       'Sep': 8, 'Sept': 8, 'September': 8,
@@ -201,33 +198,33 @@ export class AddMonthlyBudgetComponent implements OnInit {
       return;
     }
 
-    const exists = this.addedProducts.some(
-      p =>
-        p.name === product.name &&
-        p.country === formValues.country &&
-        p.year === formValues.year &&
-        p.month === formValues.month &&
-        p.period?.start?.toString() === formValues.period?.start?.toString() &&
-        p.period?.end?.toString() === formValues.period?.end?.toString()
+    // 🔹 Check duplicate by name + country + year only
+    const existsGlobal = this.dataSource.data.some(p =>
+      p.name === product.name &&
+      p.country === formValues.country &&
+      p.year === formValues.year
     );
 
-    if (exists) {
-      Swal.fire('Info', `Product "${product.name}" already added for this country/year/month.`, 'info');
+    const existsLocal = this.addedProducts.some(p =>
+      p.name === product.name &&
+      p.country === formValues.country &&
+      p.year === formValues.year
+    );
+
+    if (existsGlobal || existsLocal) {
+      Swal.fire('Duplicate', `Product "${product.name}" for ${formValues.country} (${formValues.year}) already exists. Use update instead.`, 'warning');
       return;
     }
 
-    this.addedProducts = [
-      ...this.addedProducts,
-      {
-        ...product,
-        country: formValues.country,
-        year: formValues.year,
-        month: formValues.month,
-        period: formValues.period,
-        quantity: 1,
-        __isNew: true
-      }
-    ];
+    this.addedProducts.push({
+      ...product,
+      country: formValues.country,
+      year: formValues.year,
+      month: formValues.month,
+      period: formValues.period,
+      quantity: 1,
+      __isNew: true
+    });
 
     this.budgetForm.get('products')?.reset();
   }
@@ -307,9 +304,14 @@ export class AddMonthlyBudgetComponent implements OnInit {
     this.dealer.back();
   }
 
-  // Update canAddProduct only for Add button
   get canAddProduct(): boolean {
     const f = this.budgetForm.value;
     return !!(f.country && f.year && f.month && f.products);
+  }
+
+  preventDecimal(event: KeyboardEvent) {
+    if (event.key === '.' || event.key === ',') {
+      event.preventDefault();
+    }
   }
 }
