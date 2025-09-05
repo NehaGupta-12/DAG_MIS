@@ -26,7 +26,7 @@ import { provideAnimationsAsync } from '@angular/platform-browser/animations/asy
 import { environment } from '../environments/environment';
 
 // 🔥 COMPAT IMPORTS
-import {AngularFireModule, FIREBASE_OPTIONS} from '@angular/fire/compat';
+import { AngularFireModule } from '@angular/fire/compat';
 import { AngularFireAuthModule } from '@angular/fire/compat/auth';
 import { AngularFireDatabaseModule } from '@angular/fire/compat/database';
 import { AngularFireFunctionsModule } from '@angular/fire/compat/functions';
@@ -42,7 +42,7 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(),
     provideRouter(APP_ROUTE),
     provideAnimations(),
-    // {provide: FIREBASE_OPTIONS, useValue: environment.firebaseConfig},
+
     // ✅ AngularFire COMPAT Setup
     importProvidersFrom(
       AngularFireModule.initializeApp(environment.firebaseConfig),

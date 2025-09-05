@@ -1,51 +1,105 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, of, throwError } from 'rxjs';
 import { Router } from '@angular/router';
-import { HttpClient } from '@angular/common/http';
-
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { AngularFireDatabase } from '@angular/fire/compat/database';
+import { UserDataModel } from '../module/add-user/UserData.model';
+import { AngularFireFunctions } from '@angular/fire/compat/functions';
+import { firstValueFrom } from 'rxjs';
+import { AngularFireAuth } from '@angular/fire/compat/auth';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
-  private currentUserSubject = new BehaviorSubject<any>(JSON.parse(localStorage.getItem('currentUser') || 'null'));
-  public currentUser = this.currentUserSubject.asObservable();
+  constructor(
+    public mAuth: AngularFireAuth,
+    private router: Router,
+    public functions: AngularFireFunctions,
+    private mDatabase: AngularFireDatabase,
+    private _snackBar: MatSnackBar
+  ) {}
 
-  constructor(private http: HttpClient, private router: Router) {}
+  async login(email: string, password: string) {
+    localStorage.clear();
+    try {
+      const userCredential = await this.mAuth.signInWithEmailAndPassword(
+        email,
+        password
+      ).catch(() => {
+        this._snackBar.open('Invalid Username Or Password', 'Close', {
+          duration: 3000,
+        });
+        return null;
+      });
 
+      if (userCredential && userCredential.user) {
+        const user = userCredential.user;
+        console.log('Login successful:', user);
 
-  public get currentUserValue(): any {
-    return this.currentUserSubject.value;
-  }
+        localStorage.setItem('user', JSON.stringify(user));
+        localStorage.setItem('uid', user.uid);
+        if (user.email) {
+          localStorage.setItem('userEmail', user.email);
+        }
 
-  // LOGIN: validate from localStorage
-  login(email: string , password: string): Observable<any> {
-    const registeredUser = JSON.parse(localStorage.getItem('registeredUser') || '{}');
-
-    if (registeredUser.email === email && registeredUser.password === password) {
-      const user = { email, token: 'mock-token' };
-      localStorage.setItem('currentUser', JSON.stringify(user));
-      this.currentUserSubject.next(user);
-      return of(user); // success
-    } else {
-      return throwError(() => new Error('Username or password is incorrect'));
+        await this.setUserData(user.uid);
+      }
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        this._snackBar.open('Login failed: ' + err.message, 'Close', {
+          duration: 3000,
+        });
+      }
     }
   }
 
   logout(): void {
     console.log('Inside logout service');
-
     localStorage.removeItem('currentUser');
+    localStorage.removeItem('user');
+    localStorage.removeItem('uid');
+    localStorage.removeItem('userEmail');
+    localStorage.removeItem('userData');
     sessionStorage.clear();
-    this.currentUserSubject.next(null);
 
     this.router.navigateByUrl('/authentication/signin', { replaceUrl: true });
   }
 
+  async setUserData(uid: string) {
+    try {
+      this.mDatabase
+        .object<UserDataModel>('users/' + uid)
+        .valueChanges()
+        .subscribe((userData) => {
+          if (userData) {
+            console.log('USERDATA ===>>>', userData);
+            localStorage.setItem('userData', JSON.stringify(userData));
+          }
 
+          this.router.navigate(['home/dashboard']).then(() => {
+            console.log('Redirected to dashboard');
+          });
+        });
+    } catch (error) {
+      console.error('Error in setUserData', error);
+    }
+  }
 
+  async createUser(email: string, password: string): Promise<any> {
+    const callable = this.functions.httpsCallable<
+      { email: string; password: string },
+      UserDataModel
+    >('createUserCallable');
 
-
-
-
+    try {
+      return await firstValueFrom(callable({ email, password }));
+    } catch (err) {
+      if (err instanceof Error) {
+        console.error('Error creating user:', err.message);
+      } else {
+        console.error(String(err));
+      }
+      throw err;
+    }
+  }
 }
