@@ -1,4 +1,4 @@
-import {Component, Inject, OnInit, ViewChild} from '@angular/core';
+import {Component, EnvironmentInjector, Inject, OnInit, runInInjectionContext, ViewChild} from '@angular/core';
 import {CommonModule, DatePipe, NgIf} from "@angular/common";
 import {FeatherIconsComponent} from "@shared/components/feather-icons/feather-icons.component";
 import {
@@ -21,6 +21,7 @@ import {MatProgressSpinner} from "@angular/material/progress-spinner";
 import {MatTooltip} from "@angular/material/tooltip";
 
 import {MonthlyBudgetService} from "../monthly-budget.service";
+import Swal from "sweetalert2";
 
 @Component({
   selector: 'app-view-monthly-budget',
@@ -69,6 +70,7 @@ export class ViewMonthlyBudgetComponent implements OnInit {
   constructor(
     private dialog: MatDialog,
     private router: Router,
+    private injector : EnvironmentInjector,
     private monthlybudgetService: MonthlyBudgetService,
     @Inject(MAT_DIALOG_DATA) public data: any
   ) {}
@@ -111,7 +113,7 @@ export class ViewMonthlyBudgetComponent implements OnInit {
 
     this.dialog.closeAll();
 
-    // 🔹 Pass product + parent data
+    // 🔹 Pass product + parent data including month
     this.router.navigate(['/module/add-monthly-budget'], {
       queryParams: {
         ...product,
@@ -121,7 +123,8 @@ export class ViewMonthlyBudgetComponent implements OnInit {
         budgetQuantity: product.budgetQuantity,
         country: this.data?.country,
         year: this.data?.year,
-        period: JSON.stringify(product.period), // ✅ ensure object
+        month: this.data?.month,               // ✅ pass month
+        period: JSON.stringify(product.period) // ✅ ensure object
       }
     });
   }
@@ -129,6 +132,42 @@ export class ViewMonthlyBudgetComponent implements OnInit {
 
 
 
+  deleteBudget(row: any) {debugger
+    const docId = row.id;
+
+    if (!docId) {
+      Swal.fire('Error', 'Missing document ID for this budget.', 'error');
+      return;
+    }
+
+    Swal.fire({
+      title: 'Are you sure?',
+      text: 'You will not be able to recover this Budget Product!',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, delete it!',
+      cancelButtonText: 'No, cancel',
+    }).then((result) => {
+      if (!result.isConfirmed) return;
+
+      this.isLoading = true;
+
+      runInInjectionContext(this.injector, () => {
+        this.monthlybudgetService.deleteBudget(docId)
+          .then(() => {
+            this.dataSource.data = this.dataSource.data.filter((p: any) => p.id !== docId);
+            Swal.fire('Deleted!', 'Budget Product has been deleted.', 'success');
+          })
+          .catch((err) => {
+            console.error('Delete failed:', err);
+            Swal.fire('Error', 'Failed to delete the Budget product. Please try again.', 'error');
+          })
+          .finally(() => {
+            this.isLoading = false;
+          });
+      });
+    });
+  }
 
 
 }

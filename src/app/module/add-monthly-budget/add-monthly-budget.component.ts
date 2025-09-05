@@ -1,7 +1,7 @@
 import { Component, EnvironmentInjector, OnInit, runInInjectionContext } from '@angular/core';
-import { FormGroup, UntypedFormBuilder, Validators, FormsModule, ReactiveFormsModule } from "@angular/forms";
+import { FormGroup, FormsModule, ReactiveFormsModule, UntypedFormBuilder, Validators } from "@angular/forms";
 import { CommonModule, Location, NgForOf } from "@angular/common";
-import {ActivatedRoute, Router} from "@angular/router";
+import { ActivatedRoute, Router } from "@angular/router";
 import Swal from "sweetalert2";
 import { MatTableModule, MatTableDataSource } from "@angular/material/table";
 import { MatButtonModule } from "@angular/material/button";
@@ -14,12 +14,14 @@ import { MatNativeDateModule } from "@angular/material/core";
 import { map } from "rxjs/operators";
 import { AngularFireDatabase } from "@angular/fire/compat/database";
 import { Observable } from "rxjs";
-
 import { ProductMasterService } from "../product-master.service";
-import {MonthlyBudgetService} from "../monthly-budget.service";
+import { MonthlyBudgetService } from "../monthly-budget.service";
 
 @Component({
   selector: 'app-add-monthly-budget',
+  standalone: true,
+  templateUrl: './add-monthly-budget.component.html',
+  styleUrls: ['./add-monthly-budget.component.scss'],
   imports: [
     CommonModule,
     ReactiveFormsModule,
@@ -33,13 +35,12 @@ import {MonthlyBudgetService} from "../monthly-budget.service";
     MatTableModule,
     MatDatepickerModule,
     MatNativeDateModule
-  ],
-  templateUrl: './add-monthly-budget.component.html',
-  standalone: true,
+  ]
 })
 export class AddMonthlyBudgetComponent implements OnInit {
 
-  isEditMode: boolean = false;
+  isEditMode = false;
+  editingDocId: string | null = null; // track edited product
   budgetForm: FormGroup;
   displayedColumns: string[] = ['country', 'year', 'month', 'period', 'name', 'sku', 'quantity', 'action'];
   dataSource = new MatTableDataSource<any>();
@@ -54,13 +55,13 @@ export class AddMonthlyBudgetComponent implements OnInit {
     private fb: UntypedFormBuilder,
     private dealer: Location,
     private route: ActivatedRoute,
+    private router: Router,
     private productService: ProductMasterService,
     private mDatabase: AngularFireDatabase,
     private monthlybudgetService: MonthlyBudgetService,
     private injector: EnvironmentInjector,
-    private router: Router   // 👈 Add this
   ) {
-    // Fetch Countries, Years, Months
+    // Dropdowns
     this._countriesTypes$ = this.mDatabase
       .object<{ subcategories: string[] }>('typelist/Countries')
       .valueChanges()
@@ -76,16 +77,17 @@ export class AddMonthlyBudgetComponent implements OnInit {
       .valueChanges()
       .pipe(map(data => data?.subcategories || []));
 
-    // Form initialization
+    // Form
+    // Remove required validator for 'products'
     this.budgetForm = this.fb.group({
-      products: ['', [Validators.required]],
+      products: [''], // <-- no Validators.required
       period: this.fb.group({
         start: ['', Validators.required],
         end: ['', Validators.required],
       }),
-      country: ['', [Validators.required]],
-      year: ['', [Validators.required]],
-      month: ['', [Validators.required]]
+      country: ['', Validators.required],
+      year: ['', Validators.required],
+      month: ['', Validators.required]
     });
   }
 
@@ -95,12 +97,7 @@ export class AddMonthlyBudgetComponent implements OnInit {
 
     runInInjectionContext(this.injector, () => {
       this.budgetForm.get('month')?.valueChanges.subscribe(() => this.updatePeriod());
-    });
-
-    runInInjectionContext(this.injector, () => {
-      this.budgetForm.get('year')?.valueChanges.subscribe(() => {
-        this.budgetForm.get('period')?.reset();
-      });
+      this.budgetForm.get('year')?.valueChanges.subscribe(() => this.budgetForm.get('period')?.reset());
     });
 
     this.route.queryParams.subscribe(params => {
@@ -108,10 +105,9 @@ export class AddMonthlyBudgetComponent implements OnInit {
     });
   }
 
-
-
   private loadEditMode(params: any) {
     this.isEditMode = true;
+    this.editingDocId = params['docId'];
     const periodObj = params['period'] ? JSON.parse(params['period']) : null;
 
     this.budgetForm.patchValue({
@@ -167,7 +163,6 @@ export class AddMonthlyBudgetComponent implements OnInit {
     let startDate: Date;
     let endDate: Date;
 
-    // Months Apr (3) - Dec (11) → startFY, Jan (0) - Mar (2) → endFY
     if (monthIndex >= 3) {
       startDate = new Date(startFY, monthIndex, 1);
       endDate = new Date(startFY, monthIndex + 1, 0);
@@ -176,13 +171,9 @@ export class AddMonthlyBudgetComponent implements OnInit {
       endDate = new Date(endFY, monthIndex + 1, 0);
     }
 
-    this.budgetForm.get('period')?.patchValue({
-      start: startDate,
-      end: endDate
-    });
+    this.budgetForm.get('period')?.patchValue({ start: startDate, end: endDate });
   }
 
-  /** Map DB month string → JS index (0 = Jan … 11 = Dec) */
   getMonthIndex(monthName: string): number {
     const map: { [key: string]: number } = {
       'Jan': 0, 'January': 0,
@@ -201,66 +192,51 @@ export class AddMonthlyBudgetComponent implements OnInit {
     return map[monthName] ?? -1;
   }
 
-
-
-
-  // getMonthIndex(monthName: string): number {
-  //   const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-  //   return months.indexOf(monthName); // 0-based
-  // }
-
-
-
   addProduct() {
-    console.log(" addProduct() called");
-
     const formValues = this.budgetForm.getRawValue();
-    console.log(" Form Values:", formValues);
-
     const product = this.vehicledataSource.data.find(p => p.name === formValues.products);
-
 
     if (!product) {
       Swal.fire('Error', 'Please select a valid product.', 'error');
-      console.error(" No product found for:", formValues.products);
       return;
     }
 
     const exists = this.addedProducts.some(
-      p => p.name === product.name && p.country === formValues.country && p.year === formValues.year
+      p =>
+        p.name === product.name &&
+        p.country === formValues.country &&
+        p.year === formValues.year &&
+        p.month === formValues.month &&
+        p.period?.start?.toString() === formValues.period?.start?.toString() &&
+        p.period?.end?.toString() === formValues.period?.end?.toString()
     );
-    console.log(" Already Exists Check:", exists);
 
     if (exists) {
-      Swal.fire('Info', `Product "${product.name}" already exists for ${formValues.country} (${formValues.year}).`, 'info');
+      Swal.fire('Info', `Product "${product.name}" already added for this country/year/month.`, 'info');
       return;
     }
 
-    const newProduct = {
-      ...product,
-      country: formValues.country,
-      year: formValues.year,
-      month: formValues.month,
-      period: formValues.period,
-      quantity: 1,
-      __isNew: true
-    };
-
-    this.addedProducts.push(newProduct);
-    console.log(" Product Added to Table:", newProduct);
-    console.log(" Updated addedProducts Array:", this.addedProducts);
+    this.addedProducts = [
+      ...this.addedProducts,
+      {
+        ...product,
+        country: formValues.country,
+        year: formValues.year,
+        month: formValues.month,
+        period: formValues.period,
+        quantity: 1,
+        __isNew: true
+      }
+    ];
 
     this.budgetForm.get('products')?.reset();
   }
-
 
   removeProduct(index: number) {
     this.addedProducts.splice(index, 1);
   }
 
   submitForm() {
-
-    console.log(" submitForm() called", this.addedProducts);
     const formValues = this.budgetForm.getRawValue();
     delete formValues.products;
 
@@ -274,7 +250,7 @@ export class AddMonthlyBudgetComponent implements OnInit {
       icon: 'question',
       showCancelButton: true,
       confirmButtonText: 'Yes'
-    }).then(result => {
+    }).then((result) => {
       if (!result.isConfirmed) return;
 
       const userData = JSON.parse(localStorage.getItem('userData') || '{}');
@@ -291,24 +267,22 @@ export class AddMonthlyBudgetComponent implements OnInit {
         updatedAt: timestamp
       };
 
-      if (this.isEditMode) {
-        const productToUpdate = this.addedProducts[0];
-        const productDoc = {
-          ...baseInfo,
-          id: productToUpdate.id,
-          sku: productToUpdate.sku,
-          name: productToUpdate.name,
-          quantity: productToUpdate.quantity
-        };
-
-        this.monthlybudgetService.updateBudget(productToUpdate.id, productDoc)
-          .then(() => Swal.fire('Updated!', 'Product updated successfully.', 'success'))
-          .then(() => this.router.navigate(['/monthly-budget-list'])) // 👈 redirect
-          .catch(() => Swal.fire('Error', 'Something went wrong while updating.', 'error'));
-
-      } else {
-        Promise.all(
-          this.addedProducts.map(p => {
+      runInInjectionContext(this.injector, () => {
+        if (this.isEditMode && this.editingDocId) {
+          const productToUpdate = this.addedProducts[0];
+          const productDoc = {
+            ...baseInfo,
+            id: productToUpdate.id,
+            sku: productToUpdate.sku,
+            name: productToUpdate.name,
+            quantity: productToUpdate.quantity
+          };
+          this.monthlybudgetService.updateBudget(productToUpdate.id, productDoc)
+            .then(() => Swal.fire('Updated!', 'Product updated successfully.', 'success'))
+            .then(() => this.goBack())
+            .catch(() => Swal.fire('Error', 'Something went wrong while updating.', 'error'));
+        } else {
+          Promise.all(this.addedProducts.map(p => {
             const productDoc = {
               ...baseInfo,
               sku: p.sku,
@@ -320,20 +294,20 @@ export class AddMonthlyBudgetComponent implements OnInit {
               quantity: p.quantity
             };
             return this.monthlybudgetService.addBudget(productDoc);
-          })
-        )
-          .then(() => Swal.fire('Added!', 'All products saved successfully.', 'success'))
-          .then(() => this.router.navigate(['/monthly-budget-list'])) // 👈 redirect
-          .catch(() => Swal.fire('Error', 'Something went wrong.', 'error'));
-      }
+          }))
+            .then(() => Swal.fire('Added!', 'All products saved successfully.', 'success'))
+            .then(() => this.goBack())
+            .catch(() => Swal.fire('Error', 'Something went wrong.', 'error'));
+        }
+      });
     });
   }
-
 
   goBack() {
     this.dealer.back();
   }
 
+  // Update canAddProduct only for Add button
   get canAddProduct(): boolean {
     const f = this.budgetForm.value;
     return !!(f.country && f.year && f.month && f.products);

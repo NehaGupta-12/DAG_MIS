@@ -21,8 +21,8 @@ import {MatProgressSpinner} from "@angular/material/progress-spinner";
 import {MatTooltip} from "@angular/material/tooltip";
 import {FeatherIconsComponent} from "@shared/components/feather-icons/feather-icons.component";
 import {CommonModule} from "@angular/common";
-
-import { ViewBudgetProductComponent } from '../view-budget-product/view-budget-product.component';
+// import { ViewBudgetProductComponent } from '../view-budget-product/view-budget-product.component';
+import {ViewMonthlyBudgetComponent} from "../view-monthly-budget/view-monthly-budget.component";
 import {MonthlyBudgetService} from "../monthly-budget.service";
 
 @Component({
@@ -47,14 +47,14 @@ import {MonthlyBudgetService} from "../monthly-budget.service";
   standalone: true,
   styleUrl: './monthly-budget-list.component.scss'
 })
-export class MonthlyBudgetListComponent implements OnInit{
+export class MonthlyBudgetListComponent implements OnInit {
   dataSource = new MatTableDataSource<any>();
 
-  // Define columns
   columnDefinitions = [
     {def: 'serial', label: 'Serial'},
     {def: 'country', label: 'Country'},
     {def: 'year', label: 'Year'},
+    {def: 'month', label: 'Month'},
     {def: 'period', label: 'Period'},
     {def: 'budgetQuantity', label: 'BudgetQuantity'},
     {def: 'action', label: 'Action'},
@@ -64,6 +64,7 @@ export class MonthlyBudgetListComponent implements OnInit{
     'serial',
     'country',
     'year',
+    'month',
     'period',
     'budgetQuantity',
     'action'
@@ -78,19 +79,12 @@ export class MonthlyBudgetListComponent implements OnInit{
     private dialog: MatDialog,
     private router: Router,
     private outletProductService: OutletProductService,
-
     private monthlybudgetService: MonthlyBudgetService,
     private injector: EnvironmentInjector,
   ) {}
 
   ngOnInit() {
     this.loadbudget();
-
-    this.monthlybudgetService.getBudgetList().subscribe((budgets) => {
-      this.dataSource = new MatTableDataSource(budgets);
-      this.dataSource.paginator = this.paginator;
-      this.dataSource.sort = this.sort;
-    });
   }
 
   loadbudget() {
@@ -112,72 +106,48 @@ export class MonthlyBudgetListComponent implements OnInit{
 
           if (!existing) {
             existing = {
-              id:curr.docId,
+              id: curr.docId,
               country: curr.country,
               year: curr.year,
+              months: new Set<string>(),  // ✅ collect all months
               period: curr.period,
               products: [],
-              quantity: 0   // ✅ total budgetQuantity
+              quantity: 0
             };
             acc.push(existing);
           }
 
-          // 🔹 Push each product
+          // 🔹 Keep months unique
+          if (curr.month) {
+            existing.months.add(curr.month);
+          }
+
+          // 🔹 Push product
           existing.products.push({
-            id:curr.docId,
+            id: curr.docId,
             sku: curr.sku,
-            productName: curr.name,       // map Firestore name -> productName
-            budgetQuantity: curr.quantity // map quantity -> budgetQuantity
+            productName: curr.name,
+            budgetQuantity: curr.quantity
           });
 
-          // 🔹 Update total for list page
+          // 🔹 Update total
           existing.quantity += curr.quantity || 0;
 
           return acc;
         }, []);
 
+        // ✅ Convert Set to string for display
+        grouped.forEach((g: any) => {
+          g.month = Array.from(g.months).join(', ');
+        });
+
         console.log("Grouped Data:", grouped);
 
-        // ✅ This goes to table
         this.dataSource.data = grouped;
         this.dataSource.paginator = this.paginator;
         this.dataSource.sort = this.sort;
       });
     });
-  }
-
-
-
-  // ✅ Group products into one row per country-year-period
-  private groupBudgets(data: any[]) {
-    const grouped: any = {};
-
-    data.forEach(item => {
-      const key = `${item.country}-${item.year}-${item.period.start}-${item.period.end}`;
-
-      if (!grouped[key]) {
-        grouped[key] = {
-          docId: item.docId,  // keep docId for delete
-          country: item.country,
-          year: item.year,
-          period: item.period,
-          budgetQuantity: 0,
-          products: []
-        };
-      }
-
-      // push product
-      grouped[key].products.push({
-        sku: item.sku,
-        productName: item.productName,
-        budgetQuantity: item.budgetQuantity
-      });
-
-      // sum quantity
-      grouped[key].budgetQuantity += item.budgetQuantity;
-    });
-
-    return Object.values(grouped);
   }
 
   editloadOutletProduct(row: any) {
@@ -187,9 +157,7 @@ export class MonthlyBudgetListComponent implements OnInit{
   }
 
   openDialog() {
-    this.dialog.open(AddUserComponent, {
-      autoFocus: false
-    });
+    this.dialog.open(AddUserComponent, { autoFocus: false });
   }
 
   navigateToAddloadOutletProduct() {
@@ -212,7 +180,6 @@ export class MonthlyBudgetListComponent implements OnInit{
 
   deleteBudget(row: any) {
     const docId = row.docId;
-
     if (!docId) {
       Swal.fire('Error', 'Missing document ID for this budget.', 'error');
       return;
@@ -248,21 +215,19 @@ export class MonthlyBudgetListComponent implements OnInit{
   }
 
   openViewDialog(row: any) {
-    console.log(row)
-    this.dialog.open(ViewBudgetProductComponent, {
-      width: '90vw',          // ✅ use viewport width (90% of screen width)
-      maxWidth: '70vw',      // ✅ allow full width if needed
-      height: '80vh',         // optional: control height too
+    this.dialog.open(ViewMonthlyBudgetComponent, {
+      width: '90vw',
+      maxWidth: '70vw',
+      height: '80vh',
       panelClass: 'custom-dialog-container',
       data: {
         id: row.id,
         country: row.country,
         year: row.year,
+        month: row.month,
         period: row.period,
-        items: row.products  // ✅ product-wise details
+        items: row.products
       }
     });
   }
-
-
 }
