@@ -38,64 +38,74 @@
           <div class="body overflow-auto">
             <div class="responsive_table">
               <table mat-table [dataSource]="dataSource" matSort class="mat-cell advance-table">
-
-                <!-- ID -->
-                <ng-container matColumnDef="id">
-                  <th mat-header-cell *matHeaderCellDef mat-sort-header>ID</th>
-                  <td mat-cell *matCellDef="let row">{{ row.id }}</td>
+                <ng-container matColumnDef="userName">
+                  <th mat-header-cell *matHeaderCellDef> Username </th>
+                  <td mat-cell *matCellDef="let element"> {{element.userName}} </td>
                 </ng-container>
 
-                <!-- First Name -->
-                <ng-container matColumnDef="firstName">
-                  <th mat-header-cell *matHeaderCellDef mat-sort-header>First Name</th>
-                  <td mat-cell *matCellDef="let row">{{ row.firstName }}</td>
+                <ng-container matColumnDef="first">
+                  <th mat-header-cell *matHeaderCellDef> First </th>
+                  <td mat-cell *matCellDef="let element"> {{element.first}} </td>
                 </ng-container>
 
-                <!-- Email -->
+                <ng-container matColumnDef="last">
+                  <th mat-header-cell *matHeaderCellDef> Last </th>
+                  <td mat-cell *matCellDef="let element"> {{element.last}} </td>
+                </ng-container>
+
                 <ng-container matColumnDef="email">
-                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Email</th>
-                  <td mat-cell *matCellDef="let row">{{ row.email }}</td>
+                  <th mat-header-cell *matHeaderCellDef> Email </th>
+                  <td mat-cell *matCellDef="let element"> {{element.email}} </td>
                 </ng-container>
 
-                <!-- Gender -->
-                <ng-container matColumnDef="gender">
-                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Gender</th>
-                  <td mat-cell *matCellDef="let row">{{ row.gender }}</td>
-                </ng-container>
-
-                <!-- Birth Date -->
-                <ng-container matColumnDef="birthDate">
-                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Birth Date</th>
-                  <td mat-cell *matCellDef="let row">{{ row.birthDate | date }}</td>
-                </ng-container>
-
-                <!-- Mobile -->
                 <ng-container matColumnDef="mobile">
-                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Mobile</th>
-                  <td mat-cell *matCellDef="let row">{{ row.mobile }}</td>
+                  <th mat-header-cell *matHeaderCellDef> Mobile </th>
+                  <td mat-cell *matCellDef="let element"> {{element.mobile}} </td>
                 </ng-container>
 
-                <!-- Address -->
                 <ng-container matColumnDef="address">
-                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Address</th>
-                  <td mat-cell *matCellDef="let row">{{ row.address }}</td>
+                  <th mat-header-cell *matHeaderCellDef> Address </th>
+                  <td mat-cell *matCellDef="let element"> {{element.address}} </td>
                 </ng-container>
 
-                <!-- Country -->
+                <ng-container matColumnDef="allowedShowroom">
+                  <th mat-header-cell *matHeaderCellDef> Allowed Showroom </th>
+                  <td mat-cell *matCellDef="let element"> {{element.allowedShowroom}} </td>
+                </ng-container>
+
+                <ng-container matColumnDef="city">
+                  <th mat-header-cell *matHeaderCellDef> City </th>
+                  <td mat-cell *matCellDef="let element"> {{element.city}} </td>
+                </ng-container>
+
+                <ng-container matColumnDef="state">
+                  <th mat-header-cell *matHeaderCellDef> State </th>
+                  <td mat-cell *matCellDef="let element"> {{element.state}} </td>
+                </ng-container>
+
                 <ng-container matColumnDef="country">
-                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Country</th>
-                  <td mat-cell *matCellDef="let row">{{ row.country }}</td>
+                  <th mat-header-cell *matHeaderCellDef> Country </th>
+                  <td mat-cell *matCellDef="let element"> {{element.country}} </td>
                 </ng-container>
 
-                <!-- Action -->
+                <ng-container matColumnDef="department">
+                  <th mat-header-cell *matHeaderCellDef> Department </th>
+                  <td mat-cell *matCellDef="let element"> {{element.department}} </td>
+                </ng-container>
+
+                <ng-container matColumnDef="role">
+                  <th mat-header-cell *matHeaderCellDef> Role </th>
+                  <td mat-cell *matCellDef="let element"> {{element.role}} </td>
+                </ng-container>
+
                 <ng-container matColumnDef="action">
-                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Action</th>
-                  <td mat-cell *matCellDef="let row">
-                    <button mat-icon-button color="accent">
-                      <app-feather-icons [icon]="'edit'" [class]="'tbl-fav-edit'"></app-feather-icons>
+                  <th mat-header-cell *matHeaderCellDef> Action </th>
+                  <td mat-cell *matCellDef="let element">
+                    <button mat-icon-button color="primary" (click)="editDialog(element)">
+                      <mat-icon>edit</mat-icon>
                     </button>
-                    <button mat-icon-button color="accent">
-                      <app-feather-icons [icon]="'trash-2'" [class]="'tbl-fav-delete'"></app-feather-icons>
+                    <button mat-icon-button color="warn" (click)="deleteUser(element)">
+                      <mat-icon>delete</mat-icon>
                     </button>
                   </td>
                 </ng-container>

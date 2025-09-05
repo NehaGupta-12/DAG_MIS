@@ -52,6 +52,10 @@ export const MODULES_ROUTE: Route[] = [
     component: AddUserComponent
   },
   {
+    path: 'edit-user/:id',
+    component: AddUserComponent
+  },
+  {
     path: 'role-list',
     component: RoleComponent
   },

@@ -37,6 +37,7 @@ export class SigninComponent
   loginForm!: UntypedFormGroup;
   submitted = false;
   error = '';
+  hidePassword = true;
   hide = true;
   constructor(
     private formBuilder: UntypedFormBuilder,
@@ -45,84 +46,11 @@ export class SigninComponent
   ) {
     super();
   }
-
-  hidePassword: boolean = true;
-
-  // ngOnInit() {
-  //   this.loginForm = this.formBuilder.group({
-  //     email: [
-  //       'admin@daati.com',
-  //       [Validators.required, Validators.email, Validators.minLength(5)],
-  //     ],
-  //     password: ['daati', Validators.required],
-  //   });
-  // }
-
-  get form(): { [key: string]: AbstractControl } {
-    return this.loginForm.controls;
-  }
-  // onSubmit() {
-  //   this.submitted = true;
-  //   this.error = '';
-  //   if (this.loginForm.invalid) {
-  //     this.error = 'Username and Password not valid !';
-  //     return;
-  //   } else {
-  //     this.subs.sink = this.authService
-  //       .login(this.form['email'].value, this.form['password'].value)
-  //       .subscribe(
-  //         (res) => {
-  //           if (res) {
-  //             const token = this.authService.currentUserValue.token;
-  //             if (token) {
-  //               this.router.navigate(['/dashboard/main']);
-  //             }
-  //           } else {
-  //             this.error = 'Invalid Login';
-  //           }
-  //         },
-  //         (error) => {
-  //           this.error = error;
-  //           this.submitted = false;
-  //         }
-  //       );
-  //   }
-  // }
-
-  onSubmit() {
-    this.submitted = true;
-    this.error = '';
-
-    if (this.loginForm.invalid) {
-      this.error = 'Username and Password not valid!';
-      return;
-    }
-
-    this.authService
-      .login(this.form['email'].value, this.form['password'].value)
-      .subscribe(
-        (res) => {
-          if (res?.token) {
-            this.router.navigate(['/dashboard/main']);
-          } else {
-            this.error = 'Invalid Login';
-          }
-        },
-        (err) => {
-          this.error = err.message;
-          this.submitted = false;
-        }
-      );
-  }
-
   ngOnInit() {
-    // Auto-redirect if already logged in
-    if (this.authService.currentUserValue?.token) {
-      this.router.navigate(['/dashboard/main']);
-
-
-
-    }
+    // // Auto-redirect if already logged in
+    // if (this.authService.currentUserValue?.token) {
+    //   this.router.navigate(['/dashboard/main']);
+    // }
 
     // Load saved credentials from registration (if any)
     const saved = JSON.parse(localStorage.getItem('tempLoginFill') || '{}');
@@ -132,5 +60,21 @@ export class SigninComponent
       password: [saved.password || '', Validators.required],
     });
   }
+  get form(): { [key: string]: AbstractControl } {
+    return this.loginForm.controls;
+  }
+  onSubmit() {
+    this.submitted = true;
+    this.error = '';
+
+    if (this.loginForm.invalid) {
+      this.error = 'Username and Password not valid!';
+      return;
+    }
+    // this.router.navigate(['/dashboard/main'])
+    this.authService.login(this.loginForm.value['email'], this.loginForm.value['password'])
+  }
+
+
 
 }

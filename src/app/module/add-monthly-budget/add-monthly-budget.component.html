@@ -64,12 +64,6 @@
                         {{ product?.name }}
                       </mat-option>
                     </mat-select>
-                    <!--                    <mat-icon class="material-icons-outlined color-icon p-3" matSuffix>flag</mat-icon>-->
-                    <!--                    @if (grnForm?.get('products')?.hasError('required')) {-->
-                    <!--                      <mat-error>-->
-                    <!--                        Products is required-->
-                    <!--                      </mat-error>-->
-                    <!--                    }-->
                   </mat-form-field>
                 </div>
               </div>
@@ -120,7 +114,9 @@
 
                   <ng-container matColumnDef="quantity">
                     <th mat-header-cell *matHeaderCellDef> Budget Quantity </th>
-                    <td mat-cell *matCellDef="let product"><input type="number" [(ngModel)]="product.quantity" [ngModelOptions]="{standalone: true}" min="1" style="width: 80px;"></td>
+                    <td mat-cell *matCellDef="let product">
+                      <input type="number" [(ngModel)]="product.quantity" [ngModelOptions]="{standalone: true}" min="1" step="1" style="width: 80px;" (keydown)="preventDecimal($event)" />
+                    </td>
                   </ng-container>
 
                   <ng-container matColumnDef="action">
@@ -134,7 +130,7 @@
 
                 <div class="row mt-3">
                   <div class="col-12 d-flex justify-content-center">
-                    <button mat-raised-button color="primary" type="submit" [disabled]="addedProducts.length === 0 || !budgetForm.get('country')?.valid || !budgetForm.get('year')?.valid || !budgetForm.get('month')?.valid || !budgetForm.get('period')?.valid">{{ isEditMode ? 'Update' : 'Submit' }}</button>
+                    <button mat-raised-button color="primary" type="submit" [disabled]="addedProducts.length === 0 || !budgetForm.valid">{{ isEditMode ? 'Update' : 'Submit' }}</button>
                   </div>
                 </div>
               </div>

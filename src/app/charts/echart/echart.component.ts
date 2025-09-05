@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { EChartsCoreOption } from 'echarts';
+import { EChartsOption } from 'echarts/types/dist/shared';
 import { NgxEchartsDirective, NGX_ECHARTS_CONFIG } from 'ngx-echarts';
 
 @Component({
@@ -26,7 +26,7 @@ export class EchartComponent {
   ];
 
   // line bar chart
-  line_bar_chart: EChartsCoreOption = {
+  line_bar_chart: EChartsOption  = {
     grid: {
       top: '6',
       right: '0',
@@ -97,7 +97,7 @@ export class EchartComponent {
   };
 
   // line chart
-  line_chart: EChartsCoreOption = {
+  line_chart: EChartsOption  = {
     grid: {
       top: '6',
       right: '0',
@@ -174,7 +174,7 @@ export class EchartComponent {
   };
 
   // bar chart
-  bar_chart: EChartsCoreOption = {
+  bar_chart: EChartsOption = {
     grid: {
       top: '6',
       right: '0',
@@ -219,7 +219,7 @@ export class EchartComponent {
   };
 
   // graph line chart
-  graph_line_chart: EChartsCoreOption = {
+  graph_line_chart: EChartsOption = {
     tooltip: {
       trigger: 'axis',
     },
@@ -294,7 +294,7 @@ export class EchartComponent {
   };
 
   /* Pie Chart */
-  pie_chart: EChartsCoreOption = {
+  pie_chart: EChartsOption = {
     tooltip: {
       trigger: 'item',
       formatter: '{a} <br/>{b} : {c} ({d}%)',
@@ -341,7 +341,7 @@ export class EchartComponent {
   };
 
   // area line chart
-  area_line_chart: EChartsCoreOption = {
+  area_line_chart: EChartsOption = {
     tooltip: {
       trigger: 'axis',
     },
@@ -429,7 +429,7 @@ export class EchartComponent {
     color: ['#9f78ff', '#fa626b', '#32cafe'],
   };
 
-  pie_chart2: EChartsCoreOption = {
+  pie_chart2: EChartsOption = {
     legend: {
       top: 'bottom',
     },
@@ -467,7 +467,7 @@ export class EchartComponent {
   };
 
   // sunburst chart
-  sunburst_chart: EChartsCoreOption = {
+  sunburst_chart: EChartsOption = {
     series: {
       type: 'sunburst',
       // emphasis: {
