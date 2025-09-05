@@ -64,7 +64,7 @@ export class AddUserComponent {
       address: [''],
       city: ['', [Validators.required]],
       state: ['', [Validators.required]],
-      country: ['', [Validators.required]],
+        country: ['', [Validators.required]],
       termcondition: [false, [Validators.requiredTrue]],
     });
     // Capitalize first letter for first and last name

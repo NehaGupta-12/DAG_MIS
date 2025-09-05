@@ -71,8 +71,8 @@ export class SigninComponent
       this.error = 'Username and Password not valid!';
       return;
     }
-    this.router.navigate(['/dashboard/main'])
-    // this.authService.login(this.loginForm.value['email'], this.loginForm.value['password'])
+    // this.router.navigate(['/dashboard/main'])
+    this.authService.login(this.loginForm.value['email'], this.loginForm.value['password'])
   }
 
 

@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import {EnvironmentInjector, Injectable, runInInjectionContext} from '@angular/core';
 import { Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { AngularFireDatabase } from '@angular/fire/compat/database';
@@ -16,7 +16,8 @@ export class AuthService {
     private router: Router,
     public functions: AngularFireFunctions,
     private mDatabase: AngularFireDatabase,
-    private _snackBar: MatSnackBar
+    private _snackBar: MatSnackBar,
+    private injector : EnvironmentInjector
   ) {}
 
   async login(email: string, password: string) {
@@ -67,6 +68,7 @@ export class AuthService {
 
   async setUserData(uid: string) {
     try {
+      runInInjectionContext(this.injector, () => {
       this.mDatabase
         .object<UserDataModel>('users/' + uid)
         .valueChanges()
@@ -76,9 +78,10 @@ export class AuthService {
             localStorage.setItem('userData', JSON.stringify(userData));
           }
 
-          this.router.navigate(['home/dashboard']).then(() => {
+          this.router.navigate(['dashboard/main']).then(() => {
             console.log('Redirected to dashboard');
           });
+        });
         });
     } catch (error) {
       console.error('Error in setUserData', error);
