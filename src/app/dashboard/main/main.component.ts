@@ -31,6 +31,7 @@ import {Observable} from "rxjs";
 import {AngularFireDatabase} from "@angular/fire/compat/database";
 import {MatError, MatFormField, MatLabel} from "@angular/material/input";
 import {MatOption, MatSelect} from "@angular/material/select";
+import {LoadingService} from "../../Services/loading.service";
 
 export type ChartOptions = {
   series: ApexAxisChartSeries;
@@ -100,6 +101,7 @@ export class MainComponent implements OnInit {
     private dailySlaes: DailySalesService,
     private injector: EnvironmentInjector,
     private mDatabase: AngularFireDatabase,
+    private loadingService : LoadingService
   ) {
     //constructor
     this._countriesTypes$ = this.mDatabase
@@ -111,6 +113,7 @@ export class MainComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.loadingService.setLoading(true);
     this.chart1();
     this.chart2();
     this.areachart();
@@ -127,6 +130,7 @@ export class MainComponent implements OnInit {
   }
 
   loadSalesList(selectedCountry: string) {
+    this.loadingService.setLoading(true);
     runInInjectionContext(this.injector, () => {
       this.dailySlaes.getDailySalesList().subscribe((data) => {
         let filteredData = data;
@@ -150,6 +154,7 @@ export class MainComponent implements OnInit {
         this.barchart(dailySalesData);
         const yearlyData = this.calculateYearlySales(filteredData);
         this.areachart(yearlyData.years, yearlyData.quantities);
+        this.loadingService.setLoading(false);
       });
     });
   }

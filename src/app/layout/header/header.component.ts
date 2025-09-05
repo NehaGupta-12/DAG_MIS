@@ -1,4 +1,4 @@
-import { NgClass } from '@angular/common';
+import {NgClass, NgIf} from '@angular/common';
 import {
   Component,
   Inject,
@@ -21,6 +21,8 @@ import { MatMenuModule } from '@angular/material/menu';
 import { FeatherIconsComponent } from '../../shared/components/feather-icons/feather-icons.component';
 import { MatButtonModule } from '@angular/material/button';
 import { AuthService } from '../../authentication/auth.service';
+import {LoadingService} from "../../Services/loading.service";
+import {MatProgressBar} from "@angular/material/progress-bar";
 
 
 interface Notifications {
@@ -42,15 +44,16 @@ interface Notifications {
     MatButtonModule,
     FeatherIconsComponent,
     MatMenuModule,
-    NgScrollbar,
+    MatProgressBar,
+    NgIf,
   ],
   providers: [RightSidebarService]
 })
 export class HeaderComponent
-
-
   extends UnsubscribeOnDestroyAdapter
   implements OnInit {
+  readonly isLoading = this.loadingService.isLoading;
+
   public config!: InConfiguration;
   isNavbarCollapsed = true;
   isNavbarShow = true;
@@ -69,7 +72,7 @@ export class HeaderComponent
     private configService: ConfigService,
     private authService: AuthService,
     private router: Router,
-    public languageService: LanguageService
+    public loadingService: LoadingService
   ) {
     super();
   }
@@ -156,12 +159,7 @@ export class HeaderComponent
     }
     this.isFullScreen = !this.isFullScreen;
   }
-  setLanguage(text: string, lang: string, flag: string) {
-    this.countryName = text;
-    this.flagvalue = flag;
-    this.langStoreValue = lang;
-    this.languageService.setLanguage(lang);
-  }
+
   mobileMenuSidebarOpen(event: Event, className: string) {
     const hasClass = (event.target as HTMLInputElement).classList.contains(
       className
