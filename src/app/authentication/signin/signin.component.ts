@@ -37,6 +37,7 @@ export class SigninComponent
   loginForm!: UntypedFormGroup;
   submitted = false;
   error = '';
+  hidePassword = true;
   hide = true;
   constructor(
     private formBuilder: UntypedFormBuilder,
@@ -70,7 +71,8 @@ export class SigninComponent
       this.error = 'Username and Password not valid!';
       return;
     }
-    this.authService.login(this.loginForm.value['email'], this.loginForm.value['password'])
+    this.router.navigate(['/dashboard/main'])
+    // this.authService.login(this.loginForm.value['email'], this.loginForm.value['password'])
   }
 
 
