@@ -50,26 +50,6 @@
           </mat-form-field>
         </div>
 
-        <!-- Town -->
-                <div class="col-md-4">
-                  <mat-form-field appearance="outline" class="w-100">
-                    <mat-label>Select Town</mat-label>
-                    <input
-                      type="text"
-                      matInput
-                      placeholder="Search Town"
-                      [formControl]="townFilter"
-                      [matAutocomplete]="autoTown"
-                    />
-                    <mat-icon matSuffix>arrow_drop_down</mat-icon>
-                    <mat-autocomplete #autoTown="matAutocomplete" [displayWith]="displayFn">
-                      <mat-option *ngFor="let item of filteredOptions.town" [value]="item">
-                        {{ item }}
-                      </mat-option>
-                    </mat-autocomplete>
-                  </mat-form-field>
-                </div>
-
         <!-- Division -->
                 <div class="col-md-4">
                   <mat-form-field appearance="outline" class="w-100">
@@ -90,6 +70,26 @@
                     </mat-autocomplete>
                   </mat-form-field>
                 </div>
+
+        <!-- Town -->
+        <div class="col-md-4">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Select Town</mat-label>
+            <input
+              type="text"
+              matInput
+              placeholder="Search Town"
+              [formControl]="townFilter"
+              [matAutocomplete]="autoTown"
+            />
+            <mat-icon matSuffix>arrow_drop_down</mat-icon>
+            <mat-autocomplete #autoTown="matAutocomplete" [displayWith]="displayFn">
+              <mat-option *ngFor="let item of filteredOptions.town" [value]="item">
+                {{ item }}
+              </mat-option>
+            </mat-autocomplete>
+          </mat-form-field>
+        </div>
 
         <!-- Showroom Name -->
         <div class="col-md-4">
@@ -178,16 +178,16 @@
       <div style="overflow-x: auto; width: 100%">
         <table mat-table [dataSource]="finalTableData" class="mat-elevation-z1 w-100 custom-bordered" style="min-width: max-content;">
 
-          <!-- Division -->
-          <ng-container matColumnDef="division">
-            <th mat-header-cell *matHeaderCellDef> Division </th>
-            <td mat-cell *matCellDef="let row"> {{ row.division }} </td>
-          </ng-container>
-
           <!-- Country -->
           <ng-container matColumnDef="country">
             <th mat-header-cell *matHeaderCellDef> Country </th>
             <td mat-cell *matCellDef="let row"> {{ row.country }} </td>
+          </ng-container>
+
+          <!-- Division -->
+          <ng-container matColumnDef="division">
+            <th mat-header-cell *matHeaderCellDef> Division </th>
+            <td mat-cell *matCellDef="let row"> {{ row.division }} </td>
           </ng-container>
 
           <!-- Town -->
