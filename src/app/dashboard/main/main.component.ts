@@ -76,6 +76,8 @@ export class MainComponent implements OnInit {
   lastYearSales: number = 0;
   monthlyChartData: number[] = [];
   monthlyChartLabels: string[] = [];
+  yesterdaySales: number = 0;
+  totalSalesQuantity: number = 0;
 
   constructor(
     private dailySlaes: DailySalesService,
@@ -99,7 +101,10 @@ export class MainComponent implements OnInit {
         this.dataSource.data = data;
         console.log(this.dataSource.data);
 
-        // Call all data calculation methods first
+        // ✅ Calculate total quantity from all products
+        this.totalSalesQuantity = data.reduce((sum, item) => sum + item.quantity, 0);
+
+        // Call all data calculation methods
         this.calculateDailySales(data);
         this.calculateMonthlySales(data);
         this.calculateFiscalYearSales(data);
@@ -119,11 +124,13 @@ export class MainComponent implements OnInit {
           monthlyPercentage: this.monthlyPercentage,
           totalSalesFY: this.totalSalesFY,
           totalPercentageFY: this.totalPercentageFY,
-          fiscalYearTitle: this.fiscalYearTitle
+          fiscalYearTitle: this.fiscalYearTitle,
+          totalSalesQuantity: this.totalSalesQuantity // ✅ log it
         });
       });
     });
   }
+
 
   processSalesData(data: any[]) {
     this.dataSource.data = data;
@@ -152,26 +159,28 @@ export class MainComponent implements OnInit {
     let yesterdayQuantity = 0;
 
     data.forEach(item => {
-      // Make sure this path is correct based on your data structure
       const itemDate = new Date(item.createdAt.seconds * 1000);
-      const itemDateMidnight = new Date(itemDate);
-      itemDateMidnight.setHours(0, 0, 0, 0);
+      itemDate.setHours(0, 0, 0, 0);
 
-      if (itemDateMidnight.getTime() === today.getTime()) {
+      if (itemDate.getTime() === today.getTime()) {
         todayQuantity += item.quantity;
-      } else if (itemDateMidnight.getTime() === yesterday.getTime()) {
+      } else if (itemDate.getTime() === yesterday.getTime()) {
         yesterdayQuantity += item.quantity;
       }
     });
 
     this.todaySales = todayQuantity;
+    this.yesterdaySales = yesterdayQuantity; // 👈 store it here
+
+    // Optional percentage message
     if (yesterdayQuantity === 0) {
       this.todayPercentage = todayQuantity > 0 ? '100% Higher Than Yesterday' : 'No sales yesterday';
     } else {
       const percentage = ((todayQuantity - yesterdayQuantity) / yesterdayQuantity) * 100;
-      this.todayPercentage = `${percentage.toFixed(0)}% ${percentage >= 0 ? 'Higher' : 'Lower'} Than Yesterday`;
+      this.todayPercentage = `${Math.abs(percentage).toFixed(0)}% ${percentage >= 0 ? 'Higher' : 'Lower'} Than Yesterday`;
     }
   }
+
 
 
   calculateMonthlySales(data: any[]) {
@@ -198,7 +207,7 @@ export class MainComponent implements OnInit {
       this.monthlyPercentage = currentMonthQuantity > 0 ? '100% Higher Than Last Month' : 'No sales last month';
     } else {
       const percentage = ((currentMonthQuantity - lastMonthQuantity) / lastMonthQuantity) * 100;
-      this.monthlyPercentage = `${percentage.toFixed(0)}% ${percentage >= 0 ? 'Higher' : 'Lower'} Than Last Month`;
+      this.monthlyPercentage = `${Math.abs(percentage).toFixed(0)}% ${percentage >= 0 ? 'Higher' : 'Lower'} Than Last Month`;
     }
   }
 
@@ -242,10 +251,9 @@ export class MainComponent implements OnInit {
       this.totalPercentageFY = currentFYQuantity > 0 ? '100% Higher Than Last Year' : 'No sales last year';
     } else {
       const percentage = ((currentFYQuantity - lastFYQuantity) / lastFYQuantity) * 100;
-      this.totalPercentageFY = `${percentage.toFixed(0)}% ${percentage >= 0 ? 'Higher' : 'Lower'} Than Last Year`;
+      this.totalPercentageFY = `${Math.abs(percentage).toFixed(0)}% ${percentage >= 0 ? 'Higher' : 'Lower'} Than Last Year`;
     }
   }
-
 
   calculateYearlySales(data: any[]): { years: string[], quantities: number[] } {
     const now = new Date();
@@ -418,73 +426,6 @@ export class MainComponent implements OnInit {
       },
     };
   }
-
-
-
-
-
-  // private areachart() {
-  //   this.areaChartOptions = {
-  //     series: [
-  //       {
-  //         name: 'New Clients',
-  //         data: [31, 40, 28, 51, 42, 85, 77],
-  //       },
-  //       {
-  //         name: 'Old Clients',
-  //         data: [11, 32, 45, 32, 34, 52, 41],
-  //       },
-  //     ],
-  //     chart: {
-  //       height: 350,
-  //       type: 'area',
-  //       toolbar: {
-  //         show: false,
-  //       },
-  //       foreColor: '#9aa0ac',
-  //     },
-  //     colors: ['#FC8380', '#6973C6'],
-  //     dataLabels: {
-  //       enabled: false,
-  //     },
-  //     stroke: {
-  //       curve: 'smooth',
-  //     },
-  //     xaxis: {
-  //       type: 'datetime',
-  //       categories: [
-  //         '2018-09-19',
-  //         '2018-09-20',
-  //         '2018-09-21',
-  //         '2018-09-22',
-  //         '2018-09-23',
-  //         '2018-09-24',
-  //         '2018-09-25',
-  //       ],
-  //     },
-  //     legend: {
-  //       show: true,
-  //       position: 'top',
-  //       horizontalAlign: 'center',
-  //       offsetX: 0,
-  //       offsetY: 0,
-  //     },
-  //     grid: {
-  //       show: true,
-  //       borderColor: '#9aa0ac',
-  //       strokeDashArray: 1,
-  //     },
-  //     tooltip: {
-  //       theme: 'dark',
-  //       marker: {
-  //         show: true,
-  //       },
-  //       x: {
-  //         show: true,
-  //       },
-  //     },
-  //   };
-  // }
 
   private barchart(dailySalesData: { x: string; y: number }[] = []) {
     this.barChartOptions = {
@@ -675,89 +616,4 @@ export class MainComponent implements OnInit {
     };
   }
 
-  // order data
-
-  orderData = [
-    {
-      name: 'John Deo',
-      orderDate: '15-08-2019',
-      status: 'Paid',
-      phone: '(123)123456',
-      receiptIcon: 'far fa-file-pdf tbl-pdf',
-      img: 'assets/images/user/user8.jpg',
-      actionLink: '#/admin/orders/edit',
-    },
-    {
-      name: 'Jens Brincker',
-      orderDate: '16-08-2019',
-      status: 'Unpaid',
-      phone: '(123)123456',
-      receiptIcon: 'far fa-file-pdf tbl-pdf',
-      img: 'assets/images/user/user2.jpg',
-      actionLink: '#/admin/orders/edit',
-    },
-    {
-      name: 'Mark Hay',
-      orderDate: '18-08-2019',
-      status: 'Paid',
-      phone: '(123)123456',
-      receiptIcon: 'far fa-file-pdf tbl-pdf',
-      img: 'assets/images/user/user3.jpg',
-      actionLink: '#/admin/orders/edit',
-    },
-    {
-      name: 'Anthony Davie',
-      orderDate: '17-08-2019',
-      status: 'Unpaid',
-      phone: '(123)123456',
-      receiptIcon: 'far fa-file-pdf tbl-pdf',
-      img: 'assets/images/user/user4.jpg',
-      actionLink: '#/admin/orders/edit',
-    },
-    {
-      name: 'Alan Gilchrist',
-      orderDate: '23-08-2019',
-      status: 'Paid',
-      phone: '(123)123456',
-      receiptIcon: 'far fa-file-pdf tbl-pdf',
-      img: 'assets/images/user/user6.jpg',
-      actionLink: '#/admin/orders/edit',
-    },
-    {
-      name: 'Sue Woodger',
-      orderDate: '26-08-2019',
-      status: 'Pending',
-      phone: '(123)123456',
-      receiptIcon: 'far fa-file-pdf tbl-pdf',
-      img: 'assets/images/user/user7.jpg',
-      actionLink: '#/admin/orders/edit',
-    },
-    {
-      name: 'David Perry',
-      orderDate: '29-08-2019',
-      status: 'Unpaid',
-      phone: '(123)123456',
-      receiptIcon: 'far fa-file-pdf tbl-pdf',
-      img: 'assets/images/user/user8.jpg',
-      actionLink: '#/admin/orders/edit',
-    },
-    {
-      name: 'Sneha Pandit',
-      orderDate: '28-08-2019',
-      status: 'Paid',
-      phone: '(123)123456',
-      receiptIcon: 'far fa-file-pdf tbl-pdf',
-      img: 'assets/images/user/user9.jpg',
-      actionLink: '#/admin/orders/edit',
-    },
-  ];
-
-  orderColumnDefinitions = [
-    { def: 'name', label: 'Name', type: 'text' },
-    { def: 'orderDate', label: 'Order Date', type: 'text' },
-    { def: 'status', label: 'Status', type: 'badge' },
-    { def: 'phone', label: 'Phone', type: 'phone' },
-    { def: 'receiptIcon', label: 'Receipt', type: 'file' },
-    { def: 'actions', label: 'Actions', type: 'actionBtn' },
-  ];
 }
