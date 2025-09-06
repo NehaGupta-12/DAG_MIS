@@ -1,0 +1,67 @@
+<section class="container">
+  <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12">
+    <div class="header form-header">
+      <h6>{{ isEditMode ? 'Edit Menu List' : 'Add Menu List' }}</h6>
+    </div>
+
+    <div class="body">
+      <form [formGroup]="menuForm" (ngSubmit)="submitForm()">
+        <div class="row">
+          <div class="col-12">
+            <mat-form-field class="full-width">
+              <mat-label>Menu Name</mat-label>
+              <input
+                matInput
+                formControlName="menu_name"
+                placeholder="e.g., Dashboard"
+                (input)="onInputChange($event)"
+              />
+              <mat-error *ngIf="menuForm.get('menu_name')?.hasError('required')">
+                Menu name is required.
+              </mat-error>
+            </mat-form-field>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-12">
+            <mat-form-field class="full-width">
+              <mat-label>Menu URL</mat-label>
+              <input
+                matInput
+                formControlName="menu_url"
+                placeholder="e.g., /dashboard"
+              />
+              <mat-error *ngIf="menuForm.get('menu_url')?.hasError('required')">
+                Menu URL is required.
+              </mat-error>
+            </mat-form-field>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-12">
+            <div class="actions">
+              <button
+                mat-button
+                type="button"
+                (click)="close()"
+                [disabled]="isLoading"
+              >
+                Cancel
+              </button>
+              <button
+                mat-raised-button
+                color="primary"
+                type="submit"
+                [disabled]="!menuForm.valid || isLoading"
+              >
+                {{ isEditMode ? 'Update' : 'Add' }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>

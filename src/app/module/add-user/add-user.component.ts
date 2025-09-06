@@ -101,16 +101,17 @@ export class AddUserComponent implements OnInit{
     this.passwordControl = new FormControl('', [Validators.minLength(6)]);
   }
 
-    ngOnInit(): void {
+  ngOnInit(): void {
     this.userId = this.route.snapshot.paramMap.get('id') || '';
     this.isEditMode = !!this.userId; // Flag for edit mode
     console.log('Editing user with ID:', this.userId);
+
     if (this.userId) {
       this.userService.getUserById(this.userId).subscribe(user => {
         if (user) {
           this.userData = user;
           console.log('Fetched user data:', this.userData);
-          // Patch form with existing user data
+
           this.register?.patchValue({
             first: user.first || '',
             last: user.last || '',
@@ -120,11 +121,11 @@ export class AddUserComponent implements OnInit{
             city: user.city || '',
             role: user.role || '',
             department: user.department || '',
+            allowedOutlet: user.allowedOutlet || [],  // ✅ outlets multi-select
             state: user.state || '',
             country: user.country || '',
-            termcondition: user.termcondition || false
+            termcondition: user.termcondition || false,
           });
-          // Optionally disable email field if you don't want it editable
           if (this.isEditMode) {
             this.register?.get('email')?.disable();
           }
@@ -134,6 +135,7 @@ export class AddUserComponent implements OnInit{
       });
     }
   }
+
 
   initForm() {
     this.register = this.fb.group({
@@ -146,6 +148,7 @@ export class AddUserComponent implements OnInit{
       state: ['', [Validators.required]],
         country: ['', [Validators.required]],
       role: ['', [Validators.required]],
+      allowedOutlet: [[]],
       department: ['', [Validators.required]],
       termcondition: [false, [Validators.requiredTrue]],
     });
@@ -206,13 +209,60 @@ export class AddUserComponent implements OnInit{
     });
   }
 
+  // async onRegister(): Promise<void> {
+  //   this.submitted = true;
+  //   if (this.register && this.register.valid) {
+  //     const formValue = { ...this.register.getRawValue() }; // Use getRawValue to include disabled fields
+  //     try {
+  //       if (this.isEditMode && this.userId) {
+  //         await this.userService.updateUser(this.userId, formValue);
+  //         Swal.fire({
+  //           title: 'Updated!',
+  //           text: 'User details have been updated successfully.',
+  //           icon: 'success',
+  //           timer: 2000,
+  //           showConfirmButton: false
+  //         }).then(() => this.router.navigate(['/module/user-list']));
+  //       } else {
+  //         const email = formValue.email;
+  //         const password = "password@123";
+  //         const response = await this.userService.createUser(email, password);
+  //         console.log('User created:', response);
+  //         if (response.success) {
+  //           this.register.addControl('uid', this.fb.control(response.uid));
+  //           await this.userService.addEmployee(response.uid, formValue);
+  //           Swal.fire({
+  //             title: 'Added!',
+  //             text: 'User details have been saved successfully.',
+  //             icon: 'success',
+  //             timer: 2000,
+  //             showConfirmButton: false
+  //           }).then(() => this.router.navigate(['/module/user-list']));
+  //         } else {
+  //           alert(`Error: ${response.error}`);
+  //         }
+  //       }
+  //     } catch (error) {
+  //       console.error('Error saving user:', error);
+  //     }
+  //   } else {
+  //     this.submitted = false;
+  //     alert("Form is Invalid. Please complete all required fields.");
+  //     console.log('INVALID CONTROLS', this.findInvalidControls());
+  //   }
+  // }
   async onRegister(): Promise<void> {
     this.submitted = true;
     if (this.register && this.register.valid) {
-      const formValue = { ...this.register.getRawValue() }; // Use getRawValue to include disabled fields
+      const formValue = { ...this.register.getRawValue() };
+      const timestamp = new Date().toISOString(); // ✅ ISO format
+
       try {
         if (this.isEditMode && this.userId) {
-          await this.userService.updateUser(this.userId, formValue);
+          // ✅ Add updatedAt field when updating
+          const updatedValue = { ...formValue, updatedAt: timestamp };
+          await this.userService.updateUser(this.userId, updatedValue);
+
           Swal.fire({
             title: 'Updated!',
             text: 'User details have been updated successfully.',
@@ -220,14 +270,25 @@ export class AddUserComponent implements OnInit{
             timer: 2000,
             showConfirmButton: false
           }).then(() => this.router.navigate(['/module/user-list']));
+
         } else {
           const email = formValue.email;
           const password = "password@123";
           const response = await this.userService.createUser(email, password);
-          console.log('User created:', response);
+
           if (response.success) {
             this.register.addControl('uid', this.fb.control(response.uid));
-            await this.userService.addEmployee(response.uid, formValue);
+
+            // ✅ Add createdAt field on new user
+            const newUserData = {
+              ...formValue,
+              uid: response.uid,
+              createdAt: timestamp,
+              updatedAt: timestamp
+            };
+
+            await this.userService.addEmployee(response.uid, newUserData);
+
             Swal.fire({
               title: 'Added!',
               text: 'User details have been saved successfully.',
@@ -248,6 +309,7 @@ export class AddUserComponent implements OnInit{
       console.log('INVALID CONTROLS', this.findInvalidControls());
     }
   }
+
   changePassword() {
     // if password control valid first
     console.log(this.userId,)

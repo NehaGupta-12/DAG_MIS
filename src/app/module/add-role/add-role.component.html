@@ -1,170 +1,66 @@
-<section class="content d-flex justify-content-center align-items-center min-vh-100">
-  <div class="content-block w-100">
+<section class="content">
+<div class="container-md">
+  <h5 mat-dialog-title class="text-center">Create New Role & Permissions</h5>
+  <mat-card class="border border-1">
+    <form [formGroup]="role_form">
+      <div class="row m-1">
+        <mat-form-field appearance="outline" class="col-md-4 col-sm-4">
+          <mat-label>Role Name</mat-label>
+          <input matInput formControlName="roleName">
+        </mat-form-field>
+      </div>
 
-    <div class="container py-4">
-      <div class="card">
-        <div class="card-body">
-           <h5>Roles And Permissions</h5>
-          <div class="mb-3 mt-4">
-            <label for="roleName" class="form-label fw-bold">Role Name <span class="text-danger">*</span></label>
-            <input type="text" class="form-control" id="roleName" placeholder="Enter role name">
-          </div>
-
-          <!-- Table -->
-          <div class="table-responsive">
-            <table class="table table-bordered align-middle">
-              <thead class="table-light">
-              <tr>
-                <th>Sr.No.</th>
-                <th>Menu Name</th>
-                <th>All</th>
-                <th>List / View</th>
-                <th>Create</th>
-                <th>Edit</th>
-                <th>Delete</th>
-                <th>Print</th>
-                <th>Export</th>
-                <th>Approved</th>
-                <th>Disapproved</th>
-              </tr>
-              </thead>
-              <tbody>
-              <tr>
-                <td>1</td>
-                <td class="text-start">Users</td>
-                <td><input type="checkbox"></td>
-                <td><input type="checkbox"></td>
-                <td><input type="checkbox"></td>
-                <td><input type="checkbox"></td>
-                <td><input type="checkbox"></td>
-                <td><input type="checkbox"></td>
-                <td><input type="checkbox"></td>
-                <td><input type="checkbox"></td>
-                <td><input type="checkbox"></td>
-              </tr>
-              <tr>
-                <td>2</td>
-                <td class="text-start">Role</td>
-                <td><input type="checkbox"></td>
-                <td><input type="checkbox"></td>
-                <td><input type="checkbox"></td>
-                <td><input type="checkbox"></td>
-                <td><input type="checkbox"></td>
-                <td><input type="checkbox"></td>
-                <td><input type="checkbox"></td>
-                <td><input type="checkbox"></td>
-                <td><input type="checkbox"></td>
-              </tr>
-              <tr>
-                <td>3</td>
-                <td class="text-start">Types / Dropdown</td>
-                <td><input type="checkbox"></td>
-                <td><input type="checkbox"></td>
-                <td><input type="checkbox"></td>
-                <td><input type="checkbox"></td>
-                <td><input type="checkbox"></td>
-                <td><input type="checkbox"></td>
-                <td><input type="checkbox"></td>
-                <td><input type="checkbox"></td>
-                <td><input type="checkbox"></td>
-              </tr>
-              <tr>
-                <td>4</td>
-                <td class="text-start">Outlet/Dealer</td>
-                <td><input type="checkbox"></td>
-                <td><input type="checkbox"></td>
-                <td><input type="checkbox"></td>
-                <td><input type="checkbox"></td>
-                <td><input type="checkbox"></td>
-                <td><input type="checkbox"></td>
-                <td><input type="checkbox"></td>
-                <td><input type="checkbox"></td>
-                <td><input type="checkbox"></td>
-              </tr>
-              <tr>
-                <td>5</td>
-                <td class="text-start">List Location</td>
-                <td><input type="checkbox"></td>
-                <td><input type="checkbox"></td>
-                <td><input type="checkbox"></td>
-                <td><input type="checkbox"></td>
-                <td><input type="checkbox"></td>
-                <td><input type="checkbox"></td>
-                <td><input type="checkbox"></td>
-                <td><input type="checkbox"></td>
-                <td><input type="checkbox"></td>
-              </tr>
-              <tr>
-                <td>6</td>
-                <td class="text-start">Location Products</td>
-                <td><input type="checkbox"></td>
-                <td><input type="checkbox"></td>
-                <td><input type="checkbox"></td>
-                <td><input type="checkbox"></td>
-                <td><input type="checkbox"></td>
-                <td><input type="checkbox"></td>
-                <td><input type="checkbox"></td>
-                <td><input type="checkbox"></td>
-                <td><input type="checkbox"></td>
-              </tr>
-              <tr>
-                <td>7</td>
-                <td class="text-start">Product Master</td>
-                <td><input type="checkbox"></td>
-                <td><input type="checkbox"></td>
-                <td><input type="checkbox"></td>
-                <td><input type="checkbox"></td>
-                <td><input type="checkbox"></td>
-                <td><input type="checkbox"></td>
-                <td><input type="checkbox"></td>
-                <td><input type="checkbox"></td>
-                <td><input type="checkbox"></td>
-              </tr>
-              <tr>
-                <td>8</td>
-                <td class="text-start">Inventory List</td>
-                <td><input type="checkbox"></td>
-                <td><input type="checkbox"></td>
-                <td><input type="checkbox"></td>
-                <td><input type="checkbox"></td>
-                <td><input type="checkbox"></td>
-                <td><input type="checkbox"></td>
-                <td><input type="checkbox"></td>
-                <td><input type="checkbox"></td>
-                <td><input type="checkbox"></td>
-              </tr>
-              <tr>
-                <td>9</td>
-                <td class="text-start">Daily Sales</td>
-                <td><input type="checkbox"></td>
-                <td><input type="checkbox"></td>
-                <td><input type="checkbox"></td>
-                <td><input type="checkbox"></td>
-                <td><input type="checkbox"></td>
-                <td><input type="checkbox"></td>
-                <td><input type="checkbox"></td>
-                <td><input type="checkbox"></td>
-                <td><input type="checkbox"></td>
-              </tr>
-              <tr>
-                <td>10</td>
-                <td class="text-start">GRN</td>
-                <td><input type="checkbox"></td>
-                <td><input type="checkbox"></td>
-                <td><input type="checkbox"></td>
-                <td><input type="checkbox"></td>
-                <td><input type="checkbox"></td>
-                <td><input type="checkbox"></td>
-                <td><input type="checkbox"></td>
-                <td><input type="checkbox"></td>
-                <td><input type="checkbox"></td>
-              </tr>
-              </tbody>
-            </table>
-          </div>
+      <div class="row m-1">
+        <table class="custom-table" style="width: 100%;">
+          <thead>
+          <tr>
+            <th>Sr.No.</th>
+            <th>Menu Name</th>
+            <th>All</th>
+            <th>List / View</th>
+            <th>Create</th>
+            <th>Edit</th>
+            <th>Delete</th>
+            <th>Print</th>
+            <th>Export</th>
+            <th>Approved</th>
+            <th>Disapproved</th>
+          </tr>
+          </thead>
+          <tbody formArrayName="permissions">
+          <tr *ngFor="let group of permissionsArray.controls; let i = index" [formGroupName]="i">
+            <td class="text-center">{{ i + 1 }}</td>
+            <td>{{ group.get('menu_name')?.value }}</td>
+            <ng-container [formGroup]="getPermissionsGroup(group)">
+              <td class="text-center">
+                <input type="checkbox" formControlName="all"
+                       [checked]="isAllSelected(i)"
+                       (change)="toggleAll(i, $event)" />
+              </td>
+              <td class="text-center"><input type="checkbox" formControlName="list" (change)="onPermissionChange(i)" /></td>
+              <td class="text-center"><input type="checkbox" formControlName="create" (change)="onPermissionChange(i)" /></td>
+              <td class="text-center"><input type="checkbox" formControlName="edit" (change)="onPermissionChange(i)" /></td>
+              <td class="text-center"><input type="checkbox" formControlName="delete" (change)="onPermissionChange(i)" /></td>
+              <td class="text-center"><input type="checkbox" formControlName="print" (change)="onPermissionChange(i)" /></td>
+              <td class="text-center"><input type="checkbox" formControlName="export" (change)="onPermissionChange(i)" /></td>
+              <td class="text-center"><input type="checkbox" formControlName="approved" (change)="onPermissionChange(i)" /></td>
+              <td class="text-center"><input type="checkbox" formControlName="disapproved" (change)="onPermissionChange(i)" /></td>
+            </ng-container>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="row">
+        <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 mb-2 text-center">
+          <button class="btn-space" mat-raised-button color="primary"  (click)="save()">Submit</button>
+          <button type="button" mat-raised-button color="warn" (click)="backToHome()">Cancel</button>
         </div>
       </div>
-    </div>
+    </form>
+  </mat-card>
 
+  <div class="spinner-container" *ngIf="isLoading">
+    <mat-spinner diameter="60"></mat-spinner>
   </div>
+</div>
 </section>
