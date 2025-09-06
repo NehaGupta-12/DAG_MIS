@@ -25,9 +25,9 @@ import {UserDataModel} from "../../module/add-user/UserData.model";
 import {AuthService} from "app/authentication/auth.service"
 
 @Component({
-    selector: 'app-sidebar',
-    templateUrl: './sidebar.component.html',
-    styleUrls: ['./sidebar.component.scss'],
+  selector: 'app-sidebar',
+  templateUrl: './sidebar.component.html',
+  styleUrls: ['./sidebar.component.scss'],
   imports: [
     NgScrollbar,
     RouterLinkActive,
@@ -107,9 +107,6 @@ export class SidebarComponent
     }
     this.initLeftSidebar();
     this.bodyTag = this.document.body;
-  }
-  canShowMenu(menuName: string): boolean {
-    return this.auth.hasPermission(menuName, 'list'); // only show menu if role has 'list' permission
   }
 
 
