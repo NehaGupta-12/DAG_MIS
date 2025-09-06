@@ -22,6 +22,7 @@
   import {map} from "rxjs/operators";
   import {AngularFireDatabase} from "@angular/fire/compat/database";
   import {Observable} from "rxjs";
+  import {LoadingService} from "../../Services/loading.service";
 
   @Component({
     selector: 'app-add-product-master',
@@ -58,54 +59,49 @@
     _engineTypes$!: Observable<string[]>;
     _unitTypes$!: Observable<string[]>;
 
-    constructor(private fb: UntypedFormBuilder,
-                private location: Location,
-                private productService: ProductMasterService, // Replace 'any' with actual service type
-                private injector: EnvironmentInjector,
-                private route: ActivatedRoute,
-                private router: Router,
-                private mDatabase: AngularFireDatabase,
-                @Inject(MAT_DIALOG_DATA) public data: any,
+    constructor(
+      private fb: UntypedFormBuilder,
+      private location: Location,
+      private productService: ProductMasterService,
+      private injector: EnvironmentInjector,
+      private route: ActivatedRoute,
+      private router: Router,
+      private mDatabase: AngularFireDatabase,
+      private loadingService: LoadingService,
+      @Inject(MAT_DIALOG_DATA) public data: any,
     ) {
       this._modelTypes$ = this.mDatabase
         .object<{ subcategories: string[] }>('typelist/Model')
         .valueChanges()
-        .pipe(
-          map(data => data?.subcategories || [])
-        );
+        .pipe(map(data => data?.subcategories || []));
+
       this._categoryTypes$ = this.mDatabase
         .object<{ subcategories: string[] }>('/typelist/Product_Category')
         .valueChanges()
-        .pipe(
-          map(data => data?.subcategories || [])
-        );
+        .pipe(map(data => data?.subcategories || []));
+
       this._subCategoryTypes$ = this.mDatabase
         .object<{ subcategories: string[] }>('/typelist/Sub_Category')
         .valueChanges()
-        .pipe(
-          map(data => data?.subcategories || [])
-        );
+        .pipe(map(data => data?.subcategories || []));
+
       this._variantTypes$ = this.mDatabase
         .object<{ subcategories: string[] }>('typelist/Variant')
         .valueChanges()
-        .pipe(
-          map(data => data?.subcategories || [])
-        );
+        .pipe(map(data => data?.subcategories || []));
+
       this._engineTypes$ = this.mDatabase
         .object<{ subcategories: string[] }>('typelist/EngineCC')
         .valueChanges()
-        .pipe(
-          map(data => data?.subcategories || [])
-        );
+        .pipe(map(data => data?.subcategories || []));
+
       this._unitTypes$ = this.mDatabase
         .object<{ subcategories: string[] }>('typelist/UnitOfMeasurement')
         .valueChanges()
-        .pipe(
-          map(data => data?.subcategories || [])
-        );
+        .pipe(map(data => data?.subcategories || []));
+
       this.productForm = this.fb.group({
         name: ['', [Validators.required]],
-        // sku: ['', [Validators.required]],
         model: ['', [Validators.required]],
         brand: ['', [Validators.required]],
         category: ['', [Validators.required]],
@@ -122,18 +118,15 @@
           const rowData = JSON.parse(params['data']);
           console.log('Received row data:', rowData);
 
-          // ✅ Patch data to form
           this.productForm.patchValue(rowData);
 
-          // ✅ Check if ID exists
           if (rowData.id) {
             this.isEditMode = true;
-            this.data = rowData; // ✅ Store it for later
+            this.data = rowData;
           }
         }
       });
     }
-
 
     onRegister() {
       if (this.productForm.valid) {
@@ -160,14 +153,17 @@
               transformedData.updatedAt = timestamp;
 
               runInInjectionContext(this.injector, () => {
+                this.loadingService.setLoading(true);  // ✅ Start loader
                 this.productService.updateProduct(this.data.id, transformedData)
                   .then(() => {
+                    this.loadingService.setLoading(false);  // ✅ Stop loader
                     Swal.fire('Updated!', 'Product details updated successfully.', 'success')
                       .then(() => {
-                        this.router.navigate(['/module/product-master-list']); // ✅ always redirect to list
+                        this.router.navigate(['/module/product-master-list']);
                       });
                   })
                   .catch(error => {
+                    this.loadingService.setLoading(false);  // ✅ Stop loader on error
                     console.error('Error updating product details:', error);
                     Swal.fire('Error', 'Something went wrong.', 'error');
                   });
@@ -179,14 +175,17 @@
               transformedData.createdAt = timestamp;
 
               runInInjectionContext(this.injector, () => {
+                this.loadingService.setLoading(true);  // ✅ Start loader
                 this.productService.addProduct(transformedData)
                   .then(() => {
+                    this.loadingService.setLoading(false);  // ✅ Stop loader
                     Swal.fire('Added!', 'Product details added successfully.', 'success')
                       .then(() => {
-                        this.router.navigate(['/module/product-master-list']); // ✅ always redirect to list
+                        this.router.navigate(['/module/product-master-list']);
                       });
                   })
                   .catch(error => {
+                    this.loadingService.setLoading(false);  // ✅ Stop loader on error
                     console.error('Error adding product details:', error);
                     Swal.fire('Error', 'Something went wrong.', 'error');
                   });
@@ -199,11 +198,9 @@
       }
     }
 
-
-
-
     goBack() {
       this.location.back();
     }
+
 
   }

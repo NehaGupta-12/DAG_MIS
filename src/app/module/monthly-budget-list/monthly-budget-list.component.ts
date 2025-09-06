@@ -24,6 +24,7 @@ import {CommonModule} from "@angular/common";
 // import { ViewBudgetProductComponent } from '../view-budget-product/view-budget-product.component';
 import {ViewMonthlyBudgetComponent} from "../view-monthly-budget/view-monthly-budget.component";
 import {MonthlyBudgetService} from "../monthly-budget.service";
+import {LoadingService} from "../../Services/loading.service";
 
 @Component({
   selector: 'app-monthly-budget-list',
@@ -51,13 +52,13 @@ export class MonthlyBudgetListComponent implements OnInit {
   dataSource = new MatTableDataSource<any>();
 
   columnDefinitions = [
-    {def: 'serial', label: 'Serial'},
-    {def: 'country', label: 'Country'},
-    {def: 'year', label: 'Year'},
-    {def: 'month', label: 'Month'},
-    {def: 'period', label: 'Period'},
-    {def: 'budgetQuantity', label: 'BudgetQuantity'},
-    {def: 'action', label: 'Action'},
+    { def: 'serial', label: 'Serial' },
+    { def: 'country', label: 'Country' },
+    { def: 'year', label: 'Year' },
+    { def: 'month', label: 'Month' },
+    { def: 'period', label: 'Period' },
+    { def: 'budgetQuantity', label: 'BudgetQuantity' },
+    { def: 'action', label: 'Action' },
   ];
 
   displayedColumns: string[] = [
@@ -67,7 +68,7 @@ export class MonthlyBudgetListComponent implements OnInit {
     'month',
     'period',
     'budgetQuantity',
-    'action'
+    'action',
   ];
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
@@ -81,78 +82,82 @@ export class MonthlyBudgetListComponent implements OnInit {
     private outletProductService: OutletProductService,
     private monthlybudgetService: MonthlyBudgetService,
     private injector: EnvironmentInjector,
+    private loadingService: LoadingService
   ) {}
 
   ngOnInit() {
     this.loadbudget();
   }
 
+// ✅ Load budget with loader
   loadbudget() {
+    this.loadingService.setLoading(true);
     runInInjectionContext(this.injector, () => {
-      this.monthlybudgetService.getBudgetList().subscribe((data: any[]) => {
-        console.log("Raw Data:", data);
+      this.monthlybudgetService.getBudgetList().subscribe({
+        next: (data: any[]) => {
+          console.log("Raw Data:", data);
 
-        // 🔹 Group by country + year + period
-        const grouped = data.reduce((acc: any[], curr: any) => {
-          const key = `${curr.country}_${curr.year}_${curr.period.start.seconds}_${curr.period.end.seconds}`;
+          // 🔹 Group by country + year + period
+          const grouped = data.reduce((acc: any[], curr: any) => {
+            const key = `${curr.country}_${curr.year}_${curr.period.start.seconds}_${curr.period.end.seconds}`;
 
-          let existing = acc.find(
-            (x: any) =>
-              x.country === curr.country &&
-              x.year === curr.year &&
-              x.period.start.seconds === curr.period.start.seconds &&
-              x.period.end.seconds === curr.period.end.seconds
-          );
+            let existing = acc.find(
+              (x: any) =>
+                x.country === curr.country &&
+                x.year === curr.year &&
+                x.period.start.seconds === curr.period.start.seconds &&
+                x.period.end.seconds === curr.period.end.seconds
+            );
 
-          if (!existing) {
-            existing = {
+            if (!existing) {
+              existing = {
+                id: curr.docId,
+                country: curr.country,
+                year: curr.year,
+                months: new Set<string>(),
+                period: curr.period,
+                products: [],
+                quantity: 0
+              };
+              acc.push(existing);
+            }
+
+            if (curr.month) existing.months.add(curr.month);
+
+            existing.products.push({
               id: curr.docId,
-              country: curr.country,
-              year: curr.year,
-              months: new Set<string>(),  // ✅ collect all months
-              period: curr.period,
-              products: [],
-              quantity: 0
-            };
-            acc.push(existing);
-          }
+              sku: curr.sku,
+              productName: curr.name,
+              budgetQuantity: curr.quantity
+            });
 
-          // 🔹 Keep months unique
-          if (curr.month) {
-            existing.months.add(curr.month);
-          }
+            existing.quantity += curr.quantity || 0;
+            return acc;
+          }, []);
 
-          // 🔹 Push product
-          existing.products.push({
-            id: curr.docId,
-            sku: curr.sku,
-            productName: curr.name,
-            budgetQuantity: curr.quantity
+          // Convert Set to string
+          grouped.forEach((g: any) => {
+            g.month = Array.from(g.months).join(', ');
           });
 
-          // 🔹 Update total
-          existing.quantity += curr.quantity || 0;
+          console.log("Grouped Data:", grouped);
 
-          return acc;
-        }, []);
+          this.dataSource.data = grouped;
+          this.dataSource.paginator = this.paginator;
+          this.dataSource.sort = this.sort;
 
-        // ✅ Convert Set to string for display
-        grouped.forEach((g: any) => {
-          g.month = Array.from(g.months).join(', ');
-        });
-
-        console.log("Grouped Data:", grouped);
-
-        this.dataSource.data = grouped;
-        this.dataSource.paginator = this.paginator;
-        this.dataSource.sort = this.sort;
+          this.loadingService.setLoading(false);
+        },
+        error: () => {
+          this.loadingService.setLoading(false);
+        },
       });
     });
   }
 
   editloadOutletProduct(row: any) {
     this.router.navigate(['module/add-monthly-budget'], {
-      queryParams: {data: JSON.stringify(row)}
+      queryParams: { data: JSON.stringify(row) },
     });
   }
 
@@ -170,7 +175,7 @@ export class MonthlyBudgetListComponent implements OnInit {
   }
 
   getDisplayedColumns() {
-    return this.columnDefinitions.map(c => c.def);
+    return this.columnDefinitions.map((c) => c.def);
   }
 
   applyFilter(event: Event) {
@@ -178,6 +183,7 @@ export class MonthlyBudgetListComponent implements OnInit {
     this.dataSource.filter = filterValue.trim().toLowerCase();
   }
 
+// ✅ Delete budget with loader
   deleteBudget(row: any) {
     const docId = row.docId;
     if (!docId) {
@@ -195,20 +201,19 @@ export class MonthlyBudgetListComponent implements OnInit {
     }).then((result) => {
       if (!result.isConfirmed) return;
 
-      this.isLoading = true;
+      this.loadingService.setLoading(true);
 
       runInInjectionContext(this.injector, () => {
         this.monthlybudgetService.deleteBudget(docId)
           .then(() => {
             this.dataSource.data = this.dataSource.data.filter((p: any) => p.docId !== docId);
             Swal.fire('Deleted!', 'Budget Product has been deleted.', 'success');
+            this.loadingService.setLoading(false);
           })
           .catch((err) => {
             console.error('Delete failed:', err);
             Swal.fire('Error', 'Failed to delete the Budget product. Please try again.', 'error');
-          })
-          .finally(() => {
-            this.isLoading = false;
+            this.loadingService.setLoading(false);
           });
       });
     });
@@ -230,4 +235,5 @@ export class MonthlyBudgetListComponent implements OnInit {
       }
     });
   }
+
 }

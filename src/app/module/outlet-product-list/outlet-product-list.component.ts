@@ -19,6 +19,7 @@ import {MatIcon} from "@angular/material/icon";
 import {MatProgressSpinner} from "@angular/material/progress-spinner";
 import {MatTooltip} from "@angular/material/tooltip";
 import {OutletProductService} from "../outlet-product.service";
+import {LoadingService} from "../../Services/loading.service";
 
 @Component({
   selector: 'app-outlet-product-list',
@@ -47,7 +48,7 @@ export class OutletProductListComponent implements OnInit {
 
   dataSource = new MatTableDataSource<any>();
 
-  // Define columns
+// Define columns
   columnDefinitions = [
     {def: 'serial', label: 'Serial'},
     {def: 'name', label: 'Name'},
@@ -58,8 +59,6 @@ export class OutletProductListComponent implements OnInit {
     {def: 'remark', label: 'Remark'},
     {def: 'action', label: 'Action'},
   ];
-
-
 
   displayedColumns: string[] = [
     'serial',
@@ -75,45 +74,39 @@ export class OutletProductListComponent implements OnInit {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
 
+  isLoading: any;
 
-  constructor(private dialog: MatDialog,
-              private router: Router,
-              private outletProductService: OutletProductService,
-              private injector: EnvironmentInjector,
-  ) {
-  }
+  constructor(
+    private dialog: MatDialog,
+    private router: Router,
+    private outletProductService: OutletProductService,
+    private injector: EnvironmentInjector,
+    private loadingService: LoadingService
+  ) {}
 
   ngOnInit() {
-    this.loadOutletProduct()
+    this.loadOutletProduct();
   }
 
+// ✅ Load Outlet Product with loader
   loadOutletProduct() {
+    this.loadingService.setLoading(true);
     runInInjectionContext(this.injector, () => {
-      // Directly subscribe to the service method within the injection context
-      this.outletProductService.getOutletProductList().subscribe((data: any) => {
-        console.log(data);
-        this.dataSource.data = data;  // Assign fetched data to the table's dataSource
-        // Check the length of the data to display or use it for conditions
-        // const dataLength = data.length;
-        // console.log("Fetched Data Length:", dataLength);
-        //
-        // // Example: You could display a message based on the data length
-        // if (dataLength === 0) {
-        //   console.log("No data found in the collection");
-        // } else {
-        //   console.log(`Fetched ${dataLength} records`);
-        // }
-
-        // Set paginator and sorter for the table
-        this.dataSource.paginator = this.paginator;
-        this.dataSource.sort = this.sort;
-
-        console.log("Table Data:", this.dataSource.data);
+      this.outletProductService.getOutletProductList().subscribe({
+        next: (data: any) => {
+          console.log("Fetched Outlet Products:", data);
+          this.dataSource.data = data;
+          this.dataSource.paginator = this.paginator;
+          this.dataSource.sort = this.sort;
+          this.loadingService.setLoading(false);
+        },
+        error: (err) => {
+          console.error('Failed to fetch outlet products', err);
+          this.loadingService.setLoading(false);
+        }
       });
-
     });
   }
-
 
   editloadOutletProduct(row: any) {
     this.router.navigate(['module/add-outlet-product'], {
@@ -121,12 +114,8 @@ export class OutletProductListComponent implements OnInit {
     });
   }
 
-
   openDialog() {
-    this.dialog.open(AddUserComponent, {
-      // width: '400px',   // set width
-      autoFocus: false  // optional
-    });
+    this.dialog.open(AddUserComponent, { autoFocus: false });
   }
 
   navigateToAddloadOutletProduct() {
@@ -142,16 +131,15 @@ export class OutletProductListComponent implements OnInit {
     return this.columnDefinitions.map(c => c.def);
   }
 
-  // Filtering
+// Filtering
   applyFilter(event: Event) {
     const filterValue = (event.target as HTMLInputElement).value;
     this.dataSource.filter = filterValue.trim().toLowerCase();
   }
 
-  isLoading: any;
-
+// Delete with loader
   deleteOutletProduct(row: any) {
-    const outletId = row.outletId || row.dealerId; // whichever you use
+    const outletId = row.outletId || row.dealerId;
     const productId = row.id;
 
     if (!outletId || !productId) {
@@ -169,19 +157,12 @@ export class OutletProductListComponent implements OnInit {
     }).then((result) => {
       if (!result.isConfirmed) return;
 
-      // (optional) show a small loading state
-      this.isLoading = true;
+      this.loadingService.setLoading(true); // ✅ loader for delete
 
-      // delete from subcollection
       runInInjectionContext(this.injector, () => {
         this.outletProductService.deleteOutletProduct(outletId, productId)
           .then(() => {
-            // Optimistic remove from table (faster UI)
             this.dataSource.data = this.dataSource.data.filter((p: any) => p.id !== productId);
-
-            // Or reload list:
-            // this.loadOutletProduct();
-
             Swal.fire('Deleted!', 'Dealer/Outlet Product has been deleted.', 'success');
           })
           .catch((err) => {
@@ -189,12 +170,11 @@ export class OutletProductListComponent implements OnInit {
             Swal.fire('Error', 'Failed to delete the product. Please try again.', 'error');
           })
           .finally(() => {
-            this.isLoading = false;
+            this.loadingService.setLoading(false);
           });
       });
     });
   }
-
 
   getTotalQuantity(row: any): number {
     if (!row?.items) return 0;
@@ -202,7 +182,5 @@ export class OutletProductListComponent implements OnInit {
       .map((i: any) => i.openingStock || 0)
       .reduce((acc: number, val: number) => acc + val, 0);
   }
-
-
 
 }

@@ -21,6 +21,7 @@ import {AddUserComponent} from "../add-user/add-user.component";
 import {FeatherIconsComponent} from "@shared/components/feather-icons/feather-icons.component";
 import {AddDealerService} from "../add-dealer.service";
 import Swal from "sweetalert2";
+import {LoadingService} from "../../Services/loading.service";
 
 @Component({
   selector: 'app-dealer-list',
@@ -48,7 +49,7 @@ import Swal from "sweetalert2";
 export class DealerListComponent implements OnInit{
   dataSource = new MatTableDataSource<any>();
 
-  // Define columns
+// Define columns
   columnDefinitions = [
     {def: 'serial', label: 'Serial'},
     {def: 'name', label: 'Name'},
@@ -59,8 +60,6 @@ export class DealerListComponent implements OnInit{
     // {def: 'category', label: 'category'},
     // {def: 'location', label: 'Location '},
   ];
-
-
 
   displayedColumns: string[] = [
     'serial',
@@ -77,25 +76,33 @@ export class DealerListComponent implements OnInit{
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
 
-
-  constructor(private dialog: MatDialog,
-              private router: Router,
-              private addDealerService: AddDealerService,
-              private injector: EnvironmentInjector,
-  ) {
-  }
+  constructor(
+    private dialog: MatDialog,
+    private router: Router,
+    private addDealerService: AddDealerService,
+    private injector: EnvironmentInjector,
+    private loadingService: LoadingService,
+  ) {}
 
   ngOnInit() {
-    this.DealerList()
+    this.DealerList();
   }
 
   DealerList() {
+    this.loadingService.setLoading(true); // ✅ start loader
     runInInjectionContext(this.injector, () => {
-      this.addDealerService.getDealerList().subscribe((data) => {
-        this.dataSource.data = data;
-        this.dataSource.paginator = this.paginator;
-        this.dataSource.sort = this.sort;
-        console.log(this.dataSource.data)
+      this.addDealerService.getDealerList().subscribe({
+        next: (data) => {
+          this.dataSource.data = data;
+          this.dataSource.paginator = this.paginator;
+          this.dataSource.sort = this.sort;
+          console.log(this.dataSource.data);
+          this.loadingService.setLoading(false); // ✅ stop loader on success
+        },
+        error: (err) => {
+          console.error('Error fetching Dealer list:', err);
+          this.loadingService.setLoading(false); // ✅ stop loader on error
+        }
       });
     });
   }
@@ -106,11 +113,10 @@ export class DealerListComponent implements OnInit{
     });
   }
 
-
   openDialog() {
     this.dialog.open(AddUserComponent, {
-      // width: '400px',   // set width
-      autoFocus: false  // optional
+      // width: '400px',
+      autoFocus: false
     });
   }
 
@@ -127,7 +133,7 @@ export class DealerListComponent implements OnInit{
     return this.columnDefinitions.map(c => c.def);
   }
 
-  // Filtering
+// Filtering
   applyFilter(event: Event) {
     const filterValue = (event.target as HTMLInputElement).value;
     this.dataSource.filter = filterValue.trim().toLowerCase();
@@ -145,19 +151,25 @@ export class DealerListComponent implements OnInit{
       cancelButtonText: 'No, cancel',
     }).then((result) => {
       if (result.isConfirmed) {
-        // Proceed with deletion
+        this.loadingService.setLoading(true); // ✅ start loader
         runInInjectionContext(this.injector, () => {
-          this.addDealerService.deleteDealer(id).then(() => {
-            this.DealerList();
-
-
-            // Optional: Show success alert
-            Swal.fire('Deleted!', 'Dealer/Outlet has been deleted.', 'success');
-          });
+          this.addDealerService.deleteDealer(id)
+            .then(() => {
+              this.DealerList(); // ✅ reload list after delete
+              Swal.fire('Deleted!', 'Dealer/Outlet has been deleted.', 'success');
+            })
+            .catch((err) => {
+              console.error('Delete failed:', err);
+              Swal.fire('Error', 'Failed to delete Dealer/Outlet. Please try again.', 'error');
+            })
+            .finally(() => {
+              this.loadingService.setLoading(false); // ✅ stop loader
+            });
         });
       } else if (result.dismiss === Swal.DismissReason.cancel) {
         Swal.fire('Cancelled', 'Dealer/Outlet data is safe.', 'info');
       }
     });
   }
+
 }

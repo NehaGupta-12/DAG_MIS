@@ -21,6 +21,7 @@ import {AddUserComponent} from "../add-user/add-user.component";
 import {FeatherIconsComponent} from "@shared/components/feather-icons/feather-icons.component";
 import {DailySalesService} from "../daily-sales.service";
 import Swal from "sweetalert2";
+import {LoadingService} from "../../Services/loading.service";
 
 
 @Component({
@@ -51,7 +52,7 @@ export class DailySalesListComponent implements OnInit {
 
   dataSource = new MatTableDataSource<any>();
 
-  // Define columns
+// Define columns
   columnDefinitions = [
     { def: 'id', label: 'ID' },
     { def: 'name', label: 'Name' },
@@ -74,53 +75,54 @@ export class DailySalesListComponent implements OnInit {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
 
-
-  // ✅ Data source
-  // dataSource = new MatTableDataSource<AdvanceTable>([]);
-  // isLoading = false;
-
-
-  constructor(private dialog: MatDialog,
-              private router: Router,
-              private injector: EnvironmentInjector,
-              private dailySlaes: DailySalesService,
-              ) {
-  }
+  constructor(
+    private dialog: MatDialog,
+    private router: Router,
+    private injector: EnvironmentInjector,
+    private dailySlaes: DailySalesService,
+    private loadingService: LoadingService,
+  ) {}
 
   ngOnInit() {
-    this.loadLocationList()
+    this.loadLocationList();
   }
 
   loadLocationList() {
+    this.loadingService.setLoading(true); // ✅ start loader
     runInInjectionContext(this.injector, () => {
-      this.dailySlaes.getDailySalesList().subscribe((data) => {
-        this.dataSource.data = data.map((item, index) => ({
-          id: index + 1, // Sr. No.
-          ...item
-        }));
-        this.dataSource.paginator = this.paginator;
-        this.dataSource.sort = this.sort;
-        console.log(this.dataSource.data);
+      this.dailySlaes.getDailySalesList().subscribe({
+        next: (data) => {
+          this.dataSource.data = data.map((item, index) => ({
+            id: index + 1, // Sr. No.
+            ...item
+          }));
+          this.dataSource.paginator = this.paginator;
+          this.dataSource.sort = this.sort;
+          console.log(this.dataSource.data);
+          this.loadingService.setLoading(false); // ✅ stop loader on success
+        },
+        error: (err) => {
+          console.error('Error fetching Daily Sales:', err);
+          this.loadingService.setLoading(false); // ✅ stop loader on error
+        }
       });
     });
   }
 
-
-
   goToEdit(row: any) {
     this.router.navigate(['module/add-daily-sales'], {
-      queryParams: {data: JSON.stringify(row)}
+      queryParams: { data: JSON.stringify(row) }
     });
   }
 
   openDialog() {
     this.dialog.open(AddUserComponent, {
-      // width: '400px',   // set width
-      autoFocus: false  // optional
+      // width: '400px',
+      autoFocus: false
     });
   }
 
-  navigateToAddDailySales(){
+  navigateToAddDailySales() {
     this.router.navigate(['module/add-daily-sales']);
   }
 
@@ -133,53 +135,50 @@ export class DailySalesListComponent implements OnInit {
     return this.columnDefinitions.map(c => c.def);
   }
 
-  // Filtering
+// Filtering
   applyFilter(event: Event) {
     const filterValue = (event.target as HTMLInputElement).value;
     this.dataSource.filter = filterValue.trim().toLowerCase();
   }
 
-  isLoading: any;
+  deleteDailySales(row: any) {
+    const docId = row.docId; // ✅ Firestore document ID
 
-    deleteDailySales(row: any) {
-      const docId = row.docId; // ✅ Firestore document ID
-
-      if (!docId) {
-        Swal.fire('Error', 'Missing document ID for this Daily Sale.', 'error');
-        return;
-      }
-
-      Swal.fire({
-        title: 'Are you sure?',
-        text: 'You will not be able to recover this Daily Sale!',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'Yes, delete it!',
-        cancelButtonText: 'No, cancel',
-      }).then((result) => {
-        if (!result.isConfirmed) return;
-
-        this.isLoading = true;
-
-        runInInjectionContext(this.injector, () => {
-          this.dailySlaes.deleteDailySales(docId) // ✅ use docId
-            .then(() => {
-              // ✅ Optimistically update UI (remove row)
-              this.dataSource.data = this.dataSource.data.filter((p: any) => p.docId !== docId);
-
-              Swal.fire('Deleted!', 'Daily Sale has been deleted.', 'success');
-            })
-            .catch((err) => {
-              console.error('Delete failed:', err);
-              Swal.fire('Error', 'Failed to delete the Daily Sale. Please try again.', 'error');
-            })
-            .finally(() => {
-              this.isLoading = false;
-            });
-        });
-      });
+    if (!docId) {
+      Swal.fire('Error', 'Missing document ID for this Daily Sale.', 'error');
+      return;
     }
 
+    Swal.fire({
+      title: 'Are you sure?',
+      text: 'You will not be able to recover this Daily Sale!',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, delete it!',
+      cancelButtonText: 'No, cancel',
+    }).then((result) => {
+      if (!result.isConfirmed) return;
+
+      this.loadingService.setLoading(true); // ✅ start loader
+
+      runInInjectionContext(this.injector, () => {
+        this.dailySlaes.deleteDailySales(docId)
+          .then(() => {
+            // ✅ Optimistically update UI (remove row)
+            this.dataSource.data = this.dataSource.data.filter((p: any) => p.docId !== docId);
+
+            Swal.fire('Deleted!', 'Daily Sale has been deleted.', 'success');
+          })
+          .catch((err) => {
+            console.error('Delete failed:', err);
+            Swal.fire('Error', 'Failed to delete the Daily Sale. Please try again.', 'error');
+          })
+          .finally(() => {
+            this.loadingService.setLoading(false); // ✅ stop loader after completion
+          });
+      });
+    });
+  }
 
   getTotalQuantity(row: any): number {
     if (!row?.products) return 0;
@@ -187,6 +186,7 @@ export class DailySalesListComponent implements OnInit {
       .map((p: any) => p.quantity || 0)
       .reduce((acc: number, val: number) => acc + val, 0);
   }
+
 
 
 

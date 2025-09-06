@@ -23,6 +23,7 @@ import {AddDealerService} from "../add-dealer.service";
 import Swal from "sweetalert2";
 import {GrnService} from "../grn.service";
 import {Validators} from "@angular/forms";
+import {LoadingService} from "../../Services/loading.service";
 
 @Component({
   selector: 'app-grn-list',
@@ -51,18 +52,16 @@ export class GRNListComponent implements OnInit {
 
   dataSource = new MatTableDataSource<any>();
 
-  // Define columns
+// Define columns
   columnDefinitions = [
     {def: 'serial', label: 'Serial'},
-    { def: 'name', label: 'Name' },
-    { def: 'sku', label: 'Sku' },
-    { def: 'variant', label: 'Variant' },
-    { def: 'dealerOutlet', label: 'Dealer Outlet' },
-    { def: 'quantity', label: 'Quantity' },
+    {def: 'name', label: 'Name'},
+    {def: 'sku', label: 'Sku'},
+    {def: 'variant', label: 'Variant'},
+    {def: 'dealerOutlet', label: 'Dealer Outlet'},
+    {def: 'quantity', label: 'Quantity'},
     {def: 'typeOfGrn', label: 'GrnType'},
   ];
-
-
 
   displayedColumns: string[] = [
     'serial',
@@ -78,25 +77,33 @@ export class GRNListComponent implements OnInit {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
 
-
-  constructor(private dialog: MatDialog,
-              private router: Router,
-              private grnService: GrnService,
-              private injector: EnvironmentInjector,
-  ) {
-  }
+  constructor(
+    private dialog: MatDialog,
+    private router: Router,
+    private grnService: GrnService,
+    private injector: EnvironmentInjector,
+    private loadingService: LoadingService
+  ) {}
 
   ngOnInit() {
-    this.loadLocationList()
+    this.loadLocationList();
   }
 
   loadLocationList() {
+    this.loadingService.setLoading(true); // ✅ start loader
     runInInjectionContext(this.injector, () => {
-      this.grnService.getGrnList().subscribe((data) => {
-        this.dataSource.data = data;
-        this.dataSource.paginator = this.paginator;
-        this.dataSource.sort = this.sort;
-        console.log(this.dataSource.data)
+      this.grnService.getGrnList().subscribe({
+        next: (data) => {
+          this.dataSource.data = data;
+          this.dataSource.paginator = this.paginator;
+          this.dataSource.sort = this.sort;
+          console.log(this.dataSource.data);
+          this.loadingService.setLoading(false); // ✅ stop loader on success
+        },
+        error: (err) => {
+          console.error('Error fetching GRN list:', err);
+          this.loadingService.setLoading(false); // ✅ stop loader on error
+        }
       });
     });
   }
@@ -107,11 +114,10 @@ export class GRNListComponent implements OnInit {
     });
   }
 
-
   openDialog() {
     this.dialog.open(AddUserComponent, {
-      // width: '400px',   // set width
-      autoFocus: false  // optional
+      // width: '400px',
+      autoFocus: false
     });
   }
 
@@ -128,7 +134,7 @@ export class GRNListComponent implements OnInit {
     return this.columnDefinitions.map(c => c.def);
   }
 
-  // Filtering
+// Filtering
   applyFilter(event: Event) {
     const filterValue = (event.target as HTMLInputElement).value;
     this.dataSource.filter = filterValue.trim().toLowerCase();
@@ -154,14 +160,12 @@ export class GRNListComponent implements OnInit {
     }).then((result) => {
       if (!result.isConfirmed) return;
 
-      this.isLoading = true;
-
+      this.loadingService.setLoading(true); // ✅ start loader
       runInInjectionContext(this.injector, () => {
-        this.grnService.deleteGrn(docId) // ✅ use docId
+        this.grnService.deleteGrn(docId)
           .then(() => {
-            // ✅ Optimistically update UI (remove row from table)
+            // ✅ Optimistically update UI
             this.dataSource.data = this.dataSource.data.filter((p: any) => p.docId !== docId);
-
             Swal.fire('Deleted!', 'GRN has been deleted.', 'success');
           })
           .catch((err) => {
@@ -169,12 +173,11 @@ export class GRNListComponent implements OnInit {
             Swal.fire('Error', 'Failed to delete the GRN. Please try again.', 'error');
           })
           .finally(() => {
-            this.isLoading = false;
+            this.loadingService.setLoading(false); // ✅ stop loader
           });
       });
     });
   }
-
 
   getTotalQuantity(row: any): number {
     if (!row?.items) return 0;
@@ -182,7 +185,5 @@ export class GRNListComponent implements OnInit {
       .map((i: any) => i.quantity || 0)
       .reduce((acc: number, val: number) => acc + val, 0);
   }
-
-
 
 }

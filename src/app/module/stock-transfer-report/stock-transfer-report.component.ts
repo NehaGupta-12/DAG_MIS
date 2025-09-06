@@ -37,6 +37,7 @@ import {
 import { MatAutocomplete, MatAutocompleteTrigger } from '@angular/material/autocomplete';
 import { StockTransferService } from '../stock-transfer.service';
 import { AddDealerService } from '../add-dealer.service';
+import {LoadingService} from "../../Services/loading.service";
 
 @Component({
   selector: 'app-stock-transfer-report',
@@ -76,6 +77,7 @@ export class StockTransferReportComponent implements OnInit {
   dealerdataSource = new MatTableDataSource<any>();
   stockTransfers: any[] = [];
   filteredTransfers: any[] = [];
+  isLoading: any; // ✅ loader flag
 
   constructor(
     private fb: UntypedFormBuilder,
@@ -84,6 +86,7 @@ export class StockTransferReportComponent implements OnInit {
     private addDealerService: AddDealerService,
     private stockTransferService: StockTransferService,
     private mDatabase: AngularFireDatabase,
+    private loadingService: LoadingService,
     @Inject(MAT_DIALOG_DATA) public data: any
   ) {
     this.stockTransferForm = this.fb.group({
@@ -93,7 +96,7 @@ export class StockTransferReportComponent implements OnInit {
     });
   }
 
-  // Form Controls
+// Form Controls
   fromDealerFilter = new FormControl('');
   toDealerFilter = new FormControl('');
 
@@ -106,7 +109,6 @@ export class StockTransferReportComponent implements OnInit {
 
     this.DealerList();
     this.loadStockTransfers();
-
 
     this.filteredFromDealers = this.dealerdataSource.data;
     this.filteredToDealers = this.dealerdataSource.data;
@@ -131,12 +133,9 @@ export class StockTransferReportComponent implements OnInit {
     if (!this.toDealerFilter.value) {
       this.filteredToDealers = this.dealerdataSource.data;
     }
-
-
   }
 
-
-  // Filtering logic
+// Filtering logic
   private _filterDealers(value: string): any[] {
     const filterValue = value?.toLowerCase() || '';
     return this.dealerdataSource.data.filter((dealer: any) =>
@@ -149,19 +148,37 @@ export class StockTransferReportComponent implements OnInit {
     return dealer && dealer.name ? dealer.name : '';
   }
 
+// ✅ Dealer list with loader
   DealerList() {
+    this.loadingService.setLoading(true);
     runInInjectionContext(this.injector, () => {
-      this.addDealerService.getDealerList().subscribe((data: any) => {
-        this.dealerdataSource.data = data;
+      this.addDealerService.getDealerList().subscribe({
+        next: (data: any) => {
+          this.dealerdataSource.data = data;
+          this.loadingService.setLoading(false);
+        },
+        error: (err) => {
+          console.error('Failed to fetch dealer list', err);
+          this.loadingService.setLoading(false);
+        }
       });
     });
   }
 
+// ✅ Stock transfers list with loader
   loadStockTransfers() {
+    this.loadingService.setLoading(true);
     runInInjectionContext(this.injector, () => {
-      this.stockTransferService.getStockTransferList().subscribe((data: any) => {
-        this.stockTransfers = data;
-        this.filteredTransfers = []; // keep empty until search
+      this.stockTransferService.getStockTransferList().subscribe({
+        next: (data: any) => {
+          this.stockTransfers = data;
+          this.filteredTransfers = []; // keep empty until search
+          this.loadingService.setLoading(false);
+        },
+        error: (err) => {
+          console.error('Failed to fetch stock transfers', err);
+          this.loadingService.setLoading(false);
+        }
       });
     });
   }
@@ -169,7 +186,6 @@ export class StockTransferReportComponent implements OnInit {
   submitForm() {
     const filters = this.stockTransferForm.value;
 
-    // If no filters selected, show all
     if (!filters.fromDealerOutlet && !filters.toDealerOutlet && !filters.createdAt) {
       this.filteredTransfers = [...this.stockTransfers];
     } else {
@@ -192,6 +208,7 @@ export class StockTransferReportComponent implements OnInit {
     this.filteredTransfers = [];
   }
 
+// ✅ Delete stock transfer with loader
   deleteStockTransfer(id: string) {
     Swal.fire({
       title: 'Are you sure?',
@@ -201,11 +218,21 @@ export class StockTransferReportComponent implements OnInit {
       confirmButtonText: 'Yes, delete it!',
     }).then(result => {
       if (result.isConfirmed) {
+        this.loadingService.setLoading(true); // start loader
+
         runInInjectionContext(this.injector, () => {
-          this.stockTransferService.deleteStockTransfer(id).then(() => {
-            Swal.fire('Deleted!', 'Record deleted successfully.', 'success');
-            this.loadStockTransfers();
-          });
+          this.stockTransferService.deleteStockTransfer(id)
+            .then(() => {
+              Swal.fire('Deleted!', 'Record deleted successfully.', 'success');
+              this.loadStockTransfers();
+            })
+            .catch((err) => {
+              console.error('Delete failed', err);
+              Swal.fire('Error', 'Failed to delete record.', 'error');
+            })
+            .finally(() => {
+              this.loadingService.setLoading(false); // stop loader
+            });
         });
       }
     });
@@ -218,4 +245,5 @@ export class StockTransferReportComponent implements OnInit {
     }
     // implement Excel export logic here
   }
+
 }

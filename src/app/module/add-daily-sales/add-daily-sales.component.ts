@@ -23,6 +23,7 @@ import { AddDealerService } from "../add-dealer.service";
 import { ProductMasterService } from "../product-master.service";
 import {OutletProductService} from "../outlet-product.service";
 import {InventoryService} from "../add-inventory/inventory.service";
+import {LoadingService} from "../../Services/loading.service";
 
 @Component({
   selector: 'app-add-daily-sales',
@@ -68,7 +69,8 @@ export class AddDailySalesComponent implements OnInit {
     private productService: ProductMasterService,
     private router: Router,
     private outletProductService: OutletProductService,
-    private inventoryService : InventoryService,
+    private inventoryService: InventoryService,
+    private loadingService: LoadingService,
     @Inject(MAT_DIALOG_DATA) public data: any,
   ) {
     this.isEditMode = !!data?.id;
@@ -77,13 +79,12 @@ export class AddDailySalesComponent implements OnInit {
       division: ['', Validators.required],
       country: ['', Validators.required],
       town: ['', Validators.required],
-      vehicle: ['', Validators.required], // selected vehicle
+      vehicle: ['', Validators.required],
     });
   }
 
   ngOnInit() {
     this.DealerList();
-    // this.loadOutletProduct();
     this.loadInventoryDaata();
 
     this.route.queryParams.subscribe(params => {
@@ -91,7 +92,6 @@ export class AddDailySalesComponent implements OnInit {
         const rowData = JSON.parse(params['data']);
         console.log('Edit Mode Row Data:', rowData);
 
-        // ✅ Patch dealer/outlet info
         this.dailySalesForm.patchValue({
           dealerOutlet: rowData.dealerOutlet,
           division: rowData.division,
@@ -100,9 +100,8 @@ export class AddDailySalesComponent implements OnInit {
           vehicle: rowData.name,
         });
 
-        // ✅ Put product into addedProducts with docId
         this.addedProducts = [{
-          docId: rowData.docId,  // Firestore document ID
+          docId: rowData.docId,
           sku: rowData.sku ?? '',
           name: rowData.name ?? '',
           brand: rowData.brand ?? '',
@@ -112,60 +111,44 @@ export class AddDailySalesComponent implements OnInit {
           quantity: rowData.quantity ?? 1
         }];
 
-        // ✅ Patch vehicle field & disable it
         this.dailySalesForm.patchValue({ vehicle: rowData.name });
-        // this.dailySalesForm.get('dealerOutlet')?.disable();
         this.dailySalesForm.get('vehicle')?.disable();
-
-        // ✅ Mark edit mode
         this.isEditMode = true;
         this.data = rowData;
       }
     });
-
   }
 
-
   DealerList() {
+    this.loadingService.setLoading(true);
     runInInjectionContext(this.injector, () => {
-      this.addDealerService.getDealerList().subscribe((data) => {
-        this.dealerdataSource.data = data;
-        console.log(this.dealerdataSource.data)
+      this.addDealerService.getDealerList().subscribe({
+        next: (data) => {
+          this.dealerdataSource.data = data;
+          console.log(this.dealerdataSource.data);
+          this.loadingService.setLoading(false);
+        },
+        error: () => this.loadingService.setLoading(false)
       });
     });
   }
 
-  // productList() {
-  //   runInInjectionContext(this.injector, () => {
-  //     this.productService.getProductList().subscribe((data) => {
-  //       this.vehicledataSource.data = data;
-  //       console.log("this.vehicledataSource.data", this.vehicledataSource.data)
-  //     });
-  //   });
-  // }
-
-  // loadOutletProduct() {
-  //   runInInjectionContext(this.injector, () => {
-  //     this.outletProductService.getOutletProductList().subscribe((data) => {
-  //       this.dataSource.data = data;
-  //       console.log(this.dataSource.data)
-  //     });
-  //   });
-  // }
-
   loadInventoryDaata() {
+    this.loadingService.setLoading(true);
     runInInjectionContext(this.injector, () => {
-      this.inventoryService.getInventoryAllData().subscribe(data => {
-        console.log('Inventory data:', data);
-        this.dataSource.data = data;
+      this.inventoryService.getInventoryAllData().subscribe({
+        next: (data) => {
+          console.log('Inventory data:', data);
+          this.dataSource.data = data;
+          this.loadingService.setLoading(false);
+        },
+        error: () => this.loadingService.setLoading(false)
       });
     });
   }
 
   onDealerChange(event: any) {
     const dealerName = event.value;
-
-    // 1. Get dealer details (division, country, town)
     const dealer = this.dealerdataSource.data.find((d: any) => d.name === dealerName);
     if (dealer) {
       this.dailySalesForm.patchValue({
@@ -174,20 +157,12 @@ export class AddDailySalesComponent implements OnInit {
         town: dealer.town || ''
       });
     }
-
-    // 2. Filter outlet products directly (since each doc is already one product)
     const availableProducts = this.dataSource.data.filter(
       (p: any) => p.dealerId === dealer.id && p.openingStock > 0
     );
-
-    // 3. Bind to vehicle dropdown
     this.vehicledataSource.data = availableProducts;
-
-    // reset vehicle selection
     this.dailySalesForm.get('vehicle')?.reset();
   }
-
-
 
   isSubmitEnabled(): boolean {
     const formValid =
@@ -211,16 +186,14 @@ export class AddDailySalesComponent implements OnInit {
 
     const product = this.vehicledataSource.data.find(p => p.name === selectedProductId);
     if (product) {
-      // ✅ Prevent duplicate using `id`
       const exists = this.addedProducts.some(p => p.productId === product.id);
       if (exists) {
         Swal.fire('Info', 'This product is already added.', 'info');
         return;
       }
 
-      // ✅ Add new product
       this.addedProducts = [...this.addedProducts, {
-        productId: product.id,   // unique id
+        productId: product.id,
         sku: product.sku,
         name: product.name,
         brand: product.brand,
@@ -231,11 +204,8 @@ export class AddDailySalesComponent implements OnInit {
       }];
       console.log(this.addedProducts);
     }
-
-    // Optionally reset dropdown after adding
     this.dailySalesForm.get('vehicle')?.reset();
   }
-
 
   removeProduct(index: number) {
     this.addedProducts.splice(index, 1);
@@ -264,7 +234,6 @@ export class AddDailySalesComponent implements OnInit {
             const username = userData.userName || 'Unknown User';
             const timestamp = Date.now();
 
-            // 🔹 Base info from form
             const baseInfo = {
               dealerOutlet: formValues.dealerOutlet,
               division: formValues.division,
@@ -275,9 +244,10 @@ export class AddDailySalesComponent implements OnInit {
               updatedAt: timestamp
             };
 
-            if (this.isEditMode) {
-              const productToUpdate = this.addedProducts[0]; // only one in edit mode
+            this.loadingService.setLoading(true);
 
+            if (this.isEditMode) {
+              const productToUpdate = this.addedProducts[0];
               const productDoc = {
                 ...baseInfo,
                 sku: productToUpdate.sku,
@@ -292,17 +262,17 @@ export class AddDailySalesComponent implements OnInit {
               runInInjectionContext(this.injector, () =>
                 this.dailySalesService.updateDailySales(productToUpdate.docId, productDoc)
               )
+                .then(() => this.updateInventory(productDoc, 'decrease'))
                 .then(() => {
-                  this.updateInventory(productDoc, 'decrease');
                   Swal.fire('Updated!', 'Daily Sales updated successfully.', 'success');
                   this.goBack();
                 })
                 .catch(err => {
                   console.error('Error updating daily sales:', err);
                   Swal.fire('Error', 'Something went wrong while updating.', 'error');
-                });
+                })
+                .finally(() => this.loadingService.setLoading(false));
             } else {
-              // 🔹 Create one document per product (Add Mode)
               const createPromises = this.addedProducts.map(p => {
                 const productDoc = {
                   ...baseInfo,
@@ -320,7 +290,7 @@ export class AddDailySalesComponent implements OnInit {
 
                 return runInInjectionContext(this.injector, () =>
                   this.dailySalesService.addDailySales(productDoc)
-                ).then( () => this.updateInventory(productDoc, 'decrease'));
+                ).then(() => this.updateInventory(productDoc, 'decrease'));
               });
 
               Promise.all(createPromises)
@@ -331,20 +301,22 @@ export class AddDailySalesComponent implements OnInit {
                 .catch(err => {
                   console.error('Error adding daily sales:', err);
                   Swal.fire('Error', 'Something went wrong while adding.', 'error');
-                });
+                })
+                .finally(() => this.loadingService.setLoading(false));
             }
           } catch (innerErr) {
             console.error('Unexpected error during submission:', innerErr);
             Swal.fire('Error', 'Unexpected issue occurred.', 'error');
+            this.loadingService.setLoading(false);
           }
         }
       });
     } catch (err) {
       console.error('Global submit error:', err);
       Swal.fire('Error', 'Something went wrong while submitting.', 'error');
+      this.loadingService.setLoading(false);
     }
   }
-
 
   updateInventory(product: any, action: 'increase' | 'decrease'): Promise<void> {
     const quantityChange = action === 'increase' ? product.quantity : -product.quantity;
@@ -352,6 +324,7 @@ export class AddDailySalesComponent implements OnInit {
       this.inventoryService.updateInventoryQuantity(product.dealerOutlet, product.sku, quantityChange)
     );
   }
+
   goBack() {
     this.location.back();
   }

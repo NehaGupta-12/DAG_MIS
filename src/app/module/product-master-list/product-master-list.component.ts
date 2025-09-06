@@ -22,6 +22,7 @@ import {FeatherIconsComponent} from "@shared/components/feather-icons/feather-ic
 import {ProductMasterService} from "../product-master.service";
 import Swal from "sweetalert2";
 import {AddShowroomComponent} from "../add-showroom/add-showroom.component";
+import {LoadingService} from "../../Services/loading.service";
 
 @Component({
   selector: 'app-product-master-list',
@@ -52,7 +53,7 @@ export class ProductMasterListComponent implements OnInit {
 
   dataSource = new MatTableDataSource<any>();
 
-  // Define columns
+// Define columns
   columnDefinitions = [
     { def: 'id', label: 'ID' },
     { def: 'sku', label: 'Sku' },
@@ -83,54 +84,53 @@ export class ProductMasterListComponent implements OnInit {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
 
+  isLoading: any;
 
-  // ✅ Data source
-  // dataSource = new MatTableDataSource<AdvanceTable>([]);
-  // isLoading = false;
-
-
-  constructor(private dialog: MatDialog,
-              private router: Router,
-              private productService: ProductMasterService,
-              private injector: EnvironmentInjector,
-              ) {
-  }
+  constructor(
+    private dialog: MatDialog,
+    private router: Router,
+    private productService: ProductMasterService,
+    private injector: EnvironmentInjector,
+    private loadingService: LoadingService
+  ) {}
 
   ngOnInit() {
-    this.productList()
+    this.productList();
   }
 
+// ✅ Product list with loader
   productList() {
+    this.loadingService.setLoading(true);
     runInInjectionContext(this.injector, () => {
-      this.productService.getProductList().subscribe((data) => {
-        console.log(data)
-        this.dataSource.data = data;
-        this.dataSource.paginator = this.paginator;
-        this.dataSource.sort = this.sort;
-        console.log(this.dataSource.data)
+      this.productService.getProductList().subscribe({
+        next: (data: any) => {
+          console.log("Fetched Products:", data);
+          this.dataSource.data = data;
+          this.dataSource.paginator = this.paginator;
+          this.dataSource.sort = this.sort;
+          this.loadingService.setLoading(false);
+        },
+        error: (err) => {
+          console.error('Failed to fetch products', err);
+          this.loadingService.setLoading(false);
+        }
       });
     });
   }
 
   goToEdit(row: any) {
     this.router.navigate(['module/add-products-master'], {
-      queryParams: {data: JSON.stringify(row)}
+      queryParams: { data: JSON.stringify(row) }
     });
   }
-
-  // ✅ Dynamically get columns to display
-  // getDisplayedColumns(): string[] {
-  //   return this.columnDefinitions.filter(cd => cd.visible).map(cd => cd.def);
-  // }
 
   openDialog() {
     this.dialog.open(AddUserComponent, {
-      // width: '400px',   // set width
-      autoFocus: false  // optional
+      autoFocus: false
     });
   }
 
-  navigateToAddProductMaster(){
+  navigateToAddProductMaster() {
     this.router.navigate(['module/add-products-master']);
   }
 
@@ -143,14 +143,13 @@ export class ProductMasterListComponent implements OnInit {
     return this.columnDefinitions.map(c => c.def);
   }
 
-  // Filtering
+// Filtering
   applyFilter(event: Event) {
     const filterValue = (event.target as HTMLInputElement).value;
     this.dataSource.filter = filterValue.trim().toLowerCase();
   }
 
-  isLoading: any;
-
+// Delete with loader
   delete(id: string) {
     Swal.fire({
       title: 'Are you sure?',
@@ -160,37 +159,31 @@ export class ProductMasterListComponent implements OnInit {
       confirmButtonText: 'Yes, delete it!',
       cancelButtonText: 'No, cancel',
     }).then((result) => {
-      if (result.isConfirmed) {
-        // Proceed with deletion
-        runInInjectionContext(this.injector, () => {
-          this.productService.deleteProduct(id).then(() => {
+      if (!result.isConfirmed) return;
+
+      this.loadingService.setLoading(true); // ✅ loader for delete
+
+      runInInjectionContext(this.injector, () => {
+        this.productService.deleteProduct(id)
+          .then(() => {
             this.productList();
-
-            // // Log activity
-            // const activity = {
-            //   date: new Date().getTime(),
-            //   section: 'Installation List',
-            //   action: 'Delete',
-            //   description: `Installation deleted by user`,
-            //   currentIp: localStorage.getItem('currentip')!,
-            // };
-            // this.mLogService.addLog(activity);
-
-            // Optional: Show success alert
             Swal.fire('Deleted!', 'Product has been deleted.', 'success');
+          })
+          .catch((err) => {
+            console.error('Delete failed:', err);
+            Swal.fire('Error', 'Failed to delete the product. Please try again.', 'error');
+          })
+          .finally(() => {
+            this.loadingService.setLoading(false);
           });
-        });
-      } else if (result.dismiss === Swal.DismissReason.cancel) {
-        Swal.fire('Cancelled', 'Product is safe.', 'info');
-      }
+      });
     });
   }
-
 
   openAssignDialog(): void {
     const dialogRef = this.dialog.open(AddShowroomComponent, {
       width: '400px',
-      data: { /* you can pass data here */ }
+      data: { /* optional data */ }
     });
 
     dialogRef.afterClosed().subscribe(result => {

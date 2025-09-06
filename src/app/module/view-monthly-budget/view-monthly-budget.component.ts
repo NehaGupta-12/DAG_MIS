@@ -22,6 +22,7 @@ import {MatTooltip} from "@angular/material/tooltip";
 
 import {MonthlyBudgetService} from "../monthly-budget.service";
 import Swal from "sweetalert2";
+import {LoadingService} from "../../Services/loading.service";
 
 @Component({
   selector: 'app-view-monthly-budget',
@@ -51,7 +52,7 @@ export class ViewMonthlyBudgetComponent implements OnInit {
   // ✅ Initialize empty table
   dataSource = new MatTableDataSource<any>([]);
 
-  // ✅ Centralized column definitions
+// ✅ Centralized column definitions
   columnDefinitions = [
     { def: 'srNo', label: 'Sr No' },
     { def: 'sku', label: 'SKU' },
@@ -70,39 +71,53 @@ export class ViewMonthlyBudgetComponent implements OnInit {
   constructor(
     private dialog: MatDialog,
     private router: Router,
-    private injector : EnvironmentInjector,
+    private injector: EnvironmentInjector,
     private monthlybudgetService: MonthlyBudgetService,
+    private loadingService: LoadingService,
     @Inject(MAT_DIALOG_DATA) public data: any
   ) {}
 
   ngOnInit(): void {
     console.log('Received data in ViewBudgetProduct:', this.data);
 
+    // ✅ Show loader while fetching data
+    this.loadingService.setLoading(true);
+
     // If dialog is passed full budget object
     if (this.data?.items) {
       this.dataSource = new MatTableDataSource(this.data.items);
       this.dataSource.paginator = this.paginator;
       this.dataSource.sort = this.sort;
+      this.loadingService.setLoading(false);
     }
 
     // If only docId is passed, fetch from service
     else if (this.data?.docId) {
-      this.monthlybudgetService.getBudgetById(this.data.docId).subscribe((budget) => {
-        if (budget?.items) {
-          this.dataSource = new MatTableDataSource(budget.items);
-          this.dataSource.paginator = this.paginator;
-          this.dataSource.sort = this.sort;
-        }
+      runInInjectionContext(this.injector, () => {
+        this.monthlybudgetService.getBudgetById(this.data.docId).subscribe({
+          next: (budget) => {
+            if (budget?.items) {
+              this.dataSource = new MatTableDataSource(budget.items);
+              this.dataSource.paginator = this.paginator;
+              this.dataSource.sort = this.sort;
+            }
+            this.loadingService.setLoading(false);
+          },
+          error: (err) => {
+            console.error('Failed to fetch budget:', err);
+            this.loadingService.setLoading(false);
+          }
+        });
       });
     }
   }
 
-  // ✅ Dynamic displayed columns
+// ✅ Dynamic displayed columns
   getDisplayedColumns() {
     return this.columnDefinitions.map(c => c.def);
   }
 
-  // ✅ Filter support
+// ✅ Filter support
   applyFilter(event: Event) {
     const filterValue = (event.target as HTMLInputElement).value;
     this.dataSource.filter = filterValue.trim().toLowerCase();
@@ -129,10 +144,7 @@ export class ViewMonthlyBudgetComponent implements OnInit {
     });
   }
 
-
-
-
-  deleteBudget(row: any) {debugger
+  deleteBudget(row: any) {
     const docId = row.id;
 
     if (!docId) {
@@ -150,7 +162,8 @@ export class ViewMonthlyBudgetComponent implements OnInit {
     }).then((result) => {
       if (!result.isConfirmed) return;
 
-      this.isLoading = true;
+      // ✅ Show loader while deleting
+      this.loadingService.setLoading(true);
 
       runInInjectionContext(this.injector, () => {
         this.monthlybudgetService.deleteBudget(docId)
@@ -163,7 +176,7 @@ export class ViewMonthlyBudgetComponent implements OnInit {
             Swal.fire('Error', 'Failed to delete the Budget product. Please try again.', 'error');
           })
           .finally(() => {
-            this.isLoading = false;
+            this.loadingService.setLoading(false);
           });
       });
     });

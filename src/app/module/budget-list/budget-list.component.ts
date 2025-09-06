@@ -23,6 +23,7 @@ import {FeatherIconsComponent} from "@shared/components/feather-icons/feather-ic
 import {CommonModule} from "@angular/common";
 import {BudgetService} from "../budget.service";
 import { ViewBudgetProductComponent } from '../view-budget-product/view-budget-product.component';
+import {LoadingService} from "../../Services/loading.service";
 
 @Component({
   selector: 'app-budget-list',
@@ -51,14 +52,14 @@ export class BudgetListComponent implements OnInit {
 
   dataSource = new MatTableDataSource<any>();
 
-  // Define columns
+// Define columns
   columnDefinitions = [
-    {def: 'serial', label: 'Serial'},
-    {def: 'country', label: 'Country'},
-    {def: 'year', label: 'Year'},
-    {def: 'period', label: 'Period'},
-    {def: 'budgetQuantity', label: 'BudgetQuantity'},
-    {def: 'action', label: 'Action'},
+    { def: 'serial', label: 'Serial' },
+    { def: 'country', label: 'Country' },
+    { def: 'year', label: 'Year' },
+    { def: 'period', label: 'Period' },
+    { def: 'budgetQuantity', label: 'BudgetQuantity' },
+    { def: 'action', label: 'Action' },
   ];
 
   displayedColumns: string[] = [
@@ -67,7 +68,7 @@ export class BudgetListComponent implements OnInit {
     'year',
     'period',
     'budgetQuantity',
-    'action'
+    'action',
   ];
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
@@ -79,91 +80,90 @@ export class BudgetListComponent implements OnInit {
     private dialog: MatDialog,
     private router: Router,
     private outletProductService: OutletProductService,
-
     private budgetService: BudgetService,
     private injector: EnvironmentInjector,
+    private loadingService: LoadingService
   ) {}
 
   ngOnInit() {
     this.loadbudget();
-
-    this.budgetService.getBudgetList().subscribe((budgets) => {
-      this.dataSource = new MatTableDataSource(budgets);
-      this.dataSource.paginator = this.paginator;
-      this.dataSource.sort = this.sort;
-    });
   }
 
   loadbudget() {
+    this.loadingService.setLoading(true); // ✅ show loader
     runInInjectionContext(this.injector, () => {
-      this.budgetService.getBudgetList().subscribe((data: any[]) => {
-        console.log("Raw Data:", data);
+      this.budgetService.getBudgetList().subscribe({
+        next: (data: any[]) => {
+          console.log('Raw Data:', data);
 
-        // 🔹 Group by country + year + period
-        const grouped = data.reduce((acc: any[], curr: any) => {
-          const key = `${curr.country}_${curr.year}_${curr.period.start.seconds}_${curr.period.end.seconds}`;
+          // 🔹 Group by country + year + period
+          const grouped = data.reduce((acc: any[], curr: any) => {
+            const key = `${curr.country}_${curr.year}_${curr.period.start.seconds}_${curr.period.end.seconds}`;
 
-          let existing = acc.find(
-            (x: any) =>
-              x.country === curr.country &&
-              x.year === curr.year &&
-              x.period.start.seconds === curr.period.start.seconds &&
-              x.period.end.seconds === curr.period.end.seconds
-          );
+            let existing = acc.find(
+              (x: any) =>
+                x.country === curr.country &&
+                x.year === curr.year &&
+                x.period.start.seconds === curr.period.start.seconds &&
+                x.period.end.seconds === curr.period.end.seconds
+            );
 
-          if (!existing) {
-            existing = {
-              id:curr.docId,
-              country: curr.country,
-              year: curr.year,
-              period: curr.period,
-              products: [],
-              quantity: 0   // ✅ total budgetQuantity
-            };
-            acc.push(existing);
-          }
+            if (!existing) {
+              existing = {
+                id: curr.docId,
+                country: curr.country,
+                year: curr.year,
+                period: curr.period,
+                products: [],
+                quantity: 0, // ✅ total budgetQuantity
+              };
+              acc.push(existing);
+            }
 
-          // 🔹 Push each product
-          existing.products.push({
-            id:curr.docId,
-            sku: curr.sku,
-            productName: curr.name,       // map Firestore name -> productName
-            budgetQuantity: curr.quantity // map quantity -> budgetQuantity
-          });
+            // 🔹 Push each product
+            existing.products.push({
+              id: curr.docId,
+              sku: curr.sku,
+              productName: curr.name, // map Firestore name -> productName
+              budgetQuantity: curr.quantity, // map quantity -> budgetQuantity
+            });
 
-          // 🔹 Update total for list page
-          existing.quantity += curr.quantity || 0;
+            // 🔹 Update total for list page
+            existing.quantity += curr.quantity || 0;
 
-          return acc;
-        }, []);
+            return acc;
+          }, []);
 
-        console.log("Grouped Data:", grouped);
+          console.log('Grouped Data:', grouped);
 
-        // ✅ This goes to table
-        this.dataSource.data = grouped;
-        this.dataSource.paginator = this.paginator;
-        this.dataSource.sort = this.sort;
+          // ✅ This goes to table
+          this.dataSource.data = grouped;
+          this.dataSource.paginator = this.paginator;
+          this.dataSource.sort = this.sort;
+          this.loadingService.setLoading(false); // ✅ hide loader
+        },
+        error: () => {
+          this.loadingService.setLoading(false); // ✅ hide loader on error
+        },
       });
     });
   }
 
-
-
-  // ✅ Group products into one row per country-year-period
+// ✅ Group products into one row per country-year-period
   private groupBudgets(data: any[]) {
     const grouped: any = {};
 
-    data.forEach(item => {
+    data.forEach((item) => {
       const key = `${item.country}-${item.year}-${item.period.start}-${item.period.end}`;
 
       if (!grouped[key]) {
         grouped[key] = {
-          docId: item.docId,  // keep docId for delete
+          docId: item.docId, // keep docId for delete
           country: item.country,
           year: item.year,
           period: item.period,
           budgetQuantity: 0,
-          products: []
+          products: [],
         };
       }
 
@@ -171,7 +171,7 @@ export class BudgetListComponent implements OnInit {
       grouped[key].products.push({
         sku: item.sku,
         productName: item.productName,
-        budgetQuantity: item.budgetQuantity
+        budgetQuantity: item.budgetQuantity,
       });
 
       // sum quantity
@@ -183,13 +183,13 @@ export class BudgetListComponent implements OnInit {
 
   editloadOutletProduct(row: any) {
     this.router.navigate(['module/add-budget'], {
-      queryParams: {data: JSON.stringify(row)}
+      queryParams: { data: JSON.stringify(row) },
     });
   }
 
   openDialog() {
     this.dialog.open(AddUserComponent, {
-      autoFocus: false
+      autoFocus: false,
     });
   }
 
@@ -203,7 +203,7 @@ export class BudgetListComponent implements OnInit {
   }
 
   getDisplayedColumns() {
-    return this.columnDefinitions.map(c => c.def);
+    return this.columnDefinitions.map((c) => c.def);
   }
 
   applyFilter(event: Event) {
@@ -211,7 +211,7 @@ export class BudgetListComponent implements OnInit {
     this.dataSource.filter = filterValue.trim().toLowerCase();
   }
 
-  deleteBudget(row: any) {debugger
+  deleteBudget(row: any) {
     const docId = row.docId;
 
     if (!docId) {
@@ -229,41 +229,49 @@ export class BudgetListComponent implements OnInit {
     }).then((result) => {
       if (!result.isConfirmed) return;
 
-      this.isLoading = true;
+      this.loadingService.setLoading(true); // ✅ show loader
 
       runInInjectionContext(this.injector, () => {
-        this.budgetService.deleteBudget(docId)
+        this.budgetService
+          .deleteBudget(docId)
           .then(() => {
-            this.dataSource.data = this.dataSource.data.filter((p: any) => p.docId !== docId);
+            this.dataSource.data = this.dataSource.data.filter(
+              (p: any) => p.docId !== docId
+            );
             Swal.fire('Deleted!', 'Budget Product has been deleted.', 'success');
           })
           .catch((err) => {
             console.error('Delete failed:', err);
-            Swal.fire('Error', 'Failed to delete the Budget product. Please try again.', 'error');
+            Swal.fire(
+              'Error',
+              'Failed to delete the Budget product. Please try again.',
+              'error'
+            );
           })
           .finally(() => {
-            this.isLoading = false;
+            this.loadingService.setLoading(false); // ✅ hide loader
           });
       });
     });
   }
 
   openViewDialog(row: any) {
-    console.log(row)
+    console.log(row);
     this.dialog.open(ViewBudgetProductComponent, {
-      width: '90vw',          // ✅ use viewport width (90% of screen width)
-      maxWidth: '70vw',      // ✅ allow full width if needed
-      height: '80vh',         // optional: control height too
+      width: '90vw', // ✅ use viewport width (90% of screen width)
+      maxWidth: '70vw', // ✅ allow full width if needed
+      height: '80vh', // optional: control height too
       panelClass: 'custom-dialog-container',
       data: {
         id: row.id,
         country: row.country,
         year: row.year,
         period: row.period,
-        items: row.products  // ✅ product-wise details
-      }
+        items: row.products, // ✅ product-wise details
+      },
     });
   }
+
 
 
 

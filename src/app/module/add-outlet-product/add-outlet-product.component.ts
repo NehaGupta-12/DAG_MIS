@@ -24,6 +24,7 @@ import {MatOptionModule} from "@angular/material/core";
 import {MatCheckboxModule} from "@angular/material/checkbox";
 import {OutletProductService} from "../outlet-product.service";
 import {AngularFirestore} from "@angular/fire/compat/firestore";
+import {LoadingService} from "../../Services/loading.service";
 
 @Component({
   selector: 'app-add-outlet-product',
@@ -69,8 +70,9 @@ export class AddOutletProductComponent implements OnInit {
   outletProducts: any[] = [];
   dealers: any[] = [];
   allDealers: any[] = [];
-editProductId: string = '';
-data:any ={}
+  editProductId: string = '';
+  data: any = {};
+
   breadscrums = [
     {
       title: 'Examples',
@@ -79,36 +81,32 @@ data:any ={}
     },
   ];
 
-  constructor(private fb: UntypedFormBuilder,
-              private dealer: Location,
-              private outletProductService: OutletProductService,
-              private injector: EnvironmentInjector,
-              private route: ActivatedRoute,
-              private addDealerService: AddDealerService,
-              private productService:ProductMasterService,
-              private readonly  mFirestore:AngularFirestore,
+  constructor(
+    private fb: UntypedFormBuilder,
+    private dealer: Location,
+    private outletProductService: OutletProductService,
+    private injector: EnvironmentInjector,
+    private route: ActivatedRoute,
+    private addDealerService: AddDealerService,
+    private productService: ProductMasterService,
+    private readonly mFirestore: AngularFirestore,
+    private loadingService: LoadingService
   ) {
-    // this.initForm();
     this.route.queryParams.subscribe(params => {
-      this.data =JSON.parse( params['data']);
-      this.isEditMode = this.data?.id!= null ;
+      this.data = JSON.parse(params['data']);
+      this.isEditMode = this.data?.id != null;
       console.log("Edit Mode:", this.isEditMode, "Data:", this.data);
-      // alert(this.data.id)
-      this.editProductId  = this.data?.id || '';
-
-    })
+      this.editProductId = this.data?.id || '';
+    });
 
     this.grnForm = this.fb.group({
       products: ['', [Validators.required]],
       dealerOutlet: ['', [Validators.required]],
       remark: ['', [Validators.required]],
-      // items: this.fb.array([]),
     });
   }
 
   ngOnInit() {
-    // this.changeVariant()
-
     this.loadOutletProduct();
     this.DealerList();
     this.productList();
@@ -127,18 +125,16 @@ data:any ={}
         this.grnForm.patchValue({
           dealerOutlet: rowData.dealerOutlet,
           remark: rowData.remark,
-          products: rowData.name   // 🟢 patch the product dropdown
+          products: rowData.name
         });
 
         if (rowData.id) {
           this.isEditMode = true;
           this.data = rowData;
 
-          // Disable dealerOutlet and products so user cannot change them
           this.grnForm.get('dealerOutlet')?.disable();
-          this.grnForm.get('products')?.disable();   // 🟢 disable product field
+          this.grnForm.get('products')?.disable();
 
-          // 🔑 Only show the selected product in addedProducts
           this.addedProducts = [{
             ...rowData,
             varient: rowData.varient ?? rowData.variant,
@@ -153,38 +149,48 @@ data:any ={}
   }
 
   loadOutletProduct() {
+    this.loadingService.setLoading(true);
     runInInjectionContext(this.injector, () => {
-      this.outletProductService.getOutletProductList().subscribe((data) => {
-        this.outletProducts = data; // save for filtering
-        this.dataSource.data = data;
-        console.log("Outlet Products:", this.outletProducts);
-
-        // After loading products, load dealer list
-        this.DealerList();
+      this.outletProductService.getOutletProductList().subscribe({
+        next: (data) => {
+          this.outletProducts = data;
+          this.dataSource.data = data;
+          console.log("Outlet Products:", this.outletProducts);
+          this.loadingService.setLoading(false);
+          this.DealerList(); // load dealers after outlet products
+        },
+        error: () => this.loadingService.setLoading(false)
       });
     });
   }
 
   DealerList() {
+    this.loadingService.setLoading(true);
     runInInjectionContext(this.injector, () => {
-      this.addDealerService.getDealerList().subscribe((data) => {
-        this.allDealers = data;       // store all dealers
-        this.dealers = data;          // directly assign without filtering
-        this.dealerdataSource.data = this.dealers;
-        console.log("All Dealers:", this.dealerdataSource.data);
+      this.addDealerService.getDealerList().subscribe({
+        next: (data) => {
+          this.allDealers = data;
+          this.dealers = data;
+          this.dealerdataSource.data = this.dealers;
+          console.log("All Dealers:", this.dealerdataSource.data);
+          this.loadingService.setLoading(false);
+        },
+        error: () => this.loadingService.setLoading(false)
       });
     });
   }
 
-
-  //product
   productList() {
+    this.loadingService.setLoading(true);
     runInInjectionContext(this.injector, () => {
-      this.productService.getProductList().subscribe((data) => {
-        // Keep a master copy of all products
-        (this.productService as any).cachedProducts = data;
-        this.vehicledataSource.data = data;
-        console.log("All Products:", data);
+      this.productService.getProductList().subscribe({
+        next: (data) => {
+          (this.productService as any).cachedProducts = data;
+          this.vehicledataSource.data = data;
+          console.log("All Products:", data);
+          this.loadingService.setLoading(false);
+        },
+        error: () => this.loadingService.setLoading(false)
       });
     });
   }
@@ -200,18 +206,15 @@ data:any ={}
       return;
     }
 
-    // Get SKUs already assigned for this outlet
     const existingSkus = this.outletProducts
       .filter(p => p.outletId === outletId)
       .map(p => p.sku);
 
-    // Add disabled flag (true if already exists in outlet)
     let processedProducts = (this.productService as any).cachedProducts.map((p: any) => ({
       ...p,
       disabled: existingSkus.includes(p.sku)
     }));
 
-    // In edit mode → allow current product (force enable)
     if (this.isEditMode && this.data?.sku) {
       processedProducts = processedProducts.map((p: any) => ({
         ...p,
@@ -223,11 +226,7 @@ data:any ={}
     console.log("Products with disabled flag:", processedProducts);
   }
 
-
-
-
   isSubmitEnabled(): boolean {
-    // Check dealerOutlet value, even if disabled
     const dealerValue = this.grnForm.getRawValue().dealerOutlet;
     const remarkValid = !!this.grnForm.get('remark')?.valid;
 
@@ -239,14 +238,7 @@ data:any ={}
     return !!dealerValue && remarkValid && hasProducts && allQuantitiesValid;
   }
 
-
-
   addProduct() {
-    // if (!this.isEditMode ) {
-    //   Swal.fire('Info', 'You can only add one product in create mode.', 'info');
-    //   return;
-    // }
-
     const selectedProductName = this.grnForm.get('products')?.value;
     if (!selectedProductName) {
       Swal.fire('Error', 'Please select a product before adding.', 'error');
@@ -270,23 +262,17 @@ data:any ={}
     this.grnForm.get('products')?.reset();
   }
 
-
-
-
-
   removeProduct(index: number) {
     this.addedProducts.splice(index, 1);
   }
 
-
   async submitForm() {
     try {
       const formValues = this.grnForm.getRawValue();
-      delete formValues.products;  // Remove 'products' from the form values
+      delete formValues.products;
 
-      // ✅ Validate form + products
       const isMainFormValid =
-        !!formValues.dealerOutlet &&   // must have dealer selected
+        !!formValues.dealerOutlet &&
         this.grnForm.get('remark')?.valid;
 
       if (!isMainFormValid || this.addedProducts.length === 0) {
@@ -294,7 +280,6 @@ data:any ={}
         return;
       }
 
-      // ✅ Confirm before save/update
       const result = await Swal.fire({
         title: this.isEditMode ? 'Update Outlet Product Details?' : 'Add Outlet Product Details?',
         text: 'Are you sure you want to proceed?',
@@ -306,12 +291,10 @@ data:any ={}
 
       if (!result.isConfirmed) return;
 
-      // ✅ Get user info
       const userData = JSON.parse(localStorage.getItem('userData') || '{}');
       const username = userData.userName || 'Unknown User';
       const timestamp = Date.now();
 
-      // ✅ Find dealerId based on dealer name
       const selectedName = (formValues.dealerOutlet || '').trim();
       const selectedDealer =
         this.allDealers.find((d: any) => (d.name || '').trim() === selectedName) ||
@@ -325,9 +308,9 @@ data:any ={}
         createdBy: username,
       };
 
-      // ✅ Process products
       runInInjectionContext(this.injector, async () => {
-      const productsData:any = []
+        this.loadingService.setLoading(true);
+        const productsData: any = [];
         for (const product of this.addedProducts) {
           const mProduct = {
             ...basePayload,
@@ -340,39 +323,43 @@ data:any ={}
             openingStock: product.openingStock ?? 0,
             quantity: product.openingStock ?? 0,
           };
-          productsData.push(mProduct)
+          productsData.push(mProduct);
         }
-          // FOR EDIT MODE
-        // alert(this.editProductId)
 
+        try {
           if (this.isEditMode && this.editProductId) {
             await this.outletProductService.updateOutletProduct(
               dealerId,
-            this.editProductId,
-              productsData[0]  // only one product in edit mode
+              this.editProductId,
+              productsData[0]
             );
-          }
-
-          // FOR ADD MODE
-        else {
-
-        if(!this.isEditMode)    productsData.forEach((product: any) => {
-              this.outletProductService.addOutletProduct({
-                ...product,
-                outletId: dealerId
+          } else {
+            if (!this.isEditMode) {
+              productsData.forEach((product: any) => {
+                this.outletProductService.addOutletProduct({
+                  ...product,
+                  outletId: dealerId
+                });
+                this.outletProductService.addInventoryProduct({
+                  ...product,
+                  outletId: dealerId
+                });
               });
-          this.outletProductService.addInventoryProduct({
-            ...product,
-            outletId: dealerId
-          });
-            })
+            }
           }
-        Swal.fire(
-          this.isEditMode ? 'Updated!' : 'Added!',
-          `Outlet Product Details ${this.isEditMode ? 'updated' : 'added'} successfully.`,
-          'success'
-        );
-        this.goBack();
+
+          Swal.fire(
+            this.isEditMode ? 'Updated!' : 'Added!',
+            `Outlet Product Details ${this.isEditMode ? 'updated' : 'added'} successfully.`,
+            'success'
+          );
+          this.goBack();
+        } catch (err) {
+          console.error('Error in submit:', err);
+          Swal.fire('Error', 'Something went wrong while submitting.', 'error');
+        } finally {
+          this.loadingService.setLoading(false);
+        }
       });
     } catch (err) {
       console.error('Global submit error:', err);
@@ -380,24 +367,26 @@ data:any ={}
     }
   }
 
-
-
   goBack() {
     this.dealer.back();
   }
 
   private changeVariant() {
+    this.loadingService.setLoading(true);
     runInInjectionContext(this.injector, async () => {
-      this.mFirestore.collection('product').get().subscribe(res => {
-        res.forEach(doc => {
-          const data = doc.data();
-          // @ts-expect-error: Firestore data may have 'varient' instead of 'variant'
-          this.mFirestore.collection('product').doc(doc.id).update({ variant: data?.varient }).then(r => {
-            console.log(r);
-            console.log('product updated');
+      this.mFirestore.collection('product').get().subscribe({
+        next: (res) => {
+          res.forEach(doc => {
+            const data = doc.data();
+            this.mFirestore.collection('product').doc(doc.id)
+              .update({ variant: (data as any)?.varient })
+              .then(r => console.log('product updated'));
           });
-        });
+          this.loadingService.setLoading(false);
+        },
+        error: () => this.loadingService.setLoading(false)
       });
     });
   }
+
 }
