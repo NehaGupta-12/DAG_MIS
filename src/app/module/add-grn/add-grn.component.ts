@@ -35,6 +35,7 @@ import {InventoryService} from "../add-inventory/inventory.service";
 import firebase from "firebase/compat/app";
 import {AngularFirestore} from "@angular/fire/compat/firestore";
 import { increment } from 'firebase/firestore';
+import {LoadingService} from "../../Services/loading.service";
 
 @Component({
   selector: 'app-add-grn',
@@ -89,7 +90,8 @@ export class AddGRNComponent implements OnInit{
     private productService: ProductMasterService,
     private router: Router,
     private outletProductService: OutletProductService,
-    private inventoryService : InventoryService,
+    private inventoryService: InventoryService,
+    private loadingService: LoadingService,
     @Inject(MAT_DIALOG_DATA) public data: any,
   ) {
     this.isEditMode = !!data?.id;
@@ -100,28 +102,23 @@ export class AddGRNComponent implements OnInit{
     });
   }
 
-
   ngOnInit() {
     this.DealerList();
-    // this.loadOutletProduct();
     this.loadInventoryDaata();
 
     this.route.queryParams.subscribe(params => {
       if (params['data']) {
         const rowData = JSON.parse(params['data']);
         this.outlateId = rowData.outlateId;
-        console.log('Edit Mode Row Data:', rowData);
 
-        // ✅ Patch dealer/outlet info
         this.grnForm.patchValue({
           dealerOutlet: rowData.dealerOutlet,
           products: rowData.products,
           typeOfGrn: rowData.typeOfGrn,
         });
 
-        // ✅ Put product into addedProducts with docId
         this.addedProducts = [{
-          docId: rowData.docId,  // Firestore document ID
+          docId: rowData.docId,
           sku: rowData.sku ?? '',
           name: rowData.name ?? '',
           brand: rowData.brand ?? '',
@@ -131,79 +128,57 @@ export class AddGRNComponent implements OnInit{
           quantity: rowData.quantity ?? 1
         }];
 
-        // ✅ Patch vehicle field & disable it
         this.grnForm.patchValue({ products: rowData.name });
-        // this.dailySalesForm.get('dealerOutlet')?.disable();
         this.grnForm.get('products')?.disable();
 
-        // ✅ Mark edit mode
         this.isEditMode = true;
         this.data = rowData;
       }
     });
-
   }
 
-
   DealerList() {
+    this.loadingService.setLoading(true);
     runInInjectionContext(this.injector, () => {
-      this.addDealerService.getDealerList().subscribe((data) => {
-        this.dealerdataSource.data = data;
-        console.log(this.dealerdataSource.data)
+      this.addDealerService.getDealerList().subscribe({
+        next: (data) => {
+          this.dealerdataSource.data = data;
+          this.loadingService.setLoading(false);
+        },
+        error: () => this.loadingService.setLoading(false)
       });
     });
   }
 
-
-  // loadOutletProduct() {
-  //   runInInjectionContext(this.injector, () => {
-  //     this.outletProductService.getOutletProductList().subscribe((data) => {
-  //       this.dataSource.data = data;
-  //       console.log(this.dataSource.data)
-  //     });
-  //   });
-  // }
-
   loadInventoryDaata() {
+    this.loadingService.setLoading(true);
     runInInjectionContext(this.injector, () => {
-      this.inventoryService.getInventoryAllData().subscribe(data => {
-        console.log('Inventory data:', data);
-        this.dataSource.data = data;
+      this.inventoryService.getInventoryAllData().subscribe({
+        next: (data) => {
+          this.dataSource.data = data;
+          this.loadingService.setLoading(false);
+        },
+        error: () => this.loadingService.setLoading(false)
       });
     });
   }
 
   onDealerChange(event: any) {
     const dealerName = event.value;
-
-    // 1. Get dealer details (division, country, town)
     const dealer = this.dealerdataSource.data.find((d: any) => d.name === dealerName);
-    // if (dealer) {
-    //   this.grnForm.patchValue({
-    //     division: dealer.division || '',
-    //     country: dealer.country || '',
-    //     town: dealer.town || ''
-    //   });
-    // }
 
-    // 2. Filter outlet products directly (since each doc is already one product)
     const availableProducts = this.dataSource.data.filter(
       (p: any) => p.dealerId === dealer.id && p.openingStock > 0
     );
 
-    // 3. Bind to vehicle dropdown
     this.vehicledataSource.data = availableProducts;
-
-    // reset vehicle selection
     this.grnForm.get('products')?.reset();
   }
-
-
 
   isSubmitEnabled(): boolean {
     const formValid =
       this.grnForm.get('dealerOutlet')?.valid &&
-      this.grnForm.get('typeOfGrn')?.valid
+      this.grnForm.get('typeOfGrn')?.valid;
 
     const hasProducts = this.addedProducts.length > 0;
     const allQuantitiesValid = this.addedProducts.every(p => p.quantity && p.quantity > 0);
@@ -220,16 +195,14 @@ export class AddGRNComponent implements OnInit{
 
     const product = this.vehicledataSource.data.find(p => p.name === selectedProductId);
     if (product) {
-      // ✅ Check duplicate by `id` (recommended) or fallback to `sku`
       const exists = this.addedProducts.some(p => p.productId === product.id);
       if (exists) {
         Swal.fire('Info', 'This product is already added.', 'info');
         return;
       }
 
-      // ✅ Push product into table
       this.addedProducts = [...this.addedProducts, {
-        productId: product.id,   // 🔹 unique ID
+        productId: product.id,
         sku: product.sku,
         name: product.name,
         brand: product.brand,
@@ -238,118 +211,15 @@ export class AddGRNComponent implements OnInit{
         unit: product.unit,
         quantity: 1
       }];
-      console.log(this.addedProducts);
     }
 
-    // reset after adding
     this.grnForm.get('products')?.reset();
   }
-
 
   removeProduct(index: number) {
     this.addedProducts.splice(index, 1);
   }
 
-  // submitForm() {
-  //   try {
-  //     const formValues = this.grnForm.getRawValue();
-  //
-  //     if (this.addedProducts.length === 0) {
-  //       Swal.fire('Error', 'Please add at least one product.', 'error');
-  //       return;
-  //     }
-  //
-  //     Swal.fire({
-  //       title: this.isEditMode ? 'Update Grn?' : 'Add Grn?',
-  //       text: 'Are you sure you want to proceed?',
-  //       icon: 'question',
-  //       showCancelButton: true,
-  //       confirmButtonText: 'Yes',
-  //       cancelButtonText: 'No'
-  //     }).then((result: any) => {
-  //       if (result.isConfirmed) {
-  //         try {
-  //           const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-  //           const username = userData.userName || 'Unknown User';
-  //           const timestamp = Date.now();
-  //
-  //           // 🔹 Base info from form
-  //           const baseInfo = {
-  //             dealerOutlet: formValues.dealerOutlet,
-  //             typeOfGrn: formValues.typeOfGrn,
-  //             status: 'Active',
-  //             updatedBy: username,
-  //             updatedAt: timestamp
-  //           };
-  //
-  //           if (this.isEditMode) {
-  //             const productToUpdate = this.addedProducts[0]; // only one in edit mode
-  //
-  //             const productDoc = {
-  //               ...baseInfo,
-  //               sku: productToUpdate.sku,
-  //               name: productToUpdate.name,
-  //               brand: productToUpdate.brand,
-  //               model: productToUpdate.model,
-  //               variant: productToUpdate.variant,
-  //               unit: productToUpdate.unit,
-  //               quantity: productToUpdate.quantity
-  //             };
-  //
-  //             runInInjectionContext(this.injector, () =>
-  //               this.grnService.updateGrn(productToUpdate.docId, productDoc)
-  //             )
-  //               .then(() => {
-  //                 Swal.fire('Updated!', 'Grn updated successfully.', 'success');
-  //                 this.goBack();
-  //               })
-  //               .catch(err => {
-  //                 console.error('Error updating Grn:', err);
-  //                 Swal.fire('Error', 'Something went wrong while updating.', 'error');
-  //               });
-  //           } else {
-  //             // 🔹 Create one document per product (Add Mode)
-  //             const createPromises = this.addedProducts.map(p => {
-  //               const productDoc = {
-  //                 ...baseInfo,
-  //                 id: p.id ?? '',
-  //                 sku: p.sku ?? '',
-  //                 name: p.name ?? '',
-  //                 brand: p.brand ?? '',
-  //                 model: p.model ?? '',
-  //                 variant: p.variant ?? p.varient ?? '',
-  //                 unit: p.unit ?? '',
-  //                 quantity: p.quantity ?? 0,
-  //                 createdBy: username,
-  //                 createdAt: timestamp
-  //               };
-  //
-  //               return runInInjectionContext(this.injector, () =>
-  //                 this.grnService.addGrn(productDoc)
-  //               );
-  //             });
-  //
-  //             Promise.all(createPromises)
-  //               .then(() => {
-  //                 Swal.fire('Added!', 'All products saved as separate documents.', 'success');
-  //                 this.router.navigate(['/module/grn-list']);
-  //               })
-  //               .catch(err => {
-  //                 console.error('Error adding Grn:', err);
-  //                 Swal.fire('Error', 'Something went wrong while adding.', 'error');
-  //               });
-  //           }
-  //         } catch (innerErr) {
-  //           console.error('Unexpected error during submission:', innerErr);
-  //           Swal.fire('Error', 'Unexpected issue occurred.', 'error');
-  //         }
-  //       }
-  //     });
-  //   } catch (err) {
-  //     console.error('Global submit error:', err);
-  //     Swal.fire('Error', 'Something went wrong while submitting.', 'error');
-  //   }
-  // }
   submitForm() {
     try {
       const formValues = this.grnForm.getRawValue();
@@ -368,87 +238,85 @@ export class AddGRNComponent implements OnInit{
         cancelButtonText: 'No'
       }).then((result: any) => {
         if (result.isConfirmed) {
-          try {
-            const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-            const username = userData.userName || 'Unknown User';
-            const timestamp = Date.now();
+          const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+          const username = userData.userName || 'Unknown User';
+          const timestamp = Date.now();
 
-            const baseInfo = {
-              dealerOutlet: formValues.dealerOutlet,
-              typeOfGrn: formValues.typeOfGrn,
-              status: 'Active',
-              updatedBy: username,
-              updatedAt: timestamp
+          const baseInfo = {
+            dealerOutlet: formValues.dealerOutlet,
+            typeOfGrn: formValues.typeOfGrn,
+            status: 'Active',
+            updatedBy: username,
+            updatedAt: timestamp
+          };
+
+          this.loadingService.setLoading(true);
+
+          if (this.isEditMode) {
+            const productToUpdate = this.addedProducts[0];
+            const productDoc = {
+              ...baseInfo,
+              sku: productToUpdate.sku,
+              name: productToUpdate.name,
+              brand: productToUpdate.brand,
+              model: productToUpdate.model,
+              variant: productToUpdate.variant,
+              unit: productToUpdate.unit,
+              quantity: productToUpdate.quantity
             };
 
-            if (this.isEditMode) {
-              // ✅ Update GRN only (no inventory changes)
-              const productToUpdate = this.addedProducts[0];
-
-              const productDoc = {
-                ...baseInfo,
-                sku: productToUpdate.sku,
-                name: productToUpdate.name,
-                brand: productToUpdate.brand,
-                model: productToUpdate.model,
-                variant: productToUpdate.variant,
-                unit: productToUpdate.unit,
-                quantity: productToUpdate.quantity
-              };
-
-              runInInjectionContext(this.injector, () =>
-                this.grnService.updateGrn(productToUpdate.docId, productDoc)
-              )
-                .then(() => {
-                  this.updateInventory(productDoc, 'increase')
-                  Swal.fire('Updated!', 'GRN updated successfully.', 'success');
-                  this.goBack();
-                })
-                .catch(err => {
-                  console.error('Error updating GRN:', err);
-                  Swal.fire('Error', 'Something went wrong while updating.', 'error');
-                });
-
-            } else {
-              // ✅ Add GRN and update inventory
-              const createPromises = this.addedProducts.map(p => {
-                const productDoc = {
-                  ...baseInfo,
-                  id: p.id ?? '',
-                  sku: p.sku ?? '',
-                  name: p.name ?? '',
-                  brand: p.brand ?? '',
-                  model: p.model ?? '',
-                  variant: p.variant ?? p.varient ?? '',
-                  unit: p.unit ?? '',
-                  quantity: p.quantity ?? 0,
-                  createdBy: username,
-                  createdAt: timestamp
-                };
-                console.log(productDoc);
-
-                return runInInjectionContext(this.injector, () =>
-                  this.grnService.addGrn(productDoc)
-                ).then(() => this.updateInventory(productDoc, 'increase')); // ✅ only increase on Add
+            runInInjectionContext(this.injector, () =>
+              this.grnService.updateGrn(productToUpdate.docId, productDoc)
+            )
+              .then(() => this.updateInventory(productDoc, 'increase'))
+              .then(() => {
+                this.loadingService.setLoading(false);
+                Swal.fire('Updated!', 'GRN updated successfully.', 'success');
+                this.goBack();
+              })
+              .catch(err => {
+                this.loadingService.setLoading(false);
+                console.error('Error updating GRN:', err);
+                Swal.fire('Error', 'Something went wrong while updating.', 'error');
               });
 
-              Promise.all(createPromises)
-                .then(() => {
-                  Swal.fire('Added!', 'All products saved and inventory updated.', 'success');
-                  this.router.navigate(['/module/grn-list']);
-                })
-                .catch(err => {
-                  console.error('Error adding GRN:', err);
-                  Swal.fire('Error', 'Something went wrong while adding.', 'error');
-                });
-            }
-          } catch (innerErr) {
-            console.error('Unexpected error during submission:', innerErr);
-            Swal.fire('Error', 'Unexpected issue occurred.', 'error');
+          } else {
+            const createPromises = this.addedProducts.map(p => {
+              const productDoc = {
+                ...baseInfo,
+                id: p.id ?? '',
+                sku: p.sku ?? '',
+                name: p.name ?? '',
+                brand: p.brand ?? '',
+                model: p.model ?? '',
+                variant: p.variant ?? p.varient ?? '',
+                unit: p.unit ?? '',
+                quantity: p.quantity ?? 0,
+                createdBy: username,
+                createdAt: timestamp
+              };
+
+              return runInInjectionContext(this.injector, () =>
+                this.grnService.addGrn(productDoc)
+              ).then(() => this.updateInventory(productDoc, 'increase'));
+            });
+
+            Promise.all(createPromises)
+              .then(() => {
+                this.loadingService.setLoading(false);
+                Swal.fire('Added!', 'All products saved and inventory updated.', 'success');
+                this.router.navigate(['/module/grn-list']);
+              })
+              .catch(err => {
+                this.loadingService.setLoading(false);
+                console.error('Error adding GRN:', err);
+                Swal.fire('Error', 'Something went wrong while adding.', 'error');
+              });
           }
         }
       });
     } catch (err) {
+      this.loadingService.setLoading(false);
       console.error('Global submit error:', err);
       Swal.fire('Error', 'Something went wrong while submitting.', 'error');
     }
@@ -462,7 +330,9 @@ export class AddGRNComponent implements OnInit{
       this.inventoryService.updateInventoryQuantity(product.dealerOutlet, product.sku, quantityChange)
     );
   }
+
   goBack() {
     this.location.back();
   }
+
 }

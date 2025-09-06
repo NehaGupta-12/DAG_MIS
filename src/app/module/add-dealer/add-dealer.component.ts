@@ -21,6 +21,7 @@ import {ActivatedRoute} from "@angular/router";
 import {Observable} from "rxjs";
 import {AngularFireDatabase} from "@angular/fire/compat/database";
 import {map} from "rxjs/operators";
+import {LoadingService} from "../../Services/loading.service";
 export interface ListType {
   name: string
   id?: string
@@ -66,45 +67,41 @@ export class AddDealerComponent implements OnInit{
     },
   ];
 
-  constructor(private fb: UntypedFormBuilder,
-              private dealer: Location,
-              private addDealerService: AddDealerService,
-              private injector: EnvironmentInjector,
-              private route: ActivatedRoute,
-              private mDatabase: AngularFireDatabase,
-              @Inject(MAT_DIALOG_DATA) public data: any,
+  constructor(
+    private fb: UntypedFormBuilder,
+    private dealer: Location,
+    private addDealerService: AddDealerService,
+    private injector: EnvironmentInjector,
+    private route: ActivatedRoute,
+    private mDatabase: AngularFireDatabase,
+    private loadingService: LoadingService,
+    @Inject(MAT_DIALOG_DATA) public data: any,
   ) {
     this._divisionTypes$ = this.mDatabase
       .object<{ subcategories: string[] }>('typelist/Division')
       .valueChanges()
-      .pipe(
-        map(data => data?.subcategories || [])
-      );
+      .pipe(map(data => data?.subcategories || []));
+
     this._outletTypes$ = this.mDatabase
       .object<{ subcategories: string[] }>('/typelist/Outlet_Type')
       .valueChanges()
-      .pipe(
-        map(data => data?.subcategories || [])
-      );
+      .pipe(map(data => data?.subcategories || []));
+
     this._outletCategoryTypes$ = this.mDatabase
       .object<{ subcategories: string[] }>('/typelist/Outlet_Category')
       .valueChanges()
-      .pipe(
-        map(data => data?.subcategories || [])
-      );
+      .pipe(map(data => data?.subcategories || []));
+
     this._countriesTypes$ = this.mDatabase
       .object<{ subcategories: string[] }>('typelist/Countries')
       .valueChanges()
-      .pipe(
-        map(data => data?.subcategories || [])
-      );
+      .pipe(map(data => data?.subcategories || []));
+
     this._townTypes$ = this.mDatabase
       .object<{ subcategories: string[] }>('typelist/Town')
       .valueChanges()
-      .pipe(
-        map(data => data?.subcategories || [])
-      );
-    // this.initForm();
+      .pipe(map(data => data?.subcategories || []));
+
     this.isEditMode = !!data?.id;
     this.dealerForm = this.fb.group({
       name: ['', [Validators.required]],
@@ -112,8 +109,6 @@ export class AddDealerComponent implements OnInit{
       outletType: ['', [Validators.required]],
       division: ['', [Validators.required]],
       town: ['', [Validators.required]],
-      // category: ['', [Validators.required]],
-      // location: ['', [Validators.required]],
     });
   }
 
@@ -130,16 +125,17 @@ export class AddDealerComponent implements OnInit{
     });
   }
 
-
   submitForm() {
     if (this.dealerForm.valid) {
       Swal.fire({
-        title: this.isEditMode ? 'Update Dealer/Outlet Details?' : 'Add Dealer/Outlet Details?',
+        title: this.isEditMode
+          ? 'Update Dealer/Outlet Details?'
+          : 'Add Dealer/Outlet Details?',
         text: 'Are you sure you want to proceed?',
         icon: 'question',
         showCancelButton: true,
         confirmButtonText: 'Yes',
-        cancelButtonText: 'No'
+        cancelButtonText: 'No',
       }).then((result: any) => {
         if (result.isConfirmed) {
           const { ...locationData } = this.dealerForm.getRawValue();
@@ -156,13 +152,16 @@ export class AddDealerComponent implements OnInit{
             transformedData.updateBy = username;
             transformedData.updatedAt = timestamp;
 
+            this.loadingService.setLoading(true);
             runInInjectionContext(this.injector, () => {
               this.addDealerService.updateDealer(this.data.id, transformedData)
                 .then(() => {
+                  this.loadingService.setLoading(false);
                   Swal.fire('Updated!', 'Dealer/Outlet Details updated successfully.', 'success');
                   this.goBack();
                 })
                 .catch(error => {
+                  this.loadingService.setLoading(false);
                   console.error('Error updating Dealer/Outlet Details:', error);
                   Swal.fire('Error', 'Something went wrong.', 'error');
                 });
@@ -173,13 +172,16 @@ export class AddDealerComponent implements OnInit{
             transformedData.createBy = username;
             transformedData.createdAt = timestamp;
 
+            this.loadingService.setLoading(true);
             runInInjectionContext(this.injector, () => {
               this.addDealerService.addDealer(transformedData)
                 .then(() => {
+                  this.loadingService.setLoading(false);
                   Swal.fire('Added!', 'Dealer/Outlet Details added successfully.', 'success');
                   this.goBack();
                 })
                 .catch(error => {
+                  this.loadingService.setLoading(false);
                   console.error('Error adding Dealer/Outlet Details:', error);
                   Swal.fire('Error', 'Something went wrong.', 'error');
                 });
@@ -192,9 +194,8 @@ export class AddDealerComponent implements OnInit{
     }
   }
 
-
-
   goBack() {
     this.dealer.back();
   }
+
 }

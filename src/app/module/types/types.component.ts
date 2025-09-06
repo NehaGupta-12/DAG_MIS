@@ -12,6 +12,7 @@ import {FeatherIconsComponent} from "@shared/components/feather-icons/feather-ic
 import {AngularFireDatabase} from "@angular/fire/compat/database";
 import {take} from "rxjs";
 import Swal from "sweetalert2";
+import {LoadingService} from "../../Services/loading.service";
 
 @Component({
   selector: 'app-types',
@@ -40,10 +41,14 @@ export class TypesComponent implements OnInit {
   newField = '';
 
   categories: any[] = [];
-
   selectedCategory: any = null;
+  isLoading: any; // ✅ loader flag
 
-  constructor(private mDatabase: AngularFireDatabase, private injector: EnvironmentInjector,) {}
+  constructor(
+    private mDatabase: AngularFireDatabase,
+    private injector: EnvironmentInjector,
+    private loadingService: LoadingService
+  ) {}
 
   ngOnInit() {
     this.loadCategories();
@@ -54,13 +59,21 @@ export class TypesComponent implements OnInit {
     });
   }
 
-
+// ✅ Load categories with loader
   loadCategories() {
+    this.loadingService.setLoading(true);
     runInInjectionContext(this.injector, () => {
       const mDatabase = this.injector.get(AngularFireDatabase);
-      mDatabase.list('typelist').valueChanges().subscribe((data: any[]) => {
-        this.categories = data;  // ✅ Real-time updates from Firebase
-        console.log(this.categories)
+      mDatabase.list('typelist').valueChanges().subscribe({
+        next: (data: any[]) => {
+          this.categories = data;
+          console.log(this.categories);
+          this.loadingService.setLoading(false);
+        },
+        error: (err) => {
+          console.error('Failed to load categories', err);
+          this.loadingService.setLoading(false);
+        }
       });
     });
   }
@@ -73,9 +86,11 @@ export class TypesComponent implements OnInit {
     this.showModal = false;
   }
 
+// ✅ Add category with loader
   addCategory(name: string) {
     if (!name.trim()) return;
 
+    this.loadingService.setLoading(true);
     runInInjectionContext(this.injector, () => {
       const mDatabase = this.injector.get(AngularFireDatabase);
       const key = name.replace(/\s+/g, '_');
@@ -84,10 +99,16 @@ export class TypesComponent implements OnInit {
         .then(() => {
           this.newCategory = '';
           console.log('Category added successfully!');
+          this.loadingService.setLoading(false);
+        })
+        .catch((err) => {
+          console.error('Failed to add category', err);
+          this.loadingService.setLoading(false);
         });
     });
   }
 
+// ✅ Delete category with loader
   deleteCategory(name: string) {
     Swal.fire({
       title: 'Are you sure?',
@@ -98,6 +119,7 @@ export class TypesComponent implements OnInit {
       cancelButtonText: 'No, cancel',
     }).then((result) => {
       if (result.isConfirmed) {
+        this.loadingService.setLoading(true);
         runInInjectionContext(this.injector, () => {
           const mDatabase = this.injector.get(AngularFireDatabase);
           const key = name.replace(/\s+/g, '_');
@@ -105,10 +127,12 @@ export class TypesComponent implements OnInit {
           mDatabase.object(`typelist/${key}`).remove()
             .then(() => {
               Swal.fire('Deleted!', 'Type has been deleted.', 'success');
+              this.loadingService.setLoading(false);
             })
             .catch((error) => {
               Swal.fire('Error!', 'Something went wrong while deleting.', 'error');
               console.error('Delete Type error:', error);
+              this.loadingService.setLoading(false);
             });
         });
       } else {
@@ -117,10 +141,11 @@ export class TypesComponent implements OnInit {
     });
   }
 
-
+// ✅ Add subcategory with loader
   addSubCategory(field: string) {
     if (!field.trim() || !this.selectedCategory) return;
 
+    this.loadingService.setLoading(true);
     runInInjectionContext(this.injector, () => {
       const mDatabase = this.injector.get(AngularFireDatabase);
       const key = this.selectedCategory.name.replace(/\s+/g, '_');
@@ -128,34 +153,40 @@ export class TypesComponent implements OnInit {
       mDatabase.object<any[]>(`typelist/${key}/subcategories`)
         .valueChanges()
         .pipe(take(1))
-        .subscribe((subcats) => {
-          const updatedSubcategories = subcats ? [...subcats, field] : [field];
+        .subscribe({
+          next: (subcats) => {
+            const updatedSubcategories = subcats ? [...subcats, field] : [field];
 
-          // ✅ Update DB
-          mDatabase.object(`typelist/${key}/subcategories`)
-            .set(updatedSubcategories)
-            .then(() => {
-              console.log(`Subcategory "${field}" added to ${this.selectedCategory.name}`);
+            mDatabase.object(`typelist/${key}/subcategories`)
+              .set(updatedSubcategories)
+              .then(() => {
+                console.log(`Subcategory "${field}" added to ${this.selectedCategory.name}`);
+                this.selectedCategory = {
+                  ...this.selectedCategory,
+                  subcategories: updatedSubcategories
+                };
 
-              // ✅ Keep dropdown selected and update local reference
-              this.selectedCategory = {
-                ...this.selectedCategory,
-                subcategories: updatedSubcategories
-              };
+                const index = this.categories.findIndex(c => c.name === this.selectedCategory.name);
+                if (index > -1) {
+                  this.categories[index] = this.selectedCategory;
+                }
 
-              // ✅ Also update categories array in memory
-              const index = this.categories.findIndex(c => c.name === this.selectedCategory.name);
-              if (index > -1) {
-                this.categories[index] = this.selectedCategory;
-              }
-            });
+                this.loadingService.setLoading(false);
+              })
+              .catch((err) => {
+                console.error('Failed to add subcategory', err);
+                this.loadingService.setLoading(false);
+              });
+          },
+          error: (err) => {
+            console.error('Failed to fetch subcategories', err);
+            this.loadingService.setLoading(false);
+          }
         });
     });
   }
 
-
-
-
+// ✅ Delete subcategory with loader
   deleteSubCategory(subCategory: string) {
     if (!this.selectedCategory) return;
 
@@ -168,6 +199,7 @@ export class TypesComponent implements OnInit {
       cancelButtonText: 'No, cancel',
     }).then((result) => {
       if (result.isConfirmed) {
+        this.loadingService.setLoading(true);
         runInInjectionContext(this.injector, () => {
           const mDatabase = this.injector.get(AngularFireDatabase);
           const key = this.selectedCategory.name.replace(/\s+/g, '_');
@@ -175,30 +207,37 @@ export class TypesComponent implements OnInit {
           mDatabase.object<any[]>(`typelist/${key}/subcategories`)
             .valueChanges()
             .pipe(take(1))
-            .subscribe((subcats) => {
-              if (subcats && Array.isArray(subcats)) {
-                const updatedSubcategories = subcats.filter(item => item !== subCategory);
+            .subscribe({
+              next: (subcats) => {
+                if (subcats && Array.isArray(subcats)) {
+                  const updatedSubcategories = subcats.filter(item => item !== subCategory);
 
-                mDatabase.object(`typelist/${key}/subcategories`)
-                  .set(updatedSubcategories)
-                  .then(() => {
-                    Swal.fire('Deleted!', `Sub Type "${subCategory}" deleted.`, 'success');
+                  mDatabase.object(`typelist/${key}/subcategories`)
+                    .set(updatedSubcategories)
+                    .then(() => {
+                      Swal.fire('Deleted!', `Sub Type "${subCategory}" deleted.`, 'success');
+                      this.selectedCategory = {
+                        ...this.selectedCategory,
+                        subcategories: updatedSubcategories
+                      };
 
-                    // Update local references
-                    this.selectedCategory = {
-                      ...this.selectedCategory,
-                      subcategories: updatedSubcategories
-                    };
+                      const index = this.categories.findIndex(c => c.name === this.selectedCategory.name);
+                      if (index > -1) {
+                        this.categories[index] = this.selectedCategory;
+                      }
 
-                    const index = this.categories.findIndex(c => c.name === this.selectedCategory.name);
-                    if (index > -1) {
-                      this.categories[index] = this.selectedCategory;
-                    }
-                  })
-                  .catch((error) => {
-                    Swal.fire('Error!', 'Failed to delete Sub Type.', 'error');
-                    console.error('Delete Sub Type error:', error);
-                  });
+                      this.loadingService.setLoading(false);
+                    })
+                    .catch((error) => {
+                      Swal.fire('Error!', 'Failed to delete Sub Type.', 'error');
+                      console.error('Delete Sub Type error:', error);
+                      this.loadingService.setLoading(false);
+                    });
+                }
+              },
+              error: (err) => {
+                console.error('Failed to fetch subcategories', err);
+                this.loadingService.setLoading(false);
               }
             });
         });
@@ -208,12 +247,10 @@ export class TypesComponent implements OnInit {
     });
   }
 
-
-
-
   private saveToDatabase() {
     this.mDatabase.object('categories').set(this.categories).then(() => {
       console.log('Data saved successfully!');
     });
   }
+
 }

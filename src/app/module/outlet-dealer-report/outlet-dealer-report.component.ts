@@ -39,6 +39,7 @@ import {
   MatTableDataSource
 } from '@angular/material/table';
 import {MatAutocomplete, MatAutocompleteTrigger} from "@angular/material/autocomplete";
+import {LoadingService} from "../../Services/loading.service";
 
 interface ReadonlyFlags {
   name: boolean;
@@ -89,7 +90,7 @@ export class OutletDealerReportComponent implements OnInit {
   dataSource: any[] = [];
   filteredProducts: any[] = [];
 
-  // Filters
+// Filters
   nameFilter = new FormControl('');
   outletTypeFilter = new FormControl('');
   categoryFilter = new FormControl('');
@@ -124,7 +125,7 @@ export class OutletDealerReportComponent implements OnInit {
     town: [],
   };
 
-  // 2) explicit readonly states to allow dot-access in template
+// 2) explicit readonly states to allow dot-access in template
   isReadonly: ReadonlyFlags = {
     name: false,
     outletType: false,
@@ -140,7 +141,8 @@ export class OutletDealerReportComponent implements OnInit {
     private injector: EnvironmentInjector,
     private route: ActivatedRoute,
     private mDatabase: AngularFireDatabase,
-    @Inject(MAT_DIALOG_DATA) public data: any
+    @Inject(MAT_DIALOG_DATA) public data: any,
+    private loadingService: LoadingService
   ) {
     this.dealerForm = this.fb.group({
       name: [''],
@@ -153,15 +155,20 @@ export class OutletDealerReportComponent implements OnInit {
 
     // Load Firebase options
     this.mDatabase.object<{ subcategories: string[] }>('typelist/Division').valueChanges()
-      .pipe(map(d => d?.subcategories || [])).subscribe(data => { this.options.division = data; this.filteredOptions.division = [...data]; });
+      .pipe(map(d => d?.subcategories || []))
+      .subscribe(data => { this.options.division = data; this.filteredOptions.division = [...data]; });
     this.mDatabase.object<{ subcategories: string[] }>('typelist/outletType').valueChanges()
-      .pipe(map(d => d?.subcategories || [])).subscribe(data => { this.options.outletType = data; this.filteredOptions.outletType = [...data]; });
+      .pipe(map(d => d?.subcategories || []))
+      .subscribe(data => { this.options.outletType = data; this.filteredOptions.outletType = [...data]; });
     this.mDatabase.object<{ subcategories: string[] }>('typelist/outletCategory').valueChanges()
-      .pipe(map(d => d?.subcategories || [])).subscribe(data => { this.options.category = data; this.filteredOptions.category = [...data]; });
+      .pipe(map(d => d?.subcategories || []))
+      .subscribe(data => { this.options.category = data; this.filteredOptions.category = [...data]; });
     this.mDatabase.object<{ subcategories: string[] }>('typelist/Countries').valueChanges()
-      .pipe(map(d => d?.subcategories || [])).subscribe(data => { this.options.country = data; this.filteredOptions.country = [...data]; });
+      .pipe(map(d => d?.subcategories || []))
+      .subscribe(data => { this.options.country = data; this.filteredOptions.country = [...data]; });
     this.mDatabase.object<{ subcategories: string[] }>('typelist/Town').valueChanges()
-      .pipe(map(d => d?.subcategories || [])).subscribe(data => { this.options.town = data; this.filteredOptions.town = [...data]; });
+      .pipe(map(d => d?.subcategories || []))
+      .subscribe(data => { this.options.town = data; this.filteredOptions.town = [...data]; });
   }
 
   ngOnInit() {
@@ -183,47 +190,52 @@ export class OutletDealerReportComponent implements OnInit {
       this.filterOptions('name', val || '');
       this.dealerForm.patchValue({ name: val });
     });
-
     this.outletTypeFilter.valueChanges.subscribe(val => {
       this.filterOptions('outletType', val || '');
       this.dealerForm.patchValue({ outletType: val });
     });
-
     this.categoryFilter.valueChanges.subscribe(val => {
       this.filterOptions('category', val || '');
       this.dealerForm.patchValue({ category: val });
     });
-
     this.divisionFilter.valueChanges.subscribe(val => {
       this.filterOptions('division', val || '');
       this.dealerForm.patchValue({ division: val });
     });
-
     this.countryFilter.valueChanges.subscribe(val => {
       this.filterOptions('country', val || '');
       this.dealerForm.patchValue({ country: val });
     });
-
     this.townFilter.valueChanges.subscribe(val => {
       this.filterOptions('town', val || '');
       this.dealerForm.patchValue({ town: val });
     });
   }
 
+// ✅ Dealer list with loader
   DealerList() {
+    this.loadingService.setLoading(true);
     runInInjectionContext(this.injector, () => {
-      this.addDealerService.getDealerList().subscribe((data: any) => {
-        this.dataSource = data;
-        this.filteredProducts = [];
+      this.addDealerService.getDealerList().subscribe({
+        next: (data: any) => {
+          this.dataSource = data;
+          this.filteredProducts = [];
 
-        const names = Array.from(new Set(data.map((d: any) => d.name).filter(Boolean)));
-        this.options.name = names;
-        this.filteredOptions.name = [...names];
+          const names = Array.from(new Set(data.map((d: any) => d.name).filter(Boolean)));
+          this.options.name = names;
+          this.filteredOptions.name = [...names];
+
+          this.loadingService.setLoading(false);
+        },
+        error: (err) => {
+          console.error('Dealer list fetch failed', err);
+          this.loadingService.setLoading(false);
+        }
       });
     });
   }
 
-  // Filter options logic
+// Filter options logic
   filterOptions(field: string, value: string) {
     const searchTerm = value?.toLowerCase() || '';
     const matched = (this.options[field] || []).filter((item: string) =>
@@ -232,7 +244,7 @@ export class OutletDealerReportComponent implements OnInit {
     this.filteredOptions[field] = [...matched];
   }
 
-  // Display selected value in input
+// Display selected value in input
   displayFn(value: string) {
     return value ? value : '';
   }
@@ -252,7 +264,7 @@ export class OutletDealerReportComponent implements OnInit {
     Swal.fire('Filtered', `${this.filteredProducts.length} record's found`, 'success');
   }
 
-  // helper to safely get the FormControl for a field
+// helper to safely get the FormControl for a field
   private getFilterControl(field: string): FormControl | undefined {
     const map: Record<string, FormControl> = {
       name: this.nameFilter,
@@ -265,27 +277,20 @@ export class OutletDealerReportComponent implements OnInit {
     return map[field];
   }
 
-  // 3) after selecting an option → lock input and keep selected text
+// after selecting an option → lock input
   onOptionSelected(field: string, value: string) {
     this.isReadonly[field as keyof ReadonlyFlags] = true;
-
-    // put the selected value into both the form and its filter control
     this.dealerForm.patchValue({ [field]: value });
-
-    // set the filter control value without triggering valueChanges
     const ctrl = this.getFilterControl(field);
     if (ctrl) ctrl.setValue(value, { emitEvent: false });
-
-    // ensure filteredOptions shows only matched (or keep full list if you prefer)
     this.filteredOptions[field] = this.options[field] ? [...this.options[field]] : [];
   }
 
-  // 4) open/close panel from the suffix arrow; show full list when readonly
+// open/close panel from the suffix arrow
   togglePanel(trigger: MatAutocompleteTrigger, field: string) {
     if (trigger.panelOpen) {
       trigger.closePanel();
     } else {
-      // ensure full list when readonly
       if (this.isReadonly[field as keyof ReadonlyFlags]) {
         this.filteredOptions[field] = [...(this.options[field] || [])];
       }
@@ -293,7 +298,7 @@ export class OutletDealerReportComponent implements OnInit {
     }
   }
 
-  // 5) if the user focuses a readonly input, auto-open the list
+// if user focuses readonly input, auto-open the list
   onInputFocus(trigger: MatAutocompleteTrigger, field: string) {
     if (this.isReadonly[field as keyof ReadonlyFlags]) {
       this.filteredOptions[field] = [...(this.options[field] || [])];
@@ -316,7 +321,6 @@ export class OutletDealerReportComponent implements OnInit {
     this.countryFilter.reset();
     this.townFilter.reset();
 
-    // 🔁 unlock all inputs again
     Object.keys(this.isReadonly).forEach(k => (this.isReadonly[k as keyof ReadonlyFlags] = false));
   }
 

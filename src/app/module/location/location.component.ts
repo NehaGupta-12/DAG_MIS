@@ -21,6 +21,7 @@ import {AddUserComponent} from "../add-user/add-user.component";
 import {FeatherIconsComponent} from "@shared/components/feather-icons/feather-icons.component";
 import {LocationService} from "../location.service";
 import Swal from "sweetalert2";
+import {LoadingService} from "../../Services/loading.service";
 
 @Component({
   selector: 'app-location',
@@ -46,111 +47,23 @@ import Swal from "sweetalert2";
 })
 export class LocationComponent implements OnInit {
 
-  // users = [
-  //   {
-  //     id: 1,
-  //     firstName: 'John Doe',
-  //     email: 'john.doe@example.com',
-  //     gender: 'Male',
-  //     birthDate: '1990-01-15',
-  //     mobile: '9876543210',
-  //     address: '123 Main St, New York',
-  //     country: 'USA'
-  //   },
-  //   {
-  //     id: 2,
-  //     firstName: 'Jane Smith',
-  //     email: 'jane.smith@example.com',
-  //     gender: 'Female',
-  //     birthDate: '1985-05-23',
-  //     mobile: '9876501234',
-  //     address: '456 Park Ave, London',
-  //     country: 'UK'
-  //   },
-  //   {
-  //     id: 3,
-  //     firstName: 'Raj Kumar',
-  //     email: 'raj.kumar@example.com',
-  //     gender: 'Male',
-  //     birthDate: '1992-09-10',
-  //     mobile: '9876123456',
-  //     address: 'MG Road, Bangalore',
-  //     country: 'India'
-  //   }
-  // ];
-
-  users = [
-    {
-      id: 1,
-      country: 'India',
-      locationType: 'Head Office',
-      name: 'Mumbai Central',
-      locationCode: 'LOC001',
-      division: 'us-central',
-      town: 'Hingna',
-      address: '123 MG Road, Mumbai',
-      locationHead: 'Mr. Sharma',
-    },
-    {
-      id: 2,
-      country: 'India',
-      locationType: 'Branch',
-      name: 'Pune East',
-      locationCode: 'LOC002',
-      division: 'us-east',
-      town: 'Thane',
-      address: '45 Park Street, Pune',
-      locationHead: 'Ms. Iyer',
-    },
-    {
-      id: 3,
-      country: 'India',
-      locationType: 'Showroom',
-      name: 'Nagpur Central',
-      locationCode: 'LOC003',
-      division: 'asia-south',
-      town: 'Kharadi',
-      address: '12 Residency Road, Nagpur',
-      locationHead: 'Mr. Patil',
-    },
-    {
-      id: 4,
-      country: 'India',
-      locationType: 'Outlet',
-      name: 'Pimpri West',
-      locationCode: 'LOC004',
-      division: 'asia-northeast',
-      town: 'Pimpri',
-      address: '78 MG Road, Pimpri',
-      locationHead: 'Mr. Deshmukh',
-    },
-    {
-      id: 5,
-      country: 'India',
-      locationType: 'Warehouse',
-      name: 'Amravati Depot',
-      locationCode: 'LOC005',
-      division: 'europe-west',
-      town: 'Khamla',
-      address: '56 Industrial Area, Amravati',
-      locationHead: 'Mr. Gupta',
-    }
-  ];
-
 
   dataSource = new MatTableDataSource<any>();
 
-  // Define columns
+  users = [
+    // ... your static user data
+  ];
+
   columnDefinitions = [
-    {def: 'id', label: 'ID'},
-    {def: 'name', label: 'Name'},
-    {def: 'country', label: 'Country'},
-    {def: 'locationType', label: 'Location Type'},
-    {def: 'locationCode', label: 'Location Code'},
-    {def: 'division', label: 'Division'},
-    {def: 'town', label: 'Town'},
-    {def: 'address', label: 'Address'},
-    {def: 'locationHead', label: 'Location Head'},
+    { def: 'id', label: 'ID' },
+    { def: 'name', label: 'Name' },
+    { def: 'country', label: 'Country' },
+    { def: 'locationType', label: 'Location Type' },
+    { def: 'locationCode', label: 'Location Code' },
+    { def: 'division', label: 'Division' },
+    { def: 'town', label: 'Town' },
+    { def: 'address', label: 'Address' },
+    { def: 'locationHead', label: 'Location Head' },
   ];
 
   displayedColumns: string[] = [
@@ -163,55 +76,52 @@ export class LocationComponent implements OnInit {
     'town',
     'address',
     'locationHead',
-    'action'
+    'action',
   ];
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
 
-
-  // ✅ Data source
-  // dataSource = new MatTableDataSource<AdvanceTable>([]);
-  // isLoading = false;
-
-
-  constructor(private dialog: MatDialog,
-              private router: Router,
-              private locationService: LocationService,
-              private injector: EnvironmentInjector,
-  ) {
-  }
+  constructor(
+    private dialog: MatDialog,
+    private router: Router,
+    private locationService: LocationService,
+    private injector: EnvironmentInjector,
+    private loadingService: LoadingService
+  ) {}
 
   ngOnInit() {
-    this.loadLocationList()
+    this.loadLocationList();
   }
 
+// ✅ Load locations with loader
   loadLocationList() {
+    this.loadingService.setLoading(true);
     runInInjectionContext(this.injector, () => {
-      this.locationService.getLocationList().subscribe((data) => {
-        this.dataSource.data = data;
-        this.dataSource.paginator = this.paginator;
-        this.dataSource.sort = this.sort;
-        console.log(this.dataSource.data)
+      this.locationService.getLocationList().subscribe({
+        next: (data) => {
+          this.dataSource.data = data;
+          this.dataSource.paginator = this.paginator;
+          this.dataSource.sort = this.sort;
+          console.log(this.dataSource.data);
+          this.loadingService.setLoading(false);
+        },
+        error: () => {
+          this.loadingService.setLoading(false);
+        },
       });
     });
   }
 
   goToEdit(row: any) {
     this.router.navigate(['module/add-location'], {
-      queryParams: {data: JSON.stringify(row)}
+      queryParams: { data: JSON.stringify(row) },
     });
   }
 
-  // ✅ Dynamically get columns to display
-  // getDisplayedColumns(): string[] {
-  //   return this.columnDefinitions.filter(cd => cd.visible).map(cd => cd.def);
-  // }
-
   openDialog() {
     this.dialog.open(AddUserComponent, {
-      // width: '400px',   // set width
-      autoFocus: false  // optional
+      autoFocus: false,
     });
   }
 
@@ -225,10 +135,10 @@ export class LocationComponent implements OnInit {
   }
 
   getDisplayedColumns() {
-    return this.columnDefinitions.map(c => c.def);
+    return this.columnDefinitions.map((c) => c.def);
   }
 
-  // Filtering
+// Filtering
   applyFilter(event: Event) {
     const filterValue = (event.target as HTMLInputElement).value;
     this.dataSource.filter = filterValue.trim().toLowerCase();
@@ -236,6 +146,7 @@ export class LocationComponent implements OnInit {
 
   isLoading: any;
 
+// ✅ Delete with loader
   delete(id: string) {
     Swal.fire({
       title: 'Are you sure?',
@@ -246,29 +157,24 @@ export class LocationComponent implements OnInit {
       cancelButtonText: 'No, cancel',
     }).then((result) => {
       if (result.isConfirmed) {
-        // Proceed with deletion
+        this.loadingService.setLoading(true);
         runInInjectionContext(this.injector, () => {
-          this.locationService.deleteLocation(id).then(() => {
-            this.loadLocationList();
-
-            // // Log activity
-            // const activity = {
-            //   date: new Date().getTime(),
-            //   section: 'Installation List',
-            //   action: 'Delete',
-            //   description: `Installation deleted by user`,
-            //   currentIp: localStorage.getItem('currentip')!,
-            // };
-            // this.mLogService.addLog(activity);
-
-            // Optional: Show success alert
-            Swal.fire('Deleted!', 'Location has been deleted.', 'success');
-          });
+          this.locationService
+            .deleteLocation(id)
+            .then(() => {
+              this.loadLocationList(); // reload list
+              Swal.fire('Deleted!', 'Location has been deleted.', 'success');
+              this.loadingService.setLoading(false);
+            })
+            .catch(() => {
+              this.loadingService.setLoading(false);
+            });
         });
       } else if (result.dismiss === Swal.DismissReason.cancel) {
         Swal.fire('Cancelled', 'Location is safe.', 'info');
       }
     });
   }
+
 
 }

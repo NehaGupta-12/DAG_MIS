@@ -17,6 +17,7 @@ import { AngularFireDatabase } from "@angular/fire/compat/database";
 import { Observable } from "rxjs";
 import { BudgetService } from "../budget.service";
 import { ProductMasterService } from "../product-master.service";
+import {LoadingService} from "../../Services/loading.service";
 
 @Component({
   selector: 'app-add-budget',
@@ -58,6 +59,7 @@ export class AddBudgetComponent implements OnInit {
     private mDatabase: AngularFireDatabase,
     private budgetService: BudgetService,
     private injector: EnvironmentInjector,
+    private loadingService : LoadingService,
   ) {
     this._countriesTypes$ = this.mDatabase
       .object<{ subcategories: string[] }>('typelist/Countries')
@@ -83,6 +85,8 @@ export class AddBudgetComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.loadingService.setLoading(true); // start loader
+
     this.loadProducts();
     this.loadBudgets();
     runInInjectionContext(this.injector, () => {
@@ -114,6 +118,8 @@ export class AddBudgetComponent implements OnInit {
         }];
       }
     });
+    this.loadingService.setLoading(false); // stop loader once init done
+
   }
 
   setFinancialYearDates(yearValue: string) {
@@ -127,20 +133,32 @@ export class AddBudgetComponent implements OnInit {
   }
 
   loadProducts() {
+    this.loadingService.setLoading(true);
     runInInjectionContext(this.injector, () => {
-    this.productService.getProductList().subscribe((data) => {
-      this.vehicledataSource.data = data;
-    });
+      this.productService.getProductList().subscribe({
+        next: (data) => {
+          this.vehicledataSource.data = data;
+          this.loadingService.setLoading(false);
+        },
+        error: () => this.loadingService.setLoading(false)
+      });
     });
   }
 
+
   loadBudgets() {
+    this.loadingService.setLoading(true);
     runInInjectionContext(this.injector, () => {
-      this.budgetService.getBudgetList().subscribe((data: any) => {
-        this.dataSource.data = data;
+      this.budgetService.getBudgetList().subscribe({
+        next: (data: any) => {
+          this.dataSource.data = data;
+          this.loadingService.setLoading(false);
+        },
+        error: () => this.loadingService.setLoading(false)
       });
-      });
+    });
   }
+
 
   addProduct() {
     const formValues = this.budgetForm.getRawValue();
@@ -236,6 +254,8 @@ export class AddBudgetComponent implements OnInit {
         updatedAt: timestamp
       };
 
+      this.loadingService.setLoading(true); // 🔹 start loader before API call
+
       if (this.isEditMode) {
         const productToUpdate = this.addedProducts[0];
         const productDoc = {
@@ -245,34 +265,38 @@ export class AddBudgetComponent implements OnInit {
           name: productToUpdate.name,
           quantity: productToUpdate.quantity
         };
+
         runInInjectionContext(this.injector, () => {
           this.budgetService.updateBudget(productToUpdate.id, productDoc)
             .then(() => Swal.fire('Updated!', 'Product updated successfully.', 'success'))
             .then(() => this.goBack())
-            .catch(() => Swal.fire('Error', 'Something went wrong while updating.', 'error'));
+            .catch(() => Swal.fire('Error', 'Something went wrong while updating.', 'error'))
+            .finally(() => this.loadingService.setLoading(false)); // stop loader
         });
       } else {
         runInInjectionContext(this.injector, () => {
-        Promise.all(this.addedProducts.map(p => {
-          const productDoc = {
-            ...baseInfo,
-            sku: p.sku,
-            name: p.name,
-            brand: p.brand,
-            model: p.model,
-            variant: p.variant ?? p.varient,
-            unit: p.unit,
-            quantity: p.quantity
-          };
-          return this.budgetService.addBudget(productDoc);
-        }))
-          .then(() => Swal.fire('Added!', 'All products saved successfully.', 'success'))
-          .then(() => this.goBack())
-          .catch(() => Swal.fire('Error', 'Something went wrong.', 'error'));
-      })
+          Promise.all(this.addedProducts.map(p => {
+            const productDoc = {
+              ...baseInfo,
+              sku: p.sku,
+              name: p.name,
+              brand: p.brand,
+              model: p.model,
+              variant: p.variant ?? p.varient,
+              unit: p.unit,
+              quantity: p.quantity
+            };
+            return this.budgetService.addBudget(productDoc);
+          }))
+            .then(() => Swal.fire('Added!', 'All products saved successfully.', 'success'))
+            .then(() => this.goBack())
+            .catch(() => Swal.fire('Error', 'Something went wrong.', 'error'))
+            .finally(() => this.loadingService.setLoading(false)); // stop loader
+        });
       }
     });
   }
+
 
   goBack() {
     this.dealer.back();

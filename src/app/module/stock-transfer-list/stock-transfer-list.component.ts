@@ -24,6 +24,7 @@ import Swal from "sweetalert2";
 import {StockTransferService} from "../stock-transfer.service";
 import {AddShowroomComponent} from "../add-showroom/add-showroom.component";
 import {ViewStockTransferComponent} from "../view-stock-transfer/view-stock-transfer.component";
+import {LoadingService} from "../../Services/loading.service";
 
 @Component({
   selector: 'app-stock-transfer-list',
@@ -51,7 +52,7 @@ export class StockTransferListComponent implements OnInit {
 
   dataSource = new MatTableDataSource<any>();
 
-  // Define columns
+// Define columns
   columnDefinitions = [
     {def: 'serial', label: 'Serial'},
     {def: 'fromOutletDealer', label: 'FromOutletDealer'},
@@ -61,8 +62,6 @@ export class StockTransferListComponent implements OnInit {
     {def: 'createdAt', label: 'CreatedAt'},
     {def: 'typeOfGrn', label: 'GrnType'},
   ];
-
-
 
   displayedColumns: string[] = [
     'serial',
@@ -77,25 +76,36 @@ export class StockTransferListComponent implements OnInit {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
 
+  isLoading: any;
 
-  constructor(private dialog: MatDialog,
-              private router: Router,
-              private stockTransferService: StockTransferService,
-              private injector: EnvironmentInjector,
-  ) {
-  }
+  constructor(
+    private dialog: MatDialog,
+    private router: Router,
+    private stockTransferService: StockTransferService,
+    private injector: EnvironmentInjector,
+    private loadingService: LoadingService
+  ) {}
 
   ngOnInit() {
-    this.loadLocationList()
+    this.loadLocationList();
   }
 
+// ✅ Load list with loader
   loadLocationList() {
+    this.loadingService.setLoading(true);
     runInInjectionContext(this.injector, () => {
-      this.stockTransferService.getStockTransferList().subscribe((data) => {
-        this.dataSource.data = data;
-        this.dataSource.paginator = this.paginator;
-        this.dataSource.sort = this.sort;
-        console.log(this.dataSource.data)
+      this.stockTransferService.getStockTransferList().subscribe({
+        next: (data: any) => {
+          this.dataSource.data = data;
+          this.dataSource.paginator = this.paginator;
+          this.dataSource.sort = this.sort;
+          console.log(this.dataSource.data);
+          this.loadingService.setLoading(false);
+        },
+        error: (err) => {
+          console.error('Failed to fetch stock transfer list', err);
+          this.loadingService.setLoading(false);
+        }
       });
     });
   }
@@ -106,11 +116,9 @@ export class StockTransferListComponent implements OnInit {
     });
   }
 
-
   openDialog() {
     this.dialog.open(AddUserComponent, {
-      // width: '400px',   // set width
-      autoFocus: false  // optional
+      autoFocus: false
     });
   }
 
@@ -127,14 +135,13 @@ export class StockTransferListComponent implements OnInit {
     return this.columnDefinitions.map(c => c.def);
   }
 
-  // Filtering
+// Filtering
   applyFilter(event: Event) {
     const filterValue = (event.target as HTMLInputElement).value;
     this.dataSource.filter = filterValue.trim().toLowerCase();
   }
 
-  isLoading: any;
-
+// ✅ Delete with loader
   deleteGrn(id: string) {
     Swal.fire({
       title: 'Are you sure?',
@@ -144,20 +151,24 @@ export class StockTransferListComponent implements OnInit {
       confirmButtonText: 'Yes, delete it!',
       cancelButtonText: 'No, cancel',
     }).then((result) => {
-      if (result.isConfirmed) {
-        // Proceed with deletion
-        runInInjectionContext(this.injector, () => {
-          this.stockTransferService.deleteStockTransfer(id).then(() => {
+      if (!result.isConfirmed) return;
+
+      this.loadingService.setLoading(true); // loader before deletion
+
+      runInInjectionContext(this.injector, () => {
+        this.stockTransferService.deleteStockTransfer(id)
+          .then(() => {
             this.loadLocationList();
-
-
-            // Optional: Show success alert
             Swal.fire('Deleted!', 'Stock Transfer has been deleted.', 'success');
+          })
+          .catch((err) => {
+            console.error('Delete failed:', err);
+            Swal.fire('Error', 'Failed to delete the Stock Transfer. Please try again.', 'error');
+          })
+          .finally(() => {
+            this.loadingService.setLoading(false);
           });
-        });
-      } else if (result.dismiss === Swal.DismissReason.cancel) {
-        Swal.fire('Cancelled', 'Stock Transfer is safe.', 'info');
-      }
+      });
     });
   }
 
@@ -168,11 +179,10 @@ export class StockTransferListComponent implements OnInit {
       .reduce((acc: number, val: number) => acc + val, 0);
   }
 
-
   openAssignDialog(row: any): void {
     const dialogRef = this.dialog.open(ViewStockTransferComponent, {
-      width: '70vw',   // 90% of viewport width
-      height: '70vh',  // 90% of viewport height
+      width: '70vw',
+      height: '70vh',
       maxWidth: '100vw',
       data: row
     });

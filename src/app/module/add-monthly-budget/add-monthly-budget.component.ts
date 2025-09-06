@@ -16,6 +16,7 @@ import { AngularFireDatabase } from "@angular/fire/compat/database";
 import { Observable } from "rxjs";
 import { ProductMasterService } from "../product-master.service";
 import { MonthlyBudgetService } from "../monthly-budget.service";
+import {LoadingService} from "../../Services/loading.service";
 
 @Component({
   selector: 'app-add-monthly-budget',
@@ -60,6 +61,7 @@ export class AddMonthlyBudgetComponent implements OnInit {
     private mDatabase: AngularFireDatabase,
     private monthlybudgetService: MonthlyBudgetService,
     private injector: EnvironmentInjector,
+    private loadingService: LoadingService
   ) {
     // Dropdowns
     this._countriesTypes$ = this.mDatabase
@@ -130,14 +132,28 @@ export class AddMonthlyBudgetComponent implements OnInit {
   }
 
   loadProducts() {
+    this.loadingService.setLoading(true);  // ✅ start loader
     runInInjectionContext(this.injector, () => {
-      this.productService.getProductList().subscribe(data => this.vehicledataSource.data = data);
+      this.productService.getProductList().subscribe({
+        next: (data) => {
+          this.vehicledataSource.data = data;
+          this.loadingService.setLoading(false); // ✅ stop loader
+        },
+        error: () => this.loadingService.setLoading(false)
+      });
     });
   }
 
   loadBudgets() {
+    this.loadingService.setLoading(true);  // ✅ start loader
     runInInjectionContext(this.injector, () => {
-      this.monthlybudgetService.getBudgetList().subscribe((data: any) => this.dataSource.data = data);
+      this.monthlybudgetService.getBudgetList().subscribe({
+        next: (data: any) => {
+          this.dataSource.data = data;
+          this.loadingService.setLoading(false); // ✅ stop loader
+        },
+        error: () => this.loadingService.setLoading(false)
+      });
     });
   }
 
@@ -198,7 +214,6 @@ export class AddMonthlyBudgetComponent implements OnInit {
       return;
     }
 
-    // 🔹 Check duplicate by name + country + year only
     const existsGlobal = this.dataSource.data.some(p =>
       p.name === product.name &&
       p.country === formValues.country &&
@@ -274,11 +289,15 @@ export class AddMonthlyBudgetComponent implements OnInit {
             name: productToUpdate.name,
             quantity: productToUpdate.quantity
           };
+
+          this.loadingService.setLoading(true); // ✅ start loader
           this.monthlybudgetService.updateBudget(productToUpdate.id, productDoc)
             .then(() => Swal.fire('Updated!', 'Product updated successfully.', 'success'))
             .then(() => this.goBack())
-            .catch(() => Swal.fire('Error', 'Something went wrong while updating.', 'error'));
+            .catch(() => Swal.fire('Error', 'Something went wrong while updating.', 'error'))
+            .finally(() => this.loadingService.setLoading(false)); // ✅ stop loader
         } else {
+          this.loadingService.setLoading(true); // ✅ start loader
           Promise.all(this.addedProducts.map(p => {
             const productDoc = {
               ...baseInfo,
@@ -294,7 +313,8 @@ export class AddMonthlyBudgetComponent implements OnInit {
           }))
             .then(() => Swal.fire('Added!', 'All products saved successfully.', 'success'))
             .then(() => this.goBack())
-            .catch(() => Swal.fire('Error', 'Something went wrong.', 'error'));
+            .catch(() => Swal.fire('Error', 'Something went wrong.', 'error'))
+            .finally(() => this.loadingService.setLoading(false)); // ✅ stop loader
         }
       });
     });
@@ -314,4 +334,5 @@ export class AddMonthlyBudgetComponent implements OnInit {
       event.preventDefault();
     }
   }
+
 }

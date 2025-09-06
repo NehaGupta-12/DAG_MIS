@@ -18,6 +18,7 @@ import {MAT_DIALOG_DATA, MatDialogModule} from "@angular/material/dialog";
 import {LocationService} from "../location.service";
 import Swal from "sweetalert2";
 import {ActivatedRoute} from "@angular/router";
+import {LoadingService} from "../../Services/loading.service";
 
 @Component({
   selector: 'app-add-location',
@@ -52,14 +53,16 @@ export class AddLocationComponent implements OnInit {
     },
   ];
   private users: any;
-  constructor(private fb: UntypedFormBuilder,
-              private location: Location,
-              private locationService: LocationService,
-              private injector: EnvironmentInjector,
-              private route: ActivatedRoute,
-              @Inject(MAT_DIALOG_DATA) public data: any,
+
+  constructor(
+    private fb: UntypedFormBuilder,
+    private location: Location,
+    private locationService: LocationService,
+    private injector: EnvironmentInjector,
+    private route: ActivatedRoute,
+    private loadingService: LoadingService,
+    @Inject(MAT_DIALOG_DATA) public data: any,
   ) {
-    // this.initForm();
     this.isEditMode = !!data?.id;
     this.locationForm = this.fb.group({
       name: ['', [Validators.required, Validators.pattern('[a-zA-Z]+')]],
@@ -91,8 +94,6 @@ export class AddLocationComponent implements OnInit {
     });
   }
 
-
-
   onRegister() {
     if (this.locationForm.valid) {
       Swal.fire({
@@ -118,6 +119,7 @@ export class AddLocationComponent implements OnInit {
             transformedData.updateBy = username;
             transformedData.updatedAt = timestamp;
 
+            this.loadingService.setLoading(true); // ✅ Start loader
             runInInjectionContext(this.injector, () => {
               this.locationService.updateLocation(this.data.id, transformedData)
                 .then(() => {
@@ -127,7 +129,8 @@ export class AddLocationComponent implements OnInit {
                 .catch(error => {
                   console.error('Error updating Location Details:', error);
                   Swal.fire('Error', 'Something went wrong.', 'error');
-                });
+                })
+                .finally(() => this.loadingService.setLoading(false)); // ✅ Stop loader
             });
           } else {
             // ➕ Add logic
@@ -135,6 +138,7 @@ export class AddLocationComponent implements OnInit {
             transformedData.createBy = username;
             transformedData.createdAt = timestamp;
 
+            this.loadingService.setLoading(true); // ✅ Start loader
             runInInjectionContext(this.injector, () => {
               this.locationService.addLocation(transformedData)
                 .then(() => {
@@ -144,7 +148,8 @@ export class AddLocationComponent implements OnInit {
                 .catch(error => {
                   console.error('Error adding Location Details:', error);
                   Swal.fire('Error', 'Something went wrong.', 'error');
-                });
+                })
+                .finally(() => this.loadingService.setLoading(false)); // ✅ Stop loader
             });
           }
         }
@@ -154,9 +159,7 @@ export class AddLocationComponent implements OnInit {
     }
   }
 
-
-
-goBack() {
+  goBack() {
     this.location.back();
   }
 
