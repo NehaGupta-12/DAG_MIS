@@ -1,4 +1,4 @@
-import {Component, ViewChild} from '@angular/core';
+import {Component, EnvironmentInjector, OnInit, runInInjectionContext, ViewChild} from '@angular/core';
 import {CommonModule, DatePipe} from "@angular/common";
 import {
   MatCell,
@@ -19,6 +19,7 @@ import {MatIcon} from "@angular/material/icon";
 import {MatProgressSpinner} from "@angular/material/progress-spinner";
 import {MatTooltip} from "@angular/material/tooltip";
 import {FeatherIconsComponent} from "@shared/components/feather-icons/feather-icons.component";
+import {RoleService} from "../../Services/role.service";
 
 @Component({
   selector: 'app-role',
@@ -42,7 +43,7 @@ import {FeatherIconsComponent} from "@shared/components/feather-icons/feather-ic
   templateUrl: './role.component.html',
   styleUrl: './role.component.scss'
 })
-export class RoleComponent {
+export class RoleComponent implements  OnInit{
 
   users = [
     {
@@ -93,18 +94,14 @@ export class RoleComponent {
 
   displayedColumns: string[] = [
     'id',
-    'firstName',
-    'email',
-    'gender',
-    'birthDate',
-    'mobile',
-    'address',
-    'country',
-    'action'
+    'roleName',
+    'createdAt',
+    'Actions',
   ];
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
+
 
 
   // ✅ Data source
@@ -112,12 +109,27 @@ export class RoleComponent {
   // isLoading = false;
 
 
-  constructor(private dialog: MatDialog, private router: Router) {
+  constructor(private dialog: MatDialog,
+              private router: Router,
+              private injector : EnvironmentInjector,
+              private roleService : RoleService) {
   }
 
-  ngOnInit() {
-    // this.loadDummyData();
+
+ngOnInit() {
+    this.loadRolesList()
+}
+  loadRolesList() {
+    runInInjectionContext(this.injector, () => {
+    this.roleService.getRoles().subscribe((data) => {
+      console.log(data)
+      this.dataSource.data = data;
+      this.dataSource.paginator = this.paginator;
+      this.dataSource.sort = this.sort;
+    });
+    });
   }
+
 
   // ✅ Dynamically get columns to display
   // getDisplayedColumns(): string[] {

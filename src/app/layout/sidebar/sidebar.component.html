@@ -19,7 +19,8 @@
           </li>
           <!-- Top Most level menu -->
           @for (sidebarItem of sidebarItems; track sidebarItem) {
-          <li [routerLinkActive]="sidebarItem.submenu.length !== 0 ? 'active' : 'active-top'">
+          <li [routerLinkActive]="sidebarItem.submenu.length !== 0 ? 'active' : 'active-top'"
+              *ngIf="canShowMenu(sidebarItem.title)">
             @if (sidebarItem.groupTitle === true) {
             <div class="header">{{sidebarItem.title | translate}}</div>
             }
@@ -35,7 +36,8 @@
             @if (sidebarItem.submenu.length > 0) {
             <ul class="ml-menu">
               @for (sidebarSubItem1 of sidebarItem.submenu; track sidebarSubItem1) {
-              <li [routerLinkActive]="sidebarSubItem1.submenu.length > 0 ? '' : 'active'">
+              <li [routerLinkActive]="sidebarSubItem1.submenu.length > 0 ? '' : 'active'"
+                  *ngIf="canShowMenu(sidebarSubItem1.title)">
                 <a [routerLink]="sidebarSubItem1.submenu.length > 0 ? null : [sidebarSubItem1.path]"
                   (click)="callToggleMenu($event,sidebarSubItem1.submenu.length)" [ngClass]="[sidebarSubItem1.class]">
                   {{sidebarSubItem1.title | translate}}
@@ -44,7 +46,8 @@
                 @if (sidebarSubItem1.submenu.length > 0) {
                 <ul class="ml-menu-2">
                   @for (sidebarSubItem2 of sidebarSubItem1.submenu; track sidebarSubItem2) {
-                  <li [routerLinkActive]="sidebarSubItem2.submenu.length > 0 ? '' : 'active'">
+                  <li [routerLinkActive]="sidebarSubItem2.submenu.length > 0 ? '' : 'active'"
+                      *ngIf="canShowMenu(sidebarSubItem1.title)">
                     <a [routerLink]="sidebarSubItem2.submenu.length > 0 ? null : [sidebarSubItem2.path]"
                       (click)="callToggleMenu($event,sidebarSubItem2.submenu.length)"
                       [ngClass]="[sidebarSubItem2.class]">
@@ -54,7 +57,8 @@
                     @if (sidebarSubItem2.submenu.length > 0) {
                     <ul class="ml-menu-3">
                       @for (sidebarSubItem3 of sidebarSubItem2.submenu; track sidebarSubItem3) {
-                      <li [routerLinkActive]="sidebarSubItem3.submenu.length > 0 ? '' : 'active'">
+                      <li [routerLinkActive]="sidebarSubItem3.submenu.length > 0 ? '' : 'active'"
+                          *ngIf="canShowMenu(sidebarSubItem1.title)">
                         <a [routerLink]="sidebarSubItem3.submenu.length > 0 ? null : [sidebarSubItem3.path]"
                           (click)="callToggleMenu($event,sidebarSubItem3.submenu.length)"
                           [ngClass]="[sidebarSubItem3.class]">

@@ -15,7 +15,7 @@ export interface Product {
 }
 export interface Permission {
   id?: string;
-  menuName: string;
+  menu_name: any;
   all?: boolean;
   list?: boolean;
   create?: boolean;
@@ -25,4 +25,5 @@ export interface Permission {
   export?: boolean;
   approved?: boolean;
   disapproved?: boolean;
+  permissions:[]
 }

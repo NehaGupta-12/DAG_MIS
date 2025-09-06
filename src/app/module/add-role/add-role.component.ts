@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, EnvironmentInjector, OnInit, runInInjectionContext} from '@angular/core';
 import {
   MatCell,
   MatColumnDef,
@@ -46,7 +46,6 @@ import {MatDialogTitle} from "@angular/material/dialog";
     MatDialogTitle,
     ReactiveFormsModule,
     MatFormField,
-    MatIcon,
     MatProgressSpinner,
     NgIf,
     NgForOf,
@@ -68,6 +67,7 @@ export class AddRoleComponent implements OnInit{
     private afs: AngularFirestore,
     private roleService: RoleService,
     private router: Router,
+    private injector : EnvironmentInjector,
     private mSnackBar: MatSnackBar,
     public userService: UserService,
   ) {
@@ -90,30 +90,34 @@ export class AddRoleComponent implements OnInit{
       permissions: this.fb.array([])
     });
 
-    this.afs.collection('menuList', ref => ref.orderBy('createdAt', 'asc'))
-      .valueChanges({ idField: 'menuId' })
-      .subscribe((menus: any[]) => {
-        const control = this.permissionsArray;
-        menus.forEach((menu, index) => {
-          control.push(this.fb.group({
-            menuId: [menu.menuId],
-            menuSrNo: [index + 1],
-            menu_name: [menu.menu_name],
-            permissions: this.fb.group({
-              all: [false],
-              list: [false],
-              create: [false],
-              edit: [false],
-              delete: [false],
-              print: [false],
-              export: [false],
-              approved: [false],
-              disapproved: [false]
-            })
-          }));
+    runInInjectionContext(this.injector, () => {
+      this.afs.collection('menuList', ref => ref.orderBy('createdAt', 'asc'))
+        .valueChanges({ idField: 'menuId' })
+        .subscribe((menus: any[]) => {
+          const control = this.permissionsArray;
+
+          menus.forEach((menu, index) => {
+            control.push(this.fb.group({
+              menuId: [menu.menuId],
+              menuSrNo: [index + 1],
+              menu_name: [menu.menu_name],
+              permissions: this.fb.group({
+                all: [false],
+                list: [false],
+                create: [false],
+                edit: [false],
+                delete: [false],
+                print: [false],
+                export: [false],
+                approved: [false],
+                disapproved: [false]
+              })
+            }));
+          });
         });
-      });
+    });
   }
+
 
   get permissionsArray(): FormArray {
     return this.role_form.get('permissions') as FormArray;
@@ -132,25 +136,22 @@ export class AddRoleComponent implements OnInit{
 
     this.isLoading = true;
     const roleData = this.role_form.value;
-
-    this.roleService.checkDuplicateRoleName(roleData.roleName).subscribe(isDuplicate => {
-      if (isDuplicate) {
-        alert('A Role with this name already exists.');
-        this.isLoading = false;
-      } else {
-        this.afs.collection('roles').add({
-          roleName: roleData.roleName,
-          permissions: roleData.permissions,
-          createdBy: this.userId,
-          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-        }).then(() => {
-          this.isLoading = false;
-          this.role_form.reset();
-          this.permissionsArray.clear();
-          this.router.navigate(['/module/role-list']);
-          this.mSnackBar.open('New Role Successfully Added')._dismissAfter(3000);
-        });
-      }
+    runInInjectionContext(this.injector, () =>
+    this.afs.collection('roles').add({
+      roleName: roleData.roleName,
+      permissions: roleData.permissions,
+      createdBy: this.userId,
+      createdAt: new Date(),
+    })).then(() => {
+      this.isLoading = false;
+      this.role_form.reset();
+      this.permissionsArray.clear();
+      this.router.navigate(['/module/role-list']);
+      this.mSnackBar.open('New Role Successfully Added')._dismissAfter(3000);
+    }).catch(error => {
+      this.isLoading = false;
+      console.error('Error adding role:', error);
+      this.mSnackBar.open('Error while saving role')._dismissAfter(3000);
     });
   }
 

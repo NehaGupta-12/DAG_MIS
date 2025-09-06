@@ -1,4 +1,4 @@
-import {Component, Inject, OnInit} from '@angular/core';
+import {Component, EnvironmentInjector, Inject, OnInit, runInInjectionContext} from '@angular/core';
 import {MenuService} from "../../../Services/menu.service";
 import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
@@ -12,7 +12,7 @@ import {MatButton} from "@angular/material/button";
 import {DatePipe, NgIf} from "@angular/common";
 import {MatFormFieldModule} from "@angular/material/form-field";
 import {MatTooltip} from "@angular/material/tooltip";
-
+import { serverTimestamp } from 'firebase/firestore';
 @Component({
   selector: 'app-add-edit-menu-list',
   imports: [
@@ -23,8 +23,6 @@ import {MatTooltip} from "@angular/material/tooltip";
     MatFormField,
     MatButton,
     NgIf,
-    DatePipe,
-    MatTooltip
   ],
   templateUrl: './add-edit-menu-list.component.html',
   styleUrl: './add-edit-menu-list.component.scss'
@@ -39,6 +37,7 @@ export class AddEditMenuListComponent  {
   constructor(
     private fb: FormBuilder,
     private menusService: MenuService,
+    private injector : EnvironmentInjector,
     private dialogRef: MatDialogRef<AddEditMenuListComponent>,
     private mSnackBar: MatSnackBar,
     private userService: UserService,
@@ -71,34 +70,18 @@ export class AddEditMenuListComponent  {
     this.menuForm.get('menu_name')?.enable();
 
     const menuData = this.menuForm.getRawValue();
-    const baseData: Partial<Menus> = {
+    const transformedData: Menus = {
       menu_name: this.toUcFirst(menuData.menu_name.trim()),
       menu_url: menuData.menu_url.trim(),
-    };
+      createdAt: new Date(),     // ✅ normal JS Date
+      createdBy: this.userId!,   // ✅ userId
+    } as Menus;
 
     try {
-      if (this.isEditMode && this.data?.id) {
-        // Edit existing menu
-        const transformedData: Partial<Menus> = {
-          ...baseData,
-          updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-          updatedBy: this.userId,
-        };
-        await this.menusService.updateMenu(this.data.id, transformedData);
-        this.handleSuccess('Menu details updated successfully', 'Update');
-      } else {
-        // Add new menu without duplicate check
-        const transformedData: Menus = {
-          ...baseData,
-          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-          createdBy: this.userId!,
-          updatedAt: '',
-          updatedBy: '',
-        } as Menus;
-
-        await this.menusService.addMenu(transformedData);
-        this.handleSuccess('Menu details added successfully', 'Add');
-      }
+      await runInInjectionContext(this.injector, () =>
+        this.menusService.addMenu(transformedData)
+      );
+      this.handleSuccess('Menu details added successfully', 'Add');
     } catch (error) {
       this.handleError(error);
     } finally {
@@ -106,8 +89,7 @@ export class AddEditMenuListComponent  {
     }
   }
 
-
-handleSuccess(message: string, action: string) {
+  handleSuccess(message: string, action: string) {
 
     this.isLoading = false;
     this.mSnackBar.open(message, undefined, { duration: 2500 });

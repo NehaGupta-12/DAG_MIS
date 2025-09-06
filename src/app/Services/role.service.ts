@@ -2,12 +2,15 @@ import { Injectable } from '@angular/core';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { Observable } from 'rxjs';
 import {map} from "rxjs/operators";
+import {Permission} from "../interfaces/products.interface";
 export interface Roles {
-  role_name: string;
+  id?:string;
+  roleName: string;
   createdBy: string;
   createdAt: string;
   updatedBy: string;
   updatedAt: string;
+  permissions: Permission[];
 }
 
 @Injectable({
@@ -49,6 +52,10 @@ export class RoleService {
         })
       );
   }
+  getRoleById(roleId: string): Observable<Roles | undefined> {
+    return this.firestore.collection(this.collectionName).doc(roleId).valueChanges() as Observable<Roles>;
+  }
+
 
   // fetch roles list
   getRoleList(): Observable<any[]> {

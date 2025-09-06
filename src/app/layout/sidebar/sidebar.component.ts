@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { NgClass } from '@angular/common';
+import {NgClass, NgIf} from '@angular/common';
 import {
   Router,
   NavigationEnd,
@@ -15,7 +15,6 @@ import {
   HostListener,
   DOCUMENT
 } from '@angular/core';
-import { AuthService } from '@core';
 import { RouteInfo } from './sidebar.metadata';
 import { TranslateModule } from '@ngx-translate/core';
 import { FeatherModule } from 'angular-feather';
@@ -23,19 +22,21 @@ import { NgScrollbar } from 'ngx-scrollbar';
 import { UnsubscribeOnDestroyAdapter } from '@shared';
 import { SidebarService } from './sidebar.service';
 import {UserDataModel} from "../../module/add-user/UserData.model";
+import {AuthService} from "app/authentication/auth.service"
 
 @Component({
     selector: 'app-sidebar',
     templateUrl: './sidebar.component.html',
     styleUrls: ['./sidebar.component.scss'],
-    imports: [
-        NgScrollbar,
-        RouterLinkActive,
-        RouterLink,
-        NgClass,
-        FeatherModule,
-        TranslateModule,
-    ]
+  imports: [
+    NgScrollbar,
+    RouterLinkActive,
+    RouterLink,
+    NgClass,
+    FeatherModule,
+    TranslateModule,
+    NgIf,
+  ]
 })
 export class SidebarComponent
   extends UnsubscribeOnDestroyAdapter
@@ -50,13 +51,14 @@ export class SidebarComponent
   userName :any;
   role :any
   userData!: UserDataModel
+
   constructor(
     @Inject(DOCUMENT) private document: Document,
     private renderer: Renderer2,
     public elementRef: ElementRef,
-    private authService: AuthService,
+    private auth : AuthService,
     private router: Router,
-    private sidebarService: SidebarService
+    private sidebarService: SidebarService,
   ) {
     super();
     this.subs.sink = this.router.events.subscribe((event) => {
@@ -91,12 +93,12 @@ export class SidebarComponent
       }
     }
   }
+
   ngOnInit() {
     this.userData = JSON.parse(localStorage.getItem('userData')!) as UserDataModel
-
     this.userName = `${this.userData.first || ''} ${this.userData.last || ''}`.trim();
     this.role = this.userData.role
-    if (this.authService.currentUserValue) {
+    if (this.auth.currentUserValue) {
       this.subs.sink = this.sidebarService
         .getRouteInfo()
         .subscribe((routes: RouteInfo[]) => {
@@ -106,6 +108,10 @@ export class SidebarComponent
     this.initLeftSidebar();
     this.bodyTag = this.document.body;
   }
+  canShowMenu(menuName: string): boolean {
+    return this.auth.hasPermission(menuName, 'list'); // only show menu if role has 'list' permission
+  }
+
 
   initLeftSidebar() {
     // eslint-disable-next-line @typescript-eslint/no-this-alias
