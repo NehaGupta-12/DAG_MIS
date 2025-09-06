@@ -50,21 +50,6 @@ import {AddShowroomComponent} from "../add-showroom/add-showroom.component";
 })
 export class ProductMasterListComponent implements OnInit {
 
-  users = [
-    { id: 1, name: 'Bajaj Pulsar 150', sku: 'SKU001', brand: 'Bajaj', model: 'Pulser', category: 'Vehicle', varient: 'NS160', engineCc: '150cc', unit: 'Nos', subCategory: '2W' },
-    { id: 2, name: 'Bajaj Pulsar NS200', sku: 'SKU002', brand: 'Bajaj', model: 'Pulser', category: 'Vehicle', varient: 'NS200', engineCc: '200cc', unit: 'Nos', subCategory: '2W' },
-    { id: 3, name: 'Bajaj Dominar 400', sku: 'SKU003', brand: 'Bajaj', model: 'Pulser', category: 'Vehicle', varient: 'NS200', engineCc: '470cc', unit: 'Nos', subCategory: '2W' },
-    { id: 4, name: 'Bajaj Platina 100', sku: 'SKU004', brand: 'Bajaj', model: 'Platina', category: 'TYRES', varient: 'Platina 100', engineCc: '100cc', unit: 'Nos', subCategory: '2W' },
-    { id: 5, name: 'Bajaj Boxer BM150', sku: 'SKU005', brand: 'Bajaj', model: 'Boxer', category: 'Vehicle', varient: 'BM150', engineCc: '150cc', unit: 'Nos', subCategory: '2W' },
-    { id: 6, name: 'Bajaj CT 125X', sku: 'SKU006', brand: 'Bajaj', model: 'CT', category: 'Vehicle', varient: 'CT125X', engineCc: '125cc', unit: 'Nos', subCategory: '2W' },
-    { id: 7, name: 'Bajaj RE Auto', sku: 'SKU007', brand: 'Bajaj', model: 'RE', category: 'Vehicle', varient: 'RE Compact', engineCc: '198cc', unit: 'Nos', subCategory: '3W' },
-    { id: 8, name: 'Bajaj Maxima Cargo', sku: 'SKU008', brand: 'Bajaj', model: 'Maxima', category: 'Vehicle', varient: 'Maxima Cargo', engineCc: '236cc', unit: 'Nos', subCategory: '3W' },
-    { id: 9, name: 'Bajaj Qute Quadricycle', sku: 'SKU009', brand: 'Bajaj', model: 'Qute', category: 'Vehicle', varient: 'Maxima Cargo', engineCc: '216cc', unit: 'Nos', subCategory: '4W' },
-    { id: 10, name: 'Bajaj Pulsar NS160', sku: 'SKU010', brand: 'Bajaj', model: 'Pulser', category: 'Lubricants', varient: 'NS160', engineCc: '160cc', unit: 'Nos', subCategory: '2W' }
-  ];
-
-
-
   dataSource = new MatTableDataSource<any>();
 
   // Define columns

@@ -96,10 +96,19 @@
           </mat-card-header>
           <mat-card-content>
             <div id="chart">
-              <apx-chart [series]="barChartOptions.series!" [chart]="barChartOptions.chart!"
-                [legend]="barChartOptions.legend!" [dataLabels]="barChartOptions.dataLabels!"
-                [colors]="barChartOptions.colors!" [plotOptions]="barChartOptions.plotOptions!"
-                [tooltip]="barChartOptions.tooltip!" [grid]="barChartOptions.grid!"></apx-chart>
+              <apx-chart
+                [series]="barChartOptions.series!"
+                [chart]="barChartOptions.chart!"
+                [legend]="barChartOptions.legend!"
+                [dataLabels]="barChartOptions.dataLabels!"
+                [colors]="barChartOptions.colors!"
+                [plotOptions]="barChartOptions.plotOptions!"
+                [tooltip]="barChartOptions.tooltip!"
+                [grid]="barChartOptions.grid!"
+                [xaxis]="barChartOptions.xaxis!"
+              [yaxis]="barChartOptions.yaxis!">
+              </apx-chart>
+
             </div>
             <div class="row">
               <div class="col-4">
@@ -145,47 +154,104 @@
           </mat-card-content>
         </mat-card>
       </div>
-<!--      <div class="col-xs-12 col-sm-12 col-md-4 col-lg-4">-->
-<!--        <mat-card>-->
-<!--          <mat-card-header class="header-style">-->
-<!--            <mat-card-title>Chart Data</mat-card-title>-->
-<!--          </mat-card-header>-->
-<!--          <mat-card-content>-->
-<!--            <div id="chart">-->
-<!--              <apx-chart [series]="chartOptions2.series!" [chart]="chartOptions2.chart!"-->
-<!--                [tooltip]="chartOptions2.tooltip!" [dataLabels]="chartOptions2.dataLabels!" [grid]="chartOptions2.grid!"-->
-<!--                [plotOptions]="chartOptions2.plotOptions!"></apx-chart>-->
-<!--            </div>-->
-<!--          </mat-card-content>-->
-<!--        </mat-card>-->
-<!--      </div>-->
     </div>
-<!--    <div class="row clearfix">-->
-<!--      <div class="col-xs-12 col-sm-12 col-md-4 col-lg-4">-->
-<!--        <mat-card>-->
-<!--          <mat-card-header>-->
-<!--            <mat-card-title>New Project</mat-card-title>-->
-<!--          </mat-card-header>-->
-<!--          <mat-card-content>-->
-<!--            <ng-scrollbar style="height: 400px" visibility="hover">-->
-<!--              <app-new-order-list></app-new-order-list>-->
-<!--            </ng-scrollbar>-->
-<!--          </mat-card-content>-->
-<!--        </mat-card>-->
-<!--      </div>-->
-<!--      <div class="col-xs-12 col-sm-12 col-md-8 col-lg-8">-->
-<!--        <mat-card>-->
-<!--          <mat-card-header class="header-style">-->
-<!--            <mat-card-title>Order Details</mat-card-title>-->
-<!--            <a mat-button color="primary" href="#" (click)="$event.preventDefault();">View All</a>-->
-<!--          </mat-card-header>-->
-<!--          <mat-card-content>-->
-<!--            <ng-scrollbar style="height: 400px" visibility="hover">-->
-<!--              <app-table-card [dataSource]="orderData" [columnDefinitions]="orderColumnDefinitions"></app-table-card>-->
-<!--            </ng-scrollbar>-->
-<!--          </mat-card-content>-->
-<!--        </mat-card>-->
-<!--      </div>-->
-<!--    </div>-->
+    <div class="row">
+      <!-- Daily 0 Sales -->
+      <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
+        <mat-card>
+          <mat-card-header class="header-style">
+            <mat-card-title>Daily Zero Sales Outlets</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <table mat-table [dataSource]="monthlyZeroSalesDataSource" matSort class="mat-cell advance-table">
+              <ng-container matColumnDef="id">
+                <th mat-header-cell *matHeaderCellDef>Sr.No.</th>
+                <td mat-cell *matCellDef="let row; let i = index">{{ i + 1 }}</td>
+              </ng-container>
+
+              <ng-container matColumnDef="name">
+                <th mat-header-cell *matHeaderCellDef>Outlet Name</th>
+                <td mat-cell *matCellDef="let row">{{ row.name }}</td>
+              </ng-container>
+
+              <ng-container matColumnDef="country">
+                <th mat-header-cell *matHeaderCellDef>Country</th>
+                <td mat-cell *matCellDef="let row">{{ row.country }}</td>
+              </ng-container>
+
+              <ng-container matColumnDef="division">
+                <th mat-header-cell *matHeaderCellDef>Division</th>
+                <td mat-cell *matCellDef="let row">{{ row.division }}</td>
+              </ng-container>
+
+              <ng-container matColumnDef="town">
+                <th mat-header-cell *matHeaderCellDef>Town</th>
+                <td mat-cell *matCellDef="let row">{{ row.town }}</td>
+              </ng-container>
+
+              <!-- ✅ Required rows -->
+              <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+            </table>
+            <mat-paginator
+              #dailyPaginator
+              [pageSizeOptions]="[5, 10, 25]"
+              showFirstLastButtons
+            ></mat-paginator>
+          </mat-card-content>
+        </mat-card>
+      </div>
+
+      <!-- Monthly 0 Sales -->
+      <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
+        <mat-card>
+          <mat-card-header class="header-style">
+            <mat-card-title>Monthly zero Sales Outlets</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <table mat-table [dataSource]="monthlyZeroSalesDataSource" matSort class="mat-cell advance-table">
+              <ng-container matColumnDef="id">
+                <th mat-header-cell *matHeaderCellDef>Sr.No.</th>
+                <td mat-cell *matCellDef="let row; let i = index">{{ i + 1 }}</td>
+              </ng-container>
+
+              <ng-container matColumnDef="name">
+                <th mat-header-cell *matHeaderCellDef>Outlet Name</th>
+                <td mat-cell *matCellDef="let row">{{ row.name }}</td>
+              </ng-container>
+
+              <ng-container matColumnDef="country">
+                <th mat-header-cell *matHeaderCellDef>Country</th>
+                <td mat-cell *matCellDef="let row">{{ row.country }}</td>
+              </ng-container>
+
+              <ng-container matColumnDef="division">
+                <th mat-header-cell *matHeaderCellDef>Division</th>
+                <td mat-cell *matCellDef="let row">{{ row.division }}</td>
+              </ng-container>
+
+              <ng-container matColumnDef="town">
+                <th mat-header-cell *matHeaderCellDef>Town</th>
+                <td mat-cell *matCellDef="let row">{{ row.town }}</td>
+              </ng-container>
+
+
+              <!-- ✅ Required rows -->
+              <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+            </table>
+            <mat-paginator
+              #monthlyPaginator
+              [pageSizeOptions]="[5, 10, 25]"
+              showFirstLastButtons
+            ></mat-paginator>
+
+
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </div>
+
+
   </div>
 </section>

@@ -23,7 +23,14 @@ import { MatCardModule } from '@angular/material/card';
 import { NewOrderListComponent } from '@shared/components/new-order-list/new-order-list.component';
 import { TableCardComponent } from '@shared/components/table-card/table-card.component';
 import {DailySalesService} from "../../module/daily-sales.service";
-import {MatTableDataSource} from "@angular/material/table";
+import {
+  MatCell, MatCellDef,
+  MatColumnDef,
+  MatHeaderCell, MatHeaderCellDef,
+  MatHeaderRow, MatHeaderRowDef, MatRow, MatRowDef,
+  MatTable,
+  MatTableDataSource
+} from "@angular/material/table";
 import {AsyncPipe, DecimalPipe, NgForOf} from "@angular/common";
 import {FormControl, FormsModule, ReactiveFormsModule} from "@angular/forms";
 import {map, startWith} from "rxjs/operators";
@@ -32,6 +39,9 @@ import {AngularFireDatabase} from "@angular/fire/compat/database";
 import {MatError, MatFormField, MatLabel} from "@angular/material/input";
 import {MatOption, MatSelect} from "@angular/material/select";
 import {LoadingService} from "../../Services/loading.service";
+import {MatSort} from "@angular/material/sort";
+import {AddDealerService} from "../../module/add-dealer.service";
+import {MatPaginator} from "@angular/material/paginator";
 
 export type ChartOptions = {
   series: ApexAxisChartSeries;
@@ -71,6 +81,18 @@ export type ChartOptions = {
     MatSelect,
     NgForOf,
     ReactiveFormsModule,
+    MatTable,
+    MatCell,
+    MatHeaderCell,
+    MatColumnDef,
+    MatHeaderRow,
+    MatRow,
+    MatSort,
+    MatHeaderRowDef,
+    MatRowDef,
+    MatHeaderCellDef,
+    MatCellDef,
+    MatPaginator,
   ],
 })
 export class MainComponent implements OnInit {
@@ -80,6 +102,7 @@ export class MainComponent implements OnInit {
   public areaChartOptions!: Partial<ChartOptions>;
   public barChartOptions!: Partial<ChartOptions>;
   dataSource = new MatTableDataSource<any>();
+  outletdataSource = new MatTableDataSource<any>([]);
   // Component properties
   todaySales: number = 0;
   todayPercentage: string = '';
@@ -96,12 +119,25 @@ export class MainComponent implements OnInit {
   totalSalesQuantity: number = 0;
   _countriesTypes$!: Observable<string[]>;
   countryControl = new FormControl('All');
+  dailyZeroSalesDataSource = new MatTableDataSource<any>([]);
+  monthlyZeroSalesDataSource = new MatTableDataSource<any>([]);
+  @ViewChild('dailyPaginator') dailyPaginator!: MatPaginator;
+  @ViewChild('monthlyPaginator') monthlyPaginator!: MatPaginator;
+
+  displayedColumns: string[] = [
+    'id',
+    'name',
+    'country',
+    'division',
+    'town',
+  ];
 
   constructor(
     private dailySlaes: DailySalesService,
     private injector: EnvironmentInjector,
     private mDatabase: AngularFireDatabase,
-    private loadingService : LoadingService
+    private loadingService : LoadingService,
+    private addDealerService: AddDealerService,
   ) {
     //constructor
     this._countriesTypes$ = this.mDatabase
@@ -118,6 +154,7 @@ export class MainComponent implements OnInit {
     this.chart2();
     this.areachart();
     this.barchart();
+    this.DealerList();
     // this.loadSalesList();
 
     // Subscribe to country dropdown changes
@@ -129,35 +166,60 @@ export class MainComponent implements OnInit {
 
   }
 
+  ngAfterViewInit() {
+    this.dailyZeroSalesDataSource.paginator = this.dailyPaginator;
+    this.monthlyZeroSalesDataSource.paginator = this.monthlyPaginator;
+  }
+
   loadSalesList(selectedCountry: string) {
     this.loadingService.setLoading(true);
+
     runInInjectionContext(this.injector, () => {
       this.dailySlaes.getDailySalesList().subscribe((data) => {
         let filteredData = data;
+        let filteredOutlets = this.outletdataSource.data; // Store a mutable copy
 
         if (selectedCountry && selectedCountry !== 'All') {
           filteredData = data.filter(item => item.country === selectedCountry);
+          filteredOutlets = this.outletdataSource.data.filter(outlet => outlet.country === selectedCountry);
         }
 
         this.dataSource.data = filteredData;
 
-        // Recalculate all metrics and update charts with the filtered data
+        // ... (your existing recalculation logic) ...
+
+        // 🔹 Recalculate sales summaries
         this.totalSalesQuantity = filteredData.reduce((sum, item) => sum + item.quantity, 0);
         this.calculateDailySales(filteredData);
         this.calculateMonthlySales(filteredData);
         this.calculateFiscalYearSales(filteredData);
         this.calculateLast12MonthsSales(filteredData);
 
-        // Call chart methods to render with the new, filtered data
+        // 🔹 Update charts
         this.chart1();
         const dailySalesData = this.getLast10DaysSales(filteredData);
         this.barchart(dailySalesData);
         const yearlyData = this.calculateYearlySales(filteredData);
         this.areachart(yearlyData.years, yearlyData.quantities);
+
+        // 🔹 Update the zero-sales outlets using the filtered list
+        this.calculateZeroSales(filteredData, filteredOutlets);
+
         this.loadingService.setLoading(false);
       });
     });
   }
+
+
+  DealerList() {
+    runInInjectionContext(this.injector, () => {
+      this.addDealerService.getDealerList().subscribe((data: any[]) => {
+        this.outletdataSource.data = data;   // ✅ correct
+        console.log("All Dealers:", data);
+      });
+    });
+  }
+
 
 
   processSalesData(data: any[]) {
@@ -417,7 +479,7 @@ export class MainComponent implements OnInit {
         },
         foreColor: '#9aa0ac',
       },
-      colors: ['#6973C6'], // Use a single color since there's only one data series
+      colors: ['#6973C6'],
       dataLabels: {
         enabled: false,
       },
@@ -425,10 +487,15 @@ export class MainComponent implements OnInit {
         curve: 'smooth',
       },
       xaxis: {
-        type: 'category', // Change type to 'category' for yearly labels
-        categories: years, // Use the calculated years for categories
+        type: 'category',
+        categories: years,
         title: {
-          text: 'Year',
+          text: 'Year', // Added x-axis title
+        },
+      },
+      yaxis: {
+        title: {
+          text: 'Sale Quantity', // Added y-axis title
         },
       },
       legend: {
@@ -496,12 +563,12 @@ export class MainComponent implements OnInit {
       },
       xaxis: {
         title: {
-          text: 'Date',
+          text: 'Days',
         },
       },
       yaxis: {
         title: {
-          text: 'Quantity',
+          text: 'Sale Quantity',
         },
       },
     };
@@ -553,7 +620,7 @@ export class MainComponent implements OnInit {
       },
       yaxis: {
         title: {
-          text: 'Quantity',
+          text: 'Sale Quantity',
         },
       },
       legend: {
@@ -643,5 +710,58 @@ export class MainComponent implements OnInit {
       },
     };
   }
+
+
+  calculateZeroSales(salesData: any[], allOutlets: any[]) {
+    // If the allOutlets list is empty, we can't do anything.
+    if (!allOutlets || allOutlets.length === 0) {
+      this.dailyZeroSalesDataSource.data = [];
+      this.monthlyZeroSalesDataSource.data = [];
+      return;
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+
+    // Group sales by dealerOutlet
+    const salesByOutlet = new Map<string, { daily: number, monthly: number }>();
+
+    salesData.forEach(item => {
+      const outlet = item.dealerOutlet;
+      const itemDate = new Date(item.createdAt.seconds * 1000);
+      itemDate.setHours(0, 0, 0, 0);
+
+      if (!salesByOutlet.has(outlet)) {
+        salesByOutlet.set(outlet, { daily: 0, monthly: 0 });
+      }
+
+      const current = salesByOutlet.get(outlet)!;
+
+      if (itemDate.getTime() === today.getTime()) {
+        current.daily += item.quantity;
+      }
+
+      if (itemDate >= monthStart) {
+        current.monthly += item.quantity;
+      }
+    });
+
+    // Filter the provided list of outlets
+    const dailyZero = allOutlets.filter((outlet: any) => {
+      const sales = salesByOutlet.get(outlet.name);
+      return !sales || sales.daily === 0;
+    });
+
+    const monthlyZero = allOutlets.filter((outlet: any) => {
+      const sales = salesByOutlet.get(outlet.name);
+      return !sales || sales.monthly === 0;
+    });
+
+    this.dailyZeroSalesDataSource.data = dailyZero;
+    this.monthlyZeroSalesDataSource.data = monthlyZero;
+  }
+
 
 }

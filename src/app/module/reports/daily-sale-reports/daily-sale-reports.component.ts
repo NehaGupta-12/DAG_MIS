@@ -83,6 +83,9 @@ export class DailySaleReportsComponent {
   filteredProducts: any[] = [];
   reportTitle: string = '';
   reportDate: string = '';
+  selectedCountry: string = '';
+  selectedOutlets: string[] = [];
+  allOutletReports: { outlet: string; rows: any[] }[] = [];
 
 
   // Filters
@@ -308,329 +311,281 @@ export class DailySaleReportsComponent {
     this.filteredOptions[field] = [...matched];
   }
 
-// Display selected value in input
-  displayFn(value: string) {
-    return value ? value : '';
-  }
 
 
-
-  // onSubmit() {
-  //   const filters = this.dealerForm.value;
-  //
-  //   const startDate = filters.period?.start ? new Date(filters.period.start) : null;
-  //   const endDate = filters.period?.end ? new Date(filters.period.end) : new Date();
-  //   const today = new Date();
-  //
-  //   // 🔹 Filter sales data
-  //   const filtered = this.salesdataSource.filter(item => {
-  //     const itemDate = item.createdAt?.seconds
-  //       ? new Date(item.createdAt.seconds * 1000)
-  //       : new Date(item.createdAt);
-  //
-  //     return (
-  //       (!filters.country || item.country === filters.country) &&
-  //       (!filters.name || item.dealerOutlet === filters.name) &&
-  //       (!startDate || itemDate >= startDate) &&
-  //       (!endDate || itemDate <= endDate)
-  //     );
-  //   });
-  //
-  //   // 🔹 Normal report (for Month + YTD)
-  //   const report = this.generateReport(filtered, endDate);
-  //
-  //   // 🔹 Day report
-  //   let todayReport: any = {};
-  //   if (today >= (startDate || today) && today <= endDate) {
-  //     todayReport = this.generateReport(filtered, today);
-  //   }
-  //
-  //   // 🔹 Check if single day selection
-  //   const isSingleDay =
-  //     startDate &&
-  //     endDate &&
-  //     startDate.getFullYear() === endDate.getFullYear() &&
-  //     startDate.getMonth() === endDate.getMonth() &&
-  //     startDate.getDate() === endDate.getDate();
-  //
-  //   // 🔹 Step 1: Build raw rows
-  //   let tempRows = this.vehicledataSource.map(prod => {
-  //     const key = prod.name;
-  //     const displayName = prod.model || prod.name;
-  //
-  //     const day = isSingleDay
-  //       ? report[key]?.Day || 0
-  //       : todayReport[key]?.Day || 0;
-  //
-  //     const month = isSingleDay
-  //       ? report[key]?.Day || 0
-  //       : report[key]?.Month || 0;
-  //
-  //     const ytd = isSingleDay
-  //       ? report[key]?.Day || 0
-  //       : report[key]?.YTD || 0;
-  //
-  //     return {
-  //       product: displayName,  // 👈 use model name for grouping
-  //       Day: day,
-  //       Month: month,
-  //       YTD: ytd,
-  //     };
-  //   });
-  //
-  //   // 🔹 Step 2: Group by product (model) and sum values
-  //   const grouped: any = {};
-  //   tempRows.forEach(row => {
-  //     if (!grouped[row.product]) {
-  //       grouped[row.product] = { product: row.product, Day: 0, Month: 0, YTD: 0 };
-  //     }
-  //     grouped[row.product].Day += row.Day;
-  //     grouped[row.product].Month += row.Month;
-  //     grouped[row.product].YTD += row.YTD;
-  //   });
-  //
-  //   this.filteredProducts = Object.values(grouped);
-  //
-  //   // 🔹 Totals row
-  //   this.filteredProducts.push({
-  //     product: 'TOTAL',
-  //     Day: this.filteredProducts.reduce((s: number, r: any) => s + r.Day, 0),
-  //     Month: this.filteredProducts.reduce((s: number, r: any) => s + r.Month, 0),
-  //     YTD: this.filteredProducts.reduce((s: number, r: any) => s + r.YTD, 0),
-  //   });
-  //
-  //   // 🔹 Report title
-  //   if (filters.name) {
-  //     this.reportTitle = `Cumulative for the month - ${filters.name}`;
-  //   } else if (filters.country) {
-  //     this.reportTitle = `Cumulative for the month`;
-  //   } else {
-  //     this.reportTitle = `Sales Report`;
-  //   }
-  //
-  //   // 🔹 Report date display
-  //   if (isSingleDay) {
-  //     this.reportDate = endDate.toLocaleDateString('en-GB', {
-  //       day: '2-digit',
-  //       month: 'long',
-  //       year: 'numeric'
-  //     });
-  //   } else if (startDate) {
-  //     const startStr = startDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' });
-  //     const endStr = endDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' });
-  //     this.reportDate = `${startStr} - ${endStr}`;
-  //   } else {
-  //     this.reportDate = endDate.toLocaleDateString('en-GB', {
-  //       day: '2-digit',
-  //       month: 'long',
-  //       year: 'numeric'
-  //     });
-  //   }
-  // }
 
   onSubmit() {
     const filters = this.dealerForm.value;
+    const startDate = filters.period?.start ? new Date(filters.period.start) : null;
+    const endDate = filters.period?.end ? new Date(filters.period.end) : new Date();
 
-    let startDate = filters.period?.start ? new Date(filters.period.start) : null;
-    let endDate = filters.period?.end ? new Date(filters.period.end) : new Date();
-    const today = new Date();
+    if (startDate) startDate.setHours(0, 0, 0, 0);
+    if (endDate) endDate.setHours(23, 59, 59, 999);
 
-    // ⏰ Normalize start date to 00:00:00
-    if (startDate) {
-      startDate.setHours(0, 0, 0, 0);
-    }
+    const outlets = Array.isArray(filters.name) ? filters.name : (filters.name ? [filters.name] : []);
 
-    // ⏰ Normalize end date to 23:59:59
-    if (endDate) {
-      endDate.setHours(23, 59, 59, 999);
-    }
+    this.allOutletReports = [];
 
-    // 🔹 Filter sales data
-    const filtered = this.salesdataSource.filter(item => {
-      const itemDate = item.createdAt?.seconds
-        ? new Date(item.createdAt.seconds * 1000)
-        : new Date(item.createdAt);
-
-      return (
-        (!filters.country || item.country === filters.country) &&
-        (!filters.name || item.dealerOutlet === filters.name) &&
-        (!startDate || itemDate >= startDate) &&
-        (!endDate || itemDate <= endDate)
-      );
-    });
-
-    // 🔹 Normal report (for Month + YTD)
-    const report = this.generateReport(filtered, endDate);
-
-    // 🔹 Day report
-    let todayReport: any = {};
-    const todayNormalized = new Date();
-    todayNormalized.setHours(0, 0, 0, 0);
-
-    if (todayNormalized >= (startDate || todayNormalized) && todayNormalized <= endDate) {
-      todayReport = this.generateReport(filtered, today);
-    }
-
-    // 🔹 Check if single day selection (ignore time portion)
-    const isSingleDay =
-      startDate &&
-      endDate &&
-      startDate.toDateString() === endDate.toDateString();
-
-    // 🔹 Step 1: Build raw rows
-    let tempRows = this.vehicledataSource.map(prod => {
-      const key = prod.name;
-      const displayName = prod.model || prod.name;
-
-      const day = isSingleDay
-        ? report[key]?.Day || 0
-        : todayReport[key]?.Day || 0;
-
-      const month = isSingleDay
-        ? report[key]?.Day || 0
-        : report[key]?.Month || 0;
-
-      const ytd = isSingleDay
-        ? report[key]?.Day || 0
-        : report[key]?.YTD || 0;
-
-      return {
-        product: displayName,  // 👈 use model name for grouping
-        Day: day,
-        Month: month,
-        YTD: ytd,
-      };
-    });
-
-    // 🔹 Step 2: Group by product (model) and sum values
-    const grouped: any = {};
-    tempRows.forEach(row => {
-      if (!grouped[row.product]) {
-        grouped[row.product] = { product: row.product, Day: 0, Month: 0, YTD: 0 };
-      }
-      grouped[row.product].Day += row.Day;
-      grouped[row.product].Month += row.Month;
-      grouped[row.product].YTD += row.YTD;
-    });
-
-    this.filteredProducts = Object.values(grouped);
-
-    // 🔹 Totals row
-    this.filteredProducts.push({
-      product: 'TOTAL',
-      Day: this.filteredProducts.reduce((s: number, r: any) => s + r.Day, 0),
-      Month: this.filteredProducts.reduce((s: number, r: any) => s + r.Month, 0),
-      YTD: this.filteredProducts.reduce((s: number, r: any) => s + r.YTD, 0),
-    });
-
-    // 🔹 Report title
-    if (filters.name) {
-      this.reportTitle = `Cumulative for the month - ${filters.name}`;
-    } else if (filters.country) {
-      this.reportTitle = `Cumulative for the month`;
-    } else {
-      this.reportTitle = `Sales Report`;
-    }
-
-    // 🔹 Report date display
-    if (isSingleDay) {
-      this.reportDate = endDate.toLocaleDateString('en-GB', {
-        day: '2-digit',
-        month: 'long',
-        year: 'numeric'
+    // Case 1: No outlet selected → show merged report for ALL outlets
+    if (outlets.length === 0) {
+      const filtered = this.salesdataSource.filter(item => {
+        const itemDate = item.createdAt?.seconds
+          ? new Date(item.createdAt.seconds * 1000)
+          : new Date(item.createdAt);
+        return (
+          (!filters.country || item.country === filters.country) &&
+          (!startDate || itemDate >= startDate) &&
+          (!endDate || itemDate <= endDate)
+        );
       });
-    } else if (startDate) {
-      const startStr = startDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' });
-      const endStr = endDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' });
-      this.reportDate = `${startStr} - ${endStr}`;
-    } else {
-      this.reportDate = endDate.toLocaleDateString('en-GB', {
-        day: '2-digit',
-        month: 'long',
-        year: 'numeric'
+      const report = this.generateReport(filtered, endDate);
+      let tempRows = this.vehicledataSource.map(prod => {
+        const key = prod.name;
+        const displayName = (prod.model || prod.name).toUpperCase();
+        const daySales = report[key]?.Day || 0;
+        const monthSales = report[key]?.Month || 0;
+        const ytdSales = report[key]?.YTD || 0;
+
+        let rowColor = '';
+        if (daySales > 10 || monthSales > 10 || ytdSales > 10) {
+          rowColor = 'green-row';
+        } else if (daySales >= 1 || monthSales >= 1 || ytdSales >= 1) {
+          rowColor = 'yellow-row';
+        } else {
+          rowColor = 'red-row';
+        }
+
+        return {
+          product: displayName,
+          Day: daySales,
+          Month: monthSales,
+          YTD: ytdSales,
+          rowColor: rowColor
+        };
       });
+      // Group + totals
+      const grouped: any = {};
+      tempRows.forEach(row => {
+        if (!grouped[row.product]) {
+          grouped[row.product] = { product: row.product, Day: 0, Month: 0, YTD: 0, rowColor: '' };
+        }
+        grouped[row.product].Day += row.Day;
+        grouped[row.product].Month += row.Month;
+        grouped[row.product].YTD += row.YTD;
+      });
+      const mergedReport = Object.values(grouped);
+      mergedReport.forEach((row: any) => {
+        if (row.product !== 'TOTAL') {
+          if (row.Day > 10 || row.Month > 10 || row.YTD > 10) {
+            row.rowColor = 'green-row';
+          } else if (row.Day >= 1 || row.Month >= 1 || row.YTD >= 1) {
+            row.rowColor = 'yellow-row';
+          } else {
+            row.rowColor = 'red-row';
+          }
+        }
+      });
+
+      mergedReport.push({
+        product: 'TOTAL',
+        Day: mergedReport.reduce((s: number, r: any) => s + r.Day, 0),
+        Month: mergedReport.reduce((s: number, r: any) => s + r.Month, 0),
+        YTD: mergedReport.reduce((s: number, r: any) => s + r.YTD, 0),
+        rowColor: '' // No color for the total row
+      });
+
+      this.allOutletReports.push({
+        outlet: 'All Outlets',
+        rows: mergedReport
+      });
+
+      return;
     }
+    // Case 2: One or more outlets selected → loop individually
+    outlets.forEach((outlet: any) => {
+      const filtered = this.salesdataSource.filter(item => {
+        const itemDate = item.createdAt?.seconds
+          ? new Date(item.createdAt.seconds * 1000)
+          : new Date(item.createdAt);
+        return (
+          (!filters.country || item.country === filters.country) &&
+          item.dealerOutlet === outlet &&
+          (!startDate || itemDate >= startDate) &&
+          (!endDate || itemDate <= endDate)
+        );
+      });
+      const report = this.generateReport(filtered, endDate);
+      let tempRows = this.vehicledataSource.map(prod => {
+        const key = prod.name;
+        const displayName = (prod.model || prod.name).toUpperCase();
+        const daySales = report[key]?.Day || 0;
+        const monthSales = report[key]?.Month || 0;
+        const ytdSales = report[key]?.YTD || 0;
+
+        let rowColor = '';
+        if (daySales > 10 || monthSales > 10 || ytdSales > 10) {
+          rowColor = 'green-row';
+        } else if (daySales >= 1 || monthSales >= 1 || ytdSales >= 1) {
+          rowColor = 'yellow-row';
+        } else {
+          rowColor = 'red-row';
+        }
+
+        return {
+          product: displayName,
+          Day: daySales,
+          Month: monthSales,
+          YTD: ytdSales,
+          rowColor: rowColor
+        };
+      });
+      const grouped: any = {};
+      tempRows.forEach(row => {
+        if (!grouped[row.product]) {
+          grouped[row.product] = { product: row.product, Day: 0, Month: 0, YTD: 0, rowColor: '' };
+        }
+        grouped[row.product].Day += row.Day;
+        grouped[row.product].Month += row.Month;
+        grouped[row.product].YTD += row.YTD;
+      });
+      const outletReport = Object.values(grouped);
+      outletReport.forEach((row: any) => {
+        if (row.product !== 'TOTAL') {
+          if (row.Day > 10 || row.Month > 10 || row.YTD > 10) {
+            row.rowColor = 'green-row';
+          } else if (row.Day >= 1 || row.Month >= 1 || row.YTD >= 1) {
+            row.rowColor = 'yellow-row';
+          } else {
+            row.rowColor = 'red-row';
+          }
+        }
+      });
+
+      outletReport.push({
+        product: 'TOTAL',
+        Day: outletReport.reduce((s: number, r: any) => s + r.Day, 0),
+        Month: outletReport.reduce((s: number, r: any) => s + r.Month, 0),
+        YTD: outletReport.reduce((s: number, r: any) => s + r.YTD, 0),
+        rowColor: ''
+      });
+      this.allOutletReports.push({
+        outlet,
+        rows: outletReport
+      });
+      this.selectedCountry = this.dealerForm.value.country || '';
+    });
   }
 
 
-
-
-
   onCancel() {
+    // Clear the selectedOutlets array
+    this.selectedOutlets = [];
+
+    // Reset the form
     this.dealerForm.reset();
-    this.filteredProducts = [];
-    Object.keys(this.options).forEach(key => {
-      this.filteredOptions[key] = [...this.options[key]];
-    });
+
+    // Reset the form controls that are tied to the filters
     this.nameFilter.reset();
     this.divisionFilter.reset();
     this.countryFilter.reset();
     this.townFilter.reset();
     this.productFilter.reset();
+
+    // Restore the filtered options to their original state
+    Object.keys(this.options).forEach(key => {
+      this.filteredOptions[key] = [...this.options[key]];
+    });
+
+    // Clear the displayed reports
+    this.allOutletReports = [];
   }
 
   exportToExcel() {
-    if (!this.filteredProducts || this.filteredProducts.length === 0) {
+    if (!this.allOutletReports || this.allOutletReports.length === 0) {
       Swal.fire('Info', 'No data available to export', 'info');
       return;
     }
 
     const workbook = new Workbook();
-    const worksheet = workbook.addWorksheet('Sales Report');
+    const worksheet = workbook.addWorksheet("Sales Report");
 
-    const colCount = this.filteredProducts.length + 1; // +1 for "Particulars"
+    let currentRow = 1;
 
-    // 🔹 Report title row (yellow background)
-    const titleRow = worksheet.addRow([this.reportTitle || 'Cumulative for the month']);
-    worksheet.mergeCells(1, 1, 1, colCount);
-    titleRow.font = { bold: true, size: 14 };
-    titleRow.alignment = { vertical: 'middle', horizontal: 'center' };
-    titleRow.height = 20;
-    titleRow.eachCell(cell => {
-      cell.fill = {
-        type: 'pattern',
-        pattern: 'solid',
-        fgColor: { argb: 'FFFF00' } // Yellow
-      };
+    // 🔹 Build date text
+    let reportDateText = '';
+    if (this.dealerForm.value.period?.start && this.dealerForm.value.period?.end) {
+      const start = new Date(this.dealerForm.value.period.start).toLocaleDateString();
+      const end = new Date(this.dealerForm.value.period.end).toLocaleDateString();
+      reportDateText = `${start} - ${end}`;
+    } else if (this.dealerForm.value.period?.start) {
+      reportDateText = new Date(this.dealerForm.value.period.start).toLocaleDateString();
+    } else {
+      reportDateText = new Date().toLocaleDateString(); // default today
+    }
+
+    this.allOutletReports.forEach((report, index) => {
+      const colCount = report.rows.length + 1; // +1 for "Particulars"
+
+      // 🔹 Title row
+      const titleRow = worksheet.addRow([`Cumulative for the month - ${report.outlet}`]);
+      worksheet.mergeCells(currentRow, 1, currentRow, colCount);
+      titleRow.font = { bold: true, size: 14 };
+      titleRow.alignment = { vertical: 'middle', horizontal: 'center' };
+      titleRow.height = 20;
+      titleRow.eachCell(cell => {
+        cell.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'FFFF00' }
+        };
+      });
+      currentRow++;
+
+      // 🔹 Date row (always filled now)
+      const country = this.dealerForm.value.country || '';
+      const dateText = `Date: ${reportDateText}${country ? ' | Country: ' + country : ''}`;
+      const dateRow = worksheet.addRow([dateText]);
+
+      worksheet.mergeCells(currentRow, 1, currentRow, colCount);
+      dateRow.alignment = { vertical: 'middle', horizontal: 'center' };
+      dateRow.height = 20;
+      dateRow.eachCell(cell => {
+        cell.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'FFFF00' }
+        };
+      });
+      currentRow++;
+
+      // 🔹 Header row
+      const headers = ['Products Name', ...report.rows.map(p => p.product.toUpperCase())];
+      const headerRow = worksheet.addRow(headers);
+      headerRow.font = { bold: true };
+      headerRow.height = 40;
+      headerRow.eachCell(c => {
+        c.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+        c.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'F4B083' }
+        };
+      });
+      currentRow++;
+
+      // 🔹 Data rows
+      worksheet.addRow(['Sales for the day', ...report.rows.map(p => p.Day)]); currentRow++;
+      worksheet.addRow(['Cumulative for the month', ...report.rows.map(p => p.Month)]); currentRow++;
+      worksheet.addRow(['YTD', ...report.rows.map(p => p.YTD)]); currentRow++;
+
+      // 🔹 Spacer row only between outlets
+      if (index < this.allOutletReports.length - 1) {
+        worksheet.addRow([]);
+        currentRow++;
+      }
     });
 
-    // 🔹 Report date row (yellow background)
-    const dateRow = worksheet.addRow([this.reportDate || '']);
-    worksheet.mergeCells(2, 1, 2, colCount);
-    dateRow.alignment = { vertical: 'middle', horizontal: 'center' };
-    dateRow.height = 20;
-    dateRow.eachCell(cell => {
-      cell.fill = {
-        type: 'pattern',
-        pattern: 'solid',
-        fgColor: { argb: 'FFFF00' } // Yellow
-      };
-    });
-
-    worksheet.addRow([]); // empty row
-
-    // 🔹 Header row (orange background, products horizontally)
-    const headers = ['Particulars', ...this.filteredProducts.map(p => p.product)];
-    const headerRow = worksheet.addRow(headers);
-    headerRow.font = { bold: true };
-    headerRow.height = 40; // make room for wrapping
-    headerRow.eachCell(c => {
-      c.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
-      c.fill = {
-        type: 'pattern',
-        pattern: 'solid',
-        fgColor: { argb: 'F4B083' } // Orange (you can change to ED7D31 for darker orange)
-      };
-    });
-
-    // 🔹 Data rows
-// 🔹 Data rows (new order: Day → Month → YTD)
-    const dayRow   = worksheet.addRow(['Sales for the day', ...this.filteredProducts.map(p => p.Day)]);
-    const monthRow = worksheet.addRow(['Cumulative for the month', ...this.filteredProducts.map(p => p.Month)]);
-    const ytdRow   = worksheet.addRow(['YTD', ...this.filteredProducts.map(p => p.YTD)]);
-
-
-    // 🔹 Apply border + center alignment to all cells
+    // 🔹 Borders + alignment for all cells
     worksheet.eachRow((row, rowNumber) => {
       row.eachCell(cell => {
         cell.border = {
@@ -639,22 +594,54 @@ export class DailySaleReportsComponent {
           bottom: { style: 'thin' },
           right: { style: 'thin' },
         };
-        if (rowNumber !== headerRow.number) {
+        if (rowNumber > 1) {
           cell.alignment = { vertical: 'middle', horizontal: 'center' };
         }
       });
     });
 
-    // 🔹 Adjust column widths
+    // 🔹 Column widths
     worksheet.columns.forEach((col, index) => {
       col.width = index === 0 ? 25 : 12;
     });
 
-    // 🔹 Save file
+    // 🔹 Save Excel file
     workbook.xlsx.writeBuffer().then(data => {
       const blob = new Blob([data], { type: 'application/octet-stream' });
-      FileSaver.saveAs(blob, `Sales_Report_${this.reportDate}.xlsx`);
+      FileSaver.saveAs(blob, `Sales_Report_${reportDateText}.xlsx`);
     });
+  }
+
+
+
+
+  toggleOutletSelection(outlet: string, isChecked: boolean) {
+    if (isChecked) {
+      if (!this.selectedOutlets.includes(outlet)) {
+        this.selectedOutlets.push(outlet);
+      }
+    } else {
+      this.selectedOutlets = this.selectedOutlets.filter(d => d !== outlet);
+    }
+
+    // Patch the form with the array of selected outlets
+    this.dealerForm.patchValue({ name: this.selectedOutlets });
+
+    // Update the input field to display the selected outlets as a comma-separated string
+    this.nameFilter.setValue(this.selectedOutlets.join(', '), { emitEvent: false });
+  }
+
+  displayFn = (): string => {
+    if (!this.dealerForm) {
+      return '';
+    }
+    const selectedValues = this.dealerForm.get('name')?.value;
+    return Array.isArray(selectedValues) ? selectedValues.join(', ') : '';
+  }
+
+  // Add this function to your component class
+  displayCountry(value: string): string {
+    return value ? value : '';
   }
 
 }
