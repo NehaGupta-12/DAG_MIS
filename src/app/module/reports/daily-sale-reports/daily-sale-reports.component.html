@@ -156,10 +156,6 @@
 
             <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
             <mat-date-range-picker #picker></mat-date-range-picker>
-
-            <mat-error *ngIf="dealerForm.get('period.start')?.hasError('required') || dealerForm.get('period.end')?.hasError('required')">
-              Date range is required
-            </mat-error>
           </mat-form-field>
         </div>
 
@@ -174,14 +170,9 @@
           <button mat-mini-fab color="warn" matTooltip="Clear" (click)="onCancel()">
             <mat-icon>clear</mat-icon>
           </button>
-          <button mat-mini-fab
-                  matTooltip="Export to Excel"
-                  (click)="exportToExcel()"
-                  style="background-color:#28a745; color:#fff;">
-          <button mat-mini-fab color="primary" matTooltip="Export to Excel" (click)="exportToExcel()" [disabled]="!authService.hasPermission('Sales Report','export')">
+          <button mat-mini-fab matTooltip="Export to Excel" style="background-color:#28a745; color:#fff;" (click)="exportToExcel()" [disabled]="!authService.hasPermission('Sales Report','export')">
             <mat-icon>download</mat-icon>
           </button>
-
         </div>
       </form>
 
