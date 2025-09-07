@@ -154,7 +154,10 @@
                         <mat-label>Password</mat-label>
                         <input matInput type="text" [formControl]="passwordControl"/>
                       </mat-form-field>
-                      &nbsp; <button mat-stroked-button color="accent" (click)="changePassword()" >Change Password</button>
+                      &nbsp; <button mat-raised-button (click)="changePassword()"
+                                     style="background-color:#0056D2; color:#fff;">
+                      Change Password
+                    </button>
                     </div>
                   </td>
                 </tr>

@@ -156,13 +156,13 @@
 
         <!-- Action Buttons -->
         <div class="col-md-2 d-flex justify-content-end gap-2 mt-2">
-          <button mat-mini-fab color="accent" matTooltip="Search" (click)="onSubmit()" [disabled]="dealerForm.invalid">
+          <button mat-mini-fab color="primary" matTooltip="Search" (click)="onSubmit()" [disabled]="dealerForm.invalid">
             <mat-icon>search</mat-icon>
           </button>
           <button mat-mini-fab color="warn" matTooltip="Clear" (click)="onCancel()">
             <mat-icon>clear</mat-icon>
           </button>
-          <button mat-mini-fab color="primary" matTooltip="Export to Excel" (click)="exportToExcel()" [disabled]="!authService.hasPermission('Stock Report','export')">
+          <button mat-mini-fab style="background-color:#28a745; color:#fff;" matTooltip="Export to Excel" (click)="exportToExcel()" [disabled]="!authService.hasPermission('Stock Report','export')">
             <mat-icon>download</mat-icon>
           </button>
         </div>

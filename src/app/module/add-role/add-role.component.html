@@ -1,7 +1,7 @@
 <section class="content">
 <div class="container-md">
   <h5 mat-dialog-title class="text-center">Create New Role & Permissions</h5>
-  <mat-card class="border border-1">
+  <mat-card class="border border-1 p-4">
     <form [formGroup]="role_form">
       <div class="row m-1">
         <mat-form-field appearance="outline" class="col-md-4 col-sm-4">
@@ -52,7 +52,7 @@
           </tbody>
         </table>
       </div>
-      <div class="row">
+      <div class="row mt-4 ">
         <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 mb-2 text-center">
           <button class="btn-space" mat-raised-button color="primary"  (click)="save()">Submit</button>
           <button type="button" mat-raised-button color="warn" (click)="backToHome()">Cancel</button>
