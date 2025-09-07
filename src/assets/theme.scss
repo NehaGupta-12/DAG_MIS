@@ -24,7 +24,7 @@ $theme: mat.m2-define-light-theme($theme-config);
 
 //  Apply component-specific styles
 .mat-mdc-table {
-  @include mat.table-density(-1);
+  @include mat.table-density(-2);
 }
 
 .mat-mdc-button,
