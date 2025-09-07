@@ -25,5 +25,6 @@ export interface Permission {
   export?: boolean;
   approved?: boolean;
   disapproved?: boolean;
-  permissions?:[];
+  showMenu?: boolean;
+  permissions?:Permission;
 }

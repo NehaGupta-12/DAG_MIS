@@ -39,6 +39,8 @@ export class AuthService {
       this.userRolePermissions = JSON.parse(cachedPermissions);
       this.permissionsLoadedSubject.next(true);
     }
+
+    console.log('userRoelPermissions', this.userRolePermissions);
   }
   public get currentUserValue(): User {
     return <User>this.currentUserSubject?.value;
@@ -76,9 +78,13 @@ export class AuthService {
     return menu ? !!menu.permissions[action] : false;
   }
 
-  canShowMenu(menuName: string): boolean {debugger
+  canShowMenu(menuName: string): boolean {
     const menu = this.userRolePermissions.find((p: any) => p.menu_name === menuName);
-    return !!menu; // show only if this menu exists in permissions
+    // console.log(this.userRolePermissions.find((p: any) => p.menu_name === menuName))
+    console.log(menuName + 'in canShowMenu: ' + JSON.stringify(menu?.permissions?.showMenu));
+    return !!menu?.permissions?.showMenu; // show only if this menu.permission.list exists in permissions
+
+
   }
   // canShowMenu(menuName: string): boolean {
   //   const translatedName = this.translate.instant(menuName); // convert key to real label

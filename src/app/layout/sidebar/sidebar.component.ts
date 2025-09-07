@@ -15,12 +15,12 @@ import {
   HostListener,
   DOCUMENT
 } from '@angular/core';
-import { RouteInfo } from './sidebar.metadata';
-import { TranslateModule } from '@ngx-translate/core';
-import { FeatherModule } from 'angular-feather';
-import { NgScrollbar } from 'ngx-scrollbar';
-import { UnsubscribeOnDestroyAdapter } from '@shared';
-import { SidebarService } from './sidebar.service';
+import {RouteInfo} from './sidebar.metadata';
+import {TranslateModule} from '@ngx-translate/core';
+import {FeatherModule} from 'angular-feather';
+import {NgScrollbar} from 'ngx-scrollbar';
+import {UnsubscribeOnDestroyAdapter} from '@shared';
+import {SidebarService} from './sidebar.service';
 import {UserDataModel} from "../../module/add-user/UserData.model";
 import {AuthService} from "../../authentication/auth.service";
 
@@ -40,17 +40,17 @@ import {AuthService} from "../../authentication/auth.service";
 })
 export class SidebarComponent
   extends UnsubscribeOnDestroyAdapter
-  implements OnInit
-{
+  implements OnInit {
   public sidebarItems!: RouteInfo[];
   public innerHeight?: number;
   public bodyTag!: HTMLElement;
   listMaxHeight?: string;
   listMaxWidth?: string;
   headerHeight = 60;
-  userName :any;
-  role :any
+  userName: any;
+  role: any
   userData!: UserDataModel
+
   constructor(
     @Inject(DOCUMENT) private document: Document,
     private renderer: Renderer2,
@@ -80,6 +80,7 @@ export class SidebarComponent
       this.renderer.removeClass(this.document.body, 'overlay-open');
     }
   }
+
   callToggleMenu(event: Event, length: number) {
     if (length > 0) {
       const parentElement = (event.target as HTMLInputElement).closest('li');
@@ -92,26 +93,29 @@ export class SidebarComponent
       }
     }
   }
+
   ngOnInit() {
     this.userData = JSON.parse(localStorage.getItem('userData')!) as UserDataModel
-
     this.userName = `${this.userData.first || ''} ${this.userData.last || ''}`.trim();
     this.role = this.userData.role
     // Wait until permissions are ready
-    this.authService.permissionsLoaded$.subscribe(loaded => {
-      if (loaded) {
-        this.subs.sink = this.sidebarService.getRouteInfo().subscribe((routes: RouteInfo[]) => {
-          this.sidebarItems = routes.filter(item => this.canShowMenu(item.title));
+    if (this.authService.currentUserValue) {
+      this.subs.sink = this.sidebarService
+        .getRouteInfo()
+        .subscribe((routes: RouteInfo[]) => {
+          this.sidebarItems = routes.filter((sidebarItem) => sidebarItem);
         });
-      }
-    });
 
+    }
     this.initLeftSidebar();
     this.bodyTag = this.document.body;
   }
-  canShowMenu(menuName: string): boolean {debugger
+
+  canShowMenu(menuName: string): boolean {
+    console.log( `${menuName}: `+ this.authService.canShowMenu(menuName))
     return this.authService.canShowMenu(menuName);
   }
+
   initLeftSidebar() {
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const _this = this;
@@ -119,15 +123,18 @@ export class SidebarComponent
     _this.setMenuHeight();
     _this.checkStatuForResize(true);
   }
+
   setMenuHeight() {
     this.innerHeight = window.innerHeight;
     const height = this.innerHeight - this.headerHeight;
     this.listMaxHeight = height + '';
     this.listMaxWidth = '500px';
   }
+
   isOpen() {
     return this.bodyTag.classList.contains('overlay-open');
   }
+
   checkStatuForResize(firstTime: boolean) {
     if (window.innerWidth < 1025) {
       this.renderer.addClass(this.document.body, 'ls-closed');
@@ -135,6 +142,7 @@ export class SidebarComponent
       this.renderer.removeClass(this.document.body, 'ls-closed');
     }
   }
+
   mouseHover() {
     const body = this.elementRef.nativeElement.closest('body');
 
@@ -143,6 +151,7 @@ export class SidebarComponent
       this.renderer.removeClass(this.document.body, 'submenu-closed');
     }
   }
+
   mouseOut() {
     const body = this.elementRef.nativeElement.closest('body');
 
