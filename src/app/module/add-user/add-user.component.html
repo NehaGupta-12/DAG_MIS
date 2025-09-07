@@ -4,7 +4,7 @@
       <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12">
         <div class="card shadow">
           <div class="header text-center">
-            <h4>Add User</h4>
+            <h4>{{ isEditMode ?'Edit User':'Add User' }}</h4>
           </div>
 <!--          <pre>{{ register?.value | json }}</pre>-->
           <div class="body">
@@ -163,7 +163,7 @@
               <div class="row">
                 <div class="col-12 d-flex justify-content-center gap-2">
                   <button class="btn-space" [disabled]="!register?.valid"
-                          mat-raised-button color="primary">Submit</button>
+                          mat-raised-button color="primary">{{ isEditMode ?'Update':'Submit' }}</button>
                   <button type="button" mat-raised-button color="warn" (click)="goBack()">Cancel</button>
                 </div>
               </div>
