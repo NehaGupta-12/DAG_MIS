@@ -69,4 +69,8 @@ export class AuthService {
     this.currentUserSubject.next(this.currentUserValue);
     return of({ success: false });
   }
+
+  initUserContext() {
+
+  }
 }

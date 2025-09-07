@@ -1,87 +1,66 @@
-import {Component, EnvironmentInjector, OnInit, runInInjectionContext} from '@angular/core';
-import {
-  MatCell,
-  MatColumnDef,
-  MatHeaderCell,
-  MatHeaderRow,
-  MatRow,
-  MatTable,
-  MatTableModule
-} from "@angular/material/table";
-import {MatIcon} from "@angular/material/icon";
-import {MatButton, MatIconButton} from "@angular/material/button";
-import {MatPaginator} from "@angular/material/paginator";
-import {MatProgressSpinner} from "@angular/material/progress-spinner";
-import {MatTooltip} from "@angular/material/tooltip";
-import {DatePipe, NgFor, NgForOf, NgIf} from "@angular/common";
-import {MatFormField, MatInput, MatLabel} from "@angular/material/input";
-import {MatCheckbox} from "@angular/material/checkbox";
+import { Component, EnvironmentInjector, OnInit, runInInjectionContext } from '@angular/core';
 import {
   AbstractControl,
   FormArray,
   FormBuilder,
-  FormGroup,
-  FormsModule,
-  ReactiveFormsModule,
+  FormGroup, ReactiveFormsModule,
   Validators
 } from "@angular/forms";
-import {AngularFirestore} from "@angular/fire/compat/firestore";
-import { AngularFireDatabase } from '@angular/fire/compat/database';
-import {Permission} from "../../interfaces/products.interface";
-import {RoleService} from "../../Services/role.service";
-import { Router } from '@angular/router';
+import { AngularFirestore } from "@angular/fire/compat/firestore";
+import { Router, ActivatedRoute } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import firebase from "firebase/compat/app";
-import {Subscription} from "rxjs";
-import {UserService} from "../add-user/user.service";
+import { Subscription } from "rxjs";
+import { UserService } from "../add-user/user.service";
 import {MatCard} from "@angular/material/card";
+import {MatFormField, MatInput, MatLabel} from "@angular/material/input";
+import {MatProgressSpinner} from "@angular/material/progress-spinner";
+import {NgForOf, NgIf} from "@angular/common";
+import {MatButton} from "@angular/material/button";
 import {MatDialogTitle} from "@angular/material/dialog";
 
 @Component({
   selector: 'app-add-role',
+  templateUrl: './add-role.component.html',
   imports: [
-    MatTableModule,
-    FormsModule,
     MatCard,
-    MatDialogTitle,
     ReactiveFormsModule,
     MatFormField,
     MatProgressSpinner,
     NgIf,
-    NgForOf,
     MatButton,
-    MatLabel,
-    MatInput
+    NgForOf,
+    MatDialogTitle,
+    MatInput,
+    MatLabel
   ],
-  templateUrl: './add-role.component.html',
-  styleUrl: './add-role.component.scss'
+  styleUrls: ['./add-role.component.scss']
 })
-export class AddRoleComponent implements OnInit{
+export class AddRoleComponent implements OnInit {
   role_form!: FormGroup;
   isLoading = false;
   userId: string | null = null;
   userSubscription: Subscription | undefined;
+  roleId: string | null = null;  // detect if edit mode
+  isEditMode = false;
 
   constructor(
     private fb: FormBuilder,
     private afs: AngularFirestore,
-    private roleService: RoleService,
     private router: Router,
-    private injector : EnvironmentInjector,
+    private route: ActivatedRoute,
+    private injector: EnvironmentInjector,
     private mSnackBar: MatSnackBar,
     public userService: UserService,
   ) {
-    this.userSubscription = this.userService.getUserId().subscribe((id:any) => {
+    this.userSubscription = this.userService.getUserId().subscribe((id: any) => {
       this.userId = id;
-      console.log('Logged-in User ID:', this.userId);
     });
   }
 
   ngOnInit(): void {
-    // if (!this.userService.hasPermission('Roles & Permissions', 'create')) {
-    //   this.router.navigate(['/not-authorized']);
-    //   return;
-    // }
+    this.roleId = this.route.snapshot.paramMap.get('id');
+    this.isEditMode = !!this.roleId;
 
     this.role_form = this.fb.group({
       roleName: ['', Validators.required],
@@ -90,11 +69,13 @@ export class AddRoleComponent implements OnInit{
       permissions: this.fb.array([])
     });
 
+    // Load menu list first
     runInInjectionContext(this.injector, () => {
       this.afs.collection('menuList', ref => ref.orderBy('createdAt', 'asc'))
         .valueChanges({ idField: 'menuId' })
         .subscribe((menus: any[]) => {
           const control = this.permissionsArray;
+          control.clear();
 
           menus.forEach((menu, index) => {
             control.push(this.fb.group({
@@ -114,10 +95,14 @@ export class AddRoleComponent implements OnInit{
               })
             }));
           });
+
+          // If edit mode → load role data
+          if (this.isEditMode) {
+            this.loadRoleData();
+          }
         });
     });
   }
-
 
   get permissionsArray(): FormArray {
     return this.role_form.get('permissions') as FormArray;
@@ -127,31 +112,72 @@ export class AddRoleComponent implements OnInit{
     return group.get('permissions') as FormGroup;
   }
 
+  loadRoleData(): void {
+    runInInjectionContext(this.injector, () => {
+    if (!this.roleId) return;
+      this.afs.collection('roles').doc(this.roleId).get().subscribe(doc => {
+        const role: any = doc.data();
+        if (!role) return;
+
+        this.role_form.get('roleName')?.setValue(role.roleName);
+
+        // patch permissions
+        this.permissionsArray.controls.forEach((control, index) => {
+          const menuId = control.get('menuId')?.value;
+          const menuPermission = role.permissions.find((p: any) => p.menuId === menuId);
+
+          if (menuPermission) {
+            control.get('permissions')?.patchValue(menuPermission.permissions);
+          }
+        });
+      });
+    });
+  }
+
   save(): void {
     if (!this.role_form.valid) {
       this.markFormGroupTouched(this.role_form);
-      this.mSnackBar.open('Form is Invalid')._dismissAfter(3000);
+      this.mSnackBar.open('Form is Invalid', 'Close', { duration: 3000 });
       return;
     }
 
     this.isLoading = true;
     const roleData = this.role_form.value;
-    runInInjectionContext(this.injector, () =>
-    this.afs.collection('roles').add({
-      roleName: roleData.roleName,
-      permissions: roleData.permissions,
-      createdBy: this.userId,
-      createdAt: new Date(),
-    })).then(() => {
-      this.isLoading = false;
-      this.role_form.reset();
-      this.permissionsArray.clear();
-      this.router.navigate(['/module/role-list']);
-      this.mSnackBar.open('New Role Successfully Added')._dismissAfter(3000);
-    }).catch(error => {
-      this.isLoading = false;
-      console.error('Error adding role:', error);
-      this.mSnackBar.open('Error while saving role')._dismissAfter(3000);
+    runInInjectionContext(this.injector, () => {
+    if (this.isEditMode && this.roleId) {
+      // 🔹 Update role inside injection context
+        this.afs.collection('roles').doc(this.roleId).update({
+          roleName: roleData.roleName,
+          permissions: roleData.permissions,
+          updatedBy: this.userId,
+          updatedAt: new Date(),
+        }).then(() => {
+          this.isLoading = false;
+          this.mSnackBar.open('Role updated successfully', 'Close', { duration: 3000 });
+          this.router.navigate(['/module/role-list']);
+        }).catch(error => {
+          this.isLoading = false;
+          console.error('Error updating role:', error);
+          this.mSnackBar.open('Error while updating role', 'Close', { duration: 3000 });
+        });
+    } else {
+        this.afs.collection('roles').add({
+          roleName: roleData.roleName,
+          permissions: roleData.permissions,
+          createdBy: this.userId,
+          createdAt: new Date(),
+        }).then(() => {
+          this.isLoading = false;
+          this.role_form.reset();
+          this.permissionsArray.clear();
+          this.router.navigate(['/module/role-list']);
+          this.mSnackBar.open('New Role Successfully Added', 'Close', { duration: 3000 });
+        }).catch(error => {
+          this.isLoading = false;
+          console.error('Error adding role:', error);
+          this.mSnackBar.open('Error while saving role', 'Close', { duration: 3000 });
+        });
+    }
     });
   }
 
@@ -184,7 +210,6 @@ export class AddRoleComponent implements OnInit{
   }
 
   onPermissionChange(index: number): void {
-    // Can be used to update 'All' checkbox dynamically if needed
+    // You can dynamically manage "all" checkbox here if needed
   }
 }
-

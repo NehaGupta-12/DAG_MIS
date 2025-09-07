@@ -17,6 +17,8 @@ import {AngularFirestore} from "@angular/fire/compat/firestore";
 export class AuthService {
   private userRolePermissions: Permission[] = [];
   private currentUserSubject: BehaviorSubject<User> | undefined;
+  private permissionsLoadedSubject = new BehaviorSubject<boolean>(false);
+  public permissionsLoaded$ = this.permissionsLoadedSubject.asObservable();
   public currentUser: Observable<User> | undefined;
   constructor(
     public mAuth: AngularFireAuth,
@@ -28,6 +30,15 @@ export class AuthService {
     private roleService: RoleService,
     private firestore : AngularFirestore
   ) {
+    this.currentUserSubject = new BehaviorSubject<User>(
+      JSON.parse(localStorage.getItem('currentUser') || '{}')
+    );
+    this.currentUser = this.currentUserSubject.asObservable();
+    const cachedPermissions = localStorage.getItem('userRolePermissions');
+    if (cachedPermissions) {
+      this.userRolePermissions = JSON.parse(cachedPermissions);
+      this.permissionsLoadedSubject.next(true);
+    }
   }
   public get currentUserValue(): User {
     return <User>this.currentUserSubject?.value;
@@ -37,7 +48,6 @@ export class AuthService {
     console.log(roleName)
     try {
       const snapshot = await runInInjectionContext(this.injector, async () => {
-        // Firestore .get() returns an Observable, so wrap in firstValueFrom
         return await firstValueFrom(
           this.firestore
             .collection('roles', ref => ref.where('roleName', '==', roleName))
@@ -49,17 +59,32 @@ export class AuthService {
         const role: any = snapshot.docs[0].data();
         this.userRolePermissions = role.permissions || [];
         console.log('Loaded role permissions:', this.userRolePermissions);
+
+        // 🔹 Mark permissions as loaded
+        this.permissionsLoadedSubject.next(true);
+
+        // 🔹 Optional: cache permissions in localStorage
+        localStorage.setItem('userRolePermissions', JSON.stringify(this.userRolePermissions));
       }
     } catch (error) {
       console.error('Error loading role:', error);
     }
   }
 
-
-  hasPermission(menuName: string, action: keyof Permission['permissions']): boolean {
-    const menu = this.userRolePermissions.find((p: Permission) => p.menu_name === menuName);
+  hasPermission(menuName: string, action: keyof any['permissions']): boolean {
+    const menu:any = this.userRolePermissions.find((p: any) => p.menu_name === menuName);
     return menu ? !!menu.permissions[action] : false;
   }
+
+  canShowMenu(menuName: string): boolean {debugger
+    const menu = this.userRolePermissions.find((p: any) => p.menu_name === menuName);
+    return !!menu; // show only if this menu exists in permissions
+  }
+  // canShowMenu(menuName: string): boolean {
+  //   const translatedName = this.translate.instant(menuName); // convert key to real label
+  //   const menu = this.userRolePermissions.find((p: any) => p.menu_name === translatedName);
+  //   return !!menu;
+  // }
 
 
 
@@ -82,7 +107,6 @@ export class AuthService {
 
         localStorage.setItem('user', JSON.stringify(user));
         localStorage.setItem('uid', user.uid);
-        this.loadUserRole(user.uid)
         if (user.email) {
           localStorage.setItem('userEmail', user.email);
         }

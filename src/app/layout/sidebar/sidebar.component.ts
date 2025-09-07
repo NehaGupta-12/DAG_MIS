@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { NgClass } from '@angular/common';
+import {NgClass, NgIf} from '@angular/common';
 import {
   Router,
   NavigationEnd,
@@ -15,7 +15,6 @@ import {
   HostListener,
   DOCUMENT
 } from '@angular/core';
-import { AuthService } from '@core';
 import { RouteInfo } from './sidebar.metadata';
 import { TranslateModule } from '@ngx-translate/core';
 import { FeatherModule } from 'angular-feather';
@@ -23,6 +22,7 @@ import { NgScrollbar } from 'ngx-scrollbar';
 import { UnsubscribeOnDestroyAdapter } from '@shared';
 import { SidebarService } from './sidebar.service';
 import {UserDataModel} from "../../module/add-user/UserData.model";
+import {AuthService} from "../../authentication/auth.service";
 
 @Component({
   selector: 'app-sidebar',
@@ -35,6 +35,7 @@ import {UserDataModel} from "../../module/add-user/UserData.model";
     NgClass,
     FeatherModule,
     TranslateModule,
+    NgIf,
   ]
 })
 export class SidebarComponent
@@ -54,7 +55,7 @@ export class SidebarComponent
     @Inject(DOCUMENT) private document: Document,
     private renderer: Renderer2,
     public elementRef: ElementRef,
-    private authService: AuthService,
+    public authService: AuthService,
     private router: Router,
     private sidebarService: SidebarService
   ) {
@@ -96,17 +97,21 @@ export class SidebarComponent
 
     this.userName = `${this.userData.first || ''} ${this.userData.last || ''}`.trim();
     this.role = this.userData.role
-    if (this.authService.currentUserValue) {
-      this.subs.sink = this.sidebarService
-        .getRouteInfo()
-        .subscribe((routes: RouteInfo[]) => {
-          this.sidebarItems = routes.filter((sidebarItem) => sidebarItem);
+    // Wait until permissions are ready
+    this.authService.permissionsLoaded$.subscribe(loaded => {
+      if (loaded) {
+        this.subs.sink = this.sidebarService.getRouteInfo().subscribe((routes: RouteInfo[]) => {
+          this.sidebarItems = routes.filter(item => this.canShowMenu(item.title));
         });
-    }
+      }
+    });
+
     this.initLeftSidebar();
     this.bodyTag = this.document.body;
   }
-
+  canShowMenu(menuName: string): boolean {debugger
+    return this.authService.canShowMenu(menuName);
+  }
   initLeftSidebar() {
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const _this = this;

@@ -79,6 +79,10 @@ export const MODULES_ROUTE: Route[] = [
     component: AddRoleComponent
   },
   {
+    path: 'edit-role/:id',
+    component: AddRoleComponent
+  },
+  {
     path: 'types',
     component: TypesComponent
   },

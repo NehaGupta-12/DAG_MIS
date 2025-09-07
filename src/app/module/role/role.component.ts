@@ -165,4 +165,10 @@ ngOnInit() {
   isLoading: any;
 
 
+
+  editRole(id: string) {
+    debugger
+    this.router.navigate(['/module/edit-role',id]);
+  }
+
 }

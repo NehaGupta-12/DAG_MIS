@@ -35,7 +35,9 @@
               @if (sidebarItem.submenu.length > 0) {
                 <ul class="ml-menu">
                   @for (sidebarSubItem1 of sidebarItem.submenu; track sidebarSubItem1) {
-                    <li [routerLinkActive]="sidebarSubItem1.submenu.length > 0 ? '' : 'active'">
+                    <li [routerLinkActive]="sidebarSubItem1.submenu.length > 0 ? '' : 'active'"
+                        *ngIf="canShowMenu(sidebarSubItem1.title)">
+<!--                      *ngIf="canShowMenu(sidebarSubItem1.title)"-->
                       <a [routerLink]="sidebarSubItem1.submenu.length > 0 ? null : [sidebarSubItem1.path]"
                          (click)="callToggleMenu($event,sidebarSubItem1.submenu.length)" [ngClass]="[sidebarSubItem1.class]">
                         {{sidebarSubItem1.title | translate}}

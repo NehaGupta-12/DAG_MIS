@@ -1,8 +1,9 @@
 export interface Menus {
+  id?:any;
   menu_name: string;
   menu_url: string;
   createdBy: string;
-  createdAt: any; // Use Firestore timestamp or string as needed
+  createdAt: any;
   updatedBy: string;
-  updatedAt: any; // Use Firestore timestamp or string as needed
+  updatedAt: any;
 }
