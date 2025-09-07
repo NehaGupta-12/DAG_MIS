@@ -324,9 +324,10 @@ export class AddUserComponent implements OnInit{
     })
 
   }
-  public findInvalidControls() {
-    const invalid = [];
+  public findInvalidControls(): string[] {
+    const invalid: string[] = [];
     const controls = this.register?.controls;
+
     for (const name in controls) {
       if (controls[name].invalid) {
         invalid.push(name);
