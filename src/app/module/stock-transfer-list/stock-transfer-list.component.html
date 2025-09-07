@@ -92,8 +92,8 @@
                 <ng-container matColumnDef="action">
                   <th mat-header-cell *matHeaderCellDef mat-sort-header>Action</th>
                   <td mat-cell *matCellDef="let row">
-                    <button mat-icon-button color="accent" (click)="openAssignDialog(row)">
-                      <app-feather-icons [icon]="'eye'" [class]="'tbl-fav-edit'"></app-feather-icons>
+                    <button mat-icon-button style="color: #6c757d;" (click)="openAssignDialog(row)">
+                      <mat-icon>visibility</mat-icon>
                     </button>
                     <button mat-icon-button color="accent" (click)="deleteGrn(row.id)" >
                       <app-feather-icons [icon]="'trash-2'" [class]="'tbl-fav-delete'"></app-feather-icons>

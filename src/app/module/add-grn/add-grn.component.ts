@@ -217,7 +217,11 @@ export class AddGRNComponent implements OnInit{
   }
 
   removeProduct(index: number) {
-    this.addedProducts.splice(index, 1);
+    // Remove only the clicked product
+    this.addedProducts = this.addedProducts.filter((_, i) => i !== index);
+
+    // ✅ Force table refresh
+    this.addedProducts = [...this.addedProducts];
   }
 
   submitForm() {

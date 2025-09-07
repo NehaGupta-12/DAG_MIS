@@ -21,6 +21,8 @@ import {MatDialog} from "@angular/material/dialog";
 import {AddEditMenuListComponent} from "../add-edit-menu-list/add-edit-menu-list.component";
 import {MenuService} from "../../../Services/menu.service";
 import {Menus} from "../../../interfaces/menu.interface";
+import {FeatherIconsComponent} from "@shared/components/feather-icons/feather-icons.component";
+import Swal from "sweetalert2";
 
 @Component({
   selector: 'app-menu-list',
@@ -40,6 +42,7 @@ import {Menus} from "../../../interfaces/menu.interface";
     MatTooltip,
     MatTooltip,
     MatHeaderCellDef,
+    FeatherIconsComponent,
   ],
   templateUrl: './menu-list.component.html',
   styleUrl: './menu-list.component.scss'
@@ -103,10 +106,33 @@ export class MenuListComponent implements OnInit{
   }
 
   deleteMenuList(row: Menus) {
-    if (confirm(`Are you sure you want to delete menu "${row.menu_name}"?`)) {
-      this.menuService.deleteMenu(row.id!).then(() => {
-        this.loadMenuList();
+    Swal.fire({
+      title: 'Are you sure?',
+      text: `You will not be able to recover the menu "${row.menu_name}"!`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, delete it!',
+      cancelButtonText: 'No, cancel',
+    }).then((result) => {
+      if (!result.isConfirmed) return;
+
+      // this.loadingService.setLoading(true); // ✅ loader for delete
+
+      runInInjectionContext(this.injector, () => {
+        this.menuService.deleteMenu(row.id!)
+          .then(() => {
+            this.loadMenuList();
+            Swal.fire('Deleted!', 'Menu has been deleted.', 'success');
+          })
+          .catch((err) => {
+            console.error('Delete menu failed:', err);
+            Swal.fire('Error', 'Failed to delete the menu. Please try again.', 'error');
+          })
+          .finally(() => {
+            // this.loadingService.setLoading(false);
+          });
       });
-    }
+    });
   }
+
 }

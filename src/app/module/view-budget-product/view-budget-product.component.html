@@ -63,7 +63,7 @@
                 <th mat-header-cell *matHeaderCellDef>Action</th>
                 <td mat-cell *matCellDef="let row">
                   <button mat-icon-button color="accent" (click)="editProduct(row)">
-                    <mat-icon>edit</mat-icon>
+                    <app-feather-icons icon="edit" class="tbl-fav-edit"></app-feather-icons>
                   </button>
                   <button mat-icon-button color="accent" (click)="deleteBudget(row)">
                     <app-feather-icons [icon]="'trash-2'" [class]="'tbl-fav-delete'"></app-feather-icons>
