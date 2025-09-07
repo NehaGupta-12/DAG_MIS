@@ -73,10 +73,11 @@ export class AuthService {
     }
   }
 
-  hasPermission(menuName: string, action: keyof any['permissions']): boolean {
-    const menu:any = this.userRolePermissions.find((p: any) => p.menu_name === menuName);
-    return menu ? !!menu.permissions[action] : false;
+  hasPermission(title: string, action: 'list' | 'create' | 'edit' | 'delete' | 'print' | 'export' | 'approved' | 'disapproved'): boolean {
+    const menuPerm = this.userRolePermissions.find(p => p.menu_name === title);
+    return menuPerm?.permissions?.[action] === true;
   }
+
 
   canShowMenu(menuName: string): boolean {
     const menu = this.userRolePermissions.find((p: any) => p.menu_name === menuName);
