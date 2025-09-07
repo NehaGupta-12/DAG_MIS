@@ -112,7 +112,7 @@ export class SidebarComponent
   }
 
   canShowMenu(menuName: string): boolean {
-    console.log( `${menuName}: `+ this.authService.canShowMenu(menuName))
+    // console.log( `${menuName}: `+ this.authService.canShowMenu(menuName))
     return this.authService.canShowMenu(menuName);
   }
 

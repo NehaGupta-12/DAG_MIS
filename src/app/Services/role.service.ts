@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import {EnvironmentInjector, Injectable, runInInjectionContext} from '@angular/core';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { Observable } from 'rxjs';
 import {map} from "rxjs/operators";
@@ -17,7 +17,8 @@ export interface Roles {
   providedIn: 'root'
 })
 export class RoleService {
-  constructor(private firestore: AngularFirestore) {}
+  constructor(private firestore: AngularFirestore,
+              private injector : EnvironmentInjector) {}
   private collectionName = 'roles';
 
   // Fetch all roles with pagination
@@ -42,16 +43,15 @@ export class RoleService {
     return this.firestore.doc(`${this.collectionName}/${id}`).delete();
   }
 
-  // check for duplicate
   checkDuplicateRoleName(roleName: string): Observable<boolean> {
-    return this.firestore.collection(this.collectionName, ref => ref.where('roleName', '==', roleName))
-      .get()
-      .pipe(
-        map(snapshot => {
-          return !snapshot.empty;  // Returns true if there's a duplicate, false otherwise
-        })
-      );
-  }
+    return runInInjectionContext(this.injector, () => {
+      return this.firestore.collection(this.collectionName, ref => ref.where('roleName', '==', roleName))
+        .get()
+        .pipe(
+          map(snapshot => !snapshot.empty) // true if duplicate exists
+        );
+    });
+}
   getRoleById(roleId: string): Observable<Roles | undefined> {
     return this.firestore.collection(this.collectionName).doc(roleId).valueChanges() as Observable<Roles>;
   }

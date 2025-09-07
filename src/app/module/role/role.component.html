@@ -72,8 +72,8 @@
                     <button mat-icon-button color="accent" (click)="editRole(row.id)" [disabled]="!authService.hasPermission('Role','edit')">
                       <app-feather-icons [icon]="'edit'" [class]="'tbl-fav-edit'"></app-feather-icons>
                     </button>
-                    <button mat-icon-button color="accent" [disabled]="!authService.hasPermission('Role','delete')">
-                      <app-feather-icons [icon]="'trash-2'" [class]="'tbl-fav-delete'"></app-feather-icons>
+                    <button mat-icon-button color="accent" (click)="deleteRole(row.id)" [disabled]="!authService.hasPermission('Role','delete')">
+                      <app-feather-icons [icon]="'trash-2'" [class]="'tbl-fav-delete'" ></app-feather-icons>
                     </button>
                   </td>
                 </ng-container>

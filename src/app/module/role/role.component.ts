@@ -21,6 +21,8 @@ import {MatTooltip} from "@angular/material/tooltip";
 import {FeatherIconsComponent} from "@shared/components/feather-icons/feather-icons.component";
 import {RoleService} from "../../Services/role.service";
 import {AuthService} from "../../authentication/auth.service";
+import Swal from "sweetalert2";
+import {LoadingService} from "../../Services/loading.service";
 
 @Component({
   selector: 'app-role',
@@ -114,6 +116,7 @@ export class RoleComponent implements  OnInit{
               private router: Router,
               private injector : EnvironmentInjector,
               public authService : AuthService,
+              private loaderService : LoadingService,
               private roleService : RoleService) {
   }
 
@@ -123,11 +126,13 @@ ngOnInit() {
 }
   loadRolesList() {
     runInInjectionContext(this.injector, () => {
+      this.loaderService.setLoading(true);
     this.roleService.getRoles().subscribe((data) => {
       console.log(data)
       this.dataSource.data = data;
       this.dataSource.paginator = this.paginator;
       this.dataSource.sort = this.sort;
+      this.loaderService.setLoading(false);
     });
     });
   }
@@ -169,8 +174,31 @@ ngOnInit() {
 
 
   editRole(id: string) {
-    debugger
     this.router.navigate(['/module/edit-role',id]);
   }
 
+  deleteRole(roleId: string): void {
+    Swal.fire({
+      title: 'Are you sure?',
+      text: 'This action will permanently delete the role.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, delete it!',
+      cancelButtonText: 'Cancel',
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        runInInjectionContext(this.injector, () => {
+          this.loaderService.setLoading(true);
+        this.roleService.deleteRole(roleId).then(() => {
+          Swal.fire('Deleted!', 'Role has been deleted successfully.', 'success');
+          this.loaderService.setLoading(false);
+        }).catch((error) => {
+          Swal.fire('Error!', 'Something went wrong: ' + error.message, 'error');
+        });
+        });
+      }
+    });
+  }
 }

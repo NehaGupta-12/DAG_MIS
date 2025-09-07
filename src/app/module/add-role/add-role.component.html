@@ -1,17 +1,21 @@
 <section class="content">
 <div class="container-md">
-  <h5 mat-dialog-title class="text-center">Create New Role & Permissions</h5>
+  <h5 mat-dialog-title class="text-center">{{isEditMode ?'Edit Role & Permissions': 'Create New Role & Permissions' }}</h5>
   <mat-card class="border border-1 p-4">
     <form [formGroup]="role_form">
       <div class="row m-1">
         <mat-form-field appearance="outline" class="col-md-4 col-sm-4">
-          <mat-label>Role Name</mat-label>
-          <input matInput formControlName="roleName">
+          <mat-label>Role</mat-label>
+          <mat-select formControlName="roleName" [disabled]="isEditMode" required>
+            <mat-option *ngFor="let role of (_roles$ | async)" [value]="role">
+              {{ role }}
+            </mat-option>
+          </mat-select>
         </mat-form-field>
       </div>
 
       <div class="row m-1">
-        <table class="custom-table" style="width: 100%;">
+        <table class="custom-table">
           <thead>
           <tr>
             <th>Sr.No.</th>
@@ -30,31 +34,28 @@
           </thead>
           <tbody formArrayName="permissions">
           <tr *ngFor="let group of permissionsArray.controls; let i = index" [formGroupName]="i">
-            <td class="text-center">{{ i + 1 }}</td>
+            <td>{{ i + 1 }}</td>
             <td>{{ group.get('menu_name')?.value }}</td>
             <ng-container [formGroup]="getPermissionsGroup(group)">
-              <td class="text-center">
-                <input type="checkbox" formControlName="all"
-                       [checked]="isAllSelected(i)"
-                       (change)="toggleAll(i, $event)" />
-              </td>
-              <td class="text-center"><input type="checkbox" formControlName="list" (change)="onPermissionChange(i)" /></td>
-              <td class="text-center"><input type="checkbox" formControlName="showMenu" (change)="onPermissionChange(i)" /></td>
-              <td class="text-center"><input type="checkbox" formControlName="create" (change)="onPermissionChange(i)" /></td>
-              <td class="text-center"><input type="checkbox" formControlName="edit" (change)="onPermissionChange(i)" /></td>
-              <td class="text-center"><input type="checkbox" formControlName="delete" (change)="onPermissionChange(i)" /></td>
-              <td class="text-center"><input type="checkbox" formControlName="print" (change)="onPermissionChange(i)" /></td>
-              <td class="text-center"><input type="checkbox" formControlName="export" (change)="onPermissionChange(i)" /></td>
-              <td class="text-center"><input type="checkbox" formControlName="approved" (change)="onPermissionChange(i)" /></td>
-              <td class="text-center"><input type="checkbox" formControlName="disapproved" (change)="onPermissionChange(i)" /></td>
+              <td><input type="checkbox" formControlName="all" [checked]="isAllSelected(i)" (change)="toggleAll(i, $event)" /></td>
+              <td><input type="checkbox" formControlName="list" (change)="onPermissionChange(i)" /></td>
+              <td><input type="checkbox" formControlName="showMenu" (change)="onPermissionChange(i)" /></td>
+              <td><input type="checkbox" formControlName="create" (change)="onPermissionChange(i)" /></td>
+              <td><input type="checkbox" formControlName="edit" (change)="onPermissionChange(i)" /></td>
+              <td><input type="checkbox" formControlName="delete" (change)="onPermissionChange(i)" /></td>
+              <td><input type="checkbox" formControlName="print" (change)="onPermissionChange(i)" /></td>
+              <td><input type="checkbox" formControlName="export" (change)="onPermissionChange(i)" /></td>
+              <td><input type="checkbox" formControlName="approved" (change)="onPermissionChange(i)" /></td>
+              <td><input type="checkbox" formControlName="disapproved" (change)="onPermissionChange(i)" /></td>
             </ng-container>
           </tr>
           </tbody>
         </table>
+
       </div>
       <div class="row mt-4 ">
         <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 mb-2 text-center">
-          <button class="btn-space" mat-raised-button color="primary"  (click)="save()">Submit</button>
+          <button class="btn-space" mat-raised-button color="primary"  (click)="save()">{{isEditMode ?'Update': 'Submit' }}</button>
           <button type="button" mat-raised-button color="warn" (click)="backToHome()">Cancel</button>
         </div>
       </div>

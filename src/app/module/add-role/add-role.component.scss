@@ -1,12 +1,16 @@
-.table thead th {
+.custom-table {
+  width: 100%;
+  border-collapse: collapse; /* removes double borders */
   text-align: center;
-  vertical-align: middle;
 }
-.table tbody td {
-  text-align: center;
-  vertical-align: middle;
+
+.custom-table th,
+.custom-table td {
+  border: 1px solid #ddd;  /* light gray border */
+  padding: 6px 8px;
 }
-.card {
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+
+.custom-table th {
+  background-color: #f8f9fa; /* light header background */
+  font-weight: 600;
 }
