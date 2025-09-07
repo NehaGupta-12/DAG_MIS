@@ -21,7 +21,7 @@ export class UserService {
       return this.db.object(`users/${uid}`).set(data);
     });
   }
-  hasPermission(title: string, action: 'list' | 'create' | 'edit' | 'delete' | 'print' | 'export' | 'approved' | 'disapproved'): boolean {
+  hasPermission(title: string, action: 'list' | 'showMenu'| 'create' | 'edit' | 'delete' | 'print' | 'export' | 'approved' | 'disapproved'): boolean {
     const menuPerm = this.myUserPermissions.find(p => p.menu_name === title);
     return menuPerm?.permissions?.[action] === true;
   }

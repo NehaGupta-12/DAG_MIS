@@ -85,6 +85,7 @@ export class AddRoleComponent implements OnInit {
               permissions: this.fb.group({
                 all: [false],
                 list: [false],
+                showMenu: [false],
                 create: [false],
                 edit: [false],
                 delete: [false],
