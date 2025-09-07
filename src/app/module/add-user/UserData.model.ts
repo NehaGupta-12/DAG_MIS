@@ -7,7 +7,7 @@ export interface UserDataModel {
   email: string;
   mobile?: string;
   address?: string;
-  allowedShowroom?: string;
+  allowedOutlet?: string;
   city?: string;
   state?: string;
   country?: string;

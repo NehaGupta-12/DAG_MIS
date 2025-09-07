@@ -13,3 +13,18 @@ export interface Product {
   tax_rate: number;
   unit: string;
 }
+export interface Permission {
+  id?: string;
+  menu_name: string;
+  all?: boolean;
+  list?: boolean;
+  create?: boolean;
+  edit?: boolean;
+  delete?: boolean;
+  print?: boolean;
+  export?: boolean;
+  approved?: boolean;
+  disapproved?: boolean;
+  showMenu?: boolean;
+  permissions?:Permission;
+}

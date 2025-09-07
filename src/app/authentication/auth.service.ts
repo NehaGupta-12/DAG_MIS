@@ -1,24 +1,98 @@
 import {EnvironmentInjector, Injectable, runInInjectionContext} from '@angular/core';
-import { Router } from '@angular/router';
-import { MatSnackBar } from '@angular/material/snack-bar';
-import { AngularFireDatabase } from '@angular/fire/compat/database';
-import { UserDataModel } from '../module/add-user/UserData.model';
-import { AngularFireFunctions } from '@angular/fire/compat/functions';
-import { firstValueFrom } from 'rxjs';
-import { AngularFireAuth } from '@angular/fire/compat/auth';
+import {Router} from '@angular/router';
+import {MatSnackBar} from '@angular/material/snack-bar';
+import {AngularFireDatabase} from '@angular/fire/compat/database';
+import {UserDataModel} from '../module/add-user/UserData.model';
+import {AngularFireFunctions} from '@angular/fire/compat/functions';
+import {BehaviorSubject, firstValueFrom, Observable} from 'rxjs';
+import {AngularFireAuth} from '@angular/fire/compat/auth';
+import {Permission} from "../interfaces/products.interface";
+import {RoleService} from "../Services/role.service";
+import {User} from "@core";
+import {AngularFirestore} from "@angular/fire/compat/firestore";
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
+  private userRolePermissions: Permission[] = [];
+  private currentUserSubject: BehaviorSubject<User> | undefined;
+  private permissionsLoadedSubject = new BehaviorSubject<boolean>(false);
+  public permissionsLoaded$ = this.permissionsLoadedSubject.asObservable();
+  public currentUser: Observable<User> | undefined;
   constructor(
     public mAuth: AngularFireAuth,
     private router: Router,
     public functions: AngularFireFunctions,
     private mDatabase: AngularFireDatabase,
     private _snackBar: MatSnackBar,
-    private injector : EnvironmentInjector
-  ) {}
+    private injector: EnvironmentInjector,
+    private roleService: RoleService,
+    private firestore : AngularFirestore
+  ) {
+    this.currentUserSubject = new BehaviorSubject<User>(
+      JSON.parse(localStorage.getItem('currentUser') || '{}')
+    );
+    this.currentUser = this.currentUserSubject.asObservable();
+    const cachedPermissions = localStorage.getItem('userRolePermissions');
+    if (cachedPermissions) {
+      this.userRolePermissions = JSON.parse(cachedPermissions);
+      this.permissionsLoadedSubject.next(true);
+    }
+
+    console.log('userRoelPermissions', this.userRolePermissions);
+  }
+  public get currentUserValue(): User {
+    return <User>this.currentUserSubject?.value;
+  }
+
+  async loadUserRole(roleName: string | undefined) {
+    console.log(roleName)
+    try {
+      const snapshot = await runInInjectionContext(this.injector, async () => {
+        return await firstValueFrom(
+          this.firestore
+            .collection('roles', ref => ref.where('roleName', '==', roleName))
+            .get()
+        );
+      });
+
+      if (!snapshot.empty) {
+        const role: any = snapshot.docs[0].data();
+        this.userRolePermissions = role.permissions || [];
+        console.log('Loaded role permissions:', this.userRolePermissions);
+
+        // 🔹 Mark permissions as loaded
+        this.permissionsLoadedSubject.next(true);
+
+        // 🔹 Optional: cache permissions in localStorage
+        localStorage.setItem('userRolePermissions', JSON.stringify(this.userRolePermissions));
+      }
+    } catch (error) {
+      console.error('Error loading role:', error);
+    }
+  }
+
+  hasPermission(menuName: string, action: keyof any['permissions']): boolean {
+    const menu:any = this.userRolePermissions.find((p: any) => p.menu_name === menuName);
+    return menu ? !!menu.permissions[action] : false;
+  }
+
+  canShowMenu(menuName: string): boolean {
+    const menu = this.userRolePermissions.find((p: any) => p.menu_name === menuName);
+    // console.log(this.userRolePermissions.find((p: any) => p.menu_name === menuName))
+    console.log(menuName + 'in canShowMenu: ' + JSON.stringify(menu?.permissions?.list));
+    return !!menu?.permissions?.list; // show only if this menu.permission.list exists in permissions
+
+
+  }
+  // canShowMenu(menuName: string): boolean {
+  //   const translatedName = this.translate.instant(menuName); // convert key to real label
+  //   const menu = this.userRolePermissions.find((p: any) => p.menu_name === translatedName);
+  //   return !!menu;
+  // }
+
+
 
   async login(email: string, password: string) {
     localStorage.clear();
@@ -35,7 +109,7 @@ export class AuthService {
 
       if (userCredential && userCredential.user) {
         const user = userCredential.user;
-        console.log('Login successful:', user);
+        console.log('Login successful:', JSON.stringify(user));
 
         localStorage.setItem('user', JSON.stringify(user));
         localStorage.setItem('uid', user.uid);
@@ -63,26 +137,27 @@ export class AuthService {
     localStorage.removeItem('userData');
     sessionStorage.clear();
 
-    this.router.navigateByUrl('/authentication/signin', { replaceUrl: true });
+    this.router.navigateByUrl('/authentication/signin', {replaceUrl: true});
   }
 
   async setUserData(uid: string) {
     try {
       runInInjectionContext(this.injector, () => {
-      this.mDatabase
-        .object<UserDataModel>('users/' + uid)
-        .valueChanges()
-        .subscribe((userData) => {
-          if (userData) {
-            console.log('USERDATA ===>>>', userData);
-            localStorage.setItem('userData', JSON.stringify(userData));
-          }
+        this.mDatabase
+          .object<UserDataModel>('users/' + uid)
+          .valueChanges()
+          .subscribe((userData:any) => {
+            if (userData) {
+              console.log('USERDATA ===>>>', userData);
+              localStorage.setItem('userData', JSON.stringify(userData));
+              this.loadUserRole(userData?.role)
+            }
 
-          this.router.navigate(['dashboard/main']).then(() => {
-            console.log('Redirected to dashboard');
+            this.router.navigate(['dashboard/main']).then(() => {
+              console.log('Redirected to dashboard');
+            });
           });
-        });
-        });
+      });
     } catch (error) {
       console.error('Error in setUserData', error);
     }
@@ -91,12 +166,12 @@ export class AuthService {
   async changePasswordOfAnotherUser(uid: string, password: string) {
     const changePassword = this.functions.httpsCallable('changePassword');
     try {
-      const res = await firstValueFrom(changePassword({ uid, newPassword: password }));
+      const res = await firstValueFrom(changePassword({uid, newPassword: password}));
       console.log(res);
-      this._snackBar.open('Password changed successfully', 'Close', { duration: 3000 });
+      this._snackBar.open('Password changed successfully', 'Close', {duration: 3000});
     } catch (error) {
       console.error('Error changing password', error);
-      this._snackBar.open('Error changing password', 'Close', { duration: 3000 });
+      this._snackBar.open('Error changing password', 'Close', {duration: 3000});
     }
   }
 

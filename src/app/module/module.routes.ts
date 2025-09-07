@@ -34,6 +34,8 @@ import {AddMonthlyBudgetComponent} from "./add-monthly-budget/add-monthly-budget
 import {ViewMonthlyBudgetComponent} from "./view-monthly-budget/view-monthly-budget.component";
 import {MonthlyBudgetListComponent} from "./monthly-budget-list/monthly-budget-list.component";
 import {ViewUserComponent} from "./view-user/view-user.component";
+import {MenuListComponent} from "./Menu list/menu-list/menu-list.component";
+import {AddEditMenuListComponent} from "./Menu list/add-edit-menu-list/add-edit-menu-list.component";
 
 export const MODULES_ROUTE: Route[] = [
   {
@@ -65,7 +67,19 @@ export const MODULES_ROUTE: Route[] = [
     component: RoleComponent
   },
   {
+    path: 'menu-list',
+    component: MenuListComponent
+  },
+  {
+    path: 'add-menu',
+    component: AddEditMenuListComponent
+  },
+  {
     path: 'add-role',
+    component: AddRoleComponent
+  },
+  {
+    path: 'edit-role/:id',
     component: AddRoleComponent
   },
   {
