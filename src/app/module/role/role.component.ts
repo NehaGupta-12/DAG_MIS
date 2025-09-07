@@ -20,6 +20,7 @@ import {MatProgressSpinner} from "@angular/material/progress-spinner";
 import {MatTooltip} from "@angular/material/tooltip";
 import {FeatherIconsComponent} from "@shared/components/feather-icons/feather-icons.component";
 import {RoleService} from "../../Services/role.service";
+import {AuthService} from "../../authentication/auth.service";
 
 @Component({
   selector: 'app-role',
@@ -112,6 +113,7 @@ export class RoleComponent implements  OnInit{
   constructor(private dialog: MatDialog,
               private router: Router,
               private injector : EnvironmentInjector,
+              public authService : AuthService,
               private roleService : RoleService) {
   }
 
