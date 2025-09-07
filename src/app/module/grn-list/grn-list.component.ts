@@ -24,6 +24,7 @@ import Swal from "sweetalert2";
 import {GrnService} from "../grn.service";
 import {Validators} from "@angular/forms";
 import {LoadingService} from "../../Services/loading.service";
+import {AuthService} from "../../authentication/auth.service";
 
 @Component({
   selector: 'app-grn-list',
@@ -82,7 +83,8 @@ export class GRNListComponent implements OnInit {
     private router: Router,
     private grnService: GrnService,
     private injector: EnvironmentInjector,
-    private loadingService: LoadingService
+    private loadingService: LoadingService,
+    public authService : AuthService,
   ) {}
 
   ngOnInit() {

@@ -20,6 +20,7 @@ import {MatProgressSpinner} from "@angular/material/progress-spinner";
 import {MatTooltip} from "@angular/material/tooltip";
 import {OutletProductService} from "../outlet-product.service";
 import {LoadingService} from "../../Services/loading.service";
+import {AuthService} from "../../authentication/auth.service";
 
 @Component({
   selector: 'app-outlet-product-list',
@@ -81,7 +82,8 @@ export class OutletProductListComponent implements OnInit {
     private router: Router,
     private outletProductService: OutletProductService,
     private injector: EnvironmentInjector,
-    private loadingService: LoadingService
+    private loadingService: LoadingService,
+    public authService : AuthService,
   ) {}
 
   ngOnInit() {

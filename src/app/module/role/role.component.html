@@ -69,10 +69,10 @@
                 <ng-container matColumnDef="Actions">
                   <th mat-header-cell *matHeaderCellDef mat-sort-header>Action</th>
                   <td mat-cell *matCellDef="let row">
-                    <button mat-icon-button color="accent" (click)="editRole(row.id)">
+                    <button mat-icon-button color="accent" (click)="editRole(row.id)" [disabled]="!authService.hasPermission('Role','edit')">
                       <app-feather-icons [icon]="'edit'" [class]="'tbl-fav-edit'"></app-feather-icons>
                     </button>
-                    <button mat-icon-button color="accent">
+                    <button mat-icon-button color="accent" [disabled]="!authService.hasPermission('Role','delete')">
                       <app-feather-icons [icon]="'trash-2'" [class]="'tbl-fav-delete'"></app-feather-icons>
                     </button>
                   </td>

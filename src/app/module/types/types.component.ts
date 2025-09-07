@@ -13,6 +13,8 @@ import {AngularFireDatabase} from "@angular/fire/compat/database";
 import {take} from "rxjs";
 import Swal from "sweetalert2";
 import {LoadingService} from "../../Services/loading.service";
+import {AuthService} from "../../authentication/auth.service";
+
 
 @Component({
   selector: 'app-types',
@@ -47,7 +49,8 @@ export class TypesComponent implements OnInit {
   constructor(
     private mDatabase: AngularFireDatabase,
     private injector: EnvironmentInjector,
-    private loadingService: LoadingService
+    private loadingService: LoadingService,
+    public authService : AuthService,
   ) {}
 
   ngOnInit() {

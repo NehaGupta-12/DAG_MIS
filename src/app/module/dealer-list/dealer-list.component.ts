@@ -22,6 +22,7 @@ import {FeatherIconsComponent} from "@shared/components/feather-icons/feather-ic
 import {AddDealerService} from "../add-dealer.service";
 import Swal from "sweetalert2";
 import {LoadingService} from "../../Services/loading.service";
+import {AuthService} from "../../authentication/auth.service";
 
 @Component({
   selector: 'app-dealer-list',
@@ -82,6 +83,7 @@ export class DealerListComponent implements OnInit{
     private addDealerService: AddDealerService,
     private injector: EnvironmentInjector,
     private loadingService: LoadingService,
+    public authService : AuthService,
   ) {}
 
   ngOnInit() {

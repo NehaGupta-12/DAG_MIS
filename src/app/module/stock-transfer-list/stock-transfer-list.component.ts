@@ -25,6 +25,7 @@ import {StockTransferService} from "../stock-transfer.service";
 import {AddShowroomComponent} from "../add-showroom/add-showroom.component";
 import {ViewStockTransferComponent} from "../view-stock-transfer/view-stock-transfer.component";
 import {LoadingService} from "../../Services/loading.service";
+import {AuthService} from "../../authentication/auth.service";
 
 @Component({
   selector: 'app-stock-transfer-list',
@@ -83,7 +84,8 @@ export class StockTransferListComponent implements OnInit {
     private router: Router,
     private stockTransferService: StockTransferService,
     private injector: EnvironmentInjector,
-    private loadingService: LoadingService
+    private loadingService: LoadingService,
+    public authService : AuthService,
   ) {}
 
   ngOnInit() {

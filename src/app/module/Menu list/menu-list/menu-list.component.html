@@ -27,7 +27,7 @@
             </div>
             <div class="right">
               <div class="right-side-btn">
-                <button mat-icon-button  class="tbl-header-btn col-green" matTooltip="Add" (click)="navigateToAddMenuList()">
+                <button mat-icon-button  class="tbl-header-btn col-green" matTooltip="Add" (click)="navigateToAddMenuList()" [disabled]="!authService.hasPermission('Menu List','create')">
                   <mat-icon>add_circle_outline</mat-icon>
                 </button>
               </div>
@@ -74,10 +74,10 @@
                   <ng-container matColumnDef="action">
                     <th mat-header-cell *matHeaderCellDef> Action </th>
                     <td mat-cell *matCellDef="let row">
-                      <button mat-icon-button color="primary" (click)="editMenuList(row)" matTooltip="Edit">
+                      <button mat-icon-button color="primary" (click)="editMenuList(row)" matTooltip="Edit" [disabled]="!authService.hasPermission('Menu List','edit')">
                         <mat-icon>edit</mat-icon>
                       </button>
-                      <button mat-icon-button color="warn" (click)="deleteMenuList(row)" matTooltip="Delete">
+                      <button mat-icon-button color="warn" (click)="deleteMenuList(row)" matTooltip="Delete" [disabled]="!authService.hasPermission('Menu List','delete')">
                         <mat-icon>delete</mat-icon>
                       </button>
                     </td>

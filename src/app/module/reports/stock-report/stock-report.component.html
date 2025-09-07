@@ -162,7 +162,7 @@
           <button mat-mini-fab color="warn" matTooltip="Clear" (click)="onCancel()">
             <mat-icon>clear</mat-icon>
           </button>
-          <button mat-mini-fab color="primary" matTooltip="Export to Excel" (click)="exportToExcel()">
+          <button mat-mini-fab color="primary" matTooltip="Export to Excel" (click)="exportToExcel()" [disabled]="!authService.hasPermission('Stock Report','export')">
             <mat-icon>download</mat-icon>
           </button>
         </div>

@@ -35,6 +35,7 @@ import {
 import {DailySalesService} from "../../daily-sales.service";
 import { Workbook } from 'exceljs';
 import * as FileSaver from 'file-saver';
+import {AuthService} from "../../../authentication/auth.service";
 
 @Component({
   selector: 'app-daily-sale-reports',
@@ -128,6 +129,7 @@ export class DailySaleReportsComponent {
     private mDatabase: AngularFireDatabase,
     private productService:ProductMasterService,
     private dailySlaes: DailySalesService,
+    public authService : AuthService,
     @Inject(MAT_DIALOG_DATA) public data: any
   ) {
     this.dealerForm = this.fb.group({

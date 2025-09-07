@@ -25,6 +25,7 @@ import {CommonModule} from "@angular/common";
 import {ViewMonthlyBudgetComponent} from "../view-monthly-budget/view-monthly-budget.component";
 import {MonthlyBudgetService} from "../monthly-budget.service";
 import {LoadingService} from "../../Services/loading.service";
+import {AuthService} from "../../authentication/auth.service";
 
 @Component({
   selector: 'app-monthly-budget-list',
@@ -82,7 +83,8 @@ export class MonthlyBudgetListComponent implements OnInit {
     private outletProductService: OutletProductService,
     private monthlybudgetService: MonthlyBudgetService,
     private injector: EnvironmentInjector,
-    private loadingService: LoadingService
+    private loadingService: LoadingService,
+    public authService : AuthService,
   ) {}
 
   ngOnInit() {

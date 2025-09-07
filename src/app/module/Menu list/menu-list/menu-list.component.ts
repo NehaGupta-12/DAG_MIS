@@ -21,6 +21,7 @@ import {MatDialog} from "@angular/material/dialog";
 import {AddEditMenuListComponent} from "../add-edit-menu-list/add-edit-menu-list.component";
 import {MenuService} from "../../../Services/menu.service";
 import {Menus} from "../../../interfaces/menu.interface";
+import {AuthService} from "../../../authentication/auth.service";
 
 @Component({
   selector: 'app-menu-list',
@@ -59,7 +60,8 @@ export class MenuListComponent implements OnInit{
     private router: Router,
     private dialog: MatDialog,
     private injector : EnvironmentInjector,
-    private menuService: MenuService
+    private menuService: MenuService,
+    public authService : AuthService,
   ) {}
 
   ngOnInit(): void {

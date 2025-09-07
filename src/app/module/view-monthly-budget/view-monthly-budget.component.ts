@@ -23,6 +23,7 @@ import {MatTooltip} from "@angular/material/tooltip";
 import {MonthlyBudgetService} from "../monthly-budget.service";
 import Swal from "sweetalert2";
 import {LoadingService} from "../../Services/loading.service";
+import {AuthService} from "../../authentication/auth.service";
 
 @Component({
   selector: 'app-view-monthly-budget',
@@ -74,6 +75,7 @@ export class ViewMonthlyBudgetComponent implements OnInit {
     private injector: EnvironmentInjector,
     private monthlybudgetService: MonthlyBudgetService,
     private loadingService: LoadingService,
+    public authService : AuthService,
     @Inject(MAT_DIALOG_DATA) public data: any
   ) {}
 

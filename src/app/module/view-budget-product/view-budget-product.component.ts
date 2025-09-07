@@ -22,6 +22,7 @@ import {MatTooltip} from "@angular/material/tooltip";
 import {BudgetService} from "../budget.service";
 import Swal from "sweetalert2";
 import {LoadingService} from "../../Services/loading.service";
+import {AuthService} from "../../authentication/auth.service";
 
 @Component({
   selector: 'app-view-budget-product',
@@ -75,6 +76,7 @@ export class ViewBudgetProductComponent implements OnInit {
     private budgetService: BudgetService,
     private injector: EnvironmentInjector,
     private loadingService: LoadingService, //
+    public authService : AuthService,
     @Inject(MAT_DIALOG_DATA) public data: any
   ) {}
 

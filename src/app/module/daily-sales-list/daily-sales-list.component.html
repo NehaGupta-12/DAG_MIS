@@ -27,7 +27,7 @@
             </div>
             <div class="right">
               <div class="right-side-btn">
-                <button mat-icon-button  class="tbl-header-btn col-green" matTooltip="Add" (click)="navigateToAddDailySales()">
+                <button mat-icon-button  class="tbl-header-btn col-green" matTooltip="Add" (click)="navigateToAddDailySales()" [disabled]="!authService.hasPermission('Daily Sales','create')">
                   <mat-icon>add_circle_outline</mat-icon>
                 </button>
               </div>
@@ -82,10 +82,10 @@
 <!--                    <button mat-icon-button color="warn" matTooltip="Delete">-->
 <!--                      <mat-icon>delete</mat-icon>-->
 <!--                    </button>-->
-                    <button mat-icon-button color="accent" (click)="goToEdit(row)">
+                    <button mat-icon-button color="accent" (click)="goToEdit(row)" [disabled]="!authService.hasPermission('Daily Sales','edit')">
                       <app-feather-icons [icon]="'edit'" [class]="'tbl-fav-edit'"></app-feather-icons>
                     </button>
-                    <button mat-icon-button color="accent" (click)="deleteDailySales(row)">
+                    <button mat-icon-button color="accent" (click)="deleteDailySales(row)" [disabled]="!authService.hasPermission('Daily Sales','delete')">
                       <app-feather-icons [icon]="'trash-2'" [class]="'tbl-fav-delete'"></app-feather-icons>
                     </button>
                   </td>

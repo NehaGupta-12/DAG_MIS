@@ -22,6 +22,8 @@ import {FeatherIconsComponent} from "@shared/components/feather-icons/feather-ic
 import {DailySalesService} from "../daily-sales.service";
 import Swal from "sweetalert2";
 import {LoadingService} from "../../Services/loading.service";
+import {AuthService} from "../../authentication/auth.service";
+
 
 
 @Component({
@@ -81,6 +83,7 @@ export class DailySalesListComponent implements OnInit {
     private injector: EnvironmentInjector,
     private dailySlaes: DailySalesService,
     private loadingService: LoadingService,
+    public authService : AuthService,
   ) {}
 
   ngOnInit() {

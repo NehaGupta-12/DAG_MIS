@@ -23,6 +23,7 @@ import {ProductMasterService} from "../product-master.service";
 import Swal from "sweetalert2";
 import {AddShowroomComponent} from "../add-showroom/add-showroom.component";
 import {LoadingService} from "../../Services/loading.service";
+import {AuthService} from "../../authentication/auth.service";
 
 @Component({
   selector: 'app-product-master-list',
@@ -91,7 +92,8 @@ export class ProductMasterListComponent implements OnInit {
     private router: Router,
     private productService: ProductMasterService,
     private injector: EnvironmentInjector,
-    private loadingService: LoadingService
+    private loadingService: LoadingService,
+    public authService : AuthService,
   ) {}
 
   ngOnInit() {

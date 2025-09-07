@@ -38,6 +38,8 @@ import {MatNativeDateModule, MatOptionModule} from "@angular/material/core";
 import {MatCheckboxModule} from "@angular/material/checkbox";
 import {MatTooltip} from "@angular/material/tooltip";
 import {InventoryService} from "../../add-inventory/inventory.service";
+import {AuthService} from "../../../authentication/auth.service";
+
 
 @Component({
   selector: 'app-stock-report',
@@ -133,6 +135,7 @@ export class StockReportComponent {
     private productService:ProductMasterService,
     private dailySlaes: DailySalesService,
     private inventoryService : InventoryService,
+    public authService : AuthService,
     @Inject(MAT_DIALOG_DATA) public data: any
   ) {
     this.dealerForm = this.fb.group({
