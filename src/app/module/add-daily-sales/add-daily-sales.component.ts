@@ -13,7 +13,7 @@ import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatIconModule } from "@angular/material/icon";
 import { MatSelectModule } from "@angular/material/select";
 import { MatOptionModule } from "@angular/material/core";
-import {Location, NgFor, NgForOf, NgIf} from "@angular/common";
+import {AsyncPipe, Location, NgFor, NgForOf, NgIf} from "@angular/common";
 import Swal from "sweetalert2";
 import { ActivatedRoute, Router } from "@angular/router";
 import { MAT_DIALOG_DATA } from "@angular/material/dialog";
@@ -24,6 +24,9 @@ import { ProductMasterService } from "../product-master.service";
 import {OutletProductService} from "../outlet-product.service";
 import {InventoryService} from "../add-inventory/inventory.service";
 import {LoadingService} from "../../Services/loading.service";
+import {map} from "rxjs/operators";
+import {AngularFireDatabase} from "@angular/fire/compat/database";
+import {Observable} from "rxjs";
 
 @Component({
   selector: 'app-add-daily-sales',
@@ -41,6 +44,7 @@ import {LoadingService} from "../../Services/loading.service";
     NgForOf,
     NgFor,
     NgIf,
+    AsyncPipe,
   ],
   providers: [
     { provide: MAT_DIALOG_DATA, useValue: {} }
@@ -58,6 +62,9 @@ export class AddDailySalesComponent implements OnInit {
   vehicledataSource = new MatTableDataSource<any>();
   addedProducts: any[] = [];
   dataSource = new MatTableDataSource<any>();
+  _countriesTypes$!: Observable<string[]>;
+  _divisionTypes$!: Observable<string[]>;
+  _townTypes$!: Observable<string[]>;
 
   constructor(
     private fb: UntypedFormBuilder,
@@ -71,8 +78,22 @@ export class AddDailySalesComponent implements OnInit {
     private outletProductService: OutletProductService,
     private inventoryService: InventoryService,
     private loadingService: LoadingService,
+    private mDatabase: AngularFireDatabase,
     @Inject(MAT_DIALOG_DATA) public data: any,
   ) {
+    this._divisionTypes$ = this.mDatabase
+      .object<{ subcategories: string[] }>('typelist/Division')
+      .valueChanges()
+      .pipe(map(data => data?.subcategories || []));
+    this._countriesTypes$ = this.mDatabase
+      .object<{ subcategories: string[] }>('typelist/Countries')
+      .valueChanges()
+      .pipe(map(data => data?.subcategories || []));
+
+    this._townTypes$ = this.mDatabase
+      .object<{ subcategories: string[] }>('typelist/Town')
+      .valueChanges()
+      .pipe(map(data => data?.subcategories || []));
     this.isEditMode = !!data?.id;
     this.dailySalesForm = this.fb.group({
       dealerOutlet: ['', Validators.required],
@@ -150,19 +171,15 @@ export class AddDailySalesComponent implements OnInit {
   onDealerChange(event: any) {
     const dealerName = event.value;
     const dealer = this.dealerdataSource.data.find((d: any) => d.name === dealerName);
-    if (dealer) {
-      this.dailySalesForm.patchValue({
-        division: dealer.division || '',
-        country: dealer.country || '',
-        town: dealer.town || ''
-      });
-    }
+
     const availableProducts = this.dataSource.data.filter(
-      (p: any) => p.dealerId === dealer.id && p.openingStock > 0
+      (p: any) => p.dealerId === dealer?.id && p.openingStock > 0
     );
+
     this.vehicledataSource.data = availableProducts;
     this.dailySalesForm.get('vehicle')?.reset();
   }
+
 
   isSubmitEnabled(): boolean {
     const formValid =

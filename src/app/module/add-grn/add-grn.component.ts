@@ -36,6 +36,9 @@ import firebase from "firebase/compat/app";
 import {AngularFirestore} from "@angular/fire/compat/firestore";
 import { increment } from 'firebase/firestore';
 import {LoadingService} from "../../Services/loading.service";
+import {map} from "rxjs/operators";
+import {AngularFireDatabase} from "@angular/fire/compat/database";
+import {Observable} from "rxjs";
 
 @Component({
   selector: 'app-add-grn',
@@ -77,6 +80,9 @@ export class AddGRNComponent implements OnInit{
   vehicledataSource = new MatTableDataSource<any>();
   addedProducts: any[] = [];
   dataSource = new MatTableDataSource<any>();
+  _countriesTypes$!: Observable<string[]>;
+  _divisionTypes$!: Observable<string[]>;
+  _townTypes$!: Observable<string[]>;
 
   constructor(
     private fb: UntypedFormBuilder,
@@ -92,13 +98,31 @@ export class AddGRNComponent implements OnInit{
     private outletProductService: OutletProductService,
     private inventoryService: InventoryService,
     private loadingService: LoadingService,
+    private mDatabase: AngularFireDatabase,
     @Inject(MAT_DIALOG_DATA) public data: any,
   ) {
+    this._divisionTypes$ = this.mDatabase
+      .object<{ subcategories: string[] }>('typelist/Division')
+      .valueChanges()
+      .pipe(map(data => data?.subcategories || []));
+    this._countriesTypes$ = this.mDatabase
+      .object<{ subcategories: string[] }>('typelist/Countries')
+      .valueChanges()
+      .pipe(map(data => data?.subcategories || []));
+
+    this._townTypes$ = this.mDatabase
+      .object<{ subcategories: string[] }>('typelist/Town')
+      .valueChanges()
+      .pipe(map(data => data?.subcategories || []));
+
     this.isEditMode = !!data?.id;
     this.grnForm = this.fb.group({
       dealerOutlet: ['', Validators.required],
       products: ['', Validators.required],
       typeOfGrn: ['', Validators.required],
+      country: ['', Validators.required],
+      division: ['', Validators.required],
+      town: ['', Validators.required]
     });
   }
 
@@ -115,6 +139,9 @@ export class AddGRNComponent implements OnInit{
           dealerOutlet: rowData.dealerOutlet,
           products: rowData.products,
           typeOfGrn: rowData.typeOfGrn,
+          country: rowData.country,
+          division: rowData.division,
+          town: rowData.town
         });
 
         this.addedProducts = [{
@@ -249,6 +276,9 @@ export class AddGRNComponent implements OnInit{
           const baseInfo = {
             dealerOutlet: formValues.dealerOutlet,
             typeOfGrn: formValues.typeOfGrn,
+            country: formValues.country,
+            division: formValues.division,
+            town: formValues.town,
             status: 'Active',
             updatedBy: username,
             updatedAt: timestamp

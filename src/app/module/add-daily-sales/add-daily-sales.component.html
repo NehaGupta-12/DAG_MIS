@@ -9,6 +9,67 @@
           <div class="body">
 
             <form class="register-form m-4" [formGroup]="dailySalesForm">
+              <!-- Auto-populated -->
+              <div class="row">
+                <div class="col-md-4">
+                  <mat-form-field class="example-full-width" appearance="outline">
+                    <mat-label>Country</mat-label>
+                    <mat-select formControlName="country" required>
+                      <mat-option *ngFor="let country of (_countriesTypes$ | async)" [value]="country">
+                        {{ country }}
+                      </mat-option>
+                    </mat-select>
+                    <!--                    <mat-icon class="material-icons-outlined color-icon p-3" matSuffix>flag</mat-icon>-->
+                    @if (dailySalesForm?.get('country')?.hasError('required')) {
+                      <mat-error>
+                        Model Type is required
+                      </mat-error>
+                    }
+                  </mat-form-field>
+                  <!--                  <mat-form-field appearance="outline" class="w-100">-->
+                  <!--                    <mat-label>Country</mat-label>-->
+                  <!--                    <input matInput formControlName="country" readonly>-->
+                  <!--                  </mat-form-field>-->
+                </div>
+                <div class="col-md-4">
+                  <mat-form-field class="example-full-width" appearance="outline">
+                    <mat-label>Division</mat-label>
+                    <mat-select formControlName="division" required>
+                      <mat-option *ngFor="let division of (_divisionTypes$ | async)" [value]="division">
+                        {{ division }}
+                      </mat-option>
+                    </mat-select>
+
+                    @if (dailySalesForm?.get('division')?.hasError('required')) {
+                      <mat-error>Division is required</mat-error>
+                    }
+                  </mat-form-field>
+                  <!--                  <mat-form-field appearance="outline" class="w-100">-->
+                  <!--                    <mat-label>Division</mat-label>-->
+                  <!--                    <input matInput formControlName="division" readonly>-->
+                  <!--                  </mat-form-field>-->
+                </div>
+                <div class="col-md-4">
+                  <mat-form-field class="example-full-width" appearance="outline">
+                    <mat-label>Town</mat-label>
+                    <mat-select formControlName="town" required>
+                      <mat-option *ngFor="let country of (_townTypes$ | async)" [value]="country">
+                        {{ country }}
+                      </mat-option>
+                    </mat-select>
+                    <!--                    <mat-icon class="material-icons-outlined color-icon p-3" matSuffix>flag</mat-icon>-->
+                    @if (dailySalesForm?.get('town')?.hasError('required')) {
+                      <mat-error>
+                        Town is required
+                      </mat-error>
+                    }
+                  </mat-form-field>
+                  <!--                  <mat-form-field appearance="outline" class="w-100">-->
+                  <!--                    <mat-label>Town</mat-label>-->
+                  <!--                    <input matInput formControlName="town" readonly>-->
+                  <!--                  </mat-form-field>-->
+                </div>
+              </div>
               <!-- Dealer & Vehicle -->
               <div class="row">
                 <div class="col-md-6">
@@ -40,27 +101,7 @@
                 </div>
               </div>
 
-              <!-- Auto-populated -->
-              <div class="row">
-                <div class="col-md-4">
-                  <mat-form-field appearance="outline" class="w-100">
-                    <mat-label>Division</mat-label>
-                    <input matInput formControlName="division" readonly>
-                  </mat-form-field>
-                </div>
-                <div class="col-md-4">
-                  <mat-form-field appearance="outline" class="w-100">
-                    <mat-label>Country</mat-label>
-                    <input matInput formControlName="country" readonly>
-                  </mat-form-field>
-                </div>
-                <div class="col-md-4">
-                  <mat-form-field appearance="outline" class="w-100">
-                    <mat-label>Town</mat-label>
-                    <input matInput formControlName="town" readonly>
-                  </mat-form-field>
-                </div>
-              </div>
+
 
               <!-- Buttons -->
               <div class="row mt-3">

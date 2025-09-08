@@ -140,7 +140,7 @@
         },
         {
           "path": "module/grn-list",
-          "title": "GRN",
+          "title": "Daily Stock",
           "icon": "",
           "class": "ml-menu",
           "groupTitle": false,
