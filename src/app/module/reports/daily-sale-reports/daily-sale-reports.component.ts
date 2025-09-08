@@ -1,4 +1,4 @@
-import {Component, EnvironmentInjector, Inject, runInInjectionContext} from '@angular/core';
+import {Component, EnvironmentInjector, Inject, OnInit, runInInjectionContext} from '@angular/core';
 import {FormControl, FormGroup, FormsModule, ReactiveFormsModule, UntypedFormBuilder} from "@angular/forms";
 import {MatAutocomplete, MatAutocompleteTrigger} from "@angular/material/autocomplete";
 import {
@@ -75,7 +75,7 @@ import {AuthService} from "../../../authentication/auth.service";
   standalone: true,
   styleUrl: './daily-sale-reports.component.scss'
 })
-export class DailySaleReportsComponent {
+export class DailySaleReportsComponent implements OnInit{
   isEditMode: boolean = false;
   dealerForm: FormGroup;
   dataSource: any[] = [];
@@ -167,6 +167,11 @@ export class DailySaleReportsComponent {
           this.data = rowData;
         }
       }
+      this.townFilter.valueChanges.subscribe(val => {
+        this.filterOptions('town', val || '');
+        this.dealerForm.patchValue({ town: val }); // 🔹 keeps form in sync
+      });
+
     });
 
     this.loadSalesList();
@@ -336,6 +341,8 @@ export class DailySaleReportsComponent {
           : new Date(item.createdAt);
         return (
           (!filters.country || item.country === filters.country) &&
+          (!filters.town || item.town === filters.town) &&               // ✅ Town filter
+          (!filters.division || item.division === filters.division) &&   // ✅ Division filter
           (!startDate || itemDate >= startDate) &&
           (!endDate || itemDate <= endDate)
         );
@@ -411,6 +418,8 @@ export class DailySaleReportsComponent {
           : new Date(item.createdAt);
         return (
           (!filters.country || item.country === filters.country) &&
+          (!filters.town || item.town === filters.town) &&               // ✅ Town filter
+          (!filters.division || item.division === filters.division) &&   // ✅ Division filter
           item.dealerOutlet === outlet &&
           (!startDate || itemDate >= startDate) &&
           (!endDate || itemDate <= endDate)
@@ -632,18 +641,16 @@ export class DailySaleReportsComponent {
     // Update the input field to display the selected outlets as a comma-separated string
     this.nameFilter.setValue(this.selectedOutlets.join(', '), { emitEvent: false });
   }
-
   displayFn = (): string => {
-    if (!this.dealerForm) {
-      return '';
-    }
+    if (!this.dealerForm) return '';
     const selectedValues = this.dealerForm.get('name')?.value;
     return Array.isArray(selectedValues) ? selectedValues.join(', ') : '';
   }
 
-  // Add this function to your component class
-  displayCountry(value: string): string {
-    return value ? value : '';
-  }
+
+  displayCountry = (value: string): string => value ? value : '';
+  displayTown = (value: string): string => value ? value : '';
+  displayDivision = (value: string): string => value ? value : '';
+
 
 }

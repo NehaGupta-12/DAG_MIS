@@ -45,7 +45,7 @@
     <div class="row p-3">
       <div class="col-md-6">
         <mat-form-field appearance="outline" class="w-100">
-          <mat-label>Role</mat-label>
+          <mat-label>Select Role</mat-label>
           <mat-select [(value)]="selectedRole">
             <mat-option *ngFor="let role of _roles$ |async" [value]="role">
               {{ role }}
@@ -55,7 +55,7 @@
       </div>
       <div class="col-md-6">
         <mat-form-field appearance="outline" class="w-100">
-          <mat-label>Outlet</mat-label>
+          <mat-label>Select Outlet</mat-label>
           <mat-select [(value)]="selectedOutlet" multiple>
             <mat-option *ngFor="let outlet of dealerData" [value]="outlet?.name">
               {{ outlet?.name}}

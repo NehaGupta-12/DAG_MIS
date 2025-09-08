@@ -10,27 +10,6 @@
     <div class="card shadow p-4">
       <form [formGroup]="dealerForm" class="row g-3 align-items-center">
 
-        <!--         Country -->
-        <!--        <div class="col-md-4">-->
-        <!--          <mat-form-field appearance="outline" class="w-100">-->
-        <!--            <mat-label>Select Country</mat-label>-->
-        <!--            <mat-select formControlName="country">-->
-        <!--              <mat-option>-->
-        <!--                <input-->
-        <!--                  matInput-->
-        <!--                  placeholder="Search Country"-->
-        <!--                  [formControl]="countryFilter"-->
-        <!--                  class="form-control"-->
-        <!--                />-->
-        <!--              </mat-option>-->
-        <!--              <mat-option *ngFor="let item of filteredOptions.country" [value]="item">-->
-        <!--                {{ item }}-->
-        <!--              </mat-option>-->
-        <!--            </mat-select>-->
-        <!--          </mat-form-field>-->
-        <!--        </div>-->
-
-        <!-- Country -->
         <div class="col-md-3">
           <mat-form-field appearance="outline" class="w-100">
             <mat-label>Select Country</mat-label>
@@ -50,47 +29,43 @@
           </mat-form-field>
         </div>
 
-        <!-- Town -->
-<!--        <div class="col-md-4">-->
-<!--          <mat-form-field appearance="outline" class="w-100">-->
-<!--            <mat-label>Select Town</mat-label>-->
-<!--            <input-->
-<!--              type="text"-->
-<!--              matInput-->
-<!--              placeholder="Search Town"-->
-<!--              [formControl]="townFilter"-->
-<!--              [matAutocomplete]="autoTown"-->
-<!--            />-->
-<!--            <mat-icon matSuffix>arrow_drop_down</mat-icon>-->
-<!--            <mat-autocomplete #autoTown="matAutocomplete" [displayWith]="displayFn">-->
-<!--              <mat-option *ngFor="let item of filteredOptions.town" [value]="item">-->
-<!--                {{ item }}-->
-<!--              </mat-option>-->
-<!--            </mat-autocomplete>-->
-<!--          </mat-form-field>-->
-<!--        </div>-->
+        <div class="col-md-3">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Select Division</mat-label>
+            <input
+              type="text"
+              matInput
+              placeholder="Search Division"
+              [formControl]="divisionFilter"
+              [matAutocomplete]="autoDivision"
+            />
+            <mat-icon matSuffix>arrow_drop_down</mat-icon>
 
-        <!-- Division -->
-<!--        <div class="col-md-4">-->
-<!--          <mat-form-field appearance="outline" class="w-100">-->
-<!--            <mat-label>Select Division</mat-label>-->
-<!--            <input-->
-<!--              type="text"-->
-<!--              matInput-->
-<!--              placeholder="Search Division"-->
-<!--              [formControl]="divisionFilter"-->
-<!--              [matAutocomplete]="autoDivision"-->
-<!--            />-->
-<!--            <mat-icon matSuffix>arrow_drop_down</mat-icon>-->
-
-<!--            <mat-autocomplete #autoDivision="matAutocomplete" [displayWith]="displayFn">-->
-<!--              <mat-option *ngFor="let item of filteredOptions.division" [value]="item">-->
-<!--                {{ item }}-->
-<!--              </mat-option>-->
-<!--            </mat-autocomplete>-->
-<!--          </mat-form-field>-->
-<!--        </div>-->
-
+            <mat-autocomplete #autoDivision="matAutocomplete" [displayWith]="displayDivision">
+              <mat-option *ngFor="let item of filteredOptions.division" [value]="item">
+                {{ item }}
+              </mat-option>
+            </mat-autocomplete>
+          </mat-form-field>
+        </div>
+        <div class="col-md-3">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Select Town</mat-label>
+            <input
+              type="text"
+              matInput
+              placeholder="Search Town"
+              [formControl]="townFilter"
+              [matAutocomplete]="autoTown"
+            />
+            <mat-icon matSuffix>arrow_drop_down</mat-icon>
+            <mat-autocomplete #autoTown="matAutocomplete" [displayWith]="displayTown">
+              <mat-option *ngFor="let item of filteredOptions.town" [value]="item">
+                {{ item }}
+              </mat-option>
+            </mat-autocomplete>
+          </mat-form-field>
+        </div>
         <!-- Showroom Name -->
         <!-- Showroom Name -->
         <div class="col-md-3">

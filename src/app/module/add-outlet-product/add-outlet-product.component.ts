@@ -253,14 +253,50 @@ export class AddOutletProductComponent implements OnInit {
         return;
       }
 
+      // openingStock null → input will show empty
       this.addedProducts = [
         ...this.addedProducts,
-        { ...product, openingStock: 1, __isNew: true }
+        { ...product, openingStock: null, __isNew: true }
       ];
     }
 
     this.grnForm.get('products')?.reset();
   }
+
+// ✅ Block decimals and negatives
+  allowOnlyNumbers(event: KeyboardEvent) {
+    const charCode = event.which ? event.which : event.keyCode;
+
+    // Block: minus sign (-) and dot (.)
+    if (charCode === 45 || charCode === 46) {
+      event.preventDefault();
+      return;
+    }
+
+    // Allow: digits 0-9 only
+    if (charCode < 48 || charCode > 57) {
+      event.preventDefault();
+    }
+  }
+
+
+// ✅ Validator to ensure integer, no decimals, no negatives
+  validateOpeningStock(product: any) {
+    if (product.openingStock != null) {
+      let value = Number(product.openingStock);
+
+      // Disallow decimals
+      value = Math.floor(value);
+
+      // Disallow negatives & zero
+      if (value < 1) {
+        value = 1;
+      }
+
+      product.openingStock = value;
+    }
+  }
+
 
   removeProduct(index: number) {
     // Remove only the clicked product
