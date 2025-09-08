@@ -98,28 +98,6 @@
         </div>
 
 
-
-        <!-- Product -->
-<!--        <div class="col-md-4">-->
-<!--          <mat-form-field appearance="outline" class="w-100">-->
-<!--            <mat-label>Select Product</mat-label>-->
-<!--            <input-->
-<!--              type="text"-->
-<!--              matInput-->
-<!--              placeholder="Search Product"-->
-<!--              [formControl]="productFilter"-->
-<!--              [matAutocomplete]="autoProduct"-->
-<!--            />-->
-<!--            <mat-icon matSuffix>arrow_drop_down</mat-icon>-->
-<!--            <mat-autocomplete #autoProduct="matAutocomplete" [displayWith]="displayFn">-->
-<!--              <mat-option *ngFor="let item of filteredOptions.product" [value]="item">-->
-<!--                {{ item }}-->
-<!--              </mat-option>-->
-<!--            </mat-autocomplete>-->
-<!--          </mat-form-field>-->
-<!--        </div>-->
-
-
         <div class="col-md-3">
           <mat-form-field class="example-full-width w-100" appearance="outline">
             <mat-label>Date</mat-label>
@@ -189,7 +167,6 @@
           <tr mat-row *matRowDef="let row; columns: ['product','Day','Month','YTD']" [ngClass]="row.rowColor"></tr>
         </table>
       </div>
-
 
     </div>
   </div>
