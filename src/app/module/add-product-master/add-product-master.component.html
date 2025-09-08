@@ -89,22 +89,23 @@
               </div>
               <div class="row">
 
-                <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 mb-2">
-                  <mat-form-field class="example-full-width" appearance="outline">
-                    <mat-label>Sub Category</mat-label>
-                    <mat-select formControlName="subCategory" required>
-                      <mat-option *ngFor="let subCategory of (_subCategoryTypes$ | async)" [value]="subCategory">
-                        {{ subCategory }}
-                      </mat-option>
-                    </mat-select>
-                    <!--                    <mat-icon class="material-icons-outlined color-icon p-3" matSuffix>flag</mat-icon>-->
-                    @if (productForm?.get('subCategory')?.hasError('required')) {
-                      <mat-error>
-                        Sub Category is required
-                      </mat-error>
-                    }
-                  </mat-form-field>
-                </div>
+<!--                <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 mb-2">-->
+<!--                  <mat-form-field class="example-full-width" appearance="outline">-->
+<!--                    <mat-label>Sub Category</mat-label>-->
+<!--                    <mat-select formControlName="subCategory" required>-->
+<!--                      <mat-option *ngFor="let subCategory of (_subCategoryTypes$ | async)" [value]="subCategory">-->
+<!--                        {{ subCategory }}-->
+<!--                      </mat-option>-->
+<!--                    </mat-select>-->
+<!--                    &lt;!&ndash;                    <mat-icon class="material-icons-outlined color-icon p-3" matSuffix>flag</mat-icon>&ndash;&gt;-->
+<!--                    @if (productForm?.get('subCategory')?.hasError('required')) {-->
+<!--                      <mat-error>-->
+<!--                        Sub Category is required-->
+<!--                      </mat-error>-->
+<!--                    }-->
+<!--                  </mat-form-field>-->
+<!--                </div>-->
+
                 <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 mb-2">
                   <mat-form-field class="example-full-width" appearance="outline">
                     <mat-label>Varient</mat-label>
@@ -117,6 +118,23 @@
                     @if (productForm?.get('varient')?.hasError('required')) {
                       <mat-error>
                         Varient is required
+                      </mat-error>
+                    }
+                  </mat-form-field>
+                </div>
+
+                <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 mb-2">
+                  <mat-form-field class="example-full-width" appearance="outline">
+                    <mat-label>Engine CC</mat-label>
+                    <mat-select formControlName="engineCc" required>
+                      <mat-option *ngFor="let engine of (_engineTypes$ | async)" [value]="engine">
+                        {{ engine }}
+                      </mat-option>
+                    </mat-select>
+                    <!--                    <mat-icon class="material-icons-outlined color-icon p-3" matSuffix>flag</mat-icon>-->
+                    @if (productForm?.get('engineCc')?.hasError('required')) {
+                      <mat-error>
+                        Engine CC is required
                       </mat-error>
                     }
                   </mat-form-field>
@@ -141,22 +159,7 @@
 <!--                </div>-->
 <!--              </div>-->
               <div class="row">
-                <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 mb-2">
-                  <mat-form-field class="example-full-width" appearance="outline">
-                    <mat-label>Engine CC</mat-label>
-                    <mat-select formControlName="engineCc" required>
-                      <mat-option *ngFor="let engine of (_engineTypes$ | async)" [value]="engine">
-                        {{ engine }}
-                      </mat-option>
-                    </mat-select>
-                    <!--                    <mat-icon class="material-icons-outlined color-icon p-3" matSuffix>flag</mat-icon>-->
-                    @if (productForm?.get('engineCc')?.hasError('required')) {
-                      <mat-error>
-                        Engine CC is required
-                      </mat-error>
-                    }
-                  </mat-form-field>
-                </div>
+
                 <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 mb-2">
                   <mat-form-field class="example-full-width" appearance="outline">
                     <mat-label>Unit Of Measurement</mat-label>
