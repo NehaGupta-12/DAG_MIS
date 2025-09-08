@@ -41,6 +41,7 @@ export class TypesComponent implements OnInit {
   showModal = false;
   newCategory = '';
   newField = '';
+  submitted = false;
 
   categories: any[] = [];
   selectedCategory: any = null;
@@ -79,6 +80,19 @@ export class TypesComponent implements OnInit {
         }
       });
     });
+  }
+
+  onSubmitCategory() {
+    this.submitted = true;
+
+    if (!this.newCategory || this.newCategory.trim() === '') {
+      return; // stop if empty, error will show
+    }
+
+    this.addCategory(this.newCategory.trim());
+    this.newCategory = '';
+    this.submitted = false; // reset
+    this.closeModal();
   }
 
   openModal() {
