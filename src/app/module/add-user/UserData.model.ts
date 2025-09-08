@@ -12,6 +12,7 @@ export interface UserDataModel {
   state?: string;
   country?: string;
   department?: string;
+  userCode?: string;
   role?: string;
   termcondition?: string;
 }

@@ -101,7 +101,7 @@ export class ViewUserComponent implements OnInit {
               {field: 'State', value: user.state},
               {field: 'Country', value: user.country},
               {field: 'Terms Accepted', value: user.termcondition ? 'Yes' : 'No'},
-              {field: 'User ID', value: user.id}
+              {field: 'User ID', value: user.userCode}
             ];
 
             this.leftData = this.dataSource.slice(0, Math.ceil(this.dataSource.length / 2));

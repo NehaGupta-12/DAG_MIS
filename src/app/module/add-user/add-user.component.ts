@@ -23,6 +23,7 @@ import {UserDataModel} from "./UserData.model";
 import {AngularFireDatabase} from "@angular/fire/compat/database";
 import {map} from "rxjs/operators";
 import {Observable} from "rxjs";
+import {LoadingService} from "../../Services/loading.service";
 
 @Component({
   selector: 'app-add-user',
@@ -75,6 +76,7 @@ export class AddUserComponent implements OnInit{
               private route : ActivatedRoute,
               private mDatabase : AngularFireDatabase,
               private userService : UserService,
+              public loaderService : LoadingService,
               private authService: AuthService) {
     this.initForm();
     this.initSecondForm();
@@ -118,6 +120,7 @@ export class AddUserComponent implements OnInit{
             email: user.email || '',
             mobile: user.mobile || '',
             address: user.address || '',
+            userCode: user.userCode || '',
             city: user.city || '',
             role: user.role || '',
             department: user.department || '',
@@ -148,6 +151,7 @@ export class AddUserComponent implements OnInit{
       state: ['', [Validators.required]],
         country: ['', [Validators.required]],
       role: ['', [Validators.required]],
+      userCode: ['', [Validators.required]],
       allowedOutlet: [[]],
       department: ['', [Validators.required]],
       termcondition: [false, [Validators.requiredTrue]],
@@ -253,11 +257,14 @@ export class AddUserComponent implements OnInit{
   // }
   async onRegister(): Promise<void> {
     this.submitted = true;
-    if (this.register && this.register.valid) {
+
+    if (this.register?.valid) {
       const formValue = { ...this.register.getRawValue() };
-      const timestamp = new Date().toISOString(); // ✅ ISO format
+      const timestamp = new Date().toISOString();
 
       try {
+        this.loaderService.setLoading(true); // ✅ start loader globally
+
         if (this.isEditMode && this.userId) {
           // ✅ Add updatedAt field when updating
           const updatedValue = { ...formValue, updatedAt: timestamp };
@@ -273,13 +280,13 @@ export class AddUserComponent implements OnInit{
 
         } else {
           const email = formValue.email;
-          const password = "password@123";
+          const password = 'password@123';
           const response = await this.userService.createUser(email, password);
 
           if (response.success) {
             this.register.addControl('uid', this.fb.control(response.uid));
 
-            // ✅ Add createdAt field on new user
+            // ✅ Add createdAt & updatedAt
             const newUserData = {
               ...formValue,
               uid: response.uid,
@@ -302,10 +309,13 @@ export class AddUserComponent implements OnInit{
         }
       } catch (error) {
         console.error('Error saving user:', error);
+      } finally {
+        this.loaderService.setLoading(false); // ✅ always stop loader
       }
+
     } else {
       this.submitted = false;
-      alert("Form is Invalid. Please complete all required fields.");
+      alert('Form is Invalid. Please complete all required fields.');
       console.log('INVALID CONTROLS', this.findInvalidControls());
     }
   }
