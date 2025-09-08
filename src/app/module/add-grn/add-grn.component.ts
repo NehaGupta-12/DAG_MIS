@@ -38,7 +38,7 @@ import { increment } from 'firebase/firestore';
 import {LoadingService} from "../../Services/loading.service";
 import {map} from "rxjs/operators";
 import {AngularFireDatabase} from "@angular/fire/compat/database";
-import {Observable} from "rxjs";
+import {BehaviorSubject, Observable} from "rxjs";
 
 @Component({
   selector: 'app-add-grn',
@@ -83,6 +83,9 @@ export class AddGRNComponent implements OnInit{
   _countriesTypes$!: Observable<string[]>;
   _divisionTypes$!: Observable<string[]>;
   _townTypes$!: Observable<string[]>;
+  filteredDivisions$: BehaviorSubject<string[]> = new BehaviorSubject<string[]>([]);
+  filteredTowns$: BehaviorSubject<string[]> = new BehaviorSubject<string[]>([]);
+  filteredDealers$: BehaviorSubject<any[]> = new BehaviorSubject<any[]>([]);
 
   constructor(
     private fb: UntypedFormBuilder,
@@ -119,7 +122,6 @@ export class AddGRNComponent implements OnInit{
     this.grnForm = this.fb.group({
       dealerOutlet: ['', Validators.required],
       products: ['', Validators.required],
-      typeOfGrn: ['', Validators.required],
       country: ['', Validators.required],
       division: ['', Validators.required],
       town: ['', Validators.required]
@@ -127,40 +129,43 @@ export class AddGRNComponent implements OnInit{
   }
 
   ngOnInit() {
-    this.DealerList();
+    this.setupCascadingDropdowns();
     this.loadInventoryDaata();
+    this.DealerList(); // This is an async call, so its subscription needs to be handled
+  }
 
-    this.route.queryParams.subscribe(params => {
-      if (params['data']) {
-        const rowData = JSON.parse(params['data']);
-        this.outlateId = rowData.outlateId;
+  setupCascadingDropdowns() {
+    this.grnForm.get('country')?.valueChanges.subscribe((selectedCountry: string) => {
+      const divisions = [...new Set(
+        this.dealerdataSource.data
+          .filter(d => d.country === selectedCountry)
+          .map(d => d.division)
+      )];
+      this.filteredDivisions$.next(divisions);
+      this.grnForm.get('division')?.reset();
+      this.grnForm.get('town')?.reset();
+      this.filteredTowns$.next([]);
+      this.filteredDealers$.next([]);
+    });
 
-        this.grnForm.patchValue({
-          dealerOutlet: rowData.dealerOutlet,
-          products: rowData.products,
-          typeOfGrn: rowData.typeOfGrn,
-          country: rowData.country,
-          division: rowData.division,
-          town: rowData.town
-        });
+    this.grnForm.get('division')?.valueChanges.subscribe((selectedDivision: string) => {
+      const selectedCountry = this.grnForm.get('country')?.value;
+      const towns = [...new Set(
+        this.dealerdataSource.data
+          .filter(d => d.country === selectedCountry && d.division === selectedDivision)
+          .map(d => d.town)
+      )];
+      this.filteredTowns$.next(towns);
+      this.grnForm.get('town')?.reset();
+      this.filteredDealers$.next([]);
+    });
 
-        this.addedProducts = [{
-          docId: rowData.docId,
-          sku: rowData.sku ?? '',
-          name: rowData.name ?? '',
-          brand: rowData.brand ?? '',
-          model: rowData.model ?? '',
-          variant: rowData.variant ?? rowData.varient ?? '',
-          unit: rowData.unit ?? '',
-          quantity: rowData.quantity ?? 1
-        }];
-
-        this.grnForm.patchValue({ products: rowData.name });
-        this.grnForm.get('products')?.disable();
-
-        this.isEditMode = true;
-        this.data = rowData;
-      }
+    this.grnForm.get('town')?.valueChanges.subscribe((selectedTown: string) => {
+      const selectedCountry = this.grnForm.get('country')?.value;
+      const selectedDivision = this.grnForm.get('division')?.value;
+      const dealers = this.dealerdataSource.data
+        .filter(d => d.country === selectedCountry && d.division === selectedDivision && d.town === selectedTown);
+      this.filteredDealers$.next(dealers);
     });
   }
 
@@ -171,10 +176,70 @@ export class AddGRNComponent implements OnInit{
         next: (data) => {
           this.dealerdataSource.data = data;
           this.loadingService.setLoading(false);
+
+          // This is the key change for edit mode
+          this.route.queryParams.subscribe(params => {
+            if (params['data']) {
+              const rowData = JSON.parse(params['data']);
+              this.outlateId = rowData.outlateId;
+
+              this.grnForm.patchValue({
+                country: rowData.country,
+              });
+
+              // Call the new method to manually populate dropdowns
+              this.populateEditFormDropdowns(rowData);
+
+              // Patch the remaining values after the dropdowns are ready
+              this.grnForm.patchValue({
+                division: rowData.division,
+                town: rowData.town,
+                dealerOutlet: rowData.dealerOutlet,
+                products: rowData.products,
+                // typeOfGrn: rowData.typeOfGrn,
+              });
+
+              this.addedProducts = [{
+                docId: rowData.docId,
+                sku: rowData.sku ?? '',
+                name: rowData.name ?? '',
+                brand: rowData.brand ?? '',
+                model: rowData.model ?? '',
+                variant: rowData.variant ?? rowData.varient ?? '',
+                unit: rowData.unit ?? '',
+                quantity: rowData.quantity ?? 1
+              }];
+
+              this.grnForm.patchValue({ products: rowData.name });
+              this.grnForm.get('products')?.disable();
+              this.isEditMode = true;
+              this.data = rowData;
+            }
+          });
         },
         error: () => this.loadingService.setLoading(false)
       });
     });
+  }
+
+  private populateEditFormDropdowns(rowData: any) {
+    const divisions = [...new Set(
+      this.dealerdataSource.data
+        .filter(d => d.country === rowData.country)
+        .map(d => d.division)
+    )];
+    this.filteredDivisions$.next(divisions);
+
+    const towns = [...new Set(
+      this.dealerdataSource.data
+        .filter(d => d.country === rowData.country && d.division === rowData.division)
+        .map(d => d.town)
+    )];
+    this.filteredTowns$.next(towns);
+
+    const dealers = this.dealerdataSource.data
+      .filter(d => d.country === rowData.country && d.division === rowData.division && d.town === rowData.town);
+    this.filteredDealers$.next(dealers);
   }
 
   loadInventoryDaata() {
@@ -203,9 +268,7 @@ export class AddGRNComponent implements OnInit{
   }
 
   isSubmitEnabled(): boolean {
-    const formValid =
-      this.grnForm.get('dealerOutlet')?.valid &&
-      this.grnForm.get('typeOfGrn')?.valid;
+    const formValid = this.grnForm.get('dealerOutlet')?.valid;
 
     const hasProducts = this.addedProducts.length > 0;
     const allQuantitiesValid = this.addedProducts.every(p => p.quantity && p.quantity > 0);
@@ -275,7 +338,7 @@ export class AddGRNComponent implements OnInit{
 
           const baseInfo = {
             dealerOutlet: formValues.dealerOutlet,
-            typeOfGrn: formValues.typeOfGrn,
+            // typeOfGrn: formValues.typeOfGrn,
             country: formValues.country,
             division: formValues.division,
             town: formValues.town,

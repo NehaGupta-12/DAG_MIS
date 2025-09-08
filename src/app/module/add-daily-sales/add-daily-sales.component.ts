@@ -26,7 +26,7 @@ import {InventoryService} from "../add-inventory/inventory.service";
 import {LoadingService} from "../../Services/loading.service";
 import {map} from "rxjs/operators";
 import {AngularFireDatabase} from "@angular/fire/compat/database";
-import {Observable} from "rxjs";
+import {BehaviorSubject, Observable} from "rxjs";
 
 @Component({
   selector: 'app-add-daily-sales',
@@ -65,6 +65,10 @@ export class AddDailySalesComponent implements OnInit {
   _countriesTypes$!: Observable<string[]>;
   _divisionTypes$!: Observable<string[]>;
   _townTypes$!: Observable<string[]>;
+  filteredDivisions$: BehaviorSubject<string[]> = new BehaviorSubject<string[]>([]);
+  filteredTowns$: BehaviorSubject<string[]> = new BehaviorSubject<string[]>([]);
+  filteredDealers$: BehaviorSubject<any[]> = new BehaviorSubject<any[]>([]);
+
 
   constructor(
     private fb: UntypedFormBuilder,
@@ -105,38 +109,43 @@ export class AddDailySalesComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.DealerList();
+    this.setupCascadingDropdowns();
     this.loadInventoryDaata();
+    this.DealerList();
+  }
 
-    this.route.queryParams.subscribe(params => {
-      if (params['data']) {
-        const rowData = JSON.parse(params['data']);
-        console.log('Edit Mode Row Data:', rowData);
+  setupCascadingDropdowns() {
+    this.dailySalesForm.get('country')?.valueChanges.subscribe((selectedCountry: string) => {
+      const divisions = [...new Set(
+        this.dealerdataSource.data
+          .filter(d => d.country === selectedCountry)
+          .map(d => d.division)
+      )];
+      this.filteredDivisions$.next(divisions);
+      this.dailySalesForm.get('division')?.reset();
+      this.dailySalesForm.get('town')?.reset();
+      this.filteredTowns$.next([]);
+      this.filteredDealers$.next([]);
+    });
 
-        this.dailySalesForm.patchValue({
-          dealerOutlet: rowData.dealerOutlet,
-          division: rowData.division,
-          country: rowData.country,
-          town: rowData.town,
-          vehicle: rowData.name,
-        });
+    this.dailySalesForm.get('division')?.valueChanges.subscribe((selectedDivision: string) => {
+      const selectedCountry = this.dailySalesForm.get('country')?.value;
+      const towns = [...new Set(
+        this.dealerdataSource.data
+          .filter(d => d.country === selectedCountry && d.division === selectedDivision)
+          .map(d => d.town)
+      )];
+      this.filteredTowns$.next(towns);
+      this.dailySalesForm.get('town')?.reset();
+      this.filteredDealers$.next([]);
+    });
 
-        this.addedProducts = [{
-          docId: rowData.docId,
-          sku: rowData.sku ?? '',
-          name: rowData.name ?? '',
-          brand: rowData.brand ?? '',
-          model: rowData.model ?? '',
-          variant: rowData.variant ?? rowData.varient ?? '',
-          unit: rowData.unit ?? '',
-          quantity: rowData.quantity ?? 1
-        }];
-
-        this.dailySalesForm.patchValue({ vehicle: rowData.name });
-        this.dailySalesForm.get('vehicle')?.disable();
-        this.isEditMode = true;
-        this.data = rowData;
-      }
+    this.dailySalesForm.get('town')?.valueChanges.subscribe((selectedTown: string) => {
+      const selectedCountry = this.dailySalesForm.get('country')?.value;
+      const selectedDivision = this.dailySalesForm.get('division')?.value;
+      const dealers = this.dealerdataSource.data
+        .filter(d => d.country === selectedCountry && d.division === selectedDivision && d.town === selectedTown);
+      this.filteredDealers$.next(dealers);
     });
   }
 
@@ -146,12 +155,72 @@ export class AddDailySalesComponent implements OnInit {
       this.addDealerService.getDealerList().subscribe({
         next: (data) => {
           this.dealerdataSource.data = data;
-          console.log(this.dealerdataSource.data);
           this.loadingService.setLoading(false);
+
+          // ✅ Check for edit mode and populate dropdowns after data is loaded
+          this.route.queryParams.subscribe(params => {
+            if (params['data']) {
+              const rowData = JSON.parse(params['data']);
+              console.log('Edit Mode Row Data:', rowData);
+
+              this.dailySalesForm.patchValue({
+                country: rowData.country,
+              });
+
+              // Manually populate the cascading dropdowns
+              this.populateEditFormDropdowns(rowData);
+
+              // Patch the remaining values after dropdowns are populated
+              this.dailySalesForm.patchValue({
+                dealerOutlet: rowData.dealerOutlet,
+                division: rowData.division,
+                town: rowData.town,
+                vehicle: rowData.name,
+              });
+
+              this.addedProducts = [{
+                docId: rowData.docId,
+                sku: rowData.sku ?? '',
+                name: rowData.name ?? '',
+                brand: rowData.brand ?? '',
+                model: rowData.model ?? '',
+                variant: rowData.variant ?? rowData.varient ?? '',
+                unit: rowData.unit ?? '',
+                quantity: rowData.quantity ?? 1
+              }];
+
+              this.dailySalesForm.get('vehicle')?.disable();
+              this.isEditMode = true;
+              this.data = rowData;
+            }
+          });
         },
         error: () => this.loadingService.setLoading(false)
       });
     });
+  }
+
+  private populateEditFormDropdowns(rowData: any) {
+    // Filter and populate Divisions
+    const divisions = [...new Set(
+      this.dealerdataSource.data
+        .filter(d => d.country === rowData.country)
+        .map(d => d.division)
+    )];
+    this.filteredDivisions$.next(divisions);
+
+    // Filter and populate Towns
+    const towns = [...new Set(
+      this.dealerdataSource.data
+        .filter(d => d.country === rowData.country && d.division === rowData.division)
+        .map(d => d.town)
+    )];
+    this.filteredTowns$.next(towns);
+
+    // Filter and populate Dealers
+    const dealers = this.dealerdataSource.data
+      .filter(d => d.country === rowData.country && d.division === rowData.division && d.town === rowData.town);
+    this.filteredDealers$.next(dealers);
   }
 
   loadInventoryDaata() {

@@ -61,7 +61,7 @@ export class GRNListComponent implements OnInit {
     {def: 'variant', label: 'Variant'},
     {def: 'dealerOutlet', label: 'Dealer Outlet'},
     {def: 'quantity', label: 'Quantity'},
-    {def: 'typeOfGrn', label: 'GrnType'},
+    // {def: 'typeOfGrn', label: 'GrnType'},
   ];
 
   displayedColumns: string[] = [
@@ -71,7 +71,7 @@ export class GRNListComponent implements OnInit {
     'variant',
     'dealerOutlet',
     'quantity',
-    'typeOfGrn',
+    // 'typeOfGrn',
     'action'
   ];
 

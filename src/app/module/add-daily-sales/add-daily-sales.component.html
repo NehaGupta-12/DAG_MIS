@@ -35,8 +35,8 @@
                   <mat-form-field class="example-full-width" appearance="outline">
                     <mat-label>Division</mat-label>
                     <mat-select formControlName="division" required>
-                      <mat-option *ngFor="let division of (_divisionTypes$ | async)" [value]="division">
-                        {{ division }}
+                      <mat-option *ngFor="let division of (filteredDivisions$ | async)" [value]="division">
+                      {{ division }}
                       </mat-option>
                     </mat-select>
 
@@ -53,8 +53,8 @@
                   <mat-form-field class="example-full-width" appearance="outline">
                     <mat-label>Town</mat-label>
                     <mat-select formControlName="town" required>
-                      <mat-option *ngFor="let country of (_townTypes$ | async)" [value]="country">
-                        {{ country }}
+                      <mat-option *ngFor="let town of (filteredTowns$ | async)" [value]="town">
+                      {{ town }}
                       </mat-option>
                     </mat-select>
                     <!--                    <mat-icon class="material-icons-outlined color-icon p-3" matSuffix>flag</mat-icon>-->
@@ -76,7 +76,7 @@
                   <mat-form-field appearance="outline" class="w-100">
                     <mat-label>Dealer/Outlet</mat-label>
                     <mat-select formControlName="dealerOutlet" (selectionChange)="onDealerChange($event)" required>
-                      <mat-option *ngFor="let dealer of dealerdataSource.data" [value]="dealer.name">
+                      <mat-option *ngFor="let dealer of (filteredDealers$ | async)" [value]="dealer.name">
                         {{ dealer.name }}
                       </mat-option>
                     </mat-select>
