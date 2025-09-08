@@ -148,13 +148,13 @@ export class GRNListComponent implements OnInit {
     const docId = row.docId; // ✅ Firestore document ID
 
     if (!docId) {
-      Swal.fire('Error', 'Missing document ID for this GRN.', 'error');
+      Swal.fire('Error', 'Missing document ID for this Daily Stock.', 'error');
       return;
     }
 
     Swal.fire({
       title: 'Are you sure?',
-      text: 'You will not be able to recover this GRN!',
+      text: 'You will not be able to recover this Daily Stock!',
       icon: 'warning',
       showCancelButton: true,
       confirmButtonText: 'Yes, delete it!',
@@ -168,11 +168,11 @@ export class GRNListComponent implements OnInit {
           .then(() => {
             // ✅ Optimistically update UI
             this.dataSource.data = this.dataSource.data.filter((p: any) => p.docId !== docId);
-            Swal.fire('Deleted!', 'GRN has been deleted.', 'success');
+            Swal.fire('Deleted!', 'Daily Stock has been deleted.', 'success');
           })
           .catch((err) => {
             console.error('Delete failed:', err);
-            Swal.fire('Error', 'Failed to delete the GRN. Please try again.', 'error');
+            Swal.fire('Error', 'Failed to delete the Daily Stock. Please try again.', 'error');
           })
           .finally(() => {
             this.loadingService.setLoading(false); // ✅ stop loader

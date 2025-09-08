@@ -324,7 +324,7 @@ export class AddGRNComponent implements OnInit{
       }
 
       Swal.fire({
-        title: this.isEditMode ? 'Update Grn?' : 'Add Grn?',
+        title: this.isEditMode ? 'Update Grn?' : 'Add Daily Stock?',
         text: 'Are you sure you want to proceed?',
         icon: 'question',
         showCancelButton: true,
@@ -368,12 +368,12 @@ export class AddGRNComponent implements OnInit{
               .then(() => this.updateInventory(productDoc, 'increase'))
               .then(() => {
                 this.loadingService.setLoading(false);
-                Swal.fire('Updated!', 'GRN updated successfully.', 'success');
+                Swal.fire('Updated!', 'Daily Stock updated successfully.', 'success');
                 this.goBack();
               })
               .catch(err => {
                 this.loadingService.setLoading(false);
-                console.error('Error updating GRN:', err);
+                console.error('Error updating Daily Stock:', err);
                 Swal.fire('Error', 'Something went wrong while updating.', 'error');
               });
 
@@ -406,7 +406,7 @@ export class AddGRNComponent implements OnInit{
               })
               .catch(err => {
                 this.loadingService.setLoading(false);
-                console.error('Error adding GRN:', err);
+                console.error('Error adding Daily Stock:', err);
                 Swal.fire('Error', 'Something went wrong while adding.', 'error');
               });
           }

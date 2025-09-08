@@ -85,12 +85,18 @@
                 <ng-container matColumnDef="action">
                   <th mat-header-cell *matHeaderCellDef mat-sort-header>Action</th>
                   <td mat-cell *matCellDef="let row">
+                    <span [matTooltip]="!authService.hasPermission('Daily Stock','edit') ? 'No permission' : 'Edit Role'" matTooltipPosition="above">
+
                     <button mat-icon-button color="accent" (click)="editGrn(row)" [disabled]="!authService.hasPermission('Daily Stock','edit')">
                       <app-feather-icons [icon]="'edit'" [class]="'tbl-fav-edit'"></app-feather-icons>
                     </button>
+                    </span>
+                    <span [matTooltip]="!authService.hasPermission('Daily Stock','delete') ? 'No permission' : 'Delete Role'" matTooltipPosition="above">
+
                     <button mat-icon-button color="accent" (click)="deleteGrn(row)" [disabled]="!authService.hasPermission('Daily Stock','delete')">
                       <app-feather-icons [icon]="'trash-2'" [class]="'tbl-fav-delete'"></app-feather-icons>
                     </button>
+                    </span>
                   </td>
                 </ng-container>
 

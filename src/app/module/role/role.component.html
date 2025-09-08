@@ -27,7 +27,7 @@
             </div>
             <div class="right">
               <div class="right-side-btn">
-                <button mat-icon-button  class="tbl-header-btn col-green" matTooltip="Add" (click)="navigateToAddRole()"
+                <button mat-icon-button class="tbl-header-btn col-green" matTooltip="Add" (click)="navigateToAddRole()"
                         [disabled]="!authService.hasPermission('Role & Permission','create')">
                   <mat-icon>add_circle_outline</mat-icon>
                 </button>
@@ -43,7 +43,7 @@
                 <!-- ID -->
                 <ng-container matColumnDef="id">
                   <th mat-header-cell *matHeaderCellDef mat-sort-header>ID</th>
-                  <td mat-cell *matCellDef="let row ; let i=index">{{ i + 1}}</td>
+                  <td mat-cell *matCellDef="let row ; let i=index">{{ i + 1 }}</td>
                 </ng-container>
 
                 <!-- First Name -->
@@ -69,23 +69,24 @@
                 <ng-container matColumnDef="Actions">
                   <th mat-header-cell *matHeaderCellDef mat-sort-header>Action</th>
                   <td mat-cell *matCellDef="let row">
-                    <button mat-icon-button color="accent" (click)="editRole(row.id)" [disabled]="!authService.hasPermission('Role & Permission','edit')">
+                    <span [matTooltip]="!authService.hasPermission('Role & Permission','edit') ? 'No permission' : 'Edit Role'" matTooltipPosition="above">
+                    <button mat-icon-button color="accent" (click)="editRole(row._id || row.id)" [disabled]="!authService.hasPermission('Role & Permission','edit')">
                       <app-feather-icons [icon]="'edit'" [class]="'tbl-fav-edit'"></app-feather-icons>
                     </button>
-                    <button mat-icon-button color="accent" (click)="deleteRole(row.id)" [disabled]="!authService.hasPermission('Role & Permission','delete')">
-                      <app-feather-icons [icon]="'trash-2'" [class]="'tbl-fav-delete'" ></app-feather-icons>
+                    </span>
+                    <span [matTooltip]="!authService.hasPermission('Role & Permission','delete') ? 'No permission' : 'Delete Role'" matTooltipPosition="above">
+                    <button mat-icon-button color="accent" (click)="deleteRole(row.id)"
+                            [disabled]="!authService.hasPermission('Role & Permission','delete')">
+                      <app-feather-icons [icon]="'trash-2'" [class]="'tbl-fav-delete'"></app-feather-icons>
                     </button>
+                    </span>
                   </td>
                 </ng-container>
-
                 <!-- Table Rows -->
                 <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
                 <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
               </table>
-
-
             </div>
-
             <!-- Loading spinner -->
             <div *ngIf="isLoading" class="tbl-spinner">
               <mat-progress-spinner color="primary" [diameter]="40" mode="indeterminate">
