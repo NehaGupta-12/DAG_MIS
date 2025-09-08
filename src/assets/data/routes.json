@@ -74,7 +74,7 @@
         },
         {
           "path": "module/role-list",
-          "title": "Role",
+          "title": "Role & Permission",
           "icon": "",
           "class": "ml-menu",
           "groupTitle": false,
