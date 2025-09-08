@@ -207,45 +207,69 @@ export class AddMonthlyBudgetComponent implements OnInit {
 
   addProduct() {
     const formValues = this.budgetForm.getRawValue();
-    const product = this.vehicledataSource.data.find(p => p.name === formValues.products);
+    const product = this.vehicledataSource.data.find(
+      p => p.name === formValues.products
+    );
 
     if (!product) {
       Swal.fire('Error', 'Please select a valid product.', 'error');
       return;
     }
 
-    const existsGlobal = this.dataSource.data.some(p =>
-      p.name === product.name &&
-      p.country === formValues.country &&
-      p.year === formValues.year
+    // Normalize values
+    const newName = String(product.name).trim().toLowerCase();
+    const newCountry = String(formValues.country).trim().toLowerCase();
+    const newYear = String(formValues.year).trim();
+
+    // ✅ Check duplicate ONLY for the same product + country + year
+    const existsGlobal = this.dataSource.data.some((p: any) =>
+      String(p.name).trim().toLowerCase() === newName &&
+      String(p.country).trim().toLowerCase() === newCountry &&
+      String(p.year).trim() === newYear
     );
 
-    const existsLocal = this.addedProducts.some(p =>
-      p.name === product.name &&
-      p.country === formValues.country &&
-      p.year === formValues.year
+    const existsLocal = this.addedProducts.some((p: any) =>
+      String(p.name).trim().toLowerCase() === newName &&
+      String(p.country).trim().toLowerCase() === newCountry &&
+      String(p.year).trim() === newYear
     );
 
     if (existsGlobal || existsLocal) {
-      Swal.fire('Duplicate', `Product "${product.name}" for ${formValues.country} (${formValues.year}) already exists. Use update instead.`, 'warning');
+      Swal.fire(
+        'Duplicate Entry',
+        `Product "${product.name}" is already added for ${formValues.country} (${formValues.year}).`,
+        'warning'
+      );
       return;
     }
 
-    this.addedProducts.push({
-      ...product,
-      country: formValues.country,
-      year: formValues.year,
-      month: formValues.month,
-      period: formValues.period,
-      quantity: 1,
-      __isNew: true
-    });
+    // ✅ Add product to local list
+    this.addedProducts = [
+      ...this.addedProducts,
+      {
+        ...product,
+        country: formValues.country,
+        year: formValues.year,
+        month: formValues.month,
+        period: formValues.period,
+        quantity: 1,
+        __isNew: true
+      }
+    ];
 
+    // Reset only the product field (so country/year stay same for multiple entries)
     this.budgetForm.get('products')?.reset();
   }
 
+
+
+
   removeProduct(index: number) {
-    this.addedProducts.splice(index, 1);
+    // Remove only the clicked product
+    this.addedProducts = this.addedProducts.filter((_, i) => i !== index);
+
+    // ✅ Force table refresh
+    this.addedProducts = [...this.addedProducts];
   }
 
   submitForm() {
