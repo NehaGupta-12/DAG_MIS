@@ -10,30 +10,40 @@
       </div>
 
       <!-- Modal with Fade Background -->
+      <!-- Modal with Fade Background -->
       <div *ngIf="showModal" class="modal-overlay">
         <div class="modal-box card shadow">
           <div class="card-body">
             <h5 class="mb-3">Add Type</h5>
+
             <input
               type="text"
               [(ngModel)]="newCategory"
-              class="form-control mb-3"
+              class="form-control mb-1"
               placeholder="Enter Name *"
+              [ngClass]="{'is-invalid': submitted && (!newCategory || newCategory.trim() === '')}"
             />
+
+            <!-- Validation message -->
+            <div *ngIf="submitted && (!newCategory || newCategory.trim() === '')"
+                 class="text-danger mb-2" style="font-size: 13px;">
+              Type name is required.
+            </div>
 
             <div class="d-flex justify-content-start">
               <!-- Cancel -->
               <button class="btn btn-secondary me-2" (click)="closeModal()">Cancel</button>
 
               <!-- Submit -->
-              <button class="btn btn-primary"
-                      (click)="addCategory(newCategory); newCategory=''; closeModal()">
+              <button class="btn btn-primary" (click)="onSubmitCategory()">
                 Submit
               </button>
             </div>
           </div>
         </div>
       </div>
+
+
 
 
 

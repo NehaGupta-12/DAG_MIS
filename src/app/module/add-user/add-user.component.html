@@ -13,14 +13,25 @@
                 <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 mb-2">
                   <mat-form-field class="example-full-width" appearance="outline">
                     <mat-label>First name</mat-label>
-                    <input matInput formControlName="first" required>
+                    <input
+                      matInput
+                      formControlName="first"
+                      required
+                      (keypress)="allowOnlyAlphabets($event)"
+                    />
                     <mat-icon class="material-icons-outlined color-icon" matSuffix>face</mat-icon>
-                    @if (register?.get('first')?.hasError('required')) {
-                      <mat-error>
-                        First name is required
-                      </mat-error>
-                    }
+
+                    <!-- Required validation -->
+                    <mat-error *ngIf="register?.get('first')?.hasError('required')">
+                      First name is required
+                    </mat-error>
+
+                    <!-- Alphabet only validation -->
+                    <mat-error *ngIf="register?.get('first')?.hasError('pattern')">
+                      Only alphabets are allowed
+                    </mat-error>
                   </mat-form-field>
+
                 </div>
                 <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 mb-2">
                   <mat-form-field class="example-full-width" appearance="outline">

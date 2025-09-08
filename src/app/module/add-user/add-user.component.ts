@@ -196,6 +196,23 @@ export class AddUserComponent implements OnInit{
     });
   }
 
+  // Prevent non-alphabet characters at keypress level
+  allowOnlyAlphabets(event: KeyboardEvent) {
+    const charCode = event.key.charCodeAt(0);
+
+    // Allow: A-Z, a-z, backspace, space, tab
+    if (
+      !(charCode >= 65 && charCode <= 90) && // A-Z
+      !(charCode >= 97 && charCode <= 122) && // a-z
+      charCode !== 32 && // space
+      charCode !== 8 &&  // backspace
+      charCode !== 9     // tab
+    ) {
+      event.preventDefault();
+    }
+  }
+
+
   initThirdForm() {
     this.thirdForm = this.fb.group({
       first: ['', [Validators.required, Validators.pattern('[a-zA-Z]+')]],

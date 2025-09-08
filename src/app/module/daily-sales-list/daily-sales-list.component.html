@@ -82,12 +82,18 @@
 <!--                    <button mat-icon-button color="warn" matTooltip="Delete">-->
 <!--                      <mat-icon>delete</mat-icon>-->
 <!--                    </button>-->
+                    <span [matTooltip]="!authService.hasPermission('Daily Sales','edit') ? 'No permission' : 'Edit Role'" matTooltipPosition="above">
+
                     <button mat-icon-button color="accent" (click)="goToEdit(row)" [disabled]="!authService.hasPermission('Daily Sales','edit')">
                       <app-feather-icons [icon]="'edit'" [class]="'tbl-fav-edit'"></app-feather-icons>
                     </button>
+                    </span>
+                    <span [matTooltip]="!authService.hasPermission('Daily Sales','delete') ? 'No permission' : 'Delete Role'" matTooltipPosition="above">
+
                     <button mat-icon-button color="accent" (click)="deleteDailySales(row)" [disabled]="!authService.hasPermission('Daily Sales','delete')">
                       <app-feather-icons [icon]="'trash-2'" [class]="'tbl-fav-delete'"></app-feather-icons>
                     </button>
+                    </span>
                   </td>
                 </ng-container>
 

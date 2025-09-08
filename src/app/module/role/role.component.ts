@@ -26,24 +26,25 @@ import {LoadingService} from "../../Services/loading.service";
 
 @Component({
   selector: 'app-role',
-    imports: [
-        MatCell,
-        MatHeaderCell,
-        MatHeaderRow,
-        MatIcon,
-        MatIconButton,
-        MatPaginator,
-        MatProgressSpinner,
-        MatRow,
-        MatTable,
-        MatTooltip,
-        MatColumnDef,
-        MatTableModule,
-        DatePipe,
-        CommonModule,
-        FeatherIconsComponent
-    ],
+  imports: [
+    MatCell,
+    MatHeaderCell,
+    MatHeaderRow,
+    MatIcon,
+    MatIconButton,
+    MatPaginator,
+    MatProgressSpinner,
+    MatRow,
+    MatTable,
+    MatTooltip,
+    MatColumnDef,
+    MatTableModule,
+    DatePipe,
+    CommonModule,
+    FeatherIconsComponent
+  ],
   templateUrl: './role.component.html',
+  standalone: true,
   styleUrl: './role.component.scss'
 })
 export class RoleComponent implements  OnInit{
@@ -177,6 +178,8 @@ ngOnInit() {
     this.router.navigate(['/module/edit-role',id]);
   }
 
+
+
   deleteRole(roleId: string): void {
     Swal.fire({
       title: 'Are you sure?',
@@ -201,4 +204,7 @@ ngOnInit() {
       }
     });
   }
+
+
+
 }
