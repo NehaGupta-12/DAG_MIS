@@ -6,8 +6,8 @@ import {MatTableModule} from '@angular/material/table';
 import {LoadingService} from 'app/Services/loading.service';
 import {MatButton} from "@angular/material/button";
 import {MatFormField, MatLabel} from "@angular/material/input";
-import {MatOption, MatSelect} from "@angular/material/select";
-import {AsyncPipe, NgForOf, NgIf} from "@angular/common";
+import {MatOption, MatSelect, MatSelectModule} from "@angular/material/select";
+import {AsyncPipe, CommonModule, NgForOf, NgIf} from "@angular/common";
 import {map} from "rxjs/operators";
 import {Observable} from "rxjs";
 import {AngularFireDatabase} from "@angular/fire/compat/database";
@@ -29,7 +29,11 @@ import {AddDealerService} from "../add-dealer.service";
     MatSelect,
     MatOption,
     NgForOf,
-    AsyncPipe
+    AsyncPipe,
+    CommonModule,
+    NgIf,
+    MatSelectModule
+
   ]
 })
 export class ViewUserComponent implements OnInit {
