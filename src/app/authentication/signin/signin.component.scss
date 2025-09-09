@@ -68,5 +68,18 @@
   box-shadow: none;      /* remove unwanted shadow */
   background: transparent !important;
 }
+/* Hide the default background validation icon */
+.no-validation-icon.is-invalid {
+  background-image: none !important;
+  padding-right: 0.75rem; /* optional: adjust spacing */
+}
+
+.small-error-icon {
+  font-size: 16px;   /* default is 24px → smaller */
+  height: 16px;
+  width: 16px;
+  line-height: 16px;
+}
+
 
 
