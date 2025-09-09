@@ -1,4 +1,4 @@
-import {Component, EnvironmentInjector, Inject, runInInjectionContext} from '@angular/core';
+import {Component, ElementRef, EnvironmentInjector, Inject, runInInjectionContext, ViewChild} from '@angular/core';
 import {MatAutocomplete, MatAutocompleteTrigger, MatOption} from "@angular/material/autocomplete";
 import {
   MatCell,
@@ -92,6 +92,12 @@ export class StockReportComponent {
   finalTableData: any[] = [];
   productHeaders: string[] = [];
   tableColumns: string[] = [];
+  @ViewChild('countrySearchInput') countrySearchInput!: ElementRef;
+  @ViewChild('divisionSearchInput') divisionSearchInput!: ElementRef;
+  @ViewChild('townSearchInput') townSearchInput!: ElementRef;
+  @ViewChild('outletSearchInput') outletSearchInput!: ElementRef;
+
+  debounceTimer: any;
 
 
   // Filters
@@ -216,6 +222,74 @@ export class StockReportComponent {
     });
   }
 
+  // Country
+  onCountrySearchChange(event: any) {
+    clearTimeout(this.debounceTimer);
+    this.debounceTimer = setTimeout(() => {
+      const val = event.target.value.toLowerCase();
+      this.filteredOptions.country = this.options.country.filter((c: string) =>
+        c.toLowerCase().includes(val)
+      );
+    }, 300);
+  }
+  onCountrySelectOpened(open: boolean) {
+    if (open) {
+      this.filteredOptions.country = [...this.options.country];
+      setTimeout(() => this.countrySearchInput.nativeElement.focus(), 0);
+    }
+  }
+
+// Division
+  onDivisionSearchChange(event: any) {
+    clearTimeout(this.debounceTimer);
+    this.debounceTimer = setTimeout(() => {
+      const val = event.target.value.toLowerCase();
+      this.filteredOptions.division = this.options.division.filter((d: string) =>
+        d.toLowerCase().includes(val)
+      );
+    }, 300);
+  }
+  onDivisionSelectOpened(open: boolean) {
+    if (open) {
+      this.filteredOptions.division = [...this.options.division];
+      setTimeout(() => this.divisionSearchInput.nativeElement.focus(), 0);
+    }
+  }
+
+// Town
+  onTownSearchChange(event: any) {
+    clearTimeout(this.debounceTimer);
+    this.debounceTimer = setTimeout(() => {
+      const val = event.target.value.toLowerCase();
+      this.filteredOptions.town = this.options.town.filter((t: string) =>
+        t.toLowerCase().includes(val)
+      );
+    }, 300);
+  }
+  onTownSelectOpened(open: boolean) {
+    if (open) {
+      this.filteredOptions.town = [...this.options.town];
+      setTimeout(() => this.townSearchInput.nativeElement.focus(), 0);
+    }
+  }
+
+// Outlet
+  onOutletSearchChange(event: any) {
+    clearTimeout(this.debounceTimer);
+    this.debounceTimer = setTimeout(() => {
+      const val = event.target.value.toLowerCase();
+      this.filteredOptions.name = this.options.name.filter((o: string) =>
+        o.toLowerCase().includes(val)
+      );
+    }, 300);
+  }
+  onOutletSelectOpened(open: boolean) {
+    if (open) {
+      this.filteredOptions.name = [...this.options.name];
+      setTimeout(() => this.outletSearchInput.nativeElement.focus(), 0);
+    }
+  }
+
   loadSalesList() {
     runInInjectionContext(this.injector, () => {
       this.dailySlaes.getDailySalesList().subscribe((data) => {
@@ -276,12 +350,33 @@ export class StockReportComponent {
 
 
 
-  generateHorizontalInventoryReport() {
+  generateHorizontalInventoryReport(selectedOutlets: string[] = [], countryFilter: string | null, divisionFilter: string | null, townFilter: string | null) {
     const allDealers = this.dataSource;
     const allProducts = this.vehicledataSource;
     const inventoryData = this.inventorydataSource;
 
-    const filters = this.dealerForm.value;
+    // 🆕 New filtering logic for dealers 🆕
+    const filteredDealers = allDealers.filter(dealer => {
+      // Check if dealer is active
+      if (dealer.status !== 'Active') return false;
+
+      // Apply country filter
+      if (countryFilter && dealer.country !== countryFilter) return false;
+
+      // Apply division filter
+      if (divisionFilter && dealer.division !== divisionFilter) return false;
+
+      // Apply town filter
+      if (townFilter && dealer.town !== townFilter) return false;
+
+      // Apply outlet filter
+      if (selectedOutlets.length > 0 && !selectedOutlets.includes(dealer.name)) return false;
+
+      // If all filters pass, include the dealer
+      return true;
+    });
+
+    // ❌ Remove the old filtering logic (if selectedOutlets...) that was inside the forEach loop.
 
     // Map product name => model
     const nameToModelMap: Record<string, string> = {};
@@ -291,26 +386,14 @@ export class StockReportComponent {
       }
     });
 
-    // Get unique model names from active products
     const allModelNames = Array.from(
       new Set(allProducts.filter(p => p.status === 'Active' && p.model).map(p => p.model))
     );
 
     const finalReport: any[] = [];
 
-    allDealers.forEach(dealer => {
-      if (dealer.status !== 'Active') return;
-
-      // Apply filters
-      if (
-        (filters.country && dealer.country !== filters.country) ||
-        (filters.division && dealer.division !== filters.division) ||
-        (filters.town && dealer.town !== filters.town) ||
-        (filters.name && dealer.name !== filters.name)
-      ) {
-        return;
-      }
-
+    // 🔄 Iterate over the newly filtered list of dealers
+    filteredDealers.forEach(dealer => {
       const dealerRow: any = {
         name: dealer.name || '',
         id: dealer.id || '',
@@ -318,13 +401,11 @@ export class StockReportComponent {
         country: dealer.country || '',
         town: dealer.town || '',
       };
-
-      // Initialize product models with 0
+      // ... rest of the existing code to build the report row for each dealer
       allModelNames.forEach(model => {
         dealerRow[model] = 0;
       });
 
-      // Sum inventory for this dealer
       const dealerInventories = inventoryData.filter(inv => inv.dealerOutlet === dealer.name);
       dealerInventories.forEach(inv => {
         const modelName = nameToModelMap[inv.name];
@@ -333,7 +414,6 @@ export class StockReportComponent {
         }
       });
 
-      // Calculate Total
       const totalQty = allModelNames.reduce((sum, model) => sum + (dealerRow[model] || 0), 0);
       dealerRow['total'] = totalQty;
 
@@ -386,7 +466,11 @@ export class StockReportComponent {
     });
 
     // 🔹 Call the new method to generate the horizontal inventory report
-    this.generateHorizontalInventoryReport();
+    // Retrieve the selected outlets as an array
+    const selectedOutlets: string[] = filters.name || [];
+
+    // Pass the selected outlets to the report generation function
+    this.generateHorizontalInventoryReport(selectedOutlets, filters.country, filters.division, filters.town);
 
     // The rest of your onSubmit() logic for sales reporting can remain as-is.
     // For this specific request, the main focus is on the new report method.
@@ -481,6 +565,5 @@ export class StockReportComponent {
       FileSaver.saveAs(blob, `Inventory_Report_${new Date().toISOString().slice(0, 10)}.xlsx`);
     });
   }
-
 
 }
