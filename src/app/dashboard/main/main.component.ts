@@ -1,4 +1,4 @@
-import {Component, ViewChild, OnInit, runInInjectionContext, EnvironmentInjector} from '@angular/core';
+import {Component, ViewChild, OnInit, runInInjectionContext, EnvironmentInjector, ElementRef} from '@angular/core';
 
 import {
   ChartComponent,
@@ -36,7 +36,7 @@ import {FormControl, FormsModule, ReactiveFormsModule} from "@angular/forms";
 import {map, startWith} from "rxjs/operators";
 import {Observable} from "rxjs";
 import {AngularFireDatabase} from "@angular/fire/compat/database";
-import {MatError, MatFormField, MatLabel} from "@angular/material/input";
+import {MatError, MatFormField, MatInput, MatLabel} from "@angular/material/input";
 import {MatOption, MatSelect} from "@angular/material/select";
 import {LoadingService} from "../../Services/loading.service";
 import {MatSort} from "@angular/material/sort";
@@ -93,6 +93,7 @@ export type ChartOptions = {
     MatHeaderCellDef,
     MatCellDef,
     MatPaginator,
+    MatInput,
   ],
 })
 export class MainComponent implements OnInit {
@@ -123,6 +124,11 @@ export class MainComponent implements OnInit {
   monthlyZeroSalesDataSource = new MatTableDataSource<any>([]);
   @ViewChild('dailyPaginator') dailyPaginator!: MatPaginator;
   @ViewChild('monthlyPaginator') monthlyPaginator!: MatPaginator;
+  @ViewChild('countrySearchInput') countrySearchInput: ElementRef | undefined;
+  _countriesTypes: string[] = []; // To hold the full list of countries
+  filteredCountries: string[] = []; // To hold the filtered list for the dropdown
+  countrySearchText: string = ''; // To store the search input text
+  debounceTimer: any;
 
   displayedColumns: string[] = [
     'id',
@@ -146,6 +152,12 @@ export class MainComponent implements OnInit {
       .pipe(
         map(data => data?.subcategories || [])
       );
+
+    // Subscribe to the observable to populate the local array
+    this._countriesTypes$.subscribe(countries => {
+      this._countriesTypes = countries;
+      this.filterCountries(); // Initialize the filtered list
+    });
   }
 
   ngOnInit() {
@@ -164,6 +176,40 @@ export class MainComponent implements OnInit {
         this.loadSalesList(selectedCountry);
       });
 
+  }
+
+  filterCountries() {
+    const sortedCountries = [...this._countriesTypes].sort((a, b) =>
+      a.trim().toLowerCase().localeCompare(b.trim().toLowerCase())
+    );
+
+    if (!this.countrySearchText) {
+      this.filteredCountries = sortedCountries;
+    } else {
+      this.filteredCountries = sortedCountries.filter(country =>
+        country.toLowerCase().includes(this.countrySearchText.toLowerCase())
+      );
+    }
+  }
+
+// Handles the search input with debouncing
+  onCountrySearchChange(event: any) {
+    clearTimeout(this.debounceTimer);
+    this.debounceTimer = setTimeout(() => {
+      this.countrySearchText = event.target.value;
+      this.filterCountries();
+    }, 300); // Adjust the delay as needed
+  }
+
+// Resets the search when the dropdown is opened
+  onCountrySelectOpened(isOpened: boolean) {
+    if (isOpened && this.countrySearchInput) {
+      this.countrySearchText = ''; // Clear search text
+      this.filterCountries(); // Reset the filtered list
+      setTimeout(() => {
+        this.countrySearchInput?.nativeElement.focus();
+      }, 0);
+    }
   }
 
   ngAfterViewInit() {

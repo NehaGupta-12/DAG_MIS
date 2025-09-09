@@ -3,3 +3,14 @@ mat-icon {
   font-family: 'Material Icons' !important;
   color: inherit; /* allows color attribute to work */
 }
+
+/* for select field with search box */
+.mat-select-search{
+  padding-left: 10px;
+  /* padding: 5px; */
+  padding-top: 3px;
+  padding-bottom: 3px;
+  border: 1px solid;
+  margin: 7px;
+  border-radius: 5px;
+}
