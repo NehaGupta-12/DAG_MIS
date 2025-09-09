@@ -19,10 +19,11 @@ import {AddUserComponent} from "../add-user/add-user.component";
 import {Router} from "@angular/router";
 import {DatePipe, NgIf} from "@angular/common";
 import {FeatherIconsComponent} from "@shared/components/feather-icons/feather-icons.component";
-import {AuthService} from "@core";
+// import {AuthService} from "@core";
 import {UserService} from "../add-user/user.service";
 import {UserDataModel} from "../add-user/UserData.model";
 import {deleteUser} from "@angular/fire/auth";
+import {AuthService} from "../../authentication/auth.service";
 
 @Component({
   selector: 'app-user-list',
@@ -68,7 +69,8 @@ export class UserListComponent implements OnInit{
   constructor(private dialog: MatDialog,
               private router: Router,
               private userService: UserService,
-              private authService : AuthService) {
+              public authService : AuthService,
+              ) {
   }
 
   ngOnInit(): void {

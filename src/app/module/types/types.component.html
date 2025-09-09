@@ -6,7 +6,10 @@
       <!-- Category + Add Button -->
       <div class="d-flex justify-content-between align-items-center mb-3">
         <h4 class="fw-bold mb-0">Types / Dropdown</h4>
+        <span [matTooltip]="!authService.hasPermission('Type/Dropdown','create') ? 'No permission' : 'Add Types'" matTooltipPosition="above">
+
         <button mat-fab color="primary" (click)="openModal()" class="btn-add" [disabled]="!authService.hasPermission('Type/Dropdown','create')">Add</button>
+        </span>
       </div>
 
       <!-- Modal with Fade Background -->
@@ -63,9 +66,12 @@
               <tr *ngFor="let cat of categories">
                 <td>{{ cat.name }}</td>
                 <td>
+                  <span [matTooltip]="!authService.hasPermission('Type/Dropdown','delete') ? 'No permission' : 'Delete Type'" matTooltipPosition="above">
+
                   <button mat-icon-button color="accent" (click)="deleteCategory(cat.name)" [disabled]="!authService.hasPermission('Type/Dropdown','delete')">
                     <app-feather-icons [icon]="'trash-2'" [class]="'tbl-fav-delete'"></app-feather-icons>
                   </button>
+                  </span>
                 </td>
               </tr>
               </tbody>
@@ -94,9 +100,11 @@
           <input type="text" [(ngModel)]="newField" class="form-control" placeholder="Enter Field *">
         </div>
         <div class="col-md-6 d-flex mb-2">
+
           <button class="btn btn-primary" (click)="addSubCategory(newField); newField=''" [disabled]="!authService.hasPermission('Type/Dropdown','create')">
             Add {{ selectedCategory.name }}
           </button>
+
         </div>
       </div>
 

@@ -27,9 +27,12 @@
             </div>
             <div class="right">
               <div class="right-side-btn">
-                <button mat-icon-button  class="tbl-header-btn col-green" matTooltip="Add" (click)="navigateToAddDailySales()" [disabled]="!authService.hasPermission('Daily Sales','create')">
+                <span [matTooltip]="!authService.hasPermission('Daily Sales','create') ? 'No permission' : 'Add Role'" matTooltipPosition="above">
+
+                <button mat-icon-button  class="tbl-header-btn col-green"  (click)="navigateToAddDailySales()" [disabled]="!authService.hasPermission('Daily Sales','create')">
                   <mat-icon>add_circle_outline</mat-icon>
                 </button>
+                </span>
               </div>
             </div>
           </div>

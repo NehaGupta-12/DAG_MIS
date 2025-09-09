@@ -14,6 +14,7 @@ import {take} from "rxjs";
 import Swal from "sweetalert2";
 import {LoadingService} from "../../Services/loading.service";
 import {AuthService} from "../../authentication/auth.service";
+import {MatTooltip} from "@angular/material/tooltip";
 
 
 @Component({
@@ -32,6 +33,7 @@ import {AuthService} from "../../authentication/auth.service";
     NgClass,
     NgForOf,
     FeatherIconsComponent,
+    MatTooltip,
   ],
   templateUrl: './types.component.html',
   standalone: true,
