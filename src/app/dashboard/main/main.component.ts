@@ -94,6 +94,7 @@ export type ChartOptions = {
     MatCellDef,
     MatPaginator,
   ],
+  standalone: true
 })
 export class MainComponent implements OnInit {
   @ViewChild('chart', { static: false }) chart!: ChartComponent;
