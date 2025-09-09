@@ -13,57 +13,50 @@
         <div class="col-md-3">
           <mat-form-field appearance="outline" class="w-100">
             <mat-label>Select Country</mat-label>
-            <input
-              type="text"
-              matInput
-              placeholder="Search Country"
-              [formControl]="countryFilter"
-              [matAutocomplete]="autoCountry"
-            />
-            <mat-icon matSuffix>arrow_drop_down</mat-icon>
-            <mat-autocomplete #autoCountry="matAutocomplete" [displayWith]="displayCountry">
-              <mat-option *ngFor="let item of filteredOptions.country" [value]="item">
-                {{ item }}
+            <mat-select formControlName="country" #countrySelect panelClass="custom-select-panel"
+                        (openedChange)="onCountrySelectOpened($event)">
+              <!-- Search box -->
+              <div class="mat-select-search">
+                <input matInput placeholder="Search Country" #countrySearchInput
+                       (input)="onCountrySearchChange($event)" />
+              </div>
+              <mat-option *ngFor="let country of filteredOptions.country" [value]="country">
+                {{ country }}
               </mat-option>
-            </mat-autocomplete>
+            </mat-select>
           </mat-form-field>
         </div>
 
         <div class="col-md-3">
           <mat-form-field appearance="outline" class="w-100">
             <mat-label>Select Division</mat-label>
-            <input
-              type="text"
-              matInput
-              placeholder="Search Division"
-              [formControl]="divisionFilter"
-              [matAutocomplete]="autoDivision"
-            />
-            <mat-icon matSuffix>arrow_drop_down</mat-icon>
-
-            <mat-autocomplete #autoDivision="matAutocomplete" [displayWith]="displayDivision">
-              <mat-option *ngFor="let item of filteredOptions.division" [value]="item">
-                {{ item }}
+            <mat-select formControlName="division" #divisionSelect panelClass="custom-select-panel"
+                        (openedChange)="onDivisionSelectOpened($event)">
+              <!-- Search box -->
+              <div class="mat-select-search">
+                <input matInput placeholder="Search Division" #divisionSearchInput
+                       (input)="onDivisionSearchChange($event)" />
+              </div>
+              <mat-option *ngFor="let division of filteredOptions.division" [value]="division">
+                {{ division }}
               </mat-option>
-            </mat-autocomplete>
+            </mat-select>
           </mat-form-field>
         </div>
         <div class="col-md-3">
           <mat-form-field appearance="outline" class="w-100">
             <mat-label>Select Town</mat-label>
-            <input
-              type="text"
-              matInput
-              placeholder="Search Town"
-              [formControl]="townFilter"
-              [matAutocomplete]="autoTown"
-            />
-            <mat-icon matSuffix>arrow_drop_down</mat-icon>
-            <mat-autocomplete #autoTown="matAutocomplete" [displayWith]="displayTown">
-              <mat-option *ngFor="let item of filteredOptions.town" [value]="item">
-                {{ item }}
+            <mat-select formControlName="town" #townSelect panelClass="custom-select-panel"
+                        (openedChange)="onTownSelectOpened($event)">
+              <!-- Search box -->
+              <div class="mat-select-search">
+                <input matInput placeholder="Search Town" #townSearchInput
+                       (input)="onTownSearchChange($event)" />
+              </div>
+              <mat-option *ngFor="let town of filteredOptions.town" [value]="town">
+                {{ town }}
               </mat-option>
-            </mat-autocomplete>
+            </mat-select>
           </mat-form-field>
         </div>
         <!-- Showroom Name -->
@@ -71,29 +64,16 @@
         <div class="col-md-3">
           <mat-form-field appearance="outline" class="w-100">
             <mat-label>Select Outlet(s)</mat-label>
-            <input
-              type="text"
-              matInput
-              placeholder="Search Showroom"
-              [formControl]="nameFilter"
-              [matAutocomplete]="autoName"
-            />
-            <mat-icon matSuffix>arrow_drop_down</mat-icon>
-            <mat-autocomplete
-              #autoName="matAutocomplete"
-              [displayWith]="displayFn"
-              (optionSelected)="$event.option.deselect()"
-            >
-              <mat-option *ngFor="let dealer of filteredOptions.name" [value]="dealer">
-                <mat-checkbox
-                  [checked]="selectedOutlets.includes(dealer)"
-                  (change)="toggleOutletSelection(dealer, $event.checked)"
-                  (click)="$event.stopPropagation()"
-                >
-                  {{ dealer }}
-                </mat-checkbox>
+            <mat-select formControlName="name" multiple #outletSelect panelClass="custom-select-panel"
+                        (openedChange)="onOutletSelectOpened($event)">
+              <div class="mat-select-search">
+                <input matInput placeholder="Search Outlet" #outletSearchInput
+                       (input)="onOutletSearchChange($event)" />
+              </div>
+              <mat-option *ngFor="let outlet of filteredOptions.name" [value]="outlet">
+                {{ outlet }}
               </mat-option>
-            </mat-autocomplete>
+            </mat-select>
           </mat-form-field>
         </div>
 

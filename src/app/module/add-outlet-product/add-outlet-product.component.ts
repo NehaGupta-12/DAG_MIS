@@ -59,7 +59,6 @@ import {LoadingService} from "../../Services/loading.service";
   styleUrl: './add-outlet-product.component.scss'
 })
 export class AddOutletProductComponent implements OnInit {
-
   isEditMode: boolean = false;
   grnForm: FormGroup;
   displayedColumns: string[] = ['name', 'brand', 'model', 'variant', 'unit', 'openingStock', 'action'];
@@ -277,6 +276,7 @@ export class AddOutletProductComponent implements OnInit {
     this.vehicledataSource.data = processedProducts;
     console.log("Products with disabled flag:", processedProducts);
   }
+
 
   isSubmitEnabled(): boolean {
     const dealerValue = this.grnForm.getRawValue().dealerOutlet;
