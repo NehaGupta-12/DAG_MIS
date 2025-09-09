@@ -6,8 +6,23 @@
       <div class="row m-1">
         <mat-form-field appearance="outline" class="col-md-4 col-sm-4">
           <mat-label>Select Role</mat-label>
-          <mat-select formControlName="roleName" [disabled]="isEditMode" required>
-            <mat-option *ngFor="let role of (_roles$ | async)" [value]="role">
+          <mat-select
+            formControlName="roleName"
+            [disabled]="isEditMode"
+            required
+            #roleSelect
+            (openedChange)="onRoleSelectOpened($event)"
+            panelClass="custom-select-panel"
+          >
+            <div class="mat-select-search">
+              <input
+                matInput
+                (input)="onRoleSearchChange($event)"
+                #roleSearchInput
+                placeholder="Search Role"
+              />
+            </div>
+            <mat-option *ngFor="let role of filteredRoles" [value]="role">
               {{ role }}
             </mat-option>
           </mat-select>

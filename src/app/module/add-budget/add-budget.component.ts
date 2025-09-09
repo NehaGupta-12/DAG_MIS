@@ -1,4 +1,12 @@
-import {Component, EnvironmentInjector, Inject, OnInit, runInInjectionContext} from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  EnvironmentInjector,
+  Inject,
+  OnInit,
+  runInInjectionContext,
+  ViewChild
+} from '@angular/core';
 import {FormGroup, FormsModule, ReactiveFormsModule, UntypedFormBuilder, Validators} from "@angular/forms";
 import { CommonModule, Location, NgForOf } from "@angular/common";
 import { ActivatedRoute } from "@angular/router";
@@ -51,6 +59,24 @@ export class AddBudgetComponent implements OnInit {
   _countriesTypes$!: Observable<string[]>;
   _yearTypes$!: Observable<string[]>;
 
+  @ViewChild('countrySearchInput') countrySearchInput!: ElementRef;
+  @ViewChild('yearSearchInput') yearSearchInput!: ElementRef;
+  @ViewChild('productSearchInput') productSearchInput!: ElementRef;
+
+  _countriesTypes: string[] = [];
+  filteredCountries: string[] = [];
+  countrySearchText: string = '';
+
+  _yearTypes: string[] = [];
+  filteredYears: string[] = [];
+  yearSearchText: string = '';
+
+  _allProducts: any[] = [];
+  filteredProducts: any[] = [];
+  productSearchText: string = '';
+
+  debounceTimer: any;
+
   constructor(
     private fb: UntypedFormBuilder,
     private dealer: Location,
@@ -70,6 +96,17 @@ export class AddBudgetComponent implements OnInit {
       .object<{ subcategories: string[] }>('typelist/Year')
       .valueChanges()
       .pipe(map(data => data?.subcategories || []));
+
+    // Subscribe to all observables and populate local arrays
+    this._countriesTypes$.subscribe(data => {
+      this._countriesTypes = data;
+      this.filteredCountries = [...this._countriesTypes];
+    });
+
+    this._yearTypes$.subscribe(data => {
+      this._yearTypes = data;
+      this.filteredYears = [...this._yearTypes];
+    });
 
     this.isEditMode = false;
 
@@ -122,6 +159,65 @@ export class AddBudgetComponent implements OnInit {
 
   }
 
+  filterCountries() {
+    const searchText = this.countrySearchText.toLowerCase();
+    this.filteredCountries = this._countriesTypes.filter(country => country.toLowerCase().includes(searchText));
+  }
+  onCountrySearchChange(event: any) {
+    clearTimeout(this.debounceTimer);
+    this.debounceTimer = setTimeout(() => {
+      this.countrySearchText = event.target.value;
+      this.filterCountries();
+    }, 300);
+  }
+  onCountrySelectOpened(isOpened: boolean) {
+    if (isOpened) {
+      this.countrySearchText = '';
+      this.filterCountries();
+      setTimeout(() => this.countrySearchInput.nativeElement.focus(), 0);
+    }
+  }
+
+// --- Year Methods ---
+  filterYears() {
+    const searchText = this.yearSearchText.toLowerCase();
+    this.filteredYears = this._yearTypes.filter(year => year.toLowerCase().includes(searchText));
+  }
+  onYearSearchChange(event: any) {
+    clearTimeout(this.debounceTimer);
+    this.debounceTimer = setTimeout(() => {
+      this.yearSearchText = event.target.value;
+      this.filterYears();
+    }, 300);
+  }
+  onYearSelectOpened(isOpened: boolean) {
+    if (isOpened) {
+      this.yearSearchText = '';
+      this.filterYears();
+      setTimeout(() => this.yearSearchInput.nativeElement.focus(), 0);
+    }
+  }
+
+// --- Products Methods ---
+  filterProducts() {
+    const searchText = this.productSearchText.toLowerCase();
+    this.filteredProducts = this._allProducts.filter(product => product.name.toLowerCase().includes(searchText));
+  }
+  onProductSearchChange(event: any) {
+    clearTimeout(this.debounceTimer);
+    this.debounceTimer = setTimeout(() => {
+      this.productSearchText = event.target.value;
+      this.filterProducts();
+    }, 300);
+  }
+  onProductSelectOpened(isOpened: boolean) {
+    if (isOpened) {
+      this.productSearchText = '';
+      this.filterProducts();
+      setTimeout(() => this.productSearchInput.nativeElement.focus(), 0);
+    }
+  }
+
   setFinancialYearDates(yearValue: string) {
     const [startYear, endYear] = yearValue.split('-').map(Number);
     if (startYear && endYear) {
@@ -138,6 +234,8 @@ export class AddBudgetComponent implements OnInit {
       this.productService.getProductList().subscribe({
         next: (data) => {
           this.vehicledataSource.data = data;
+          this._allProducts = data; // Populate the new array
+          this.filteredProducts = [...data]; // Initialize the filtered list
           this.loadingService.setLoading(false);
         },
         error: () => this.loadingService.setLoading(false)

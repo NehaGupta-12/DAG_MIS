@@ -6,11 +6,11 @@
     <!--        <mat-icon>arrow_back</mat-icon> Back-->
     <!--      </button>-->
     <!--    </div>-->
-    <h4 class="text-center">Add Yearly Budget</h4>
     <div class="row clearfix justify-content-center">
       <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12">
         <div class="card shadow">
-          <div class="header form-header">
+          <div class="header">
+            <h2>{{ isEditMode  ? 'Edit Yearly Budget' : 'Add Yearly Budget' }}</h2>
           </div>
           <div class="body">
 <!--            {{budgetForm.value | json}}-->
@@ -19,32 +19,32 @@
                 <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 mb-2">
                   <mat-form-field class="example-full-width" appearance="outline">
                     <mat-label>Country</mat-label>
-                    <mat-select formControlName="country" required>
-                      <mat-option *ngFor="let country of (_countriesTypes$ | async)" [value]="country">
+                    <mat-select formControlName="country" required #countrySelect panelClass="custom-select-panel" (openedChange)="onCountrySelectOpened($event)">
+                      <div class="mat-select-search">
+                        <input matInput (input)="onCountrySearchChange($event)" #countrySearchInput placeholder="Search Country" />
+                      </div>
+                      <mat-option *ngFor="let country of filteredCountries" [value]="country">
                         {{ country }}
                       </mat-option>
                     </mat-select>
-                    <!--                    <mat-icon class="material-icons-outlined color-icon p-3" matSuffix>flag</mat-icon>-->
                     @if (budgetForm?.get('country')?.hasError('required')) {
-                      <mat-error>
-                        Model Type is required
-                      </mat-error>
+                      <mat-error>Country is required</mat-error>
                     }
                   </mat-form-field>
                 </div>
                 <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 mb-2">
                   <mat-form-field class="example-full-width" appearance="outline">
                     <mat-label>Year</mat-label>
-                    <mat-select formControlName="year" required>
-                      <mat-option *ngFor="let year of (_yearTypes$ | async)" [value]="year">
+                    <mat-select formControlName="year" required #yearSelect panelClass="custom-select-panel" (openedChange)="onYearSelectOpened($event)">
+                      <div class="mat-select-search">
+                        <input matInput (input)="onYearSearchChange($event)" #yearSearchInput placeholder="Search Year" />
+                      </div>
+                      <mat-option *ngFor="let year of filteredYears" [value]="year">
                         {{ year }}
                       </mat-option>
                     </mat-select>
-                    <!--                    <mat-icon class="material-icons-outlined color-icon p-3" matSuffix>flag</mat-icon>-->
                     @if (budgetForm?.get('year')?.hasError('required')) {
-                      <mat-error>
-                        Model Type is required
-                      </mat-error>
+                      <mat-error>Year is required</mat-error>
                     }
                   </mat-form-field>
                 </div>
@@ -75,17 +75,14 @@
                 <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 mb-2">
                   <mat-form-field class="example-full-width" appearance="outline">
                     <mat-label>Products</mat-label>
-                    <mat-select formControlName="products">
-                      <mat-option *ngFor="let product of vehicledataSource.data" [value]="product?.name">
+                    <mat-select formControlName="products" #productSelect panelClass="custom-select-panel" (openedChange)="onProductSelectOpened($event)">
+                      <div class="mat-select-search">
+                        <input matInput (input)="onProductSearchChange($event)" #productSearchInput placeholder="Search Products" />
+                      </div>
+                      <mat-option *ngFor="let product of filteredProducts" [value]="product?.name">
                         {{ product?.name }}
                       </mat-option>
                     </mat-select>
-                    <!--                    <mat-icon class="material-icons-outlined color-icon p-3" matSuffix>flag</mat-icon>-->
-                    <!--                    @if (grnForm?.get('products')?.hasError('required')) {-->
-                    <!--                      <mat-error>-->
-                    <!--                        Products is required-->
-                    <!--                      </mat-error>-->
-                    <!--                    }-->
                   </mat-form-field>
                 </div>
 

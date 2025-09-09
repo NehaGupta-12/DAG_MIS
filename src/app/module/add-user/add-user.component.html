@@ -70,8 +70,11 @@
               <div class="col-xl-6 col-lg-6 mb-2">
                 <mat-form-field class="example-full-width" appearance="outline">
                   <mat-label>Role</mat-label>
-                  <mat-select formControlName="role" required>
-                    <mat-option *ngFor="let role of (_roles$ | async)" [value]="role">
+                  <mat-select formControlName="role" required #roleSelect panelClass="custom-select-panel" (openedChange)="onRoleSelectOpened($event)">
+                    <div class="mat-select-search">
+                      <input matInput (input)="onRoleSearchChange($event)" #roleSearchInput placeholder="Search Role" />
+                    </div>
+                    <mat-option *ngFor="let role of filteredRoles" [value]="role">
                       {{ role }}
                     </mat-option>
                   </mat-select>
@@ -84,8 +87,11 @@
               <div class="col-xl-6 col-lg-6 mb-2">
                 <mat-form-field class="example-full-width" appearance="outline">
                   <mat-label>Department</mat-label>
-                  <mat-select formControlName="department" required>
-                    <mat-option *ngFor="let dept of (_departments$ | async)" [value]="dept">
+                  <mat-select formControlName="department" required #deptSelect panelClass="custom-select-panel" (openedChange)="onDeptSelectOpened($event)">
+                    <div class="mat-select-search">
+                      <input matInput (input)="onDeptSearchChange($event)" #deptSearchInput placeholder="Search Department" />
+                    </div>
+                    <mat-option *ngFor="let dept of filteredDepartments" [value]="dept">
                       {{ dept }}
                     </mat-option>
                   </mat-select>
@@ -126,14 +132,17 @@
                 <div class="col-xl-6 col-lg-6 col-md-6 col-sm-6 mb-2">
                   <mat-form-field class="example-full-width" appearance="outline">
                     <mat-label>Country</mat-label>
-                    <mat-select formControlName="country" required>
-                      <mat-option *ngFor="let country of (_country$ | async)" [value]="country">
+                    <mat-select formControlName="country" required #countrySelect panelClass="custom-select-panel" (openedChange)="onCountrySelectOpened($event)">
+                      <div class="mat-select-search">
+                        <input matInput (input)="onCountrySearchChange($event)" #countrySearchInput placeholder="Search Country" />
+                      </div>
+                      <mat-option *ngFor="let country of filteredCountries" [value]="country">
                         {{ country }}
                       </mat-option>
                     </mat-select>
                     <mat-icon class="material-icons-outlined color-icon" matSuffix>flag</mat-icon>
                     <mat-error *ngIf="register?.get('country')?.hasError('required')">
-                      Department is required
+                      Country is required
                     </mat-error>
                   </mat-form-field>
                 </div>

@@ -1,4 +1,12 @@
-import {Component, EnvironmentInjector, Inject, OnInit, runInInjectionContext} from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  EnvironmentInjector,
+  Inject,
+  OnInit,
+  runInInjectionContext,
+  ViewChild
+} from '@angular/core';
 import {FormGroup, FormsModule, ReactiveFormsModule, UntypedFormBuilder, Validators} from "@angular/forms";
 import { MatButtonModule} from "@angular/material/button";
 import {
@@ -68,6 +76,21 @@ export class AddStockTransferComponent implements OnInit {
   vehicledataSource = new MatTableDataSource<any>();
   addedProducts: any[] = [];
   dataSource = new MatTableDataSource<any>();
+  @ViewChild('fromDealerSearchInput') fromDealerSearchInput!: ElementRef;
+  @ViewChild('toDealerSearchInput') toDealerSearchInput!: ElementRef;
+  @ViewChild('productSearchInput') productSearchInput!: ElementRef;
+
+  _allDealers: any[] = [];
+  filteredFromDealers: any[] = [];
+  filteredToDealers: any[] = [];
+  fromDealerSearchText: string = '';
+  toDealerSearchText: string = '';
+
+  _allProducts: any[] = [];
+  filteredProducts: any[] = [];
+  productSearchText: string = '';
+
+  debounceTimer: any;
 
   breadscrums = [
     {
@@ -175,6 +198,9 @@ export class AddStockTransferComponent implements OnInit {
       this.addDealerService.getDealerList().subscribe({
         next: (data) => {
           this.dealerdataSource.data = data;
+          this._allDealers = data; // Populate the new array
+          this.filteredFromDealers = [...data];
+          this.filteredToDealers = [...data];
           this.loadingService.setLoading(false);
         },
         error: () => this.loadingService.setLoading(false)
@@ -188,11 +214,73 @@ export class AddStockTransferComponent implements OnInit {
       this.productService.getProductList().subscribe({
         next: (data) => {
           this.vehicledataSource.data = data;
+          this._allProducts = data; // Populate the new array
+          this.filteredProducts = [...data];
           this.loadingService.setLoading(false);
         },
         error: () => this.loadingService.setLoading(false)
       });
     });
+  }
+
+  // --- From Dealer/Outlet Methods ---
+  filterFromDealers() {
+    const searchText = this.fromDealerSearchText.toLowerCase();
+    this.filteredFromDealers = this._allDealers.filter(dealer => dealer.name.toLowerCase().includes(searchText));
+  }
+  onFromDealerSearchChange(event: any) {
+    clearTimeout(this.debounceTimer);
+    this.debounceTimer = setTimeout(() => {
+      this.fromDealerSearchText = event.target.value;
+      this.filterFromDealers();
+    }, 300);
+  }
+  onFromDealerSelectOpened(isOpened: boolean) {
+    if (isOpened) {
+      this.fromDealerSearchText = '';
+      this.filterFromDealers();
+      setTimeout(() => this.fromDealerSearchInput.nativeElement.focus(), 0);
+    }
+  }
+
+// --- To Dealer/Outlet Methods ---
+  filterToDealers() {
+    const searchText = this.toDealerSearchText.toLowerCase();
+    this.filteredToDealers = this._allDealers.filter(dealer => dealer.name.toLowerCase().includes(searchText));
+  }
+  onToDealerSearchChange(event: any) {
+    clearTimeout(this.debounceTimer);
+    this.debounceTimer = setTimeout(() => {
+      this.toDealerSearchText = event.target.value;
+      this.filterToDealers();
+    }, 300);
+  }
+  onToDealerSelectOpened(isOpened: boolean) {
+    if (isOpened) {
+      this.toDealerSearchText = '';
+      this.filterToDealers();
+      setTimeout(() => this.toDealerSearchInput.nativeElement.focus(), 0);
+    }
+  }
+
+// --- Products Methods ---
+  filterProducts() {
+    const searchText = this.productSearchText.toLowerCase();
+    this.filteredProducts = this._allProducts.filter(product => product.name.toLowerCase().includes(searchText));
+  }
+  onProductSearchChange(event: any) {
+    clearTimeout(this.debounceTimer);
+    this.debounceTimer = setTimeout(() => {
+      this.productSearchText = event.target.value;
+      this.filterProducts();
+    }, 300);
+  }
+  onProductSelectOpened(isOpened: boolean) {
+    if (isOpened) {
+      this.productSearchText = '';
+      this.filterProducts();
+      setTimeout(() => this.productSearchInput.nativeElement.focus(), 0);
+    }
   }
 
   loadInventoryDaata() {

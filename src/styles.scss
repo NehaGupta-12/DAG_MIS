@@ -14,3 +14,8 @@ mat-icon {
   margin: 7px;
   border-radius: 5px;
 }
+
+.custom-select-panel .mat-select-search input::placeholder {
+  color: #6a6a6a; /* Use a dark color to make the text visible */
+  opacity: 1; /* Some browsers might require this to show the placeholder */
+}

@@ -3,7 +3,7 @@
     <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 mb-2">
       <mat-form-field class="example-full-width" appearance="outline">
         <mat-label>Country</mat-label>
-        <mat-select [formControl]="countryControl" #countrySelect (openedChange)="onCountrySelectOpened($event)">
+        <mat-select [formControl]="countryControl" #countrySelect panelClass="custom-select-panel" (openedChange)="onCountrySelectOpened($event)">
           <div class="mat-select-search border-dark">
             <input matInput (input)="onCountrySearchChange($event)" #countrySearchInput placeholder="Search Country" />
           </div>

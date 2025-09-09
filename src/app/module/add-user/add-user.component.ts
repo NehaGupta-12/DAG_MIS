@@ -1,4 +1,4 @@
-import {Component,OnInit} from '@angular/core';
+import {Component, ElementRef, OnInit, ViewChild} from '@angular/core';
 import {
   FormControl,
   FormsModule,
@@ -70,6 +70,23 @@ export class AddUserComponent implements OnInit{
   _departments$!: Observable<any[]>;
   _country$!: Observable<any[]>;
   passwordControl: FormControl
+  @ViewChild('roleSearchInput') roleSearchInput!: ElementRef;
+  @ViewChild('deptSearchInput') deptSearchInput!: ElementRef;
+  @ViewChild('countrySearchInput') countrySearchInput!: ElementRef;
+  _roles: string[] = [];
+  filteredRoles: string[] = [];
+  roleSearchText: string = '';
+
+  _departments: string[] = [];
+  filteredDepartments: string[] = [];
+  deptSearchText: string = '';
+
+  _countries: string[] = [];
+  filteredCountries: string[] = [];
+  countrySearchText: string = '';
+
+  debounceTimer: any;
+
   constructor(private fb: UntypedFormBuilder ,
               private location: Location,
               private router : Router,
@@ -96,11 +113,26 @@ export class AddUserComponent implements OnInit{
       .pipe(
         map(data => {
           const depts = data?.subcategories ? Object.values(data.subcategories) : [];
-          console.log('Departments:', depts);
           return depts;
         })
       );
     this.passwordControl = new FormControl('', [Validators.minLength(6)]);
+
+    // Subscribe to all observables and populate local arrays
+    this._roles$.subscribe(roles => {
+      this._roles = roles;
+      this.filterRoles();
+    });
+
+    this._departments$.subscribe(departments => {
+      this._departments = departments;
+      this.filterDepartments();
+    });
+
+    this._country$.subscribe(countries => {
+      this._countries = countries;
+      this.filterCountries(); // You already have this
+    });
   }
 
   ngOnInit(): void {
@@ -136,6 +168,94 @@ export class AddUserComponent implements OnInit{
           console.warn('No user found with ID:', this.userId);
         }
       });
+    }
+  }
+
+  // --- Role Methods ---
+  filterRoles() {
+    if (!this.roleSearchText) {
+      this.filteredRoles = [...this._roles];
+    } else {
+      this.filteredRoles = this._roles.filter(role =>
+        role.toLowerCase().includes(this.roleSearchText.toLowerCase())
+      );
+    }
+  }
+
+  onRoleSearchChange(event: any) {
+    clearTimeout(this.debounceTimer);
+    this.debounceTimer = setTimeout(() => {
+      this.roleSearchText = event.target.value;
+      this.filterRoles();
+    }, 300);
+  }
+
+  onRoleSelectOpened(isOpened: boolean) {
+    if (isOpened) {
+      this.roleSearchText = '';
+      this.filterRoles();
+      setTimeout(() => this.roleSearchInput?.nativeElement.focus(), 0);
+    }
+  }
+
+// --- Department Methods ---
+  filterDepartments() {
+    if (!this.deptSearchText) {
+      this.filteredDepartments = [...this._departments];
+    } else {
+      this.filteredDepartments = this._departments.filter(dept =>
+        dept.toLowerCase().includes(this.deptSearchText.toLowerCase())
+      );
+    }
+  }
+
+  onDeptSearchChange(event: any) {
+    clearTimeout(this.debounceTimer);
+    this.debounceTimer = setTimeout(() => {
+      this.deptSearchText = event.target.value;
+      this.filterDepartments();
+    }, 300);
+  }
+
+  onDeptSelectOpened(isOpened: boolean) {
+    if (isOpened) {
+      this.deptSearchText = '';
+      this.filterDepartments();
+      setTimeout(() => this.deptSearchInput?.nativeElement.focus(), 0);
+    }
+  }
+
+  filterCountries() {
+    const sortedCountries = [...this._countries].sort((a, b) =>
+      a.trim().toLowerCase().localeCompare(b.trim().toLowerCase())
+    );
+
+    if (!this.countrySearchText) {
+      this.filteredCountries = sortedCountries;
+    } else {
+      this.filteredCountries = sortedCountries.filter(country =>
+        country.toLowerCase().includes(this.countrySearchText.toLowerCase())
+      );
+    }
+  }
+
+// Handles the search input with debouncing
+  onCountrySearchChange(event: any) {
+    clearTimeout(this.debounceTimer);
+    this.debounceTimer = setTimeout(() => {
+      this.countrySearchText = event.target.value;
+      this.filterCountries();
+    }, 300); // Adjust the delay as needed
+  }
+
+// Resets the search when the dropdown is opened
+  onCountrySelectOpened(isOpened: boolean) {
+    if (isOpened && this.countrySearchInput) {
+      this.countrySearchText = ''; // Clear search text
+      this.filterCountries(); // Reset the filtered list
+      setTimeout(() => {
+        this.countrySearchInput?.nativeElement.focus();
+      }, 0);
     }
   }
 
