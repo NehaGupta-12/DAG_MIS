@@ -1,4 +1,4 @@
-import {Component, EnvironmentInjector, OnInit, runInInjectionContext, ViewChild} from '@angular/core';
+import {Component, ElementRef, EnvironmentInjector, OnInit, runInInjectionContext, ViewChild} from '@angular/core';
 import {CommonModule, DatePipe, NgForOf, NgIf} from "@angular/common";
 import {
   MatCell,
@@ -82,6 +82,11 @@ import {InventoryService} from "../add-inventory/inventory.service";
   styleUrl: './inventory-list.component.scss'
 })
 export class InventoryListComponent implements OnInit {
+  @ViewChild('dealerSearchInput') dealerSearchInput!: ElementRef;
+
+  filteredDealers: any[] = [];
+  dealerSearchText: string = '';
+  debounceTimer: any;
 
 
   dataSource = new MatTableDataSource<any>();
@@ -141,11 +146,36 @@ export class InventoryListComponent implements OnInit {
   this.loadInventoryDaata()
   }
 
+  // Add these methods to your component class
+  filterDealers() {
+    const searchText = this.dealerSearchText.toLowerCase();
+    this.filteredDealers = this.allDealers.filter(dealer => dealer.name.toLowerCase().includes(searchText));
+  }
+
+  onDealerSearchChange(event: any) {
+    clearTimeout(this.debounceTimer);
+    this.debounceTimer = setTimeout(() => {
+      this.dealerSearchText = event.target.value;
+      this.filterDealers();
+    }, 300); // Adjust the delay as needed
+  }
+
+  onDealerSelectOpened(isOpened: boolean) {
+    if (isOpened) {
+      this.dealerSearchText = '';
+      this.filterDealers();
+      setTimeout(() => {
+        this.dealerSearchInput.nativeElement.focus();
+      }, 0);
+    }
+  }
+
   DealerList() {
     runInInjectionContext(this.injector, () => {
       this.addDealerService.getDealerList().subscribe((data) => {
         this.allDealers = data;
         this.dealerdataSource.data = data;
+        this.filteredDealers = [...this.allDealers]; // Initialize the filtered list
       });
     });
   }

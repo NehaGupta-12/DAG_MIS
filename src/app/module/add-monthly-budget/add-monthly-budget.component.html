@@ -14,8 +14,11 @@
                 <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 mb-2">
                   <mat-form-field class="example-full-width" appearance="outline">
                     <mat-label>Country</mat-label>
-                    <mat-select formControlName="country" required>
-                      <mat-option *ngFor="let country of (_countriesTypes$ | async)" [value]="country">{{ country }}</mat-option>
+                    <mat-select formControlName="country" required #countrySelect panelClass="custom-select-panel" (openedChange)="onCountrySelectOpened($event)">
+                      <div class="mat-select-search">
+                        <input matInput (input)="onCountrySearchChange($event)" #countrySearchInput placeholder="Search Country" />
+                      </div>
+                      <mat-option *ngFor="let country of filteredCountries" [value]="country">{{ country }}</mat-option>
                     </mat-select>
                     <mat-error *ngIf="budgetForm.get('country')?.hasError('required')">Country is required</mat-error>
                   </mat-form-field>
@@ -24,8 +27,11 @@
                 <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 mb-2">
                   <mat-form-field class="example-full-width" appearance="outline">
                     <mat-label>Year</mat-label>
-                    <mat-select formControlName="year" required>
-                      <mat-option *ngFor="let year of (_yearTypes$ | async)" [value]="year">{{ year }}</mat-option>
+                    <mat-select formControlName="year" required #yearSelect panelClass="custom-select-panel" (openedChange)="onYearSelectOpened($event)">
+                      <div class="mat-select-search">
+                        <input matInput (input)="onYearSearchChange($event)" #yearSearchInput placeholder="Search Year" />
+                      </div>
+                      <mat-option *ngFor="let year of filteredYears" [value]="year">{{ year }}</mat-option>
                     </mat-select>
                     <mat-error *ngIf="budgetForm.get('year')?.hasError('required')">Year is required</mat-error>
                   </mat-form-field>
@@ -34,8 +40,11 @@
                 <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 mb-2">
                   <mat-form-field class="example-full-width" appearance="outline">
                     <mat-label>Month</mat-label>
-                    <mat-select formControlName="month" required>
-                      <mat-option *ngFor="let month of (_monthTypes$ | async)" [value]="month">{{ month }}</mat-option>
+                    <mat-select formControlName="month" required #monthSelect panelClass="custom-select-panel" (openedChange)="onMonthSelectOpened($event)">
+                      <div class="mat-select-search">
+                        <input matInput (input)="onMonthSearchChange($event)" #monthSearchInput placeholder="Search Month" />
+                      </div>
+                      <mat-option *ngFor="let month of filteredMonths" [value]="month">{{ month }}</mat-option>
                     </mat-select>
                     <mat-error *ngIf="budgetForm.get('month')?.hasError('required')">Month is required</mat-error>
                   </mat-form-field>
@@ -59,8 +68,11 @@
                 <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 mb-2">
                   <mat-form-field class="example-full-width" appearance="outline">
                     <mat-label>Products</mat-label>
-                    <mat-select formControlName="products">
-                      <mat-option *ngFor="let product of vehicledataSource.data" [value]="product?.name">
+                    <mat-select formControlName="products" #productSelect panelClass="custom-select-panel" (openedChange)="onProductSelectOpened($event)">
+                      <div class="mat-select-search">
+                        <input matInput (input)="onProductSearchChange($event)" #productSearchInput placeholder="Search Products" />
+                      </div>
+                      <mat-option *ngFor="let product of filteredProducts" [value]="product?.name">
                         {{ product?.name }}
                       </mat-option>
                     </mat-select>
