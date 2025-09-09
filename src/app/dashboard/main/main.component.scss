@@ -1,0 +1,14 @@
+.table-wrapper {
+  max-height: 400px; /* Height of the scrollable area */
+  overflow: auto;
+}
+
+.table-scroll {
+  display: block;
+  width: 100%;
+  overflow-x: auto; /* Horizontal scroll if table is wider */
+}
+
+table.mat-table {
+  min-width: 600px; /* Ensure horizontal scrollbar appears for smaller screens */
+}
