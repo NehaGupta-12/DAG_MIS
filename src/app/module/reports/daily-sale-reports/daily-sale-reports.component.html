@@ -60,22 +60,48 @@
           </mat-form-field>
         </div>
         <!-- Showroom Name -->
-        <!-- Showroom Name -->
         <div class="col-md-3">
           <mat-form-field appearance="outline" class="w-100">
             <mat-label>Select Outlet(s)</mat-label>
-            <mat-select formControlName="name" multiple #outletSelect panelClass="custom-select-panel"
-                        (openedChange)="onOutletSelectOpened($event)">
-              <div class="mat-select-search">
-                <input matInput placeholder="Search Outlet" #outletSearchInput
-                       (input)="onOutletSearchChange($event)" />
+            <mat-select
+              formControlName="name"
+              multiple
+              #outletSelect="matSelect"
+              panelClass="custom-select-panel"
+              (openedChange)="onOutletSelectOpened($event)"
+            >
+              <!-- Trigger showing first (truncated) + (+N more) -->
+              <mat-select-trigger>
+        <span *ngIf="outletSelect.value?.length; else noSelection">
+          {{ outletSelect.value[0] | slice:0:16 }}{{ outletSelect.value[0].length > 16 ? '...' : '' }}
+          <span *ngIf="outletSelect.value.length > 1" class="textcol">
+            (+{{ outletSelect.value.length - 1 }} more)
+          </span>
+        </span>
+                <ng-template #noSelection>
+                  Select...
+                </ng-template>
+              </mat-select-trigger>
+
+              <!-- Search -->
+              <div class="mat-select-search" (click)="$event.stopPropagation()">
+                <input
+                  matInput
+                  placeholder="Search Outlet"
+                  #outletSearchInput
+                  (input)="onOutletSearchChange($event)"
+                />
               </div>
+
+              <!-- Options -->
               <mat-option *ngFor="let outlet of filteredOptions.name" [value]="outlet">
                 {{ outlet }}
               </mat-option>
             </mat-select>
           </mat-form-field>
         </div>
+
+
 
 
         <div class="col-md-3">

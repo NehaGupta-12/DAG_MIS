@@ -8,6 +8,7 @@ import {
   ViewChild
 } from '@angular/core';
 import {
+  FormControl,
   FormGroup,
   FormsModule,
   ReactiveFormsModule,
@@ -35,6 +36,11 @@ import {LoadingService} from "../../Services/loading.service";
 import {map} from "rxjs/operators";
 import {AngularFireDatabase} from "@angular/fire/compat/database";
 import {BehaviorSubject, Observable} from "rxjs";
+import { NgxMatSelectSearchModule } from 'ngx-mat-select-search';
+
+
+
+
 
 @Component({
   selector: 'app-add-daily-sales',
@@ -53,6 +59,8 @@ import {BehaviorSubject, Observable} from "rxjs";
     NgFor,
     NgIf,
     AsyncPipe,
+    NgxMatSelectSearchModule,
+
   ],
   providers: [
     { provide: MAT_DIALOG_DATA, useValue: {} }
@@ -65,7 +73,7 @@ export class AddDailySalesComponent implements OnInit {
 
   isEditMode: boolean = false;
   dailySalesForm: FormGroup;
-  displayedColumns: string[] = ['sku', 'name', 'brand', 'model', 'variant', 'unit', 'avlQuntity','quantity', 'action'];
+  displayedColumns: string[] = ['sku', 'name', 'brand', 'model', 'variant', 'unit', 'quantity', 'action'];
   dealerdataSource = new MatTableDataSource<any>();
   vehicledataSource = new MatTableDataSource<any>();
   addedProducts: any[] = [];
@@ -77,6 +85,13 @@ export class AddDailySalesComponent implements OnInit {
   filteredTowns$: BehaviorSubject<string[]> = new BehaviorSubject<string[]>([]);
   filteredDealers$: BehaviorSubject<any[]> = new BehaviorSubject<any[]>([]);
 
+  // Search controller for towns
+  townFilterCtrl: FormControl = new FormControl();
+
+
+// Full list of towns (before search, after cascading)
+  private allTowns: string[] = [];
+
   @ViewChild('divisionSearchInput') divisionSearchInput!: ElementRef;
   @ViewChild('countrySearchInput') countrySearchInput!: ElementRef;
   @ViewChild('townSearchInput') townSearchInput!: ElementRef;
@@ -84,7 +99,6 @@ export class AddDailySalesComponent implements OnInit {
   _divisionTypes: string[] = [];
   filteredDivisionTypes: string[] = [];
   divisionSearchText: string = '';
-
 
   _countriesTypes: string[] = [];
   filteredCountries: string[] = [];
@@ -95,6 +109,14 @@ export class AddDailySalesComponent implements OnInit {
   townSearchText: string = '';
 
   debounceTimer: any;
+
+  // --- Vehicle Search ---
+  vehicleSearchText: string = '';
+  filteredVehicles: any[] = [];
+
+  // --- Dealer Search ---
+  dealerSearchText: string = '';
+  filteredDealersList: any[] = [];
 
 
   constructor(
@@ -202,13 +224,13 @@ export class AddDailySalesComponent implements OnInit {
     const searchText = this.townSearchText.toLowerCase();
     this.filteredTownTypes = this._townTypes.filter(town => town.toLowerCase().includes(searchText));
   }
-  onTownSearchChange(event: any) {
-    clearTimeout(this.debounceTimer);
-    this.debounceTimer = setTimeout(() => {
-      this.townSearchText = event.target.value;
-      this.filterTownTypes();
-    }, 300);
-  }
+  // onTownSearchChange(event: any) {
+  //   clearTimeout(this.debounceTimer);
+  //   this.debounceTimer = setTimeout(() => {
+  //     this.townSearchText = event.target.value;
+  //     this.filterTownTypes();
+  //   }, 300);
+  // }
   onTownSelectOpened(isOpened: boolean) {
     if (isOpened) {
       this.townSearchText = '';
@@ -231,16 +253,32 @@ export class AddDailySalesComponent implements OnInit {
       this.filteredDealers$.next([]);
     });
 
+    // Division change → update towns
     this.dailySalesForm.get('division')?.valueChanges.subscribe((selectedDivision: string) => {
       const selectedCountry = this.dailySalesForm.get('country')?.value;
-      const towns = [...new Set(
+
+      this.allTowns = [...new Set(
         this.dealerdataSource.data
           .filter(d => d.country === selectedCountry && d.division === selectedDivision)
           .map(d => d.town)
       )];
-      this.filteredTowns$.next(towns);
+
+      this.filteredTowns$.next(this.allTowns);
       this.dailySalesForm.get('town')?.reset();
       this.filteredDealers$.next([]);
+    });
+
+    // 🔍 Search filter for towns
+    this.townFilterCtrl.valueChanges.subscribe((search: string) => {
+      if (!search) {
+        this.filteredTowns$.next(this.allTowns);
+      } else {
+        this.filteredTowns$.next(
+          this.allTowns.filter(t =>
+            t.toLowerCase().includes(search.toLowerCase())
+          )
+        );
+      }
     });
 
     this.dailySalesForm.get('town')?.valueChanges.subscribe((selectedTown: string) => {
@@ -251,6 +289,32 @@ export class AddDailySalesComponent implements OnInit {
       this.filteredDealers$.next(dealers);
     });
   }
+  onTownSearchChange(event: Event) {
+    const searchValue = (event.target as HTMLInputElement).value.toLowerCase();
+    if (!searchValue) {
+      this.filteredTowns$.next(this.allTowns);
+    } else {
+      this.filteredTowns$.next(
+        this.allTowns.filter(town =>
+          town.toLowerCase().includes(searchValue)
+        )
+      );
+    }
+  }
+  onVehicleSearchChange(event: any) {
+    const searchValue = event.target.value.toLowerCase();
+    this.filteredVehicles = this.vehicledataSource.data.filter(v =>
+      v.name.toLowerCase().includes(searchValue)
+    );
+  }
+
+  onDealerSearchChange(event: any) {
+    const searchValue = event.target.value.toLowerCase();
+    this.filteredDealersList = this.dealerdataSource.data.filter(d =>
+      d.name.toLowerCase().includes(searchValue)
+    );
+  }
+
 
   DealerList() {
     this.loadingService.setLoading(true);
@@ -340,68 +404,33 @@ export class AddDailySalesComponent implements OnInit {
     });
   }
 
-  // onDealerChange(event: any) {
-  //   const dealerName = event.value;
-  //   const dealer = this.dealerdataSource.data.find((d: any) => d.name === dealerName);
-  //
-  //   const availableProducts = this.dataSource.data.filter(
-  //     (p: any) => p.dealerId === dealer?.id && p.openingStock > 0
-  //   );
-  //
-  //   this.vehicledataSource.data = availableProducts;
-  //   this.dailySalesForm.get('vehicle')?.reset();
-  // }
   onDealerChange(event: any) {
     const dealerName = event.value;
     const dealer = this.dealerdataSource.data.find((d: any) => d.name === dealerName);
 
-    if (!dealer) {
-      this.vehicledataSource.data = [];
-      this.dailySalesForm.get('products')?.reset();
-      return;
-    }
-
-    // Filter products matching selected dealer and have opening stock
     const availableProducts = this.dataSource.data.filter(
-      (p: any) => p.dealerId === dealer.id && p.openingStock > 0
+      (p: any) => p.dealerId === dealer?.id && p.openingStock > 0
     );
 
-    // Fetch inventory products and patch quantity into availableProducts
-    runInInjectionContext(this.injector, () => {
-      this.inventoryService.getInventoryData(dealer.name).subscribe(inventoryProducts => {
-        // Create SKU to quantity map from inventory
-        const inventoryMap = new Map<string, number>();
-        inventoryProducts.forEach(ip => {
-          inventoryMap.set(ip.sku, ip.quantity);
-        });
+    this.vehicledataSource.data = availableProducts;
 
-        // Patch quantity from inventory into availableProducts
-        const patchedProducts = availableProducts.map(product => ({
-          ...product,
-          avlQuantity: inventoryMap.get(product.sku) || 0
-        }));
-        console.log(patchedProducts)
-        // Assign patched data to Material table data source
-        this.vehicledataSource.data = patchedProducts;
+    // 🔑 also set filteredVehicles initially
+    this.filteredVehicles = [...availableProducts];
 
-        // Reset product selection control
-        this.dailySalesForm.get('products')?.reset();
-
-        // Optional: log for debugging
-        console.log('Patched products with quantity:', patchedProducts);
-      });
-    });
+    this.dailySalesForm.get('vehicle')?.reset();
   }
-  onQuantityChange(product: any) {
-    if (product.quantity > product.avlQuantity) {
-      alert(`Quantity cannot be greater than available quantity (${product.avlQuantity})`);
-      // Clear input temporarily
-      product.quantity = '';
-      setTimeout(() => {
-        product.quantity = null; // or zero, or leave empty string
-      }, 0);
-    }
-  }
+  // onVehicleSearchChange(event: any) {
+  //   const searchValue = event.target.value.toLowerCase();
+  //   if (!searchValue) {
+  //     this.filteredVehicles = [...this.vehicledataSource.data]; // reset to all vehicles
+  //   } else {
+  //     this.filteredVehicles = this.vehicledataSource.data.filter(v =>
+  //       v.name.toLowerCase().includes(searchValue)
+  //     );
+  //   }
+  // }
+
+
 
   isSubmitEnabled(): boolean {
     const formValid =
@@ -439,8 +468,7 @@ export class AddDailySalesComponent implements OnInit {
         model: product.model,
         variant: product.variant,
         unit: product.unit,
-        quantity: 1,
-        avlQuantity: product.avlQuantity,
+        quantity: 1
       }];
       console.log(this.addedProducts);
     }

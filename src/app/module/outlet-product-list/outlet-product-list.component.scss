@@ -29,3 +29,34 @@
 //  text-overflow: ellipsis;  /* Add "..." at the end */
 //  cursor: pointer;          /* Show pointer cursor on hover */
 //}
+
+/* Table container adjustments */
+.responsive_table table.mat-cell {
+  border-collapse: collapse;
+  text-align: center;  /* Center all data in table */
+}
+
+/* Add vertical borders between columns */
+.responsive_table table.mat-cell th,
+.responsive_table table.mat-cell td {
+  border-right: 1px solid #ddd;  /* vertical line */
+  text-align: center;             /* center-align content */
+}
+
+/* Remove last column border to avoid double line at end */
+.responsive_table table.mat-cell th:last-child,
+.responsive_table table.mat-cell td:last-child {
+  border-right: none;
+}
+
+/* Optional: horizontal lines for better separation */
+.responsive_table table.mat-cell tr {
+  border-bottom: 1px solid #ddd;
+}
+
+/* Optional: make header bold and center-aligned */
+.responsive_table table.mat-cell th {
+  font-weight: 600;
+  text-align: center;
+}
+

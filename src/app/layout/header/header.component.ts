@@ -181,6 +181,8 @@ export class HeaderComponent
       this.renderer.addClass(this.document.body, 'submenu-closed');
       localStorage.setItem('collapsed_menu', 'true');
     }
+
+
   }
 
   logout(): void {

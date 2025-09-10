@@ -77,15 +77,15 @@
                   <ng-container matColumnDef="action">
                     <th mat-header-cell *matHeaderCellDef> Action </th>
                     <td mat-cell *matCellDef="let row">
-                      <span [matTooltip]="!authService.hasPermission('Menu List','edit') ? 'No permission' : 'Edit Role'" matTooltipPosition="above">
+                      <span [matTooltip]="!authService.hasPermission('Menu List','edit') ? 'No permission' : 'Edit Menu List'" matTooltipPosition="above">
 
-                      <button mat-icon-button color="primary" (click)="editMenuList(row)" matTooltip="Edit" [disabled]="!authService.hasPermission('Menu List','edit')">
+                      <button mat-icon-button color="primary" (click)="editMenuList(row)"  [disabled]="!authService.hasPermission('Menu List','edit')">
                         <app-feather-icons icon="edit" class="tbl-fav-edit"></app-feather-icons>
                       </button>
                       </span>
 
-                      <span [matTooltip]="!authService.hasPermission('Menu List','delete') ? 'No permission' : 'Delete Role'" matTooltipPosition="above">
-                      <button mat-icon-button color="warn" (click)="deleteMenuList(row)" matTooltip="Delete" [disabled]="!authService.hasPermission('Menu List','delete')">
+                      <span [matTooltip]="!authService.hasPermission('Menu List','delete') ? 'No permission' : 'Delete Menu List'" matTooltipPosition="above">
+                      <button mat-icon-button color="warn" (click)="deleteMenuList(row)"  [disabled]="!authService.hasPermission('Menu List','delete')">
                         <app-feather-icons [icon]="'trash-2'" [class]="'tbl-fav-delete'"></app-feather-icons>
                       </button>
                       </span>

@@ -125,12 +125,12 @@
                 <ng-container matColumnDef="action">
                   <th mat-header-cell *matHeaderCellDef mat-sort-header>Action</th>
                   <td mat-cell *matCellDef="let row">
-                    <span [matTooltip]="!authService.hasPermission('Outlet/Dealer Product List','edit') ? 'No permission' : 'Edit Role'" matTooltipPosition="above">
+                    <span [matTooltip]="!authService.hasPermission('Outlet/Dealer Product List','edit') ? 'No permission' : 'Edit Outlet Product list'" matTooltipPosition="above">
                     <button mat-icon-button color="accent" (click)="editloadOutletProduct(row)" [disabled]="!authService.hasPermission('Outlet/Dealer Product List','edit')">
                       <app-feather-icons [icon]="'edit'" [class]="'tbl-fav-edit'"></app-feather-icons>
                     </button>
                          </span>
-                    <span [matTooltip]="!authService.hasPermission('Outlet/Dealer Product List','delete') ? 'No permission' : 'Delete Role'" matTooltipPosition="above">
+                    <span [matTooltip]="!authService.hasPermission('Outlet/Dealer Product List','delete') ? 'No permission' : 'Delete Outlet Product list'" matTooltipPosition="above">
 
                     <button mat-icon-button color="accent" (click)="deleteOutletProduct(row)" [disabled]="!authService.hasPermission('Outlet/Dealer Product List','delete')">
                       <app-feather-icons [icon]="'trash-2'" [class]="'tbl-fav-delete'"></app-feather-icons>
