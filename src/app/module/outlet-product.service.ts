@@ -57,13 +57,12 @@ export class OutletProductService {
       createdAt: new Date(),
       // Add any additional fields as needed
     };
-    console.log(grnData)
     return this.firestore
       .collection(this.collectionName)  // main collection
       .doc(grnData.outletId)        // outletID (document ID)
       .collection('products')// sub-collection for products
-      .doc(grnData.sku)    //adding docId as Sku to avoid duplicate entries
-      .set(payload)                 // add product to the sub-collection
+      .doc(grnData.sku)
+      .set(payload)
 
   }
   addInventoryProduct(inventoryData: any): Promise<any> {

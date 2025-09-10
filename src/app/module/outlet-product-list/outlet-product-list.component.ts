@@ -63,10 +63,10 @@ export class OutletProductListComponent implements OnInit {
 
   displayedColumns: string[] = [
     'serial',
+    'outlet',
     'name',
     'sku',
     'variant',
-    'outlet',
     'openingStock',
     'remark',
     'action'
