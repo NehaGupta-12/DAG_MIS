@@ -255,17 +255,63 @@ export class AddGRNComponent implements OnInit{
     });
   }
 
+  // onDealerChange(event: any) {
+  //   const dealerName = event.value;
+  //   const dealer = this.dealerdataSource.data.find((d: any) => d.name === dealerName);
+  //   runInInjectionContext(this.injector, () => {
+  //   this.inventoryService.getInventoryData(dealer.name).subscribe(inventoryProducts => {
+  //     console.log(inventoryProducts)
+  //   })
+  //   })
+  //   const availableProducts = this.dataSource.data.filter(
+  //     (p: any) => p.dealerId === dealer.id && p.openingStock > 0
+  //   );
+  //
+  //   this.vehicledataSource.data = availableProducts;
+  //   this.grnForm.get('products')?.reset();
+  // }
   onDealerChange(event: any) {
     const dealerName = event.value;
     const dealer = this.dealerdataSource.data.find((d: any) => d.name === dealerName);
 
+    if (!dealer) {
+      this.vehicledataSource.data = [];
+      this.grnForm.get('products')?.reset();
+      return;
+    }
+
+    // Filter products matching selected dealer and have opening stock
     const availableProducts = this.dataSource.data.filter(
       (p: any) => p.dealerId === dealer.id && p.openingStock > 0
     );
 
-    this.vehicledataSource.data = availableProducts;
-    this.grnForm.get('products')?.reset();
+    // Fetch inventory products and patch quantity into availableProducts
+    runInInjectionContext(this.injector, () => {
+      this.inventoryService.getInventoryData(dealer.name).subscribe(inventoryProducts => {
+        // Create SKU to quantity map from inventory
+        const inventoryMap = new Map<string, number>();
+        inventoryProducts.forEach(ip => {
+          inventoryMap.set(ip.sku, ip.quantity);
+        });
+
+        // Patch quantity from inventory into availableProducts
+        const patchedProducts = availableProducts.map(product => ({
+          ...product,
+          avlQuantity: inventoryMap.get(product.sku) || 0
+        }));
+        console.log(patchedProducts)
+        // Assign patched data to Material table data source
+        this.vehicledataSource.data = patchedProducts;
+
+        // Reset product selection control
+        this.grnForm.get('products')?.reset();
+
+        // Optional: log for debugging
+        console.log('Patched products with quantity:', patchedProducts);
+      });
+    });
   }
+
 
   isSubmitEnabled(): boolean {
     const formValid = this.grnForm.get('dealerOutlet')?.valid;
@@ -299,7 +345,8 @@ export class AddGRNComponent implements OnInit{
         model: product.model,
         variant: product.variant,
         unit: product.unit,
-        quantity: 1
+        quantity: '',
+        avlQuantity: product.avlQuantity,
       }];
     }
 

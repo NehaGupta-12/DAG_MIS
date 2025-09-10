@@ -1,0 +1,74 @@
+<mat-card class="container">
+  <div class="d-flex justify-content-between gap-2 mt-2">
+    <div>
+      <button mat-raised-button color="warn" (click)="close()" type="button">
+        <mat-icon>keyboard_backspace</mat-icon>&nbsp;&nbsp;Back
+      </button>
+    </div>
+    <div></div>
+  </div>
+
+  <div id="printableArea">
+    <h5 class="text-center mt-1">Daily Stock Details</h5>
+
+    <!-- Master Data Table -->
+    <div *ngIf="data">
+      <table style="border: 1px solid #ddd; width: 100%; border-collapse: collapse; text-align: left">
+        <tr>
+          <th style="border: 1px solid #ddd; padding: 8px; width: 20%;">Date:</th>
+          <td style="border: 1px solid #ddd; padding: 8px;">
+            {{ data.createdAt ? (data.createdAt.toDate() | date: 'dd/MM/yyyy') : '' }}
+          </td>
+        </tr>
+        <tr>
+          <th style="border: 1px solid #ddd; padding: 8px;">Brand:</th>
+          <td style="border: 1px solid #ddd; padding: 8px;">{{ data.brand }}</td>
+        </tr>
+        <tr>
+          <th style="border: 1px solid #ddd; padding: 8px;">Country:</th>
+          <td style="border: 1px solid #ddd; padding: 8px;">{{ data.country }}</td>
+        </tr>
+        <tr>
+          <th style="border: 1px solid #ddd; padding: 8px;">Dealer Outlet:</th>
+          <td style="border: 1px solid #ddd; padding: 8px;">{{ data.dealerOutlet }}</td>
+        </tr>
+        <tr>
+          <th style="border: 1px solid #ddd; padding: 8px;">Division:</th>
+          <td style="border: 1px solid #ddd; padding: 8px;">{{ data.division }}</td>
+        </tr>
+        <tr>
+          <th style="border: 1px solid #ddd; padding: 8px;">Model:</th>
+          <td style="border: 1px solid #ddd; padding: 8px;">{{ data.model }}</td>
+        </tr>
+        <tr>
+          <th style="border: 1px solid #ddd; padding: 8px;">Name:</th>
+          <td style="border: 1px solid #ddd; padding: 8px;">{{ data.name }}</td>
+        </tr>
+        <tr>
+          <th style="border: 1px solid #ddd; padding: 8px;">Quantity:</th>
+          <td style="border: 1px solid #ddd; padding: 8px;">{{ data.quantity }}</td>
+        </tr>
+        <tr>
+          <th style="border: 1px solid #ddd; padding: 8px;">SKU:</th>
+          <td style="border: 1px solid #ddd; padding: 8px;">{{ data.sku }}</td>
+        </tr>
+        <tr>
+          <th style="border: 1px solid #ddd; padding: 8px;">Status:</th>
+          <td style="border: 1px solid #ddd; padding: 8px;">{{ data.status }}</td>
+        </tr>
+        <tr>
+          <th style="border: 1px solid #ddd; padding: 8px;">Town:</th>
+          <td style="border: 1px solid #ddd; padding: 8px;">{{ data.town }}</td>
+        </tr>
+        <tr>
+          <th style="border: 1px solid #ddd; padding: 8px;">Unit:</th>
+          <td style="border: 1px solid #ddd; padding: 8px;">{{ data.unit }}</td>
+        </tr>
+        <tr>
+          <th style="border: 1px solid #ddd; padding: 8px;">Variant:</th>
+          <td style="border: 1px solid #ddd; padding: 8px;">{{ data.variant }}</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+</mat-card>
