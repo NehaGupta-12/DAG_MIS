@@ -13,6 +13,7 @@
           <div class="header">
             <h2>{{ data?.id ? 'Edit Outlet / Dealer' : 'Add Outlet / Dealer' }}</h2>
           </div>
+<!--          {{dealerForm.value | json}}-->
           <div class="body">
             <form class="register-form m-4" [formGroup]="dealerForm!" (ngSubmit)="submitForm()">
               <div class="row">
@@ -24,6 +25,18 @@
                     @if (dealerForm?.get('name')?.hasError('required')) {
                       <mat-error>
                         Name is required
+                      </mat-error>
+                    }
+                  </mat-form-field>
+                </div>
+                <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 mb-2">
+                  <mat-form-field class="example-full-width" appearance="outline">
+                    <mat-label>Outlet Code</mat-label>
+                    <input matInput formControlName="outletCode" required>
+                    <!--                    <mat-icon class="material-icons-outlined color-icon p-3" matSuffix>face</mat-icon>-->
+                    @if (dealerForm?.get('outletCode')?.hasError('required')) {
+                      <mat-error>
+                        Outlet Code is required
                       </mat-error>
                     }
                   </mat-form-field>
@@ -44,29 +57,6 @@
                     }
                   </mat-form-field>
                 </div>
-
-              </div>
-<!--              <div class="row">-->
-<!--                <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 mb-2">-->
-<!--                  <mat-form-field class="example-full-width" appearance="outline">-->
-<!--                    <mat-label>Category</mat-label>-->
-<!--                    <mat-select formControlName="category" required>-->
-<!--                      <mat-option *ngFor="let outletCategory of (_outletCategoryTypes$ | async)" [value]="outletCategory">-->
-<!--                        {{ outletCategory }}-->
-<!--                      </mat-option>-->
-<!--                    </mat-select>-->
-<!--                    &lt;!&ndash;                    <input matInput formControlName="address" required>&ndash;&gt;-->
-<!--                    &lt;!&ndash;                    <mat-icon class="material-icons-outlined color-icon p-3" matSuffix>face</mat-icon>&ndash;&gt;-->
-<!--                    @if (dealerForm?.get('category')?.hasError('required')) {-->
-<!--                      <mat-error>-->
-<!--                        Category is required-->
-<!--                      </mat-error>-->
-<!--                    }-->
-<!--                  </mat-form-field>-->
-<!--                </div>-->
-<!--              </div>-->
-              <div class="row">
-
                 <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 mb-2">
                   <mat-form-field class="example-full-width" appearance="outline">
                     <mat-label>Division</mat-label>
@@ -101,11 +91,7 @@
                     }
                   </mat-form-field>
                 </div>
-
-              </div>
-              <div class="row">
-
-                <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 mb-2">
+                <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 mb-2">
                   <mat-form-field class="example-full-width" appearance="outline">
                     <mat-label>Town</mat-label>
                     <mat-select formControlName="town" required #townSelect panelClass="custom-select-panel" (openedChange)="onTownSelectOpened($event)">

@@ -15,6 +15,7 @@
             </div>
           </div>
           <div class="body">
+<!--            {{grnForm.value |json}}-->
             <form class="register-form m-4" [formGroup]="grnForm!" (ngSubmit)="submitForm()">
               <div class="row">
                 <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 mb-2">
@@ -36,16 +37,31 @@
                 <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 mb-2">
                   <mat-form-field class="example-full-width" appearance="outline">
                     <mat-label>Products</mat-label>
-                    <mat-select required formControlName="products" #productSelect panelClass="custom-select-panel" (openedChange)="onProductSelectOpened($event)">
+                    <mat-select
+                      required
+                      formControlName="products"
+                      #productSelect
+                      panelClass="custom-select-panel"
+                      (openedChange)="onProductSelectOpened($event)"
+                      multiple>
+
                       <div class="mat-select-search">
-                        <input matInput (input)="onProductSearchChange($event)" #productSearchInput placeholder="Search Products" />
+                        <input
+                          matInput
+                          (input)="onProductSearchChange($event)"
+                          #productSearchInput
+                          placeholder="Search Products" />
                       </div>
-                      <mat-option *ngFor="let product of filteredProducts" [value]="product?.name" [disabled]="product?.disabled">
+
+                      <mat-option *ngFor="let product of filteredProducts"
+                                  [value]="product"
+                                  [disabled]="product?.disabled">
                         {{ product?.name }}
                       </mat-option>
                     </mat-select>
                   </mat-form-field>
                 </div>
+
               </div>
               <div class="row">
                 <div class="col-lg-12">

@@ -29,34 +29,29 @@
           </mat-form-field>
         </div>
 
-        <!-- Division -->
-                <div class="col-md-2">
-                  <mat-form-field appearance="outline" class="w-100">
-                    <mat-label>Select Division</mat-label>
-                    <mat-select formControlName="division" #divisionSelect panelClass="custom-select-panel"
-                                (openedChange)="onDivisionSelectOpened($event)">
-                      <div class="mat-select-search">
-                        <input matInput placeholder="Search Division"
-                               #divisionSearchInput
-                               (input)="onDivisionSearchChange($event)" />
-                      </div>
-                      <mat-option *ngFor="let item of filteredOptions.division" [value]="item">
-                        {{ item }}
-                      </mat-option>
-                    </mat-select>
-                  </mat-form-field>
-                </div>
+        <div class="col-md-2" *ngIf="userRole !== 'CEO'">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Select Division</mat-label>
+            <mat-select formControlName="division" #divisionSelect panelClass="custom-select-panel"
+                        (openedChange)="onDivisionSelectOpened($event)">
+              <div class="mat-select-search">
+                <input matInput placeholder="Search Division" #divisionSearchInput
+                       (input)="onDivisionSearchChange($event)" />
+              </div>
+              <mat-option *ngFor="let item of filteredOptions.division" [value]="item">
+                {{ item }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
 
-        <!-- Town -->
-        <div class="col-md-2">
+        <div class="col-md-2" *ngIf="userRole !== 'CEO'">
           <mat-form-field appearance="outline" class="w-100">
             <mat-label>Select Town</mat-label>
             <mat-select formControlName="town" #townSelect panelClass="custom-select-panel"
                         (openedChange)="onTownSelectOpened($event)">
               <div class="mat-select-search">
-                <input matInput placeholder="Search Town"
-                       #townSearchInput
-                       (input)="onTownSearchChange($event)" />
+                <input matInput placeholder="Search Town" #townSearchInput (input)="onTownSearchChange($event)" />
               </div>
               <mat-option *ngFor="let item of filteredOptions.town" [value]="item">
                 {{ item }}
@@ -65,15 +60,13 @@
           </mat-form-field>
         </div>
 
-        <!-- Showroom Name -->
-        <div class="col-md-4">
+        <div class="col-md-4" *ngIf="userRole !== 'CEO'">
           <mat-form-field appearance="outline" class="w-100">
             <mat-label>Select Outlet</mat-label>
             <mat-select formControlName="name" multiple #outletSelect panelClass="custom-select-panel"
                         (openedChange)="onOutletSelectOpened($event)">
               <div class="mat-select-search">
-                <input matInput placeholder="Search Outlet"
-                       #outletSearchInput
+                <input matInput placeholder="Search Outlet" #outletSearchInput
                        (input)="onOutletSearchChange($event)" />
               </div>
               <mat-option *ngFor="let dealer of filteredOptions.name" [value]="dealer">
@@ -148,47 +141,62 @@
 <!--      </div>-->
 
       <div style="overflow-x: auto; width: 100%">
-        <table mat-table [dataSource]="finalTableData" class="mat-elevation-z1 w-100 custom-bordered" style="min-width: max-content;">
+        <table mat-table [dataSource]="finalTableData" class="mat-elevation-z1 w-100 custom-bordered"
+               style="min-width: max-content;">
 
-          <!-- Country -->
           <ng-container matColumnDef="country">
             <th mat-header-cell *matHeaderCellDef> Country </th>
             <td mat-cell *matCellDef="let row"> {{ row.country }} </td>
           </ng-container>
 
-          <!-- Division -->
-          <ng-container matColumnDef="division">
+          <ng-container matColumnDef="division" *ngIf="userRole !== 'CEO'">
             <th mat-header-cell *matHeaderCellDef> Division </th>
             <td mat-cell *matCellDef="let row"> {{ row.division }} </td>
           </ng-container>
 
-          <!-- Town -->
-          <ng-container matColumnDef="town">
+          <ng-container matColumnDef="town" *ngIf="userRole !== 'CEO'">
             <th mat-header-cell *matHeaderCellDef> Town </th>
             <td mat-cell *matCellDef="let row"> {{ row.town }} </td>
           </ng-container>
 
-          <!-- Outlet Name -->
-          <ng-container matColumnDef="name">
+          <ng-container matColumnDef="name" *ngIf="userRole !== 'CEO'">
             <th mat-header-cell *matHeaderCellDef> Outlet </th>
             <td mat-cell *matCellDef="let row"> {{ row.name }} </td>
           </ng-container>
 
-          <!-- Dynamic Product Columns -->
           <ng-container *ngFor="let col of productHeaders" [matColumnDef]="col">
             <th mat-header-cell *matHeaderCellDef> {{ col }} </th>
             <td mat-cell *matCellDef="let row"> {{ row[col] || 0 }} </td>
           </ng-container>
 
-          <!-- Total Column -->
           <ng-container matColumnDef="total">
             <th mat-header-cell *matHeaderCellDef> Total </th>
             <td mat-cell *matCellDef="let row"> {{ row.total }} </td>
           </ng-container>
 
-          <!-- Table rows -->
           <tr mat-header-row *matHeaderRowDef="tableColumns"></tr>
           <tr mat-row *matRowDef="let row; columns: tableColumns;"></tr>
+
+          <tr mat-footer-row *matFooterRowDef="footerColumns" [ngClass]="{'hidden-footer': userRole === 'CEO'}"></tr>
+
+          <ng-container matColumnDef="mergedTotalFooter">
+            <td mat-footer-cell *matFooterCellDef [colSpan]="4" style="text-align: center;">
+              <b>Total</b>
+            </td>
+          </ng-container>
+
+          <ng-container *ngFor="let col of productHeaders" [matColumnDef]="'footer_' + col">
+            <td mat-footer-cell *matFooterCellDef>
+              <b>{{ totalRow[col] || 0 }}</b>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="footer_total">
+            <td mat-footer-cell *matFooterCellDef>
+              <b>{{ totalRow.total || 0 }}</b>
+            </td>
+          </ng-container>
+
         </table>
       </div>
 

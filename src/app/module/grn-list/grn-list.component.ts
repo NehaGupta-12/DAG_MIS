@@ -25,6 +25,7 @@ import {GrnService} from "../grn.service";
 import {Validators} from "@angular/forms";
 import {LoadingService} from "../../Services/loading.service";
 import {AuthService} from "../../authentication/auth.service";
+import {GrnViewComponent} from "../grn-view/grn-view.component";
 
 @Component({
   selector: 'app-grn-list',
@@ -186,6 +187,14 @@ export class GRNListComponent implements OnInit {
     return row.items
       .map((i: any) => i.quantity || 0)
       .reduce((acc: number, val: number) => acc + val, 0);
+  }
+
+  viewGrn(row: any) {
+    this.dialog.open(GrnViewComponent, {
+      width: '900px',
+      height: '600px',
+      data: row, // pass row data to dialog
+    });
   }
 
 }

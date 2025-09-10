@@ -110,9 +110,9 @@ export class AddOutletProductComponent implements OnInit {
     });
 
     this.grnForm = this.fb.group({
-      products: ['', [Validators.required]],
+      products: [[], [Validators.required]],
       dealerOutlet: ['', [Validators.required]],
-      remark: ['', [Validators.required]],
+      remark: [''],
     });
   }
 
@@ -290,29 +290,49 @@ export class AddOutletProductComponent implements OnInit {
     return !!dealerValue && remarkValid && hasProducts && allQuantitiesValid;
   }
 
+  // addProduct() {
+  //   const selectedProductName = this.grnForm.get('products')?.value;
+  //   if (!selectedProductName) {
+  //     Swal.fire('Error', 'Please select a product before adding.', 'error');
+  //     return;
+  //   }
+  //
+  //   const product = this.vehicledataSource.data.find(p => p.name === selectedProductName);
+  //   if (product) {
+  //     const exists = this.addedProducts.some(p => p.id === product.id);
+  //     if (exists) {
+  //       Swal.fire('Info', 'This product is already added.', 'info');
+  //       return;
+  //     }
+  //
+  //     // openingStock null → input will show empty
+  //     this.addedProducts = [
+  //       ...this.addedProducts,
+  //       { ...product, openingStock: null, __isNew: true }
+  //     ];
+  //   }
+  //
+  //   this.grnForm.get('products')?.reset();
+  // }
   addProduct() {
-    const selectedProductName = this.grnForm.get('products')?.value;
-    if (!selectedProductName) {
-      Swal.fire('Error', 'Please select a product before adding.', 'error');
+    const selectedProducts = this.grnForm.get('products')?.value || [];
+    if (!selectedProducts.length) {
+      Swal.fire('Error', 'Please select at least one product before adding.', 'error');
       return;
     }
 
-    const product = this.vehicledataSource.data.find(p => p.name === selectedProductName);
-    if (product) {
+    selectedProducts.forEach((product: any) => {
       const exists = this.addedProducts.some(p => p.id === product.id);
-      if (exists) {
-        Swal.fire('Info', 'This product is already added.', 'info');
-        return;
+      if (!exists) {
+        this.addedProducts = [
+          ...this.addedProducts,
+          { ...product, openingStock: null, __isNew: true }
+        ];
       }
+    });
 
-      // openingStock null → input will show empty
-      this.addedProducts = [
-        ...this.addedProducts,
-        { ...product, openingStock: null, __isNew: true }
-      ];
-    }
-
-    this.grnForm.get('products')?.reset();
+    // reset selection
+    this.grnForm.get('products')?.reset([]);
   }
 
 // ✅ Block decimals and negatives
@@ -358,6 +378,106 @@ export class AddOutletProductComponent implements OnInit {
     this.addedProducts = [...this.addedProducts];
   }
 
+  // async submitForm() {
+  //   try {
+  //     const formValues = this.grnForm.getRawValue();
+  //     delete formValues.products;
+  //
+  //     const isMainFormValid =
+  //       !!formValues.dealerOutlet &&
+  //       this.grnForm.get('remark')?.valid;
+  //
+  //     if (!isMainFormValid || this.addedProducts.length === 0) {
+  //       Swal.fire('Error', 'Please fill all required fields and add at least one product.', 'error');
+  //       return;
+  //     }
+  //
+  //     const result = await Swal.fire({
+  //       title: this.isEditMode ? 'Update Outlet Product Details?' : 'Add Outlet Product Details?',
+  //       text: 'Are you sure you want to proceed?',
+  //       icon: 'question',
+  //       showCancelButton: true,
+  //       confirmButtonText: 'Yes',
+  //       cancelButtonText: 'No'
+  //     });
+  //
+  //     if (!result.isConfirmed) return;
+  //
+  //     const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+  //     const username = userData.userName || 'Unknown User';
+  //     const timestamp = Date.now();
+  //
+  //     const selectedName = (formValues.dealerOutlet || '').trim();
+  //     const selectedDealer =
+  //       this.allDealers.find((d: any) => (d.name || '').trim() === selectedName) ||
+  //       this.dealers.find((d: any) => (d.name || '').trim() === selectedName);
+  //     const dealerId = selectedDealer?.id ?? '';
+  //
+  //     const basePayload = {
+  //       ...formValues,
+  //       dealerId,
+  //       createdAt: timestamp,
+  //       createdBy: username,
+  //     };
+  //
+  //     runInInjectionContext(this.injector, async () => {
+  //       this.loadingService.setLoading(true);
+  //       const productsData: any = [];
+  //       for (const product of this.addedProducts) {
+  //         const mProduct = {
+  //           ...basePayload,
+  //           sku: product.sku ?? '',
+  //           name: product.name ?? '',
+  //           brand: product.brand ?? '',
+  //           model: product.model ?? '',
+  //           variant: product.variant ?? product.varient ?? '',
+  //           unit: product.unit ?? '',
+  //           openingStock: product.openingStock ?? 0,
+  //           quantity: product.openingStock ?? 0,
+  //         };
+  //         productsData.push(mProduct);
+  //       }
+  //
+  //       try {
+  //         if (this.isEditMode && this.editProductId) {
+  //           await this.outletProductService.updateOutletProduct(
+  //             dealerId,
+  //             this.editProductId,
+  //             productsData[0]
+  //           );
+  //         } else {
+  //           if (!this.isEditMode) {
+  //             productsData.forEach((product: any) => {
+  //               this.outletProductService.addOutletProduct({
+  //                 ...product,
+  //                 outletId: dealerId
+  //               });
+  //               this.outletProductService.addInventoryProduct({
+  //                 ...product,
+  //                 outletId: dealerId
+  //               });
+  //             });
+  //           }
+  //         }
+  //
+  //         Swal.fire(
+  //           this.isEditMode ? 'Updated!' : 'Added!',
+  //           `Outlet Product Details ${this.isEditMode ? 'updated' : 'added'} successfully.`,
+  //           'success'
+  //         );
+  //         this.goBack();
+  //       } catch (err) {
+  //         console.error('Error in submit:', err);
+  //         Swal.fire('Error', 'Something went wrong while submitting.', 'error');
+  //       } finally {
+  //         this.loadingService.setLoading(false);
+  //       }
+  //     });
+  //   } catch (err) {
+  //     console.error('Global submit error:', err);
+  //     Swal.fire('Error', 'Something went wrong while submitting.', 'error');
+  //   }
+  // }
   async submitForm() {
     try {
       const formValues = this.grnForm.getRawValue();
@@ -399,7 +519,7 @@ export class AddOutletProductComponent implements OnInit {
         createdAt: timestamp,
         createdBy: username,
       };
-
+      console.log(basePayload)
       runInInjectionContext(this.injector, async () => {
         this.loadingService.setLoading(true);
         const productsData: any = [];
@@ -420,11 +540,20 @@ export class AddOutletProductComponent implements OnInit {
 
         try {
           if (this.isEditMode && this.editProductId) {
+            // Update outlet product
             await this.outletProductService.updateOutletProduct(
               dealerId,
               this.editProductId,
               productsData[0]
             );
+
+            // ✅ Update only openingStock in inventory
+            await this.outletProductService.updateInventoryProduct(
+              basePayload?.dealerOutlet,
+              productsData[0].sku,
+              { openingStock: productsData[0].openingStock }
+            );
+
           } else {
             if (!this.isEditMode) {
               productsData.forEach((product: any) => {
@@ -458,6 +587,8 @@ export class AddOutletProductComponent implements OnInit {
       Swal.fire('Error', 'Something went wrong while submitting.', 'error');
     }
   }
+
+
 
   goBack() {
     this.dealer.back();
