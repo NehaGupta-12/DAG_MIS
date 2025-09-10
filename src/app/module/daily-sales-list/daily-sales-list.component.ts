@@ -63,6 +63,7 @@ export class DailySalesListComponent implements OnInit {
     { def: 'sku', label: 'Sku' },
     { def: 'variant', label: 'Variant' },
     { def: 'dealerOutlet', label: 'Dealer Outlet' },
+    { def: 'createdAt', label: 'CreatedAt' },
     { def: 'quantity', label: 'Quantity' },
   ];
 
@@ -73,6 +74,7 @@ export class DailySalesListComponent implements OnInit {
     'variant',
     'dealerOutlet',
     'quantity',
+    'createdAt',
     'action'
   ];
 
