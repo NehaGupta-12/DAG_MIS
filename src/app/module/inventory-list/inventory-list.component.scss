@@ -1,25 +1,57 @@
-/* Make form field compact */
-.compact-select {
-  width: 300px;               /* reduced width */
-  font-size: 13px;            /* smaller font */
+///* Make form field compact */
+//.compact-select {
+//  width: 300px;               /* reduced width */
+//  font-size: 13px;            /* smaller font */
+//}
+//
+//.compact-select .mat-mdc-form-field-flex {
+//  height: 32px;               /* reduced height */
+//  padding: 0 6px !important;  /* less padding */
+//  border-radius: 6px;         /* smoother corners */
+//}
+//
+//.compact-select .mat-mdc-text-field-wrapper {
+//  min-height: 32px;           /* override Material default height */
+//}
+//
+///* Make dropdown panel smooth & compact */
+//.mat-mdc-select-panel {
+//  padding: 0 !important;
+//}
+//
+//.mat-mdc-option {
+//  font-size: 13px;
+//  min-height: 32px;           /* smaller option rows */
+//}
+//
+//
+//
+/* Table container adjustments */
+.responsive_table table.mat-cell {
+  border-collapse: collapse;
+  text-align: center;  /* Center all data in table */
 }
 
-.compact-select .mat-mdc-form-field-flex {
-  height: 32px;               /* reduced height */
-  padding: 0 6px !important;  /* less padding */
-  border-radius: 6px;         /* smoother corners */
+/* Add vertical borders between columns */
+.responsive_table table.mat-cell th,
+.responsive_table table.mat-cell td {
+  border-right: 1px solid #ddd;  /* vertical line */
+  text-align: center;             /* center-align content */
 }
 
-.compact-select .mat-mdc-text-field-wrapper {
-  min-height: 32px;           /* override Material default height */
+/* Remove last column border to avoid double line at end */
+.responsive_table table.mat-cell th:last-child,
+.responsive_table table.mat-cell td:last-child {
+  border-right: none;
 }
 
-/* Make dropdown panel smooth & compact */
-.mat-mdc-select-panel {
-  padding: 0 !important;
+/* Optional: horizontal lines for better separation */
+.responsive_table table.mat-cell tr {
+  border-bottom: 1px solid #ddd;
 }
 
-.mat-mdc-option {
-  font-size: 13px;
-  min-height: 32px;           /* smaller option rows */
+/* Optional: make header bold and center-aligned */
+.responsive_table table.mat-cell th {
+  font-weight: 600;
+  text-align: center;
 }
