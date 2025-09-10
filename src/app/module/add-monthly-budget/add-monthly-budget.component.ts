@@ -47,10 +47,12 @@ export class AddMonthlyBudgetComponent implements OnInit {
   dataSource = new MatTableDataSource<any>();
   addedProducts: any[] = [];
   vehicledataSource = new MatTableDataSource<any>();
+  budgetdataSource = new MatTableDataSource<any>();
 
   _countriesTypes$!: Observable<string[]>;
   _yearTypes$!: Observable<string[]>;
   _monthTypes$!: Observable<string[]>;
+  disabledMonths: string[] = [];
 
 
   @ViewChild('countrySearchInput') countrySearchInput!: ElementRef;
@@ -121,20 +123,21 @@ export class AddMonthlyBudgetComponent implements OnInit {
 
     // Form
     this.budgetForm = this.fb.group({
-      products: [''],
+      country: ['', Validators.required],
+      year: ['', Validators.required],
+      month: ['', Validators.required],
       period: this.fb.group({
         start: ['', Validators.required],
         end: ['', Validators.required],
       }),
-      country: ['', Validators.required],
-      year: ['', Validators.required],
-      month: ['', Validators.required]
+      products: [[]],   // multiple values
     });
   }
 
   ngOnInit() {
     this.loadProducts();
     this.loadBudgets();
+    this.loadbudget();
 
     runInInjectionContext(this.injector, () => {
       this.budgetForm.get('month')?.valueChanges.subscribe(() => this.updatePeriod());
@@ -142,7 +145,79 @@ export class AddMonthlyBudgetComponent implements OnInit {
     });
 
     this.route.queryParams.subscribe(params => {
-      if (params['docId']) this.loadEditMode(params);
+      if (params['data']) {
+        const rowData = JSON.parse(params['data']);
+        this.isEditMode = true;
+        this.editingDocId = rowData.docId;
+
+        // 🔄 Convert Firestore timestamps to Date
+        let startDate: Date | null = null;
+        let endDate: Date | null = null;
+
+        if (rowData.period?.start?.seconds) {
+          startDate = new Date(rowData.period.start.seconds * 1000);
+        }
+        if (rowData.period?.end?.seconds) {
+          endDate = new Date(rowData.period.end.seconds * 1000);
+        }
+
+        this.budgetForm.patchValue({
+          country: rowData.country,
+          year: rowData.year,
+          month: rowData.month,
+          period: { start: startDate, end: endDate }
+        });
+
+        // ✅ prefill products into table
+        if (rowData.products && rowData.products.length > 0) {
+          this.addedProducts = rowData.products.map((p: any) => ({
+            name: p.model,
+            target: p.targetQuantity,
+            country: rowData.country,
+            year: rowData.year,
+            month: rowData.month
+          }));
+
+          // ✨ Set the selected products in the form control
+          const selectedProductModels = rowData.products.map((p: any) => p.model);
+          this.budgetForm.get('products')?.setValue(selectedProductModels);
+        }
+      }
+    });
+
+    this.budgetForm.get('year')?.valueChanges.subscribe((selectedYear: string) => {
+      if (selectedYear) {
+        this.updateDisabledMonths(selectedYear);
+      } else {
+        this.disabledMonths = [];
+      }
+    });
+  }
+
+  updateDisabledMonths(year: string) {
+    if (!this.budgetdataSource?.data) return;
+
+    const usedMonths = this.budgetdataSource.data
+      .filter((row: any) => row.year === year)
+      .map((row: any) => row.month);
+
+    this.disabledMonths = usedMonths;
+  }
+
+
+  loadbudget() {
+    this.loadingService.setLoading(true);
+    runInInjectionContext(this.injector, () => {
+      this.monthlybudgetService.getBudgetList().subscribe({
+        next: (data: any[]) => {
+          console.log("Raw Data:", data);
+          this.budgetdataSource.data = data;
+          this.loadingService.setLoading(false);
+        },
+        error: () => {
+          this.loadingService.setLoading(false);
+        },
+      });
     });
   }
 
@@ -252,20 +327,67 @@ export class AddMonthlyBudgetComponent implements OnInit {
     }];
   }
 
+  private simplifyModelName(model: string): string {
+    if (!model) return '';
+
+    // Special cases first
+    if (model.toUpperCase().startsWith('PULSAR')) return 'PULSAR 180';
+    if (model.toUpperCase().startsWith('DISC')) return 'DISCOVER';
+    if (model.toUpperCase().startsWith('RE MAXIMA')) return 'MAXIMA';
+    if (model.toUpperCase().startsWith('CT125')) return 'CT125';
+    if (model.toUpperCase().startsWith('RE4S')) return 'RE4S';
+
+    // General case: capture BM + digits
+    const match = model.match(/BM\d+/i);
+    return match ? match[0].toUpperCase() : model;
+  }
+
+  // loadProducts() {
+  //   this.loadingService.setLoading(true);
+  //   runInInjectionContext(this.injector, () => {
+  //     this.productService.getProductList().subscribe({
+  //       next: (data) => {
+  //         console.log("data", data)
+  //         this.vehicledataSource.data = data;
+  //         this._allProducts = data; // Populate the new array
+  //         this.filteredProducts = [...data]; // Initialize the filtered list
+  //         this.loadingService.setLoading(false);
+  //       },
+  //       error: () => this.loadingService.setLoading(false)
+  //     });
+  //   });
+  // }
+
+
   loadProducts() {
     this.loadingService.setLoading(true);
     runInInjectionContext(this.injector, () => {
       this.productService.getProductList().subscribe({
         next: (data) => {
-          this.vehicledataSource.data = data;
-          this._allProducts = data; // Populate the new array
-          this.filteredProducts = [...data]; // Initialize the filtered list
+          console.log("raw data", data);
+
+          // ✅ Deduplicate based on simplified model
+          const uniqueModelsMap = new Map<string, any>();
+          data.forEach((prod) => {
+            const simpleName = this.simplifyModelName(prod.model);
+            if (!uniqueModelsMap.has(simpleName)) {
+              uniqueModelsMap.set(simpleName, {
+                ...prod,
+                name: simpleName // override name for dropdown
+              });
+            }
+          });
+
+          this._allProducts = Array.from(uniqueModelsMap.values());
+          this.filteredProducts = [...this._allProducts];
+          this.vehicledataSource.data = data; // keep raw data if needed for details
           this.loadingService.setLoading(false);
         },
         error: () => this.loadingService.setLoading(false)
       });
     });
   }
+
 
   loadBudgets() {
     this.loadingService.setLoading(true);  // ✅ start loader
@@ -330,61 +452,42 @@ export class AddMonthlyBudgetComponent implements OnInit {
 
   addProduct() {
     const formValues = this.budgetForm.getRawValue();
-    const product = this.vehicledataSource.data.find(
-      p => p.name === formValues.products
-    );
 
-    if (!product) {
-      Swal.fire('Error', 'Please select a valid product.', 'error');
+    if (!formValues.products || formValues.products.length === 0) {
+      Swal.fire('Error', 'Please select at least one product.', 'error');
       return;
     }
 
-    // Normalize values
-    const newName = String(product.name).trim().toLowerCase();
-    const newCountry = String(formValues.country).trim().toLowerCase();
-    const newYear = String(formValues.year).trim();
+    formValues.products.forEach((selectedProduct: string) => {
+      // ✅ search inside simplified products
+      const product = this._allProducts.find(p => p.name === selectedProduct);
+      if (!product) return;
 
-    // ✅ Check duplicate ONLY for the same product + country + year
-    const existsGlobal = this.dataSource.data.some((p: any) =>
-      String(p.name).trim().toLowerCase() === newName &&
-      String(p.country).trim().toLowerCase() === newCountry &&
-      String(p.year).trim() === newYear
-    );
-
-    const existsLocal = this.addedProducts.some((p: any) =>
-      String(p.name).trim().toLowerCase() === newName &&
-      String(p.country).trim().toLowerCase() === newCountry &&
-      String(p.year).trim() === newYear
-    );
-
-    if (existsGlobal || existsLocal) {
-      Swal.fire(
-        'Duplicate Entry',
-        `Product "${product.name}" is already added for ${formValues.country} (${formValues.year}).`,
-        'warning'
+      const exists = this.addedProducts.some((p: any) =>
+        p.name.toLowerCase() === selectedProduct.toLowerCase() &&
+        p.country.toLowerCase() === formValues.country.toLowerCase() &&
+        p.year === formValues.year &&
+        p.month === formValues.month
       );
-      return;
-    }
 
-    // ✅ Add product to local list
-    this.addedProducts = [
-      ...this.addedProducts,
-      {
-        ...product,
-        country: formValues.country,
-        year: formValues.year,
-        month: formValues.month,
-        period: formValues.period,
-        quantity: 1,
-        target: 1,
-        __isNew: true
+      if (!exists) {
+        this.addedProducts = [
+          ...this.addedProducts,
+          {
+            name: product.name,
+            sku: product.sku || '',   // fallback if missing
+            country: formValues.country,
+            year: formValues.year,
+            month: formValues.month,
+            target: 1,
+          }
+        ];
       }
-    ];
+    });
 
-    // Reset only the product field (so country/year stay same for multiple entries)
-    this.budgetForm.get('products')?.reset();
+    // reset selection
+    this.budgetForm.get('products')?.reset([]);
   }
-
 
 
 
@@ -397,8 +500,10 @@ export class AddMonthlyBudgetComponent implements OnInit {
   }
 
   submitForm() {
-    const formValues = this.budgetForm.getRawValue();
-    delete formValues.products;
+    if (this.budgetForm.invalid) {
+      Swal.fire('Error', 'Please fill all required fields.', 'error');
+      return;
+    }
 
     if (this.addedProducts.length === 0) {
       Swal.fire('Error', 'Please add at least one product.', 'error');
@@ -406,7 +511,7 @@ export class AddMonthlyBudgetComponent implements OnInit {
     }
 
     Swal.fire({
-      title: this.isEditMode ? 'Update Budget?' : 'Add Budget?',
+      title: this.isEditMode ? 'Update Monthly Target?' : 'Add Monthly Target?',
       icon: 'question',
       showCancelButton: true,
       confirmButtonText: 'Yes'
@@ -417,11 +522,18 @@ export class AddMonthlyBudgetComponent implements OnInit {
       const username = userData.userName || 'Unknown User';
       const timestamp = Date.now();
 
-      const baseInfo = {
+      const formValues = this.budgetForm.getRawValue();
+
+      // ✅ Build document with products array
+      const productDoc = {
         country: formValues.country,
         year: formValues.year,
         month: formValues.month,
         period: formValues.period,
+        products: this.addedProducts.map(p => ({
+          model: p.name,               // from table
+          targetQuantity: p.target     // from input in table
+        })),
         status: 'Active',
         updatedBy: username,
         updatedAt: timestamp
@@ -429,46 +541,25 @@ export class AddMonthlyBudgetComponent implements OnInit {
 
       runInInjectionContext(this.injector, () => {
         if (this.isEditMode && this.editingDocId) {
-          const productToUpdate = this.addedProducts[0];
-          const productDoc = {
-            ...baseInfo,
-            id: productToUpdate.id,
-            sku: productToUpdate.sku,
-            name: productToUpdate.name,
-            quantity: productToUpdate.quantity,
-            target: productToUpdate.target
-          };
-
-          this.loadingService.setLoading(true); // ✅ start loader
-          this.monthlybudgetService.updateBudget(productToUpdate.id, productDoc)
-            .then(() => Swal.fire('Updated!', 'Product updated successfully.', 'success'))
+          this.loadingService.setLoading(true);
+          this.monthlybudgetService.updateBudget(this.editingDocId, productDoc)
+            .then(() => Swal.fire('Updated!', 'Monthly Target updated successfully.', 'success'))
             .then(() => this.goBack())
             .catch(() => Swal.fire('Error', 'Something went wrong while updating.', 'error'))
-            .finally(() => this.loadingService.setLoading(false)); // ✅ stop loader
+            .finally(() => this.loadingService.setLoading(false));
         } else {
-          this.loadingService.setLoading(true); // ✅ start loader
-          Promise.all(this.addedProducts.map(p => {
-            const productDoc = {
-              ...baseInfo,
-              sku: p.sku,
-              name: p.name,
-              brand: p.brand,
-              model: p.model,
-              variant: p.variant ?? p.varient,
-              unit: p.unit,
-              quantity: p.quantity,
-              target: p.target
-            };
-            return this.monthlybudgetService.addBudget(productDoc);
-          }))
-            .then(() => Swal.fire('Added!', 'All products saved successfully.', 'success'))
+          this.loadingService.setLoading(true);
+          this.monthlybudgetService.addBudget(productDoc)
+            .then(() => Swal.fire('Added!', 'Monthly Target saved successfully.', 'success'))
             .then(() => this.goBack())
             .catch(() => Swal.fire('Error', 'Something went wrong.', 'error'))
-            .finally(() => this.loadingService.setLoading(false)); // ✅ stop loader
+            .finally(() => this.loadingService.setLoading(false));
         }
       });
     });
   }
+
+
 
   goBack() {
     this.dealer.back();

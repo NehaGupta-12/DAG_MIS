@@ -9,7 +9,7 @@
             <div class="left">
               <ul class="header-buttons-left ms-0">
                 <li class="tbl-title">
-                  <h2 class="fs-4">Monthly Budget List</h2>
+                  <h2 class="fs-4">Monthly Target List</h2>
                 </li>
                 <li class="tbl-search-box">
                   <label for="search-input">
@@ -27,9 +27,9 @@
             </div>
             <div class="right">
               <div class="right-side-btn">
-                <span [matTooltip]="!authService.hasPermission('Monthly Budget','create') ? 'No permission' : 'Add Role'" matTooltipPosition="above">
+                <span [matTooltip]="!authService.hasPermission('Monthly Target','create') ? 'No permission' : 'Add Role'" matTooltipPosition="above">
 
-                <button mat-icon-button  class="tbl-header-btn col-green"  (click)="navigateToAddloadOutletProduct()" [disabled]="!authService.hasPermission('Monthly Budget','create')">
+                <button mat-icon-button  class="tbl-header-btn col-green"  (click)="navigateToAddloadOutletProduct()" [disabled]="!authService.hasPermission('Monthly Target','create')">
                   <mat-icon>add_circle_outline</mat-icon>
                 </button>
                 </span>
@@ -79,13 +79,13 @@
                   </td>
                 </ng-container>
 
-                <ng-container matColumnDef="budgetQuantity">
-                  <th mat-header-cell *matHeaderCellDef mat-sort-header> Budget Quantity</th>
-                  <td mat-cell *matCellDef="let row">{{ row.quantity }}</td>
-                </ng-container>
+<!--                <ng-container matColumnDef="budgetQuantity">-->
+<!--                  <th mat-header-cell *matHeaderCellDef mat-sort-header> Budget Quantity</th>-->
+<!--                  <td mat-cell *matCellDef="let row">{{ row.quantity }}</td>-->
+<!--                </ng-container>-->
                 <ng-container matColumnDef="targetQuantity">
-                  <th mat-header-cell *matHeaderCellDef mat-sort-header> Target Quantity</th>
-                  <td mat-cell *matCellDef="let row">{{ row.target }}</td>
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Target Quantity</th>
+                  <td mat-cell *matCellDef="let row">{{ row.totalTargetQuantity }}</td>
                 </ng-container>
 
 
@@ -93,14 +93,25 @@
                 <ng-container matColumnDef="action">
                   <th mat-header-cell *matHeaderCellDef mat-sort-header>Action</th>
                   <td mat-cell *matCellDef="let row">
-    <span [matTooltip]="!authService.hasPermission('Monthly Budget','list') ? 'No permission' : 'View List'" matTooltipPosition="above">
-      <button mat-icon-button style="color: #6c757d;"
-              (click)="openViewDialog(row)"
-              [disabled]="!authService.hasPermission('Monthly Budget','list')">
-        <app-feather-icons [icon]="'eye'" [class]="'tbl-fav-view'"></app-feather-icons>
+                          <span [matTooltip]="!authService.hasPermission('Monthly Target','edit') ? 'No permission' : 'Edit Role'" matTooltipPosition="above">
 
-      </button>
-    </span>
+                  <button mat-icon-button color="accent" (click)="editloadOutletProduct(row)" [disabled]="!authService.hasPermission('Monthly Target','edit')">
+                    <app-feather-icons icon="edit" class="tbl-fav-edit"></app-feather-icons>
+                  </button>
+                  </span>
+                    <span [matTooltip]="!authService.hasPermission('Monthly Target','delete') ? 'No permission' : 'Delete Role'" matTooltipPosition="above">
+
+                  <button mat-icon-button color="accent" (click)="deleteBudget(row)" [disabled]="!authService.hasPermission('Monthly Target','delete')">
+                    <app-feather-icons [icon]="'trash-2'" [class]="'tbl-fav-delete'"></app-feather-icons>
+                  </button>
+                  </span>
+<!--    <span [matTooltip]="!authService.hasPermission('Monthly Target','list') ? 'No permission' : 'View List'" matTooltipPosition="above">-->
+<!--      <button mat-icon-button style="color: #6c757d;"-->
+<!--              (click)="openViewDialog(row)"-->
+<!--              [disabled]="!authService.hasPermission('Monthly Target','list')">-->
+<!--        <app-feather-icons [icon]="'eye'" [class]="'tbl-fav-view'"></app-feather-icons>-->
+<!--      </button>-->
+<!--    </span>-->
                   </td>
                 </ng-container>
 

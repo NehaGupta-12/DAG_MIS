@@ -4,7 +4,7 @@
       <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12">
         <div class="card shadow">
           <div class="header form-header">
-            <h2 style="font-size: 22px">Add Monthly Budget</h2>
+            <h2 style="font-size: 22px">Add Monthly Target</h2>
           </div>
           <div class="body">
             <form class="register-form m-4" [formGroup]="budgetForm" (ngSubmit)="submitForm()">
@@ -44,7 +44,11 @@
                       <div class="mat-select-search">
                         <input matInput (input)="onMonthSearchChange($event)" #monthSearchInput placeholder="Search Month" />
                       </div>
-                      <mat-option *ngFor="let month of filteredMonths" [value]="month">{{ month }}</mat-option>
+                      <mat-option *ngFor="let month of filteredMonths"
+                                  [value]="month"
+                                  [disabled]="disabledMonths.includes(month)">
+                        {{ month }}
+                      </mat-option>
                     </mat-select>
                     <mat-error *ngIf="budgetForm.get('month')?.hasError('required')">Month is required</mat-error>
                   </mat-form-field>
@@ -67,20 +71,37 @@
               <div class="row">
                 <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 mb-2">
                   <mat-form-field class="example-full-width" appearance="outline">
-                    <mat-label>Products</mat-label>
-                    <mat-select formControlName="products" #productSelect panelClass="custom-select-panel" (openedChange)="onProductSelectOpened($event)">
+                    <mat-label>Models</mat-label>
+                    <mat-select formControlName="products" multiple #productSelect panelClass="custom-select-panel"
+                                (openedChange)="onProductSelectOpened($event)">
+
+                      <!-- 🔍 Search box -->
                       <div class="mat-select-search">
                         <input matInput (input)="onProductSearchChange($event)" #productSearchInput placeholder="Search Products" />
                       </div>
+
+                      <!-- ✅ Multi Select Options -->
                       <mat-option *ngFor="let product of filteredProducts" [value]="product?.name">
                         {{ product?.name }}
                       </mat-option>
                     </mat-select>
+
+                    <mat-error *ngIf="budgetForm.get('products')?.hasError('required')">
+                      Products are required
+                    </mat-error>
                   </mat-form-field>
                 </div>
+
+<!--                <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 mb-2">-->
+<!--                  <mat-form-field class="example-full-width" appearance="outline">-->
+<!--                    <mat-label>Target</mat-label>-->
+<!--                    <input matInput type="number" formControlName="target" (keydown)="preventDecimal($event)">-->
+<!--                  </mat-form-field>-->
+<!--                </div>-->
               </div>
 
-              <!-- Add / Back buttons -->
+
+<!--               Add / Back buttons-->
               <div class="row">
                 <div class="col-12 d-flex justify-content-center">
                   <button class="btn-space" mat-raised-button color="primary" type="button"
@@ -96,68 +117,46 @@
                 <h5 class="mb-3">Added Products</h5>
 
                 <!-- Table Wrapper with reduced size -->
-                <div class="table-responsive" style="max-width: 100%; margin: auto;">
-                  <table mat-table [dataSource]="addedProducts"
-                         class="mat-elevation-z8 table-sm custom-table">
+                <div class="table-responsive mt-3" *ngIf="addedProducts.length > 0">
+                  <table mat-table [dataSource]="addedProducts" class="mat-elevation-z8 table-sm custom-table">
 
-                    <!-- Columns -->
+                    <!-- Product -->
+                    <ng-container matColumnDef="name">
+                      <th mat-header-cell *matHeaderCellDef> Model Name </th>
+                      <td mat-cell *matCellDef="let product">{{ product.name }}</td>
+                    </ng-container>
+
+                    <!-- Country -->
                     <ng-container matColumnDef="country">
                       <th mat-header-cell *matHeaderCellDef> Country </th>
                       <td mat-cell *matCellDef="let product">{{ product.country }}</td>
                     </ng-container>
 
+                    <!-- Year -->
                     <ng-container matColumnDef="year">
                       <th mat-header-cell *matHeaderCellDef> Year </th>
                       <td mat-cell *matCellDef="let product">{{ product.year }}</td>
                     </ng-container>
 
+                    <!-- Month -->
                     <ng-container matColumnDef="month">
                       <th mat-header-cell *matHeaderCellDef> Month </th>
                       <td mat-cell *matCellDef="let product">{{ product.month }}</td>
                     </ng-container>
 
-                    <ng-container matColumnDef="period">
-                      <th mat-header-cell *matHeaderCellDef> Period </th>
-                      <td mat-cell *matCellDef="let product">
-                        {{ product.period?.start | date:'dd-MMM-yyyy' }} -
-                        {{ product.period?.end | date:'dd-MMM-yyyy' }}
-                      </td>
-                    </ng-container>
-
-                    <ng-container matColumnDef="name">
-                      <th mat-header-cell *matHeaderCellDef> Product Name </th>
-                      <td mat-cell *matCellDef="let product">{{ product.name }}</td>
-                    </ng-container>
-
-                    <ng-container matColumnDef="sku">
-                      <th mat-header-cell *matHeaderCellDef> Sku </th>
-                      <td mat-cell *matCellDef="let product">{{ product.sku }}</td>
-                    </ng-container>
-
-                    <ng-container matColumnDef="quantity">
-                      <th mat-header-cell *matHeaderCellDef> Budget Quantity </th>
-                      <td mat-cell *matCellDef="let product">
-                        <input type="number" [(ngModel)]="product.quantity"
-                               [ngModelOptions]="{standalone: true}"
-                               min="1" step="1"
-                               class="form-control form-control-sm"
-                               style="width: 70px;"
-                               (keydown)="preventDecimal($event)" />
-                      </td>
-                    </ng-container>
-
+                    <!-- Target -->
                     <ng-container matColumnDef="target">
-                      <th mat-header-cell *matHeaderCellDef> Target Quantity </th>
+                      <th mat-header-cell *matHeaderCellDef> Target </th>
                       <td mat-cell *matCellDef="let product">
                         <input type="number" [(ngModel)]="product.target"
                                [ngModelOptions]="{standalone: true}"
                                min="1" step="1"
                                class="form-control form-control-sm"
-                               style="width: 70px;"
-                               (keydown)="preventDecimal($event)" />
+                               style="width: 80px;" />
                       </td>
                     </ng-container>
 
+                    <!-- Action -->
                     <ng-container matColumnDef="action">
                       <th mat-header-cell *matHeaderCellDef> Action </th>
                       <td mat-cell *matCellDef="let product; let i = index">
@@ -167,23 +166,21 @@
                       </td>
                     </ng-container>
 
-                    <!-- Rows -->
-                    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-                    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+                    <tr mat-header-row *matHeaderRowDef="['name','country','year','month','target','action']"></tr>
+                    <tr mat-row *matRowDef="let row; columns: ['name','country','year','month','target','action'];"></tr>
                   </table>
                 </div>
+
 
                 <div class="row mt-3">
                   <div class="col-12 d-flex justify-content-center gap-2">
                     <button mat-raised-button color="primary" type="submit"
-                            [disabled]="addedProducts.length === 0 || !budgetForm.valid">
+                            [disabled]="!budgetForm.valid">
                       {{ isEditMode ? 'Update' : 'Submit' }}
                     </button>
                   </div>
                 </div>
               </div>
-
-
             </form>
           </div>
         </div>

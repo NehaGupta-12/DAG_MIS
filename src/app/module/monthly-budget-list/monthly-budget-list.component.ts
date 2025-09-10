@@ -58,7 +58,7 @@ export class MonthlyBudgetListComponent implements OnInit {
     { def: 'year', label: 'Year' },
     { def: 'month', label: 'Month' },
     { def: 'period', label: 'Period' },
-    { def: 'budgetQuantity', label: 'BudgetQuantity' },
+    // { def: 'budgetQuantity', label: 'BudgetQuantity' },
     { def: 'targetQuantity', label: 'targetQuantity' },
     { def: 'action', label: 'Action' },
   ];
@@ -69,7 +69,7 @@ export class MonthlyBudgetListComponent implements OnInit {
     'year',
     'month',
     'period',
-    'budgetQuantity',
+    // 'budgetQuantity',
     'targetQuantity',
     'action',
   ];
@@ -101,55 +101,15 @@ export class MonthlyBudgetListComponent implements OnInit {
         next: (data: any[]) => {
           console.log("Raw Data:", data);
 
-          // 🔹 Group by country + year + period
-          const grouped = data.reduce((acc: any[], curr: any) => {
-            const key = `${curr.country}_${curr.year}_${curr.period.start.seconds}_${curr.period.end.seconds}`;
+          // 🔄 Add totalTargetQuantity to each row
+          this.dataSource.data = data.map(row => ({
+            ...row,
+            totalTargetQuantity: row.products?.reduce(
+              (sum: number, p: any) => sum + (p.targetQuantity || 0),
+              0
+            ) || 0
+          }));
 
-            let existing = acc.find(
-              (x: any) =>
-                x.country === curr.country &&
-                x.year === curr.year &&
-                x.period.start.seconds === curr.period.start.seconds &&
-                x.period.end.seconds === curr.period.end.seconds
-            );
-
-            if (!existing) {
-              existing = {
-                id: curr.docId,
-                country: curr.country,
-                year: curr.year,
-                months: new Set<string>(),
-                period: curr.period,
-                products: [],
-                quantity: 0,
-                target:0,
-              };
-              acc.push(existing);
-            }
-
-            if (curr.month) existing.months.add(curr.month);
-
-            existing.products.push({
-              id: curr.docId,
-              sku: curr.sku,
-              productName: curr.name,
-              budgetQuantity: curr.quantity,
-              targetQuantity: curr.target,
-            });
-
-            existing.quantity += curr.quantity || 0;
-            existing.target += curr.target || 0;
-            return acc;
-          }, []);
-
-          // Convert Set to string
-          grouped.forEach((g: any) => {
-            g.month = Array.from(g.months).join(', ');
-          });
-
-          console.log("Grouped Data:", grouped);
-
-          this.dataSource.data = grouped;
           this.dataSource.paginator = this.paginator;
           this.dataSource.sort = this.sort;
 
@@ -161,6 +121,7 @@ export class MonthlyBudgetListComponent implements OnInit {
       });
     });
   }
+
 
   editloadOutletProduct(row: any) {
     this.router.navigate(['module/add-monthly-budget'], {
@@ -194,13 +155,13 @@ export class MonthlyBudgetListComponent implements OnInit {
   deleteBudget(row: any) {
     const docId = row.docId;
     if (!docId) {
-      Swal.fire('Error', 'Missing document ID for this budget.', 'error');
+      Swal.fire('Error', 'Missing document ID for this Monthly Target.', 'error');
       return;
     }
 
     Swal.fire({
       title: 'Are you sure?',
-      text: 'You will not be able to recover this Budget Product!',
+      text: 'You will not be able to recover this Monthly Target Product!',
       icon: 'warning',
       showCancelButton: true,
       confirmButtonText: 'Yes, delete it!',
@@ -214,12 +175,12 @@ export class MonthlyBudgetListComponent implements OnInit {
         this.monthlybudgetService.deleteBudget(docId)
           .then(() => {
             this.dataSource.data = this.dataSource.data.filter((p: any) => p.docId !== docId);
-            Swal.fire('Deleted!', 'Budget Product has been deleted.', 'success');
+            Swal.fire('Deleted!', 'Monthly Target Product has been deleted.', 'success');
             this.loadingService.setLoading(false);
           })
           .catch((err) => {
             console.error('Delete failed:', err);
-            Swal.fire('Error', 'Failed to delete the Budget product. Please try again.', 'error');
+            Swal.fire('Error', 'Failed to delete the Monthly Target product. Please try again.', 'error');
             this.loadingService.setLoading(false);
           });
       });
@@ -238,7 +199,8 @@ export class MonthlyBudgetListComponent implements OnInit {
         year: row.year,
         month: row.month,
         period: row.period,
-        items: row.products
+        items: row.products,
+        model: row.model,
       }
     });
   }
