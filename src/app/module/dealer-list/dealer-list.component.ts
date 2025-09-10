@@ -64,6 +64,7 @@ export class DealerListComponent implements OnInit{
 
   displayedColumns: string[] = [
     'serial',
+    'code',
     'name',
     'outletType',
     'country',
