@@ -1,17 +1,17 @@
 
 <section class="content d-flex justify-content-center align-items-center">
-  <div class="content-block w-100" style="max-width: 800px;">
+  <div class="content-block w-100" style="max-width: 900px;">
     <!-- 🔙 Back Button (outside the card, top-left) -->
     <!--    <div class="mb-3">-->
     <!--      <button mat-stroked-button color="primary" (click)="goBack()">-->
     <!--        <mat-icon>arrow_back</mat-icon> Back-->
     <!--      </button>-->
     <!--    </div>-->
-    <div class="row clearfix justify-content-center">
+    <div class="row clearfix justify-content-center mb-1">
       <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12">
         <div class="card shadow">
           <div class="header">
-            <h2>{{ data?.id ? 'Edit Outlet / Dealer' : 'Add Outlet / Dealer' }}</h2>
+            <h2>{{ data?.id ? 'Edit Outlet / Dealer Details' : 'Add Outlet / Dealer Details' }}</h2>
           </div>
           <div class="body">
             <form class="register-form m-4" [formGroup]="dealerForm!" (ngSubmit)="submitForm()">

@@ -121,9 +121,24 @@ export class SidebarComponent
   }
 
   updateDateTime() {
-    this.currentDateTime = new Date().toLocaleString();
-    // 👆 takes system’s local timezone
+    const now = new Date();
+
+    // 🗓️ Format: Day-Month-Year
+    const day = now.getDate();
+    const month = now.toLocaleString('en-US', { month: 'short' }); // Sept
+    const year = now.getFullYear();
+
+    // ⏰ Format: 12-hour with AM/PM
+    const time = now.toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: true
+    });
+
+    this.currentDateTime = `${day}-${month}-${year}, ${time}`;
   }
+
 
   canShowMenu(menuName: string): boolean {
     return this.authService.canShowMenu(menuName);

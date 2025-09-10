@@ -83,7 +83,7 @@
       <!-- Dropdown -->
       <div class="row mb-3">
         <div class="col-md-6 mb-2">
-          <label class="form-label fw-bold">Select Type</label>
+          <label class="form-label fs-6 fw-bold">Select Type</label>
           <select class="form-select" [(ngModel)]="selectedCategory">
             <option [ngValue]="null" abled>Select...</option>
             <option *ngFor="let cat of categories" [ngValue]="cat">{{ cat.name }}</option>
@@ -97,7 +97,7 @@
 
       <div *ngIf="selectedCategory" class="row mb-4">
         <div class="col-md-6 mb-2">
-          <input type="text" [(ngModel)]="newField" class="form-control" placeholder="Enter Field *">
+          <input type="text" [(ngModel)]="newField" class="form-control" [placeholder]="'Enter'+' ' + selectedCategory.name">
         </div>
         <div class="col-md-6 d-flex mb-2">
 

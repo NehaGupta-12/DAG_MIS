@@ -1,4 +1,12 @@
-import {Component, EnvironmentInjector, Inject, OnInit, runInInjectionContext} from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  EnvironmentInjector,
+  Inject,
+  OnInit,
+  runInInjectionContext,
+  ViewChild
+} from '@angular/core';
 import {
   FormGroup,
   FormsModule,
@@ -87,6 +95,20 @@ export class AddGRNComponent implements OnInit{
   filteredTowns$: BehaviorSubject<string[]> = new BehaviorSubject<string[]>([]);
   filteredDealers$: BehaviorSubject<any[]> = new BehaviorSubject<any[]>([]);
 
+  // Search & filtered arrays
+  @ViewChild('divisionSearchInput') divisionSearchInput!: ElementRef;
+  @ViewChild('countrySearchInput') countrySearchInput!: ElementRef;
+  @ViewChild('townSearchInput') townSearchInput!: ElementRef;
+
+  divisionSearchText: string = '';
+  countrySearchText: string = '';
+  townSearchText: string = '';
+  vehicleSearchText: string = '';
+
+  filteredCountries: string[] = [];
+  filteredDivisionTypes: string[] = [];
+  filteredVehicles: any[] = [];
+
   constructor(
     private fb: UntypedFormBuilder,
     private location: Location,
@@ -131,8 +153,24 @@ export class AddGRNComponent implements OnInit{
   ngOnInit() {
     this.setupCascadingDropdowns();
     this.loadInventoryDaata();
-    this.DealerList(); // This is an async call, so its subscription needs to be handled
+    this.DealerList();
+
+    // ✅ Initialize country list
+    this._countriesTypes$.subscribe(countries => {
+      this.filteredCountries = [...countries];  // show all countries initially
+    });
+
+    // ✅ Initialize division list (blank until country is selected)
+    this._divisionTypes$.subscribe(divisions => {
+      this.filteredDivisionTypes = [...divisions];
+    });
+
+    // ✅ Initialize towns list
+    this._townTypes$.subscribe(towns => {
+      this.filteredTowns$.next(towns);
+    });
   }
+
 
   setupCascadingDropdowns() {
     this.grnForm.get('country')?.valueChanges.subscribe((selectedCountry: string) => {
@@ -141,7 +179,10 @@ export class AddGRNComponent implements OnInit{
           .filter(d => d.country === selectedCountry)
           .map(d => d.division)
       )];
+
       this.filteredDivisions$.next(divisions);
+      this.filteredDivisionTypes = [...divisions];  // ✅ keep HTML loop in sync
+
       this.grnForm.get('division')?.reset();
       this.grnForm.get('town')?.reset();
       this.filteredTowns$.next([]);
@@ -168,6 +209,97 @@ export class AddGRNComponent implements OnInit{
       this.filteredDealers$.next(dealers);
     });
   }
+
+
+
+  // Country
+  filterCountries() {
+    const searchText = this.countrySearchText.toLowerCase();
+    this._countriesTypes$.subscribe(countries => {
+      this.filteredCountries = countries.filter(c => c.toLowerCase().includes(searchText));
+    });
+  }
+  onCountrySearchChange(event: any) {
+    this.countrySearchText = event.target.value;
+    this.filterCountries();
+  }
+  onCountrySelectOpened(isOpened: boolean) {
+    if (isOpened) {
+      this.countrySearchText = '';
+      this.filterCountries();
+      setTimeout(() => this.countrySearchInput.nativeElement.focus(), 0);
+    }
+  }
+
+// Division
+  filterDivisionTypes() {
+    const searchText = this.divisionSearchText.toLowerCase();
+    this.filteredDivisionTypes = (this.filteredDivisions$.getValue() || []).filter(d => d.toLowerCase().includes(searchText));
+  }
+  onDivisionSearchChange(event: any) {
+    this.divisionSearchText = event.target.value;
+    this.filterDivisionTypes();
+  }
+  onDivisionSelectOpened(isOpened: boolean) {
+    if (isOpened) {
+      this.divisionSearchText = '';
+      this.filterDivisionTypes();
+      setTimeout(() => this.divisionSearchInput.nativeElement.focus(), 0);
+    }
+  }
+
+// Town
+//   townSearchText: string = '';
+  onTownSearchChange(event: any) {
+    const searchValue = event.target.value.toLowerCase();
+    const allTowns = this.filteredTowns$.getValue();
+    if (!searchValue) {
+      this.filteredTowns$.next(allTowns);
+    } else {
+      this.filteredTowns$.next(allTowns.filter(t => t.toLowerCase().includes(searchValue)));
+    }
+  }
+  onTownSelectOpened(isOpened: boolean) {
+    if (isOpened) {
+      this.townSearchText = '';
+      const allTowns = this.filteredTowns$.getValue();
+      this.filteredTowns$.next(allTowns);
+      setTimeout(() => this.townSearchInput.nativeElement.focus(), 0);
+    }
+  }
+
+// Vehicle
+  onVehicleSearchChange(event: any) {
+    const searchValue = event.target.value.toLowerCase();
+    if (!searchValue) {
+      this.filteredVehicles = [...this.vehicledataSource.data];
+    } else {
+      this.filteredVehicles = this.vehicledataSource.data.filter(v =>
+        v.name.toLowerCase().includes(searchValue)
+      );
+    }
+  }
+
+  // Add inside AddGRNComponent class
+
+// Dealer search
+  onDealerSearchChange(event: any) {
+    const searchValue = event.target.value.toLowerCase();
+    const allDealers = this.dealerdataSource.data;
+
+    if (!searchValue) {
+      this.filteredDealers$.next(allDealers);
+    } else {
+      this.filteredDealers$.next(
+        allDealers.filter((dealer: any) =>
+          dealer.name.toLowerCase().includes(searchValue)
+        )
+      );
+    }
+  }
+
+
+
 
   DealerList() {
     this.loadingService.setLoading(true);
@@ -259,13 +391,20 @@ export class AddGRNComponent implements OnInit{
     const dealerName = event.value;
     const dealer = this.dealerdataSource.data.find((d: any) => d.name === dealerName);
 
+    if (!dealer) return;
+
     const availableProducts = this.dataSource.data.filter(
       (p: any) => p.dealerId === dealer.id && p.openingStock > 0
     );
 
     this.vehicledataSource.data = availableProducts;
+
+    // ✅ Initialize filtered vehicles here
+    this.filteredVehicles = [...availableProducts];
+
     this.grnForm.get('products')?.reset();
   }
+
 
   isSubmitEnabled(): boolean {
     const formValid = this.grnForm.get('dealerOutlet')?.valid;

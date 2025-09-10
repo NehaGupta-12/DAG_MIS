@@ -39,6 +39,7 @@ import {MatCheckboxModule} from "@angular/material/checkbox";
 import {MatTooltip} from "@angular/material/tooltip";
 import {InventoryService} from "../../add-inventory/inventory.service";
 import {AuthService} from "../../../authentication/auth.service";
+import {LoadingService} from "../../../Services/loading.service";
 
 
 @Component({
@@ -142,6 +143,7 @@ export class StockReportComponent {
     private dailySlaes: DailySalesService,
     private inventoryService : InventoryService,
     public authService : AuthService,
+    private loadingService: LoadingService,
     @Inject(MAT_DIALOG_DATA) public data: any
   ) {
     this.dealerForm = this.fb.group({
@@ -443,38 +445,56 @@ export class StockReportComponent {
 
 
   onSubmit() {
-    // ... existing filter logic for sales data
+    // ✅ Start Loader
+    this.loadingService.setLoading(true);
 
-    const filters = this.dealerForm.value;
-    // ... (your existing date filtering logic) ...
+    try {
+      const filters = this.dealerForm.value;
 
-    // 🔹 Filter sales data based on date and other filters
-    const filtered = this.salesdataSource.filter(item => {
-      const itemDate = item.createdAt?.seconds
-        ? new Date(item.createdAt.seconds * 1000)
-        : new Date(item.createdAt);
+      // 🔹 Date filters
+      const startDate = filters.period?.start ? new Date(filters.period.start) : null;
+      const endDate = filters.period?.end ? new Date(filters.period.end) : new Date();
+      if (startDate) startDate.setHours(0, 0, 0, 0);
+      if (endDate) endDate.setHours(23, 59, 59, 999);
 
-      return (
-        (!filters.country || item.country === filters.country) &&
-        (!filters.name || item.dealerOutlet === filters.name) &&
-        // Note: Your date filtering logic for sales data seems to be missing
-        // from the provided code snippet inside onSubmit(), but I'll assume
-        // it's there. I'll use the inventory data to match your request,
-        // which doesn't have a date filter.
-        true // Placeholder for date filtering
+      // 🔹 Filter sales data
+      const filtered = this.salesdataSource.filter(item => {
+        const itemDate = item.createdAt?.seconds
+          ? new Date(item.createdAt.seconds * 1000)
+          : new Date(item.createdAt);
+
+        return (
+          (!filters.country || item.country === filters.country) &&
+          (!filters.town || item.town === filters.town) &&
+          (!filters.division || item.division === filters.division) &&
+          (!filters.name || item.dealerOutlet === filters.name) &&
+          (!startDate || itemDate >= startDate) &&
+          (!endDate || itemDate <= endDate)
+        );
+      });
+
+      // 🔹 Retrieve selected outlets
+      const selectedOutlets: string[] = Array.isArray(filters.name)
+        ? filters.name
+        : (filters.name ? [filters.name] : []);
+
+      // 🔹 Call the new method to generate the horizontal inventory report
+      this.generateHorizontalInventoryReport(
+        selectedOutlets,
+        filters.country,
+        filters.division,
+        filters.town
       );
-    });
 
-    // 🔹 Call the new method to generate the horizontal inventory report
-    // Retrieve the selected outlets as an array
-    const selectedOutlets: string[] = filters.name || [];
-
-    // Pass the selected outlets to the report generation function
-    this.generateHorizontalInventoryReport(selectedOutlets, filters.country, filters.division, filters.town);
-
-    // The rest of your onSubmit() logic for sales reporting can remain as-is.
-    // For this specific request, the main focus is on the new report method.
+      // ✅ Stop loader after everything is done
+      this.loadingService.setLoading(false);
+    } catch (error) {
+      console.error('Error in onSubmit:', error);
+      // ✅ Stop loader even if error
+      this.loadingService.setLoading(false);
+    }
   }
+
 
 
 

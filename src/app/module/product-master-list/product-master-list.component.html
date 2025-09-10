@@ -107,13 +107,13 @@
                 <ng-container matColumnDef="action">
                   <th mat-header-cell *matHeaderCellDef mat-sort-header>Action</th>
                   <td mat-cell *matCellDef="let row">
-                    <span [matTooltip]="!authService.hasPermission('Product Master','edit') ? 'No permission' : 'Edit Role'" matTooltipPosition="above">
+                    <span [matTooltip]="!authService.hasPermission('Product Master','edit') ? 'No permission' : 'Edit Product'" matTooltipPosition="above">
 
                     <button mat-icon-button color="accent" (click)="goToEdit(row)" [disabled]="!authService.hasPermission('Product Master','edit')">
                       <app-feather-icons [icon]="'edit'" [class]="'tbl-fav-edit'"></app-feather-icons>
                     </button>
                     </span>
-                    <span [matTooltip]="!authService.hasPermission('Product Master','delete') ? 'No permission' : 'Delete Role'" matTooltipPosition="above">
+                    <span [matTooltip]="!authService.hasPermission('Product Master','delete') ? 'No permission' : 'Delete Product'" matTooltipPosition="above">
 
                     <button mat-icon-button color="accent" (click)="delete(row.id)" [disabled]="!authService.hasPermission('Product Master','delete')">
                       <app-feather-icons [icon]="'trash-2'" [class]="'tbl-fav-delete'"></app-feather-icons>

@@ -32,8 +32,12 @@
                     <mat-label>Division</mat-label>
                     <mat-select formControlName="division" required #divisionSelect panelClass="custom-select-panel" (openedChange)="onDivisionSelectOpened($event)">
                       <div class="mat-select-search">
-                        <input matInput (input)="onDivisionSearchChange($event)" #divisionSearchInput placeholder="Search Division" />
+                        <input matInput (input)="onDivisionSearchChange($event)"
+                               #divisionSearchInput placeholder="Search Division" />
                       </div>
+
+
+
                       <mat-option *ngFor="let division of filteredDivisionTypes" [value]="division">
                         {{ division }}
                       </mat-option>
@@ -46,26 +50,51 @@
                 <div class="col-md-4">
                   <mat-form-field class="example-full-width" appearance="outline">
                     <mat-label>Town</mat-label>
-                    <mat-select formControlName="town" required #townSelect panelClass="custom-select-panel" (openedChange)="onTownSelectOpened($event)">
+                    <mat-select formControlName="town" panelClass="custom-select-panel" required>
+
+                      <!-- 🔍 Inline Search -->
                       <div class="mat-select-search">
-                        <input matInput (input)="onTownSearchChange($event)" #townSearchInput placeholder="Search Town" />
+                        <input
+                          matInput
+                          placeholder="Search Town"
+                          (input)="onTownSearchChange($event)"
+                        />
                       </div>
-                      <mat-option *ngFor="let town of filteredTownTypes" [value]="town">
+
+                      <!-- Options -->
+                      <mat-option *ngFor="let town of (filteredTowns$ | async)" [value]="town">
                         {{ town }}
                       </mat-option>
                     </mat-select>
-                    @if (dailySalesForm?.get('town')?.hasError('required')) {
-                      <mat-error>Town is required</mat-error>
-                    }
+
+                    <mat-error *ngIf="dailySalesForm?.get('town')?.hasError('required')">
+                      Town is required
+                    </mat-error>
                   </mat-form-field>
+
                 </div>
+
+
+
+
               </div>
               <!-- Dealer & Vehicle -->
               <div class="row">
                 <div class="col-md-6">
                   <mat-form-field appearance="outline" class="w-100">
                     <mat-label>Dealer/Outlet</mat-label>
-                    <mat-select formControlName="dealerOutlet" (selectionChange)="onDealerChange($event)" required>
+                    <mat-select formControlName="dealerOutlet" (selectionChange)="onDealerChange($event)" panelClass="custom-select-panel" required>
+
+                      <!-- 🔍 Search bar -->
+                      <div class="mat-select-search">
+                        <input
+                          matInput
+                          placeholder="Search Dealer"
+                          (input)="onDealerSearchChange($event)"
+                        />
+                      </div>
+
+                      <!-- Dealer list -->
                       <mat-option *ngFor="let dealer of (filteredDealers$ | async)" [value]="dealer.name">
                         {{ dealer.name }}
                       </mat-option>
@@ -74,13 +103,24 @@
                       Dealer/Outlet is required
                     </mat-error>
                   </mat-form-field>
+
                 </div>
 
                 <div class="col-md-6">
                   <mat-form-field appearance="outline" class="w-100">
                     <mat-label>Vehicle</mat-label>
-                    <mat-select formControlName="vehicle" required>
-                      <mat-option *ngFor="let product of vehicledataSource.data" [value]="product.name">
+                    <mat-select formControlName="vehicle" panelClass="custom-select-panel" required>
+                      <!-- 🔍 Search bar -->
+                      <div class="mat-select-search">
+                        <input
+                          matInput
+                          placeholder="Search Vehicle"
+                          (input)="onVehicleSearchChange($event)"
+                        />
+                      </div>
+
+                      <!-- Vehicle list -->
+                      <mat-option *ngFor="let product of filteredVehicles" [value]="product.name">
                         {{ product.name }}
                       </mat-option>
                     </mat-select>
@@ -88,6 +128,8 @@
                       Product is required
                     </mat-error>
                   </mat-form-field>
+
+
                 </div>
               </div>
 
