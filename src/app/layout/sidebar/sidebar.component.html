@@ -1,3 +1,5 @@
+
+
 <div>
   <!-- Left Sidebar -->
   <aside id="leftsidebar" class="sidebar" (mouseenter)="mouseHover()" (mouseleave)="mouseOut()">
@@ -7,13 +9,18 @@
         <ul class="list">
           <li>
             <div class="sidebar-profile clearfix">
+              <div class="mb-4 me-4 ">
+                <p><strong>{{ currentDateTime }}</strong></p> <!-- 🆕 Added Date & Time -->
+              </div>
+
               <div class="profile-img">
                 <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRH87TKQrWcl19xly2VNs0CjBzy8eaKNM-ZpA&s" alt="profile">
               </div>
 
-              <div class="profile-info">
+              <div class="profile-info  ">
                 <h3>{{role}}</h3>
-                <p>Welcome {{userName}} ! </p>
+                <p>Welcome {{userName}} !</p>
+
               </div>
             </div>
           </li>
@@ -27,8 +34,7 @@
                 <a [routerLink]="sidebarItem.class === '' ? [sidebarItem.path] : null" [ngClass]="[sidebarItem.class]"
                    (click)="callToggleMenu($event, sidebarItem.submenu.length)" class="menu-top">
                   <i-feather [name]="sidebarItem.icon" class="sidebarIcon"></i-feather>
-                  <span class="hide-menu">{{sidebarItem.title | translate}}
-              </span>
+                  <span class="hide-menu">{{sidebarItem.title | translate}}</span>
                 </a>
               }
               <!-- First level menu -->
@@ -37,7 +43,6 @@
                   @for (sidebarSubItem1 of sidebarItem.submenu; track sidebarSubItem1) {
                     <li [routerLinkActive]="sidebarSubItem1.submenu.length > 0 ? '' : 'active'"
                         *ngIf="canShowMenu(sidebarSubItem1.title)">
-<!--                      *ngIf="canShowMenu(sidebarSubItem1.title)"-->
                       <a [routerLink]="sidebarSubItem1.submenu.length > 0 ? null : [sidebarSubItem1.path]"
                          (click)="callToggleMenu($event,sidebarSubItem1.submenu.length)" [ngClass]="[sidebarSubItem1.class]">
                         {{sidebarSubItem1.title | translate}}

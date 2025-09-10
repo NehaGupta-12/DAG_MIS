@@ -59,6 +59,7 @@ export class ViewMonthlyBudgetComponent implements OnInit {
     { def: 'sku', label: 'SKU' },
     { def: 'productName', label: 'Name' },
     { def: 'budgetQuantity', label: 'Quantity' },
+    { def: 'targetQuantity', label: 'Quantity' },
     { def: 'action', label: 'Action' }
   ];
 
@@ -138,6 +139,7 @@ export class ViewMonthlyBudgetComponent implements OnInit {
         docId: product?.id,
         productName: product.productName,
         budgetQuantity: product.budgetQuantity,
+        targetQuantity: product.targetQuantity,
         country: this.data?.country,
         year: this.data?.year,
         month: this.data?.month,               // ✅ pass month

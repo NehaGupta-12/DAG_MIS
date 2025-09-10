@@ -1,3 +1,5 @@
+
+
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import {NgClass, NgIf} from '@angular/common';
 import {
@@ -28,6 +30,7 @@ import {AuthService} from "../../authentication/auth.service";
   selector: 'app-sidebar',
   templateUrl: './sidebar.component.html',
   styleUrls: ['./sidebar.component.scss'],
+  standalone: true,
   imports: [
     NgScrollbar,
     RouterLinkActive,
@@ -48,8 +51,9 @@ export class SidebarComponent
   listMaxWidth?: string;
   headerHeight = 60;
   userName: any;
-  role: any
-  userData!: UserDataModel
+  role: any;
+  userData!: UserDataModel;
+  currentDateTime: string = ''; // 🆕 For showing system date & time
 
   constructor(
     @Inject(DOCUMENT) private document: Document,
@@ -95,20 +99,30 @@ export class SidebarComponent
   }
 
   ngOnInit() {
-    this.userData = JSON.parse(localStorage.getItem('userData')!) as UserDataModel
+    this.userData = JSON.parse(localStorage.getItem('userData')!) as UserDataModel;
     this.userName = `${this.userData.first || ''} ${this.userData.last || ''}`.trim();
-    this.role = this.userData.role
-    // Wait until permissions are ready
+    this.role = this.userData.role;
+
+    // 🆕 Show system date & time (local to user’s device)
+    this.updateDateTime();
+    setInterval(() => {
+      this.updateDateTime();
+    }, 1000);
+
     if (this.authService.currentUserValue) {
       this.subs.sink = this.sidebarService
         .getRouteInfo()
         .subscribe((routes: RouteInfo[]) => {
           this.sidebarItems = routes.filter((sidebarItem) => sidebarItem);
         });
-
     }
     this.initLeftSidebar();
     this.bodyTag = this.document.body;
+  }
+
+  updateDateTime() {
+    this.currentDateTime = new Date().toLocaleString();
+    // 👆 takes system’s local timezone
   }
 
   canShowMenu(menuName: string): boolean {
@@ -116,11 +130,8 @@ export class SidebarComponent
   }
 
   initLeftSidebar() {
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
-    const _this = this;
-    // Set menu height
-    _this.setMenuHeight();
-    _this.checkStatuForResize(true);
+    this.setMenuHeight();
+    this.checkStatuForResize(true);
   }
 
   setMenuHeight() {
@@ -144,7 +155,6 @@ export class SidebarComponent
 
   mouseHover() {
     const body = this.elementRef.nativeElement.closest('body');
-
     if (body.classList.contains('submenu-closed')) {
       this.renderer.addClass(this.document.body, 'side-closed-hover');
       this.renderer.removeClass(this.document.body, 'submenu-closed');
@@ -153,10 +163,10 @@ export class SidebarComponent
 
   mouseOut() {
     const body = this.elementRef.nativeElement.closest('body');
-
     if (body.classList.contains('side-closed-hover')) {
       this.renderer.removeClass(this.document.body, 'side-closed-hover');
       this.renderer.addClass(this.document.body, 'submenu-closed');
     }
   }
 }
+
