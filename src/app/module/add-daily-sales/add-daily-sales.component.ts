@@ -36,11 +36,6 @@ import {LoadingService} from "../../Services/loading.service";
 import {map} from "rxjs/operators";
 import {AngularFireDatabase} from "@angular/fire/compat/database";
 import {BehaviorSubject, Observable} from "rxjs";
-import { NgxMatSelectSearchModule } from 'ngx-mat-select-search';
-
-
-
-
 
 @Component({
   selector: 'app-add-daily-sales',
@@ -59,7 +54,6 @@ import { NgxMatSelectSearchModule } from 'ngx-mat-select-search';
     NgFor,
     NgIf,
     AsyncPipe,
-    NgxMatSelectSearchModule,
 
   ],
   providers: [
