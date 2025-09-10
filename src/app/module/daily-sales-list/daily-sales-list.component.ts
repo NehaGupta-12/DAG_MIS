@@ -23,6 +23,8 @@ import {DailySalesService} from "../daily-sales.service";
 import Swal from "sweetalert2";
 import {LoadingService} from "../../Services/loading.service";
 import {AuthService} from "../../authentication/auth.service";
+import {GrnViewComponent} from "../grn-view/grn-view.component";
+import {DailySaleViewComponent} from "../daily-sale-view/daily-sale-view.component";
 
 
 
@@ -115,6 +117,13 @@ export class DailySalesListComponent implements OnInit {
   goToEdit(row: any) {
     this.router.navigate(['module/add-daily-sales'], {
       queryParams: { data: JSON.stringify(row) }
+    });
+  }
+  viewStock(row: any) {
+    this.dialog.open(DailySaleViewComponent, {
+      width: '900px',
+      height: '600px',
+      data: row, // pass row data to dialog
     });
   }
 

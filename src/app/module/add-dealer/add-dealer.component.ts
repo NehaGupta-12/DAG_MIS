@@ -155,6 +155,7 @@ export class AddDealerComponent implements OnInit{
 
     this.isEditMode = !!data?.id;
     this.dealerForm = this.fb.group({
+      outletCode: ['', [Validators.required]],
       name: ['', [Validators.required]],
       country: ['', [Validators.required]],
       outletType: ['', [Validators.required]],

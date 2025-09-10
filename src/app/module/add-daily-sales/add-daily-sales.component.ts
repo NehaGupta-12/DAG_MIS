@@ -65,7 +65,7 @@ export class AddDailySalesComponent implements OnInit {
 
   isEditMode: boolean = false;
   dailySalesForm: FormGroup;
-  displayedColumns: string[] = ['sku', 'name', 'brand', 'model', 'variant', 'unit', 'quantity', 'action'];
+  displayedColumns: string[] = ['sku', 'name', 'brand', 'model', 'variant', 'unit', 'avlQuntity','quantity', 'action'];
   dealerdataSource = new MatTableDataSource<any>();
   vehicledataSource = new MatTableDataSource<any>();
   addedProducts: any[] = [];
@@ -340,18 +340,68 @@ export class AddDailySalesComponent implements OnInit {
     });
   }
 
+  // onDealerChange(event: any) {
+  //   const dealerName = event.value;
+  //   const dealer = this.dealerdataSource.data.find((d: any) => d.name === dealerName);
+  //
+  //   const availableProducts = this.dataSource.data.filter(
+  //     (p: any) => p.dealerId === dealer?.id && p.openingStock > 0
+  //   );
+  //
+  //   this.vehicledataSource.data = availableProducts;
+  //   this.dailySalesForm.get('vehicle')?.reset();
+  // }
   onDealerChange(event: any) {
     const dealerName = event.value;
     const dealer = this.dealerdataSource.data.find((d: any) => d.name === dealerName);
 
+    if (!dealer) {
+      this.vehicledataSource.data = [];
+      this.dailySalesForm.get('products')?.reset();
+      return;
+    }
+
+    // Filter products matching selected dealer and have opening stock
     const availableProducts = this.dataSource.data.filter(
-      (p: any) => p.dealerId === dealer?.id && p.openingStock > 0
+      (p: any) => p.dealerId === dealer.id && p.openingStock > 0
     );
 
-    this.vehicledataSource.data = availableProducts;
-    this.dailySalesForm.get('vehicle')?.reset();
-  }
+    // Fetch inventory products and patch quantity into availableProducts
+    runInInjectionContext(this.injector, () => {
+      this.inventoryService.getInventoryData(dealer.name).subscribe(inventoryProducts => {
+        // Create SKU to quantity map from inventory
+        const inventoryMap = new Map<string, number>();
+        inventoryProducts.forEach(ip => {
+          inventoryMap.set(ip.sku, ip.quantity);
+        });
 
+        // Patch quantity from inventory into availableProducts
+        const patchedProducts = availableProducts.map(product => ({
+          ...product,
+          avlQuantity: inventoryMap.get(product.sku) || 0
+        }));
+        console.log(patchedProducts)
+        // Assign patched data to Material table data source
+        this.vehicledataSource.data = patchedProducts;
+
+        // Reset product selection control
+        this.dailySalesForm.get('products')?.reset();
+
+        // Optional: log for debugging
+        console.log('Patched products with quantity:', patchedProducts);
+      });
+    });
+  }
+  onQuantityChange(product: any) {
+    if (product.quantity > product.avlQuantity) {
+      alert(`Quantity cannot be greater than available quantity (${product.avlQuantity})`);
+      // Clear input temporarily
+      product.quantity = '';
+      setTimeout(() => {
+        product.quantity = null; // or zero, or leave empty string
+      }, 0);
+    }
+  }
 
   isSubmitEnabled(): boolean {
     const formValid =
@@ -389,7 +439,8 @@ export class AddDailySalesComponent implements OnInit {
         model: product.model,
         variant: product.variant,
         unit: product.unit,
-        quantity: 1
+        quantity: 1,
+        avlQuantity: product.avlQuantity,
       }];
       console.log(this.addedProducts);
     }

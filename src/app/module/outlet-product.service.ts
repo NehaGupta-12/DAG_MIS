@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import {EnvironmentInjector, Injectable, runInInjectionContext} from '@angular/core';
 import {AngularFirestore} from "@angular/fire/compat/firestore";
 import {Observable} from "rxjs";
 import {map} from "rxjs/operators";
@@ -10,7 +10,8 @@ import {deleteField} from "@angular/fire/firestore";
 export class OutletProductService {
   private collectionName = 'outletProduct';   // Firestore collection name
 
-  constructor(private mFirestore: AngularFirestore) {}
+  constructor(private mFirestore: AngularFirestore,
+              private injector : EnvironmentInjector) {}
 
   getInventoryData(){
     return this.mFirestore.collection('inventory').valueChanges({idField: 'id'});
@@ -81,22 +82,56 @@ export class OutletProductService {
   }
 
   // 📌 Update GRN
-  updateOutletProduct(outletId: string, productId: string, grnData: any): Promise<any> {
-    return this.mFirestore
-      .collection(this.collectionName)   // outletProduct
-      .doc(outletId)                     // specific outlet
-      .collection('products')            // products sub-collection
-      .doc(productId)                    // specific product
-      .update(grnData)
-      .then(() => {
-        console.log('✅ Outlet Product updated successfully');
-      })
-      .catch((error) => {
-        console.error('❌ Error updating GRN:', error);
-        throw error;
-      });
+  updateOutletProduct(
+    outletId: string,
+    productId: string,
+    grnData: any
+  ): Promise<any> {
+    return runInInjectionContext(this.injector, () => {
+      return this.mFirestore
+        .collection(this.collectionName) // outletProduct
+        .doc(outletId)                   // specific outlet
+        .collection('products')          // products sub-collection
+        .doc(productId)                  // specific product
+        .update(grnData)
+        .then(() => console.log('Outlet Product updated successfully'))
+        .catch((error) => {
+          console.error('❌ Error updating GRN:', error);
+          throw error;
+        });
+    });
   }
 
+  updateInventoryProduct(
+    dealerOutlet: string,
+    sku: string,
+    updateData: Partial<{ openingStock: number; quantity?: number; [key: string]: any }>
+  ): Promise<void> {
+    if (!dealerOutlet || !sku) {
+      return Promise.reject(new Error('Dealer outlet and SKU are required'));
+    }
+
+    const payload = {
+      ...updateData,
+      updatedAt: new Date()
+    };
+
+    return runInInjectionContext(this.injector, () => {
+      console.log(dealerOutlet)
+      return this.mFirestore
+        .collection('inventory')
+        .doc(dealerOutlet)
+        .set(
+          { products: { [sku]: payload } },
+          { merge: true } // merge=true ensures only updated fields are changed
+        )
+        .then(() => console.log(`✅ Inventory product ${sku} updated successfully`))
+        .catch(err => {
+          console.error(`❌ Error updating inventory product ${sku}:`, err);
+          throw err;
+        });
+    });
+  }
 
 // outlet-product.service.ts
   deleteOutletProduct(outletId: string, productId: string): Promise<void> {
