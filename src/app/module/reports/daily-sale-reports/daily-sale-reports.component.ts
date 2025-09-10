@@ -1,4 +1,12 @@
-import {Component, EnvironmentInjector, Inject, OnInit, runInInjectionContext} from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  EnvironmentInjector,
+  Inject,
+  OnInit,
+  runInInjectionContext,
+  ViewChild
+} from '@angular/core';
 import {FormControl, FormGroup, FormsModule, ReactiveFormsModule, UntypedFormBuilder} from "@angular/forms";
 import {MatAutocomplete, MatAutocompleteTrigger} from "@angular/material/autocomplete";
 import {
@@ -87,6 +95,11 @@ export class DailySaleReportsComponent implements OnInit{
   selectedCountry: string = '';
   selectedOutlets: string[] = [];
   allOutletReports: { outlet: string; rows: any[] }[] = [];
+  @ViewChild('countrySearchInput') countrySearchInput!: ElementRef;
+  @ViewChild('divisionSearchInput') divisionSearchInput!: ElementRef;
+  @ViewChild('townSearchInput') townSearchInput!: ElementRef;
+  @ViewChild('outletSearchInput') outletSearchInput!: ElementRef;
+  debounceTimer: any;
 
 
   // Filters
@@ -234,6 +247,74 @@ export class DailySaleReportsComponent implements OnInit{
         this.filteredOptions.name = [...names];
       });
     });
+  }
+
+  // Country
+  onCountrySearchChange(event: any) {
+    clearTimeout(this.debounceTimer);
+    this.debounceTimer = setTimeout(() => {
+      const searchText = event.target.value.toLowerCase();
+      this.filteredOptions.country = this.options.country.filter((c: string) =>
+        c.toLowerCase().includes(searchText)
+      );
+    }, 300);
+  }
+  onCountrySelectOpened(isOpened: boolean) {
+    if (isOpened) {
+      this.filteredOptions.country = [...this.options.country];
+      setTimeout(() => this.countrySearchInput.nativeElement.focus(), 0);
+    }
+  }
+
+// Division
+  onDivisionSearchChange(event: any) {
+    clearTimeout(this.debounceTimer);
+    this.debounceTimer = setTimeout(() => {
+      const searchText = event.target.value.toLowerCase();
+      this.filteredOptions.division = this.options.division.filter((d: string) =>
+        d.toLowerCase().includes(searchText)
+      );
+    }, 300);
+  }
+  onDivisionSelectOpened(isOpened: boolean) {
+    if (isOpened) {
+      this.filteredOptions.division = [...this.options.division];
+      setTimeout(() => this.divisionSearchInput.nativeElement.focus(), 0);
+    }
+  }
+
+// Town
+  onTownSearchChange(event: any) {
+    clearTimeout(this.debounceTimer);
+    this.debounceTimer = setTimeout(() => {
+      const searchText = event.target.value.toLowerCase();
+      this.filteredOptions.town = this.options.town.filter((t: string) =>
+        t.toLowerCase().includes(searchText)
+      );
+    }, 300);
+  }
+  onTownSelectOpened(isOpened: boolean) {
+    if (isOpened) {
+      this.filteredOptions.town = [...this.options.town];
+      setTimeout(() => this.townSearchInput.nativeElement.focus(), 0);
+    }
+  }
+
+// Outlet(s)
+  onOutletSearchChange(event: any) {
+    clearTimeout(this.debounceTimer);
+    this.debounceTimer = setTimeout(() => {
+      const searchText = event.target.value.toLowerCase();
+      this.filteredOptions.name = this.options.name.filter((o: string) =>
+        o.toLowerCase().includes(searchText)
+      );
+    }, 300);
+  }
+  onOutletSelectOpened(isOpened: boolean) {
+    if (isOpened) {
+      this.filteredOptions.name = [...this.options.name];
+      setTimeout(() => this.outletSearchInput.nativeElement.focus(), 0);
+    }
   }
 
   productList() {

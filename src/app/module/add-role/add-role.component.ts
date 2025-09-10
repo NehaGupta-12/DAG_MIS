@@ -1,4 +1,4 @@
-import { Component, EnvironmentInjector, OnInit, runInInjectionContext } from '@angular/core';
+import {Component, ElementRef, EnvironmentInjector, OnInit, runInInjectionContext, ViewChild} from '@angular/core';
 import {
   AbstractControl,
   FormArray,
@@ -38,7 +38,8 @@ import {MatOption, MatSelect} from "@angular/material/select";
     AsyncPipe,
     MatOption,
     MatSelect,
-    MatSelect
+    MatSelect,
+    MatInput
   ],
   styleUrls: ['./add-role.component.scss']
 })
@@ -50,6 +51,12 @@ export class AddRoleComponent implements OnInit {
   roleId: string | null = null;  // detect if edit mode
   isEditMode = false;
   _roles$!: Observable<string[]>;
+  @ViewChild('roleSearchInput') roleSearchInput!: ElementRef;
+
+  _roles: string[] = [];
+  filteredRoles: string[] = [];
+  roleSearchText: string = '';
+  debounceTimer: any;
 
   constructor(
     private fb: FormBuilder,
@@ -69,6 +76,12 @@ export class AddRoleComponent implements OnInit {
       .object<{ subcategories: any[] }>('/typelist/Role')
       .valueChanges()
       .pipe(map(data => data?.subcategories || []));
+
+    // Subscribe to the observable to populate the local arrays
+    this._roles$.subscribe(roles => {
+      this._roles = roles;
+      this.filteredRoles = [...this._roles]; // Initialize the filtered list
+    });
   }
 
   ngOnInit(): void {
@@ -116,6 +129,30 @@ export class AddRoleComponent implements OnInit {
           }
         });
     });
+  }
+
+  // Add these methods to your component class
+  filterRoles() {
+    const searchText = this.roleSearchText.toLowerCase();
+    this.filteredRoles = this._roles.filter(role => role.toLowerCase().includes(searchText));
+  }
+
+  onRoleSearchChange(event: any) {
+    clearTimeout(this.debounceTimer);
+    this.debounceTimer = setTimeout(() => {
+      this.roleSearchText = event.target.value;
+      this.filterRoles();
+    }, 300); // Adjust the delay as needed
+  }
+
+  onRoleSelectOpened(isOpened: boolean) {
+    if (isOpened) {
+      this.roleSearchText = '';
+      this.filterRoles();
+      setTimeout(() => {
+        this.roleSearchInput.nativeElement.focus();
+      }, 0);
+    }
   }
 
   get permissionsArray(): FormArray {

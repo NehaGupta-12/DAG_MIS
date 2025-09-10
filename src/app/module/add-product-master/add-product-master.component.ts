@@ -1,4 +1,12 @@
-  import {Component, EnvironmentInjector, Inject, OnInit, runInInjectionContext} from '@angular/core';
+  import {
+  Component,
+    ElementRef,
+  EnvironmentInjector,
+  Inject,
+  OnInit,
+  runInInjectionContext,
+  ViewChild
+} from '@angular/core';
   import {
     FormGroup,
     FormsModule,
@@ -58,6 +66,33 @@
     _variantTypes$!: Observable<string[]>;
     _engineTypes$!: Observable<string[]>;
     _unitTypes$!: Observable<string[]>;
+    @ViewChild('modelSearchInput') modelSearchInput!: ElementRef;
+    @ViewChild('categorySearchInput') categorySearchInput!: ElementRef;
+    @ViewChild('variantSearchInput') variantSearchInput!: ElementRef;
+    @ViewChild('engineSearchInput') engineSearchInput!: ElementRef;
+    @ViewChild('unitSearchInput') unitSearchInput!: ElementRef;
+
+    _modelTypes: string[] = [];
+    filteredModels: string[] = [];
+    modelSearchText: string = '';
+
+    _categoryTypes: string[] = [];
+    filteredCategories: string[] = [];
+    categorySearchText: string = '';
+
+    _variantTypes: string[] = [];
+    filteredVariants: string[] = [];
+    variantSearchText: string = '';
+
+    _engineTypes: string[] = [];
+    filteredEngines: string[] = [];
+    engineSearchText: string = '';
+
+    _unitTypes: string[] = [];
+    filteredUnits: string[] = [];
+    unitSearchText: string = '';
+
+    debounceTimer: any;
 
     constructor(
       private fb: UntypedFormBuilder,
@@ -70,15 +105,24 @@
       private loadingService: LoadingService,
       @Inject(MAT_DIALOG_DATA) public data: any,
     ) {
+      // Subscribe to all observables and populate local arrays
       this._modelTypes$ = this.mDatabase
         .object<{ subcategories: string[] }>('typelist/Model')
         .valueChanges()
         .pipe(map(data => data?.subcategories || []));
+      this._modelTypes$.subscribe(data => {
+        this._modelTypes = data;
+        this.filteredModels = [...data];
+      });
 
       this._categoryTypes$ = this.mDatabase
         .object<{ subcategories: string[] }>('/typelist/Product_Category')
         .valueChanges()
         .pipe(map(data => data?.subcategories || []));
+      this._categoryTypes$.subscribe(data => {
+        this._categoryTypes = data;
+        this.filteredCategories = [...data];
+      });
 
       this._subCategoryTypes$ = this.mDatabase
         .object<{ subcategories: string[] }>('/typelist/Sub_Category')
@@ -89,16 +133,28 @@
         .object<{ subcategories: string[] }>('typelist/Variant')
         .valueChanges()
         .pipe(map(data => data?.subcategories || []));
+      this._variantTypes$.subscribe(data => {
+        this._variantTypes = data;
+        this.filteredVariants = [...data];
+      });
 
       this._engineTypes$ = this.mDatabase
         .object<{ subcategories: string[] }>('typelist/EngineCC')
         .valueChanges()
         .pipe(map(data => data?.subcategories || []));
+      this._engineTypes$.subscribe(data => {
+        this._engineTypes = data;
+        this.filteredEngines = [...data];
+      });
 
       this._unitTypes$ = this.mDatabase
         .object<{ subcategories: string[] }>('typelist/UnitOfMeasurement')
         .valueChanges()
         .pipe(map(data => data?.subcategories || []));
+      this._unitTypes$.subscribe(data => {
+        this._unitTypes = data;
+        this.filteredUnits = [...data];
+      });
 
       this.productForm = this.fb.group({
         name: ['', [Validators.required]],
@@ -126,6 +182,106 @@
           }
         }
       });
+    }
+
+    // --- Model Methods ---
+    filterModels() {
+      const searchText = this.modelSearchText.toLowerCase();
+      this.filteredModels = this._modelTypes.filter(model => model.toLowerCase().includes(searchText));
+    }
+    onModelSearchChange(event: any) {
+      clearTimeout(this.debounceTimer);
+      this.debounceTimer = setTimeout(() => {
+        this.modelSearchText = event.target.value;
+        this.filterModels();
+      }, 300);
+    }
+    onModelSelectOpened(isOpened: boolean) {
+      if (isOpened) {
+        this.modelSearchText = '';
+        this.filterModels();
+        setTimeout(() => this.modelSearchInput.nativeElement.focus(), 0);
+      }
+    }
+
+// --- Category Methods ---
+    filterCategories() {
+      const searchText = this.categorySearchText.toLowerCase();
+      this.filteredCategories = this._categoryTypes.filter(category => category.toLowerCase().includes(searchText));
+    }
+    onCategorySearchChange(event: any) {
+      clearTimeout(this.debounceTimer);
+      this.debounceTimer = setTimeout(() => {
+        this.categorySearchText = event.target.value;
+        this.filterCategories();
+      }, 300);
+    }
+    onCategorySelectOpened(isOpened: boolean) {
+      if (isOpened) {
+        this.categorySearchText = '';
+        this.filterCategories();
+        setTimeout(() => this.categorySearchInput.nativeElement.focus(), 0);
+      }
+    }
+
+// --- Varient Methods ---
+    filterVariants() {
+      const searchText = this.variantSearchText.toLowerCase();
+      this.filteredVariants = this._variantTypes.filter(variant => variant.toLowerCase().includes(searchText));
+    }
+    onVariantSearchChange(event: any) {
+      clearTimeout(this.debounceTimer);
+      this.debounceTimer = setTimeout(() => {
+        this.variantSearchText = event.target.value;
+        this.filterVariants();
+      }, 300);
+    }
+    onVariantSelectOpened(isOpened: boolean) {
+      if (isOpened) {
+        this.variantSearchText = '';
+        this.filterVariants();
+        setTimeout(() => this.variantSearchInput.nativeElement.focus(), 0);
+      }
+    }
+
+// --- Engine CC Methods ---
+    filterEngines() {
+      const searchText = this.engineSearchText.toLowerCase();
+      this.filteredEngines = this._engineTypes.filter(engine => engine.toLowerCase().includes(searchText));
+    }
+    onEngineSearchChange(event: any) {
+      clearTimeout(this.debounceTimer);
+      this.debounceTimer = setTimeout(() => {
+        this.engineSearchText = event.target.value;
+        this.filterEngines();
+      }, 300);
+    }
+    onEngineSelectOpened(isOpened: boolean) {
+      if (isOpened) {
+        this.engineSearchText = '';
+        this.filterEngines();
+        setTimeout(() => this.engineSearchInput.nativeElement.focus(), 0);
+      }
+    }
+
+// --- Unit Methods ---
+    filterUnits() {
+      const searchText = this.unitSearchText.toLowerCase();
+      this.filteredUnits = this._unitTypes.filter(unit => unit.toLowerCase().includes(searchText));
+    }
+    onUnitSearchChange(event: any) {
+      clearTimeout(this.debounceTimer);
+      this.debounceTimer = setTimeout(() => {
+        this.unitSearchText = event.target.value;
+        this.filterUnits();
+      }, 300);
+    }
+    onUnitSelectOpened(isOpened: boolean) {
+      if (isOpened) {
+        this.unitSearchText = '';
+        this.filterUnits();
+        setTimeout(() => this.unitSearchInput.nativeElement.focus(), 0);
+      }
     }
 
     onRegister() {

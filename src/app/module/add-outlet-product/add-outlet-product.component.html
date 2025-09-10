@@ -20,31 +20,31 @@
                 <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 mb-2">
                   <mat-form-field class="example-full-width" appearance="outline">
                     <mat-label>Outlet/Dealer</mat-label>
-                    <mat-select formControlName="dealerOutlet" required>
-                    <mat-option *ngFor="let dealer of dealerdataSource.data" [value]="dealer.name">
-                      {{ dealer.name }}
-                    </mat-option>
-                  </mat-select>
-                    <!--                    <mat-icon class="material-icons-outlined color-icon p-3" matSuffix>flag</mat-icon>-->
+                    <mat-select formControlName="dealerOutlet" required #dealerSelect panelClass="custom-select-panel" (openedChange)="onDealerSelectOpened($event)">
+                      <div class="mat-select-search">
+                        <input matInput (input)="onDealerSearchChange($event)" #dealerSearchInput placeholder="Search Outlet/Dealer" />
+                      </div>
+                      <mat-option *ngFor="let dealer of filteredDealers" [value]="dealer.name">
+                        {{ dealer.name }}
+                      </mat-option>
+                    </mat-select>
                     @if (grnForm?.get('dealerOutlet')?.hasError('required')) {
-                      <mat-error>
-                        Division is required
-                      </mat-error>
+                      <mat-error>Outlet/Dealer is required</mat-error>
                     }
                   </mat-form-field>
                 </div>
                 <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 mb-2">
                   <mat-form-field class="example-full-width" appearance="outline">
                     <mat-label>Products</mat-label>
-                    <mat-select required formControlName="products">
-                      <mat-option *ngFor="let product of vehicledataSource.data"
-                                  [value]="product?.name"
-                                  [disabled]="product?.disabled">
+                    <mat-select required formControlName="products" #productSelect panelClass="custom-select-panel" (openedChange)="onProductSelectOpened($event)">
+                      <div class="mat-select-search">
+                        <input matInput (input)="onProductSearchChange($event)" #productSearchInput placeholder="Search Products" />
+                      </div>
+                      <mat-option *ngFor="let product of filteredProducts" [value]="product?.name" [disabled]="product?.disabled">
                         {{ product?.name }}
-                      </mat-option  >
+                      </mat-option>
                     </mat-select>
                   </mat-form-field>
-
                 </div>
               </div>
               <div class="row">

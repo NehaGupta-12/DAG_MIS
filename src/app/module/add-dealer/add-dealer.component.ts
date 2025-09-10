@@ -1,4 +1,12 @@
-import {Component, EnvironmentInjector, Inject, OnInit, runInInjectionContext} from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  EnvironmentInjector,
+  Inject,
+  OnInit,
+  runInInjectionContext,
+  ViewChild
+} from '@angular/core';
 import {
   FormGroup,
   FormsModule,
@@ -58,6 +66,28 @@ export class AddDealerComponent implements OnInit{
   _outletCategoryTypes$!: Observable<string[]>;
   _countriesTypes$!: Observable<string[]>;
   _townTypes$!: Observable<string[]>;
+  @ViewChild('outletTypeSearchInput') outletTypeSearchInput!: ElementRef;
+  @ViewChild('divisionSearchInput') divisionSearchInput!: ElementRef;
+  @ViewChild('countrySearchInput') countrySearchInput!: ElementRef;
+  @ViewChild('townSearchInput') townSearchInput!: ElementRef;
+
+  _divisionTypes: string[] = [];
+  filteredDivisionTypes: string[] = [];
+  divisionSearchText: string = '';
+
+  _outletTypes: string[] = [];
+  filteredOutletTypes: string[] = [];
+  outletTypeSearchText: string = '';
+
+  _countriesTypes: string[] = [];
+  filteredCountries: string[] = [];
+  countrySearchText: string = '';
+
+  _townTypes: string[] = [];
+  filteredTownTypes: string[] = [];
+  townSearchText: string = '';
+
+  debounceTimer: any;
 
   breadscrums = [
     {
@@ -102,6 +132,27 @@ export class AddDealerComponent implements OnInit{
       .valueChanges()
       .pipe(map(data => data?.subcategories || []));
 
+    // Subscribe to all observables and populate local arrays
+    this._divisionTypes$.subscribe(data => {
+      this._divisionTypes = data;
+      this.filterDivisionTypes();
+    });
+
+    this._outletTypes$.subscribe(data => {
+      this._outletTypes = data;
+      this.filterOutletTypes();
+    });
+
+    this._countriesTypes$.subscribe(data => {
+      this._countriesTypes = data;
+      this.filterCountries();
+    });
+
+    this._townTypes$.subscribe(data => {
+      this._townTypes = data;
+      this.filterTownTypes();
+    });
+
     this.isEditMode = !!data?.id;
     this.dealerForm = this.fb.group({
       name: ['', [Validators.required]],
@@ -123,6 +174,86 @@ export class AddDealerComponent implements OnInit{
         }
       }
     });
+  }
+
+  // --- Outlet Type Methods ---
+  filterOutletTypes() {
+    const searchText = this.outletTypeSearchText.toLowerCase();
+    this.filteredOutletTypes = this._outletTypes.filter(type => type.toLowerCase().includes(searchText));
+  }
+  onOutletTypeSearchChange(event: any) {
+    clearTimeout(this.debounceTimer);
+    this.debounceTimer = setTimeout(() => {
+      this.outletTypeSearchText = event.target.value;
+      this.filterOutletTypes();
+    }, 300);
+  }
+  onOutletTypeSelectOpened(isOpened: boolean) {
+    if (isOpened) {
+      this.outletTypeSearchText = '';
+      this.filterOutletTypes();
+      setTimeout(() => this.outletTypeSearchInput.nativeElement.focus(), 0);
+    }
+  }
+
+// --- Division Methods ---
+  filterDivisionTypes() {
+    const searchText = this.divisionSearchText.toLowerCase();
+    this.filteredDivisionTypes = this._divisionTypes.filter(type => type.toLowerCase().includes(searchText));
+  }
+  onDivisionSearchChange(event: any) {
+    clearTimeout(this.debounceTimer);
+    this.debounceTimer = setTimeout(() => {
+      this.divisionSearchText = event.target.value;
+      this.filterDivisionTypes();
+    }, 300);
+  }
+  onDivisionSelectOpened(isOpened: boolean) {
+    if (isOpened) {
+      this.divisionSearchText = '';
+      this.filterDivisionTypes();
+      setTimeout(() => this.divisionSearchInput.nativeElement.focus(), 0);
+    }
+  }
+
+// --- Country Methods ---
+  filterCountries() {
+    const searchText = this.countrySearchText.toLowerCase();
+    this.filteredCountries = this._countriesTypes.filter(country => country.toLowerCase().includes(searchText));
+  }
+  onCountrySearchChange(event: any) {
+    clearTimeout(this.debounceTimer);
+    this.debounceTimer = setTimeout(() => {
+      this.countrySearchText = event.target.value;
+      this.filterCountries();
+    }, 300);
+  }
+  onCountrySelectOpened(isOpened: boolean) {
+    if (isOpened) {
+      this.countrySearchText = '';
+      this.filterCountries();
+      setTimeout(() => this.countrySearchInput.nativeElement.focus(), 0);
+    }
+  }
+
+// --- Town Methods ---
+  filterTownTypes() {
+    const searchText = this.townSearchText.toLowerCase();
+    this.filteredTownTypes = this._townTypes.filter(town => town.toLowerCase().includes(searchText));
+  }
+  onTownSearchChange(event: any) {
+    clearTimeout(this.debounceTimer);
+    this.debounceTimer = setTimeout(() => {
+      this.townSearchText = event.target.value;
+      this.filterTownTypes();
+    }, 300);
+  }
+  onTownSelectOpened(isOpened: boolean) {
+    if (isOpened) {
+      this.townSearchText = '';
+      this.filterTownTypes();
+      setTimeout(() => this.townSearchInput.nativeElement.focus(), 0);
+    }
   }
 
   submitForm() {

@@ -1,4 +1,4 @@
-import {Component, EnvironmentInjector, OnInit, runInInjectionContext} from '@angular/core';
+import {Component, ElementRef, EnvironmentInjector, OnInit, runInInjectionContext, ViewChild} from '@angular/core';
 import {FormGroup, FormsModule, ReactiveFormsModule, UntypedFormBuilder, Validators} from "@angular/forms";
 import {MatButtonModule} from "@angular/material/button";
 import {
@@ -59,7 +59,6 @@ import {LoadingService} from "../../Services/loading.service";
   styleUrl: './add-outlet-product.component.scss'
 })
 export class AddOutletProductComponent implements OnInit {
-
   isEditMode: boolean = false;
   grnForm: FormGroup;
   displayedColumns: string[] = ['name', 'brand', 'model', 'variant', 'unit', 'openingStock', 'action'];
@@ -72,6 +71,17 @@ export class AddOutletProductComponent implements OnInit {
   allDealers: any[] = [];
   editProductId: string = '';
   data: any = {};
+  @ViewChild('dealerSearchInput') dealerSearchInput!: ElementRef;
+  @ViewChild('productSearchInput') productSearchInput!: ElementRef;
+
+  filteredDealers: any[] = [];
+  dealerSearchText: string = '';
+
+  _allProducts: any[] = [];
+  filteredProducts: any[] = [];
+  productSearchText: string = '';
+
+  debounceTimer: any;
 
   breadscrums = [
     {
@@ -172,6 +182,7 @@ export class AddOutletProductComponent implements OnInit {
           this.allDealers = data;
           this.dealers = data;
           this.dealerdataSource.data = this.dealers;
+          this.filteredDealers = [...this.dealers]; // Initialize the filtered list
           console.log("All Dealers:", this.dealerdataSource.data);
           this.loadingService.setLoading(false);
         },
@@ -187,12 +198,52 @@ export class AddOutletProductComponent implements OnInit {
         next: (data) => {
           (this.productService as any).cachedProducts = data;
           this.vehicledataSource.data = data;
+          this._allProducts = data; // Populate the local array
+          this.filteredProducts = [...this._allProducts]; // Initialize filtered list
           console.log("All Products:", data);
           this.loadingService.setLoading(false);
         },
         error: () => this.loadingService.setLoading(false)
       });
     });
+  }
+
+  filterDealers() {
+    const searchText = this.dealerSearchText.toLowerCase();
+    this.filteredDealers = this.dealers.filter(dealer => dealer.name.toLowerCase().includes(searchText));
+  }
+  onDealerSearchChange(event: any) {
+    clearTimeout(this.debounceTimer);
+    this.debounceTimer = setTimeout(() => {
+      this.dealerSearchText = event.target.value;
+      this.filterDealers();
+    }, 300);
+  }
+  onDealerSelectOpened(isOpened: boolean) {
+    if (isOpened) {
+      this.dealerSearchText = '';
+      this.filterDealers();
+      setTimeout(() => this.dealerSearchInput.nativeElement.focus(), 0);
+    }
+  }
+
+  filterProducts() {
+    const searchText = this.productSearchText.toLowerCase();
+    this.filteredProducts = this._allProducts.filter(product => product.name.toLowerCase().includes(searchText));
+  }
+  onProductSearchChange(event: any) {
+    clearTimeout(this.debounceTimer);
+    this.debounceTimer = setTimeout(() => {
+      this.productSearchText = event.target.value;
+      this.filterProducts();
+    }, 300);
+  }
+  onProductSelectOpened(isOpened: boolean) {
+    if (isOpened) {
+      this.productSearchText = '';
+      this.filterProducts();
+      setTimeout(() => this.productSearchInput.nativeElement.focus(), 0);
+    }
   }
 
   filterProductsForOutlet(selectedOutlet: string) {
@@ -225,6 +276,7 @@ export class AddOutletProductComponent implements OnInit {
     this.vehicledataSource.data = processedProducts;
     console.log("Products with disabled flag:", processedProducts);
   }
+
 
   isSubmitEnabled(): boolean {
     const dealerValue = this.grnForm.getRawValue().dealerOutlet;
