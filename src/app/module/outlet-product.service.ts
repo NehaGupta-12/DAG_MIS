@@ -2,21 +2,22 @@ import { Injectable } from '@angular/core';
 import {AngularFirestore} from "@angular/fire/compat/firestore";
 import {Observable} from "rxjs";
 import {map} from "rxjs/operators";
-
+import 'firebase/compat/firestore';
+import {deleteField} from "@angular/fire/firestore";
 @Injectable({
   providedIn: 'root'
 })
 export class OutletProductService {
   private collectionName = 'outletProduct';   // Firestore collection name
 
-  constructor(private firestore: AngularFirestore) {}
+  constructor(private mFirestore: AngularFirestore) {}
 
   getInventoryData(){
-    return this.firestore.collection('inventory').valueChanges({idField: 'id'});
+    return this.mFirestore.collection('inventory').valueChanges({idField: 'id'});
   }
 
   getOutletProductList(): Observable<any[]> {
-    return this.firestore
+    return this.mFirestore
       .collectionGroup('products') // fetches all products under all outlet docs
       .snapshotChanges()
       .pipe(
@@ -57,7 +58,7 @@ export class OutletProductService {
       createdAt: new Date(),
       // Add any additional fields as needed
     };
-    return this.firestore
+    return this.mFirestore
       .collection(this.collectionName)  // main collection
       .doc(grnData.outletId)        // outletID (document ID)
       .collection('products')// sub-collection for products
@@ -70,7 +71,7 @@ export class OutletProductService {
       ...inventoryData,
       createdAt: new Date(),
     };
-    return this.firestore
+    return this.mFirestore
       .collection('inventory')
       .doc(inventoryData.dealerOutlet)
       .set(
@@ -81,7 +82,7 @@ export class OutletProductService {
 
   // 📌 Update GRN
   updateOutletProduct(outletId: string, productId: string, grnData: any): Promise<any> {
-    return this.firestore
+    return this.mFirestore
       .collection(this.collectionName)   // outletProduct
       .doc(outletId)                     // specific outlet
       .collection('products')            // products sub-collection
@@ -99,7 +100,7 @@ export class OutletProductService {
 
 // outlet-product.service.ts
   deleteOutletProduct(outletId: string, productId: string): Promise<void> {
-    return this.firestore
+    return this.mFirestore
       .collection(this.collectionName)    // 'outletProduct'
       .doc(outletId)                      // outlet doc (e.g. VWC014)
       .collection('products')             // subcollection
@@ -108,9 +109,32 @@ export class OutletProductService {
   }
 
 
+  async deleteOutletProductAndInventory(outletId: string, productId: string, dealerOutlet: string): Promise<void> {
+    const batch = this.mFirestore.firestore.batch();
+
+    // Delete product from outlet sub-collection
+    const outletRef = this.mFirestore
+      .collection(this.collectionName)
+      .doc(outletId)
+      .collection('products')
+      .doc(productId).ref;
+    batch.delete(outletRef);
+
+    // Delete product from inventory nested field
+    const inventoryRef = this.mFirestore.collection('inventory').doc(dealerOutlet).ref;
+
+    // Use Firestore FieldValue.delete() to remove the specific SKU
+    batch.update(inventoryRef, {
+      [`products.${productId}`]:deleteField()
+    });
+
+    return batch.commit();
+  }
+
+
   // 📌 Get GRN by ID
   getOutletProductById(id: string): Observable<any> {
-    return this.firestore
+    return this.mFirestore
       .collection(this.collectionName)
       .doc(id)
       .snapshotChanges()

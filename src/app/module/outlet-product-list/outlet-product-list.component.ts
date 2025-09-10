@@ -68,7 +68,7 @@ export class OutletProductListComponent implements OnInit {
     'sku',
     'variant',
     'openingStock',
-    'remark',
+    // 'remark',
     'action'
   ];
 
@@ -141,11 +141,14 @@ export class OutletProductListComponent implements OnInit {
 
 // Delete with loader
   deleteOutletProduct(row: any) {
+    console.log(row);
     const outletId = row.outletId || row.dealerId;
     const productId = row.id;
+    const dealerOutlet = row.dealerOutlet; //
+    console.log('outletId',outletId,'productId',productId ,'dealerOutlet',dealerOutlet)// 👈 you need this
 
-    if (!outletId || !productId) {
-      Swal.fire('Error', 'Missing outletId or productId on this row.', 'error');
+    if (!outletId || !productId || !dealerOutlet) {
+      Swal.fire('Error', 'Missing outletId, dealerOutlet or productId on this row.', 'error');
       return;
     }
 
@@ -159,10 +162,10 @@ export class OutletProductListComponent implements OnInit {
     }).then((result) => {
       if (!result.isConfirmed) return;
 
-      this.loadingService.setLoading(true); // ✅ loader for delete
+      this.loadingService.setLoading(true);
 
       runInInjectionContext(this.injector, () => {
-        this.outletProductService.deleteOutletProduct(outletId, productId)
+        this.outletProductService.deleteOutletProductAndInventory(outletId, productId, dealerOutlet) // 👈 pass 3rd arg
           .then(() => {
             this.dataSource.data = this.dataSource.data.filter((p: any) => p.id !== productId);
             Swal.fire('Deleted!', 'Dealer/Outlet Product has been deleted.', 'success');
