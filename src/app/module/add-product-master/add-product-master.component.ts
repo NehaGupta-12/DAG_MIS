@@ -161,7 +161,7 @@
         model: ['', [Validators.required]],
         brand: ['', [Validators.required]],
         category: ['', [Validators.required]],
-        subCategory: ['', [Validators.required]],
+        // subCategory: ['', [Validators.required]],
         varient: ['', [Validators.required]],
         engineCc: ['', [Validators.required]],
         unit: ['', [Validators.required]],
