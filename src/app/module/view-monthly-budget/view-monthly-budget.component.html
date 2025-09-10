@@ -60,6 +60,11 @@
                 <th mat-header-cell *matHeaderCellDef mat-sort-header>Budget Quantity</th>
                 <td mat-cell *matCellDef="let row">{{ row.budgetQuantity }}</td>
               </ng-container>
+              <!-- targetQuantity -->
+              <ng-container matColumnDef="targetQuantity">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header>Target Quantity</th>
+                <td mat-cell *matCellDef="let row">{{ row.targetQuantity }}</td>
+              </ng-container>
 
               <!-- Action -->
               <ng-container matColumnDef="action">

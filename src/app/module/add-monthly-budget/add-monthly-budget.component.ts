@@ -43,7 +43,7 @@ export class AddMonthlyBudgetComponent implements OnInit {
   isEditMode = false;
   editingDocId: string | null = null;
   budgetForm: FormGroup;
-  displayedColumns: string[] = ['country', 'year', 'month', 'period', 'name', 'sku', 'quantity', 'action'];
+  displayedColumns: string[] = ['country', 'year', 'month', 'period', 'name', 'sku', 'quantity','target', 'action'];
   dataSource = new MatTableDataSource<any>();
   addedProducts: any[] = [];
   vehicledataSource = new MatTableDataSource<any>();
@@ -244,6 +244,7 @@ export class AddMonthlyBudgetComponent implements OnInit {
       sku: params['sku'],
       name: params['name'] || params['productName'],
       quantity: params['budgetQuantity'] ? Number(params['budgetQuantity']) : 0,
+      target: params['targetQuantity'] ? Number(params['targetQuantity']) : 0,
       country: params['country'],
       year: params['year'],
       month: params['month'],
@@ -375,6 +376,7 @@ export class AddMonthlyBudgetComponent implements OnInit {
         month: formValues.month,
         period: formValues.period,
         quantity: 1,
+        target: 1,
         __isNew: true
       }
     ];
@@ -433,7 +435,8 @@ export class AddMonthlyBudgetComponent implements OnInit {
             id: productToUpdate.id,
             sku: productToUpdate.sku,
             name: productToUpdate.name,
-            quantity: productToUpdate.quantity
+            quantity: productToUpdate.quantity,
+            target: productToUpdate.target
           };
 
           this.loadingService.setLoading(true); // ✅ start loader
@@ -453,7 +456,8 @@ export class AddMonthlyBudgetComponent implements OnInit {
               model: p.model,
               variant: p.variant ?? p.varient,
               unit: p.unit,
-              quantity: p.quantity
+              quantity: p.quantity,
+              target: p.target
             };
             return this.monthlybudgetService.addBudget(productDoc);
           }))

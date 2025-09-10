@@ -59,6 +59,7 @@ export class MonthlyBudgetListComponent implements OnInit {
     { def: 'month', label: 'Month' },
     { def: 'period', label: 'Period' },
     { def: 'budgetQuantity', label: 'BudgetQuantity' },
+    { def: 'targetQuantity', label: 'targetQuantity' },
     { def: 'action', label: 'Action' },
   ];
 
@@ -69,6 +70,7 @@ export class MonthlyBudgetListComponent implements OnInit {
     'month',
     'period',
     'budgetQuantity',
+    'targetQuantity',
     'action',
   ];
 
@@ -119,7 +121,8 @@ export class MonthlyBudgetListComponent implements OnInit {
                 months: new Set<string>(),
                 period: curr.period,
                 products: [],
-                quantity: 0
+                quantity: 0,
+                target:0,
               };
               acc.push(existing);
             }
@@ -130,10 +133,12 @@ export class MonthlyBudgetListComponent implements OnInit {
               id: curr.docId,
               sku: curr.sku,
               productName: curr.name,
-              budgetQuantity: curr.quantity
+              budgetQuantity: curr.quantity,
+              targetQuantity: curr.target,
             });
 
             existing.quantity += curr.quantity || 0;
+            existing.target += curr.target || 0;
             return acc;
           }, []);
 

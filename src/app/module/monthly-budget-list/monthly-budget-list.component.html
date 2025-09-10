@@ -80,8 +80,12 @@
                 </ng-container>
 
                 <ng-container matColumnDef="budgetQuantity">
-                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Total Budget Quantity</th>
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header> Budget Quantity</th>
                   <td mat-cell *matCellDef="let row">{{ row.quantity }}</td>
+                </ng-container>
+                <ng-container matColumnDef="targetQuantity">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header> Target Quantity</th>
+                  <td mat-cell *matCellDef="let row">{{ row.target }}</td>
                 </ng-container>
 
 
