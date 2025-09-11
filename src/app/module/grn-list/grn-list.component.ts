@@ -62,6 +62,7 @@ export class GRNListComponent implements OnInit {
     {def: 'variant', label: 'Variant'},
     {def: 'dealerOutlet', label: 'Dealer Outlet'},
     {def: 'quantity', label: 'Quantity'},
+    {def: 'createdAt', label: 'CreatedAt'},
     // {def: 'typeOfGrn', label: 'GrnType'},
   ];
 
@@ -72,6 +73,7 @@ export class GRNListComponent implements OnInit {
     'variant',
     'dealerOutlet',
     'quantity',
+    'createdAt',
     // 'typeOfGrn',
     'action'
   ];

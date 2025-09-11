@@ -36,11 +36,6 @@ import {LoadingService} from "../../Services/loading.service";
 import {map} from "rxjs/operators";
 import {AngularFireDatabase} from "@angular/fire/compat/database";
 import {BehaviorSubject, Observable} from "rxjs";
-import { NgxMatSelectSearchModule } from 'ngx-mat-select-search';
-
-
-
-
 
 @Component({
   selector: 'app-add-daily-sales',
@@ -59,7 +54,6 @@ import { NgxMatSelectSearchModule } from 'ngx-mat-select-search';
     NgFor,
     NgIf,
     AsyncPipe,
-    NgxMatSelectSearchModule,
 
   ],
   providers: [
@@ -73,7 +67,7 @@ export class AddDailySalesComponent implements OnInit {
 
   isEditMode: boolean = false;
   dailySalesForm: FormGroup;
-  displayedColumns: string[] = ['sku', 'name', 'brand', 'model', 'variant', 'unit', 'quantity', 'action'];
+  displayedColumns: string[] = ['sku', 'name', 'brand', 'model', 'variant', 'unit', 'quantity','avlQuntity','action'];
   dealerdataSource = new MatTableDataSource<any>();
   vehicledataSource = new MatTableDataSource<any>();
   addedProducts: any[] = [];
@@ -408,28 +402,49 @@ export class AddDailySalesComponent implements OnInit {
     const dealerName = event.value;
     const dealer = this.dealerdataSource.data.find((d: any) => d.name === dealerName);
 
+    if (!dealer) {
+      this.vehicledataSource.data = [];
+      this.filteredVehicles = [];   // reset vehicle list
+      this.dailySalesForm.get('vehicle')?.reset();
+      return;
+    }
+
     const availableProducts = this.dataSource.data.filter(
-      (p: any) => p.dealerId === dealer?.id && p.openingStock > 0
+      (p: any) => p.dealerId === dealer.id && p.openingStock > 0
     );
 
-    this.vehicledataSource.data = availableProducts;
+    runInInjectionContext(this.injector, () => {
+      this.inventoryService.getInventoryData(dealer.name).subscribe(inventoryProducts => {
+        const inventoryMap = new Map<string, number>();
+        inventoryProducts.forEach(ip => {
+          inventoryMap.set(ip.sku, ip.quantity);
+        });
 
-    // 🔑 also set filteredVehicles initially
-    this.filteredVehicles = [...availableProducts];
+        const patchedProducts = availableProducts.map(product => ({
+          ...product,
+          avlQuantity: inventoryMap.get(product.sku) || 0
+        }));
 
-    this.dailySalesForm.get('vehicle')?.reset();
+        this.vehicledataSource.data = patchedProducts;
+
+        // ✅ Initialize filteredVehicles so dropdown shows values immediately
+        this.filteredVehicles = [...patchedProducts];
+
+        this.dailySalesForm.get('vehicle')?.reset();
+      });
+    });
   }
-  // onVehicleSearchChange(event: any) {
-  //   const searchValue = event.target.value.toLowerCase();
-  //   if (!searchValue) {
-  //     this.filteredVehicles = [...this.vehicledataSource.data]; // reset to all vehicles
-  //   } else {
-  //     this.filteredVehicles = this.vehicledataSource.data.filter(v =>
-  //       v.name.toLowerCase().includes(searchValue)
-  //     );
-  //   }
-  // }
 
+  onQuantityChange(product: any) {
+    if (product.quantity > product.avlQuantity) {
+      alert(`Quantity cannot be greater than available quantity (${product.avlQuantity})`);
+      // Clear input temporarily
+      product.quantity = '';
+      setTimeout(() => {
+        product.quantity = null; // or zero, or leave empty string
+      }, 0);
+    }
+  }
 
 
   isSubmitEnabled(): boolean {
@@ -468,6 +483,7 @@ export class AddDailySalesComponent implements OnInit {
         model: product.model,
         variant: product.variant,
         unit: product.unit,
+        avlQuantity: product.avlQuantity,
         quantity: 1
       }];
       console.log(this.addedProducts);
