@@ -166,7 +166,7 @@
             <mat-card-title>Daily Zero Sales Outlets</mat-card-title>
           </mat-card-header>
           <mat-card-content>
-            <table mat-table [dataSource]="monthlyZeroSalesDataSource" matSort class="mat-cell advance-table">
+            <table mat-table [dataSource]="dailyZeroSalesDataSource" matSort class="mat-cell advance-table">
               <ng-container matColumnDef="id">
                 <th mat-header-cell *matHeaderCellDef>Sr.No.</th>
                 <td mat-cell *matCellDef="let row; let i = index">{{ i + 1 }}</td>
@@ -237,7 +237,6 @@
                 <th mat-header-cell *matHeaderCellDef>Town</th>
                 <td mat-cell *matCellDef="let row">{{ row.town }}</td>
               </ng-container>
-
 
               <!-- ✅ Required rows -->
               <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>

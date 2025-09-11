@@ -1,4 +1,4 @@
-import {Component, EnvironmentInjector, OnInit, runInInjectionContext} from '@angular/core';
+import {Component, EnvironmentInjector, OnInit, runInInjectionContext, ViewChild} from '@angular/core';
 import {
   MatCell,
   MatCellDef,
@@ -58,6 +58,7 @@ export class MenuListComponent implements OnInit{
     // 'createdAt',
     'action'
   ];
+  @ViewChild(MatPaginator) paginator!: MatPaginator;
 
   constructor(
     private router: Router,
@@ -84,6 +85,10 @@ export class MenuListComponent implements OnInit{
       console.log(this.dataSource.data)
     });
     });
+  }
+
+  ngAfterViewInit() {
+    this.dataSource.paginator = this.paginator;
   }
 
   applyFilter(event: KeyboardEvent) {
