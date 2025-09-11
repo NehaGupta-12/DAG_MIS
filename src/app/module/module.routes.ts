@@ -36,164 +36,204 @@ import {MonthlyBudgetListComponent} from "./monthly-budget-list/monthly-budget-l
 import {ViewUserComponent} from "./view-user/view-user.component";
 import {MenuListComponent} from "./Menu list/menu-list/menu-list.component";
 import {AddEditMenuListComponent} from "./Menu list/add-edit-menu-list/add-edit-menu-list.component";
+import {AuthGuard} from "../authentication/auth.guard";
 
 export const MODULES_ROUTE: Route[] = [
   {
     path: 'location',
-    component: LocationComponent
+    component: LocationComponent,
+    canActivate:[AuthGuard]
   },
   {
     path: 'add-location',
-    component: AddLocationComponent
+    component: AddLocationComponent,
+    canActivate:[AuthGuard]
   },
   {
     path: 'user-list',
-    component: UserListComponent
+    component: UserListComponent,
+    canActivate:[AuthGuard]
   },
   {
     path: 'add-user',
-    component: AddUserComponent
+    component: AddUserComponent,
+    canActivate:[AuthGuard]
   },
   {
     path: 'edit-user/:id',
-    component: AddUserComponent
+    component: AddUserComponent,
+    canActivate:[AuthGuard]
   },
   {
     path: 'view-user/:id',
-    component: ViewUserComponent
+    component: ViewUserComponent,
+    canActivate:[AuthGuard]
   },
   {
     path: 'role-list',
-    component: RoleComponent
+    component: RoleComponent,
+    canActivate:[AuthGuard]
   },
   {
     path: 'menu-list',
-    component: MenuListComponent
+    component: MenuListComponent,
+    canActivate:[AuthGuard]
   },
   {
     path: 'add-menu',
-    component: AddEditMenuListComponent
+    component: AddEditMenuListComponent,
+    canActivate:[AuthGuard]
   },
   {
     path: 'add-role',
-    component: AddRoleComponent
+    component: AddRoleComponent,
+    canActivate:[AuthGuard]
   },
   {
     path: 'edit-role/:id',
-    component: AddRoleComponent
+    component: AddRoleComponent,
+    canActivate:[AuthGuard]
   },
   {
     path: 'types',
-    component: TypesComponent
+    component: TypesComponent,
+    canActivate:[AuthGuard]
   },
   {
     path: 'dealer-list',
-    component: DealerListComponent
+    component: DealerListComponent,
+    canActivate:[AuthGuard]
   },
   {
     path: 'add-dealer',
-    component: AddDealerComponent
+    component: AddDealerComponent,
+    canActivate:[AuthGuard]
   },
   {
     path: 'location-product-list',
-    component: LocationProductListComponent
+    component: LocationProductListComponent,
+    canActivate:[AuthGuard]
   },
   {
     path: 'add-location-product',
-    component: AddLocationProductComponent
+    component: AddLocationProductComponent,
+    canActivate:[AuthGuard]
   },
   {
     path: 'products-master-list',
-    component: ProductMasterListComponent
+    component: ProductMasterListComponent,
+    canActivate:[AuthGuard]
   },
   {
     path: 'add-products-master',
-    component: AddProductMasterComponent
+    component: AddProductMasterComponent,
+    canActivate:[AuthGuard]
   },
   {
     path: 'inventory-list',
-    component: InventoryListComponent
+    component: InventoryListComponent,
+    canActivate:[AuthGuard]
   },
   {
     path: 'add-inventory',
-    component: AddInventoryComponent
+    component: AddInventoryComponent,
+    canActivate:[AuthGuard]
   },
 
   {
     path: 'daily-sales-list',
-    component: DailySalesListComponent
+    component: DailySalesListComponent,
+    canActivate:[AuthGuard]
   },
   {
     path: 'add-daily-sales',
-    component: AddDailySalesComponent
+    component: AddDailySalesComponent,
+    canActivate:[AuthGuard]
   },
   {
     path: 'grn-list',
-    component: GRNListComponent
+    component: GRNListComponent,
+    canActivate:[AuthGuard]
   },
   {
     path: 'add-grn',
-    component: AddGRNComponent
+    component: AddGRNComponent,
+    canActivate:[AuthGuard]
   },
   {
     path: 'daily-sale-reports',
-    component: DailySaleReportsComponent
+    component: DailySaleReportsComponent,
+    canActivate:[AuthGuard]
   },
   {
     path: 'stock-reports',
-    component: StockReportComponent
+    component: StockReportComponent,
+    canActivate:[AuthGuard]
   },
   {
     path: 'showroom-list',
-    component: ShowroomListComponent
+    component: ShowroomListComponent,
+    canActivate:[AuthGuard]
   },
   {
     path: 'stock-transfer-list',
-    component: StockTransferListComponent
+    component: StockTransferListComponent,
+    canActivate:[AuthGuard]
   },
   {
     path: 'add-stock-transfer',
-    component: AddStockTransferComponent
+    component: AddStockTransferComponent,
+    canActivate:[AuthGuard]
   },
   {
     path: 'add-outlet-product',
-    component: AddOutletProductComponent
+    component: AddOutletProductComponent,
+    canActivate:[AuthGuard]
   },
   {
     path: 'outlet-product-list',
-    component: OutletProductListComponent
+    component: OutletProductListComponent,
+    canActivate:[AuthGuard]
   },
   {
     path:'outlet-dealer-report',
-    component: OutletDealerReportComponent
+    component: OutletDealerReportComponent,
+    canActivate:[AuthGuard]
   },
   {
     path:'budget-list',
-    component: BudgetListComponent
+    component: BudgetListComponent,
+    canActivate:[AuthGuard]
   },
   {
     path:'add-budget',
-    component: AddBudgetComponent
+    component: AddBudgetComponent,
+    canActivate:[AuthGuard]
   },
   {
     path:'add-monthly-budget',
-    component:AddMonthlyBudgetComponent
+    component:AddMonthlyBudgetComponent,
+    canActivate:[AuthGuard]
   },
   {
     path:'view-monthly-budget',
-    component: ViewMonthlyBudgetComponent
+    component: ViewMonthlyBudgetComponent,
+    canActivate:[AuthGuard]
   },
   {
     path:'monthly-budget-list',
-    component: MonthlyBudgetListComponent
+    component: MonthlyBudgetListComponent,
+    canActivate:[AuthGuard]
   },
   {
     path:'product-master-list',
-    component: ProductMasterListComponent
+    component: ProductMasterListComponent,
+    canActivate:[AuthGuard]
   },
   {
     path:'stock-transfer-report',
-    component: StockTransferReportComponent
+    component: StockTransferReportComponent,
+    canActivate:[AuthGuard]
   },
   { path: '**', component: Page404Component },
 ];

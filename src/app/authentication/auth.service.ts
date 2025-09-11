@@ -129,17 +129,19 @@ export class AuthService {
     }
   }
 
-  logout(): void {
-    console.log('Inside logout service');
-    localStorage.removeItem('currentUser');
-    localStorage.removeItem('user');
-    localStorage.removeItem('uid');
-    localStorage.removeItem('userEmail');
-    localStorage.removeItem('userData');
-    sessionStorage.clear();
 
-    this.router.navigateByUrl('/authentication/signin', {replaceUrl: true});
+  logout() {
+    localStorage.removeItem('userData');
+    localStorage.removeItem('userRolePermissions');
+    this.router.navigate(['/authentication/signin']).then(() => {
+      window.history.pushState(null, '', window.location.href);
+      window.onpopstate = function () {
+        window.history.go(1);
+      };
+    });
   }
+
+
 
   async setUserData(uid: string) {
     try {

@@ -1,9 +1,8 @@
 import { Route } from '@angular/router';
 import { MainLayoutComponent } from './layout/app-layout/main-layout/main-layout.component';
-import { AuthGuard } from '@core/guard/auth.guard';
 import { AuthLayoutComponent } from './layout/app-layout/auth-layout/auth-layout.component';
 import { Page404Component } from './authentication/page404/page404.component';
-import {MODULES_ROUTE} from "./module/module.routes";
+import {AuthGuard} from "./authentication/auth.guard";
 
 export const APP_ROUTE: Route[] = [
   {
