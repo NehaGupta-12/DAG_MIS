@@ -27,7 +27,7 @@
             </div>
             <div class="right">
               <div class="right-side-btn">
-                <span [matTooltip]="!authService.hasPermission('Stock Transfer','create') ? 'No permission' : 'Add Role'" matTooltipPosition="above">
+                <span [matTooltip]="!authService.hasPermission('Stock Transfer','create') ? 'No permission' : 'Add Stock Transfer'" matTooltipPosition="above">
 
                 <button mat-icon-button  class="tbl-header-btn col-green" (click)="navigateToAddStockTransfer()" [disabled]="!authService.hasPermission('Stock Transfer','create')">
                   <mat-icon>add_circle_outline</mat-icon>

@@ -162,7 +162,7 @@
             </div>
             <div class="right">
               <div class="right-side-btn">
-                <span [matTooltip]="!authService.hasPermission('Yearly Budget','create') ? 'No permission' : 'Add Role'" matTooltipPosition="above">
+                <span [matTooltip]="!authService.hasPermission('Yearly Budget','create') ? 'No permission' : 'Add Yearly Budget'" matTooltipPosition="above">
 
                 <button mat-icon-button  class="tbl-header-btn col-green"  (click)="navigateToAddloadOutletProduct()" [disabled]="!authService.hasPermission('Yearly Budget','create')">
                   <mat-icon>add_circle_outline</mat-icon>
@@ -228,13 +228,13 @@
                 <ng-container matColumnDef="action">
                   <th mat-header-cell *matHeaderCellDef mat-sort-header>Action</th>
                   <td mat-cell *matCellDef="let row">
-                          <span [matTooltip]="!authService.hasPermission('Yearly Budget','edit') ? 'No permission' : 'Edit Role'" matTooltipPosition="above">
+                          <span [matTooltip]="!authService.hasPermission('Yearly Budget','edit') ? 'No permission' : 'Edit Yearly Budget'" matTooltipPosition="above">
 
                   <button mat-icon-button color="accent" (click)="editloadOutletProduct(row)" [disabled]="!authService.hasPermission('Yearly Budget','edit')">
                     <app-feather-icons icon="edit" class="tbl-fav-edit"></app-feather-icons>
                   </button>
                   </span>
-                    <span [matTooltip]="!authService.hasPermission('Yearly Budget','delete') ? 'No permission' : 'Delete Role'" matTooltipPosition="above">
+                    <span [matTooltip]="!authService.hasPermission('Yearly Budget','delete') ? 'No permission' : 'Delete Yearly Budget'" matTooltipPosition="above">
 
                   <button mat-icon-button color="accent" (click)="deleteBudget(row)" [disabled]="!authService.hasPermission('Yearly Budget','delete')">
                     <app-feather-icons [icon]="'trash-2'" [class]="'tbl-fav-delete'"></app-feather-icons>

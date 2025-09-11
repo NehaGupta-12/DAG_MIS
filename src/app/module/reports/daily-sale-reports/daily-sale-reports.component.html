@@ -123,9 +123,14 @@
 
         <!-- Action Buttons -->
         <div class="col-md-3 d-flex justify-content-end gap-2 mt-2">
-          <button mat-mini-fab color="primary" matTooltip="Search" (click)="onSubmit()" [disabled]="dealerForm.invalid">
+          <button
+            mat-mini-fab
+            color="primary"
+            matTooltip="Search"
+            (click)="onSubmit()">
             <mat-icon>search</mat-icon>
           </button>
+
           <button mat-mini-fab color="warn" matTooltip="Clear" (click)="onCancel()">
             <mat-icon>clear</mat-icon>
           </button>
