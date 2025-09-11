@@ -1,4 +1,4 @@
-import {Component, EnvironmentInjector, OnInit, runInInjectionContext, ViewChild} from '@angular/core';
+import {Component, ElementRef, EnvironmentInjector, OnInit, runInInjectionContext, ViewChild} from '@angular/core';
 import {FeatherIconsComponent} from "@shared/components/feather-icons/feather-icons.component";
 import {
   MatCell,
@@ -7,7 +7,7 @@ import {
   MatHeaderRow,
   MatRow, MatTable, MatTableDataSource, MatTableModule
 } from "@angular/material/table";
-import {MatIconButton} from "@angular/material/button";
+import {MatIconButton, MatMiniFabButton} from "@angular/material/button";
 import {CommonModule} from "@angular/common";
 import {MatPaginator} from "@angular/material/paginator";
 import {MatSort} from "@angular/material/sort";
@@ -21,6 +21,9 @@ import {MatTooltip} from "@angular/material/tooltip";
 import {OutletProductService} from "../outlet-product.service";
 import {LoadingService} from "../../Services/loading.service";
 import {AuthService} from "../../authentication/auth.service";
+import {MatFormField, MatInput, MatLabel} from "@angular/material/input";
+import {MatOption, MatSelect} from "@angular/material/select";
+import {AddDealerService} from "../add-dealer.service";
 
 @Component({
   selector: 'app-outlet-product-list',
@@ -38,7 +41,13 @@ import {AuthService} from "../../authentication/auth.service";
     MatColumnDef,
     MatTableModule,
     FeatherIconsComponent,
-    CommonModule
+    CommonModule,
+    MatFormField,
+    MatInput,
+    MatLabel,
+    MatOption,
+    MatSelect,
+    MatMiniFabButton
   ],
   templateUrl: './outlet-product-list.component.html',
   standalone: true,
@@ -46,8 +55,17 @@ import {AuthService} from "../../authentication/auth.service";
 })
 export class OutletProductListComponent implements OnInit {
 
+  @ViewChild('dealerSearchInput') dealerSearchInput!: ElementRef;
+
 
   dataSource = new MatTableDataSource<any>();
+
+  filteredDealers: any[] = [];
+  dealerSearchText: string = '';
+  debounceTimer: any;
+  allDealers: any[] = [];
+  allOutletProducts: any[] = [];
+  dealerdataSource = new MatTableDataSource<any>();
 
 // Define columns
   columnDefinitions = [
@@ -84,10 +102,12 @@ export class OutletProductListComponent implements OnInit {
     private injector: EnvironmentInjector,
     private loadingService: LoadingService,
     public authService : AuthService,
+    private addDealerService: AddDealerService,
   ) {}
 
   ngOnInit() {
     this.loadOutletProduct();
+    this.DealerList();
   }
 
 // ✅ Load Outlet Product with loader
@@ -96,10 +116,8 @@ export class OutletProductListComponent implements OnInit {
     runInInjectionContext(this.injector, () => {
       this.outletProductService.getOutletProductList().subscribe({
         next: (data: any) => {
-          console.log("Fetched Outlet Products:", data);
-          this.dataSource.data = data;
-          this.dataSource.paginator = this.paginator;
-          this.dataSource.sort = this.sort;
+          this.allOutletProducts = data;     // only store, don’t assign to table
+          this.dataSource.data = [];         // keep table empty by default
           this.loadingService.setLoading(false);
         },
         error: (err) => {
@@ -109,6 +127,64 @@ export class OutletProductListComponent implements OnInit {
       });
     });
   }
+
+  DealerList() {
+    runInInjectionContext(this.injector, () => {
+      this.addDealerService.getDealerList().subscribe((data) => {
+        this.allDealers = data;
+        this.dealerdataSource.data = data;
+        this.filteredDealers = [...this.allDealers]; // Initialize the filtered list
+      });
+    });
+  }
+
+  filterDealers() {
+    const searchText = this.dealerSearchText.toLowerCase();
+    this.filteredDealers = this.allDealers.filter(dealer => dealer.name.toLowerCase().includes(searchText));
+  }
+
+  onDealerSearchChange(event: any) {
+    clearTimeout(this.debounceTimer);
+    this.debounceTimer = setTimeout(() => {
+      this.dealerSearchText = event.target.value;
+      this.filterDealers();
+    }, 300); // Adjust the delay as needed
+  }
+
+  onDealerSelectOpened(isOpened: boolean) {
+    if (isOpened) {
+      this.dealerSearchText = '';
+      this.filterDealers();
+      setTimeout(() => {
+        this.dealerSearchInput.nativeElement.focus();
+      }, 0);
+    }
+  }
+
+// Triggered when user clicks Search
+  onSearchClick(selectedDealerName: string) {
+    if (!selectedDealerName) {
+      Swal.fire('Warning', 'Please select an outlet first.', 'warning');
+      return;
+    }
+
+    const filtered = this.allOutletProducts.filter(prod =>
+      prod.dealerOutlet?.toLowerCase().includes(selectedDealerName.toLowerCase())
+    );
+
+    console.log("Filtered Products:", filtered);
+
+    this.dataSource.data = filtered;
+    this.dataSource.paginator = this.paginator;
+    this.dataSource.sort = this.sort;
+  }
+
+// Triggered when user clicks Clear
+  onClearClick(dealerSelect: MatSelect) {
+    dealerSelect.value = null; // clear the dropdown
+    this.dataSource.data = []; // clear the table
+  }
+
 
   editloadOutletProduct(row: any) {
     this.router.navigate(['module/add-outlet-product'], {

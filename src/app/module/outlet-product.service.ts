@@ -32,6 +32,21 @@ export class OutletProductService {
       );
   }
 
+  getOutletProductListByDealerId(dealerId: string): Observable<any[]> {
+    return this.mFirestore
+      .collection(`outlets/${dealerId}/products`)
+      .snapshotChanges()
+      .pipe(
+        map(actions =>
+          actions.map(a => {
+            const data = a.payload.doc.data();
+            const id = a.payload.doc.id;
+            return { id, ...(data as any) };
+          })
+        )
+      );
+  }
+
 
 
   // // 📌 Add new GRN
