@@ -41,6 +41,7 @@ import {MatOption, MatSelect} from "@angular/material/select";
     MatSelect,
     MatInput
   ],
+  standalone: true,
   styleUrls: ['./add-role.component.scss']
 })
 export class AddRoleComponent implements OnInit {

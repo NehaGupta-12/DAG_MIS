@@ -1,11 +1,11 @@
-import {Component, EnvironmentInjector, OnInit, runInInjectionContext} from '@angular/core';
+import {Component, ElementRef, EnvironmentInjector, OnInit, runInInjectionContext, ViewChild} from '@angular/core';
 import {UserService} from "../add-user/user.service";
 import {ActivatedRoute, Router, RouterLink} from "@angular/router";
 import {MatDividerModule} from "@angular/material/divider";
 import {MatTableModule} from '@angular/material/table';
 import {LoadingService} from 'app/Services/loading.service';
 import {MatButton} from "@angular/material/button";
-import {MatFormField, MatLabel} from "@angular/material/input";
+import {MatFormField, MatInput, MatLabel} from "@angular/material/input";
 import {MatOption, MatSelect, MatSelectModule} from "@angular/material/select";
 import {AsyncPipe, CommonModule, NgForOf, NgIf} from "@angular/common";
 import {map} from "rxjs/operators";
@@ -13,6 +13,7 @@ import {Observable} from "rxjs";
 import {AngularFireDatabase} from "@angular/fire/compat/database";
 import Swal from "sweetalert2";
 import {AddDealerService} from "../add-dealer.service";
+import {FormsModule, ReactiveFormsModule} from "@angular/forms";
 
 @Component({
   selector: 'app-view-user',
@@ -32,7 +33,10 @@ import {AddDealerService} from "../add-dealer.service";
     AsyncPipe,
     CommonModule,
     NgIf,
-    MatSelectModule
+    MatSelectModule,
+    MatInput,
+    FormsModule,
+    ReactiveFormsModule
 
   ]
 })
@@ -48,11 +52,14 @@ export class ViewUserComponent implements OnInit {
   dealerData: any [] = [];
   roles: string[] = ['Admin', 'Manager', 'Sales Executive', 'Billing Executive'];
   outlets: string[] = ['Outlet 1', 'Outlet 2', 'Outlet 3'];
-
+  @ViewChild('dealerSearchInput') dealerSearchInput!: ElementRef;
   // ✅ Add these
   leftData: { field: string; value: string }[] = [];
   rightData: { field: string; value: string }[] = [];
   dataSource: { field: string; value: string }[] = [];
+  // selectedOutlet: string[] = [];
+  filteredDealerOptions: any[] = [];
+  debounceTimer:any;
 
 
   constructor(private userService: UserService,
@@ -120,11 +127,34 @@ export class ViewUserComponent implements OnInit {
 
   DealerList() {
     runInInjectionContext(this.injector, () => {
-      this.addDealerService.getDealerList().subscribe((data) => {
+      this.addDealerService.getDealerList().subscribe((data: any) => {
         this.dealerData = data;
-        console.log(this.dealerData)
+        this.filteredDealerOptions = [...data]; // init with all
       });
     });
+  }
+
+// 🔎 Search filter
+  onDealerSearchChange(event: any) {
+    clearTimeout(this.debounceTimer);
+    this.debounceTimer = setTimeout(() => {
+      const searchText = (event.target.value || '').toLowerCase();
+      this.filteredDealerOptions = this.dealerData.filter((d: any) =>
+        d?.name?.toLowerCase().includes(searchText)
+      );
+    }, 300);
+  }
+
+// 🎯 Reset + focus when opened
+  onDealerSelectOpened(isOpened: boolean) {
+    if (isOpened) {
+      this.filteredDealerOptions = [...this.dealerData];
+      setTimeout(() => {
+        try {
+          this.dealerSearchInput.nativeElement.focus();
+        } catch {}
+      }, 0);
+    }
   }
 
   updateUser(): void {

@@ -66,22 +66,44 @@
       <div class="col-md-6">
         <mat-form-field appearance="outline" class="w-100">
           <mat-label>Select Outlet</mat-label>
-          <mat-select [(value)]="selectedOutlet" multiple>
-
+          <mat-select
+            formControlName="name"
+            multiple
+            #dealerSelect="matSelect"
+            panelClass="custom-select-panel"
+            (openedChange)="onDealerSelectOpened($event)"
+          >
             <!-- ✅ Custom display -->
-            <mat-select-trigger  >
-              {{ selectedOutlet?.[0] || '' }}
-              <span *ngIf="selectedOutlet && selectedOutlet.length > 1" class="textcol" >
-
-          (+{{ selectedOutlet.length - 1 }} more)
+            <mat-select-trigger>
+        <span *ngIf="dealerSelect.value?.length; else noSelection">
+          {{ dealerSelect.value[0] | slice:0:16 }}{{ dealerSelect.value[0].length > 16 ? '...' : '' }}
+          <span *ngIf="dealerSelect.value.length > 1" class="textcol">
+            (+{{ dealerSelect.value.length - 1 }} more)
+          </span>
         </span>
+              <ng-template #noSelection>
+                Select...
+              </ng-template>
             </mat-select-trigger>
 
-            <mat-option *ngFor="let outlet of dealerData" [value]="outlet?.name">
+
+            <div class="mat-select-search" (click)="$event.stopPropagation()">
+              <input
+                matInput
+                placeholder="Search Outlet"
+                #outletSearchInput
+                (input)="onDealerSearchChange($event)"
+              />
+            </div>
+
+            <!-- ✅ Options -->
+            <mat-option *ngFor="let outlet of filteredDealerOptions" [value]="outlet?.name">
               {{ outlet?.name }}
             </mat-option>
           </mat-select>
         </mat-form-field>
+
+
       </div>
 
     </div>
