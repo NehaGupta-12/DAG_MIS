@@ -9,81 +9,11 @@
           <div class="body">
 
             <form class="register-form m-4" [formGroup]="dailySalesForm">
-              <!-- Auto-populated -->
-              <div class="row">
-                <div class="col-md-4">
-                  <mat-form-field class="example-full-width" appearance="outline">
-                    <mat-label>Country</mat-label>
-                    <mat-select formControlName="country" required #countrySelect panelClass="custom-select-panel" (openedChange)="onCountrySelectOpened($event)">
-                      <div class="mat-select-search">
-                        <input matInput (input)="onCountrySearchChange($event)" #countrySearchInput placeholder="Search Country" />
-                      </div>
-                      <mat-option *ngFor="let country of filteredCountries" [value]="country">
-                        {{ country }}
-                      </mat-option>
-                    </mat-select>
-                    @if (dailySalesForm?.get('country')?.hasError('required')) {
-                      <mat-error>Country is required</mat-error>
-                    }
-                  </mat-form-field>
-                </div>
-                <div class="col-md-4">
-                  <mat-form-field class="example-full-width" appearance="outline">
-                    <mat-label>Division</mat-label>
-                    <mat-select formControlName="division" required #divisionSelect panelClass="custom-select-panel" (openedChange)="onDivisionSelectOpened($event)">
-                      <div class="mat-select-search">
-                        <input matInput (input)="onDivisionSearchChange($event)"
-                               #divisionSearchInput placeholder="Search Division" />
-                      </div>
-
-
-
-                      <mat-option *ngFor="let division of filteredDivisionTypes" [value]="division">
-                        {{ division }}
-                      </mat-option>
-                    </mat-select>
-                    @if (dailySalesForm?.get('division')?.hasError('required')) {
-                      <mat-error>Division is required</mat-error>
-                    }
-                  </mat-form-field>
-                </div>
-                <div class="col-md-4">
-                  <mat-form-field class="example-full-width" appearance="outline">
-                    <mat-label>Town</mat-label>
-                    <mat-select formControlName="town" panelClass="custom-select-panel" required>
-
-                      <!-- 🔍 Inline Search -->
-                      <div class="mat-select-search">
-                        <input
-                          matInput
-                          placeholder="Search Town"
-                          (input)="onTownSearchChange($event)"
-                        />
-                      </div>
-
-                      <!-- Options -->
-                      <mat-option *ngFor="let town of (filteredTowns$ | async)" [value]="town">
-                        {{ town }}
-                      </mat-option>
-                    </mat-select>
-
-                    <mat-error *ngIf="dailySalesForm?.get('town')?.hasError('required')">
-                      Town is required
-                    </mat-error>
-                  </mat-form-field>
-
-                </div>
-
-
-
-
-              </div>
-              <!-- Dealer & Vehicle -->
               <div class="row">
                 <div class="col-md-6">
                   <mat-form-field appearance="outline" class="w-100">
                     <mat-label>Dealer/Outlet</mat-label>
-                    <mat-select formControlName="dealerOutlet" (selectionChange)="onDealerChange($event)" panelClass="custom-select-panel" required>
+                    <mat-select formControlName="dealerOutlet"  (openedChange)="selectionOpen($event,'dealer')" (selectionChange)="onDealerChange($event)" panelClass="custom-select-panel" required>
 
                       <!-- 🔍 Search bar -->
                       <div class="mat-select-search">
@@ -132,8 +62,39 @@
 
                 </div>
               </div>
+              <!-- Auto-populated -->
+              <div class="row">
+                <div class="col-md-4">
+                  <mat-form-field class="example-full-width" appearance="outline">
+                    <mat-label>Country</mat-label>
+                    <input matInput formControlName="country" readonly />
+                  </mat-form-field>
+                </div>
 
+                <div class="col-md-4">
+                  <mat-form-field class="example-full-width" appearance="outline">
+                    <mat-label>Division</mat-label>
+                    <input matInput formControlName="division" readonly />
+                  </mat-form-field>
+                </div>
 
+                <div class="col-md-4">
+                  <mat-form-field class="example-full-width" appearance="outline">
+                    <mat-label>Town</mat-label>
+                    <input matInput formControlName="town" readonly />
+                  </mat-form-field>
+                </div>
+              </div>
+              <!-- Dealer & Vehicle -->
+
+              <div class="row">
+                <mat-form-field appearance="outline" class="col-md-6">
+                  <mat-label>Date</mat-label>
+                  <input #dateNameInput formControlName="salesDate" matInput [matDatepicker]="picker">
+                  <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+                  <mat-datepicker #picker></mat-datepicker>
+                </mat-form-field>
+              </div>
 
               <!-- Buttons -->
               <div class="row mt-3">
@@ -198,35 +159,35 @@
                 <td mat-cell *matCellDef="let p">{{ p.unit }}</td>
               </ng-container>
 
-              <ng-container matColumnDef="avlQuntity">
-                <th mat-header-cell *matHeaderCellDef> Avl Quantity </th>
-                <td mat-cell *matCellDef="let p">{{ p.avlQuantity }}</td>
-              </ng-container>
+<!--              <ng-container matColumnDef="avlQuntity">-->
+<!--                <th mat-header-cell *matHeaderCellDef> Avl Quantity </th>-->
+<!--                <td mat-cell *matCellDef="let p">{{ p.avlQuantity }}</td>-->
+<!--              </ng-container>-->
 
-              <!--              <ng-container matColumnDef="quantity">-->
-              <!--                <th mat-header-cell *matHeaderCellDef> Quantity </th>-->
-              <!--                <td mat-cell *matCellDef="let p">-->
-              <!--                  <input type="number"-->
-              <!--                         [(ngModel)]="p.quantity"-->
-              <!--                         [ngModelOptions]="{standalone: true}"-->
-              <!--                         min="1"-->
-              <!--                         step="1"-->
-              <!--                         oninput="this.value = this.value.replace(/[^0-9]/g, '');"-->
-              <!--                         style="width: 70px;" />-->
-              <!--                </td>-->
-              <!--              </ng-container>-->
-              <ng-container matColumnDef="quantity">
-                <th mat-header-cell *matHeaderCellDef> Quantity </th>
-                <td mat-cell *matCellDef="let p">
-                  <input type="number"
-                         [(ngModel)]="p.quantity"
-                         [ngModelOptions]="{standalone: true}"
-                         min="1"
-                         [max]="p.avlQuantity"
-                         (ngModelChange)="onQuantityChange(p)"
-                         style="width: 70px;" />
-                </td>
-              </ng-container>
+                            <ng-container matColumnDef="quantity">
+                              <th mat-header-cell *matHeaderCellDef> Quantity </th>
+                              <td mat-cell *matCellDef="let p">
+                                <input type="number"
+                                       [(ngModel)]="p.quantity"
+                                       [ngModelOptions]="{standalone: true}"
+                                       min="1"
+                                       step="1"
+                                       oninput="this.value = this.value.replace(/[^0-9]/g, '');"
+                                       style="width: 70px;" />
+                              </td>
+                            </ng-container>
+<!--              <ng-container matColumnDef="quantity">-->
+<!--                <th mat-header-cell *matHeaderCellDef> Quantity </th>-->
+<!--                <td mat-cell *matCellDef="let p">-->
+<!--                  <input type="number"-->
+<!--                         [(ngModel)]="p.quantity"-->
+<!--                         [ngModelOptions]="{standalone: true}"-->
+<!--                         min="1"-->
+<!--                         [max]="p.avlQuantity"-->
+<!--                         (ngModelChange)="onQuantityChange(p)"-->
+<!--                         style="width: 70px;" />-->
+<!--                </td>-->
+<!--              </ng-container>-->
 
               <ng-container matColumnDef="action">
                 <th mat-header-cell *matHeaderCellDef> Action </th>

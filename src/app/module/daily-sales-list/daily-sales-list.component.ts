@@ -63,7 +63,7 @@ export class DailySalesListComponent implements OnInit {
     { def: 'sku', label: 'Sku' },
     { def: 'variant', label: 'Variant' },
     { def: 'dealerOutlet', label: 'Dealer Outlet' },
-    { def: 'createdAt', label: 'CreatedAt' },
+    { def: 'salesDate', label: 'SalesDate' },
     { def: 'quantity', label: 'Quantity' },
   ];
 
@@ -74,7 +74,7 @@ export class DailySalesListComponent implements OnInit {
     'variant',
     'dealerOutlet',
     'quantity',
-    'createdAt',
+    'salesDate',
     'action'
   ];
 
@@ -99,6 +99,7 @@ export class DailySalesListComponent implements OnInit {
     runInInjectionContext(this.injector, () => {
       this.dailySlaes.getDailySalesList().subscribe({
         next: (data) => {
+          console.log("data", data)
           this.dataSource.data = data.map((item, index) => ({
             id: index + 1, // Sr. No.
             ...item

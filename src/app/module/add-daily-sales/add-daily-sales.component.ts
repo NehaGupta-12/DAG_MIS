@@ -4,7 +4,7 @@ import {
   EnvironmentInjector,
   Inject,
   OnInit,
-  runInInjectionContext,
+  runInInjectionContext, signal,
   ViewChild
 } from '@angular/core';
 import {
@@ -36,6 +36,7 @@ import {LoadingService} from "../../Services/loading.service";
 import {map} from "rxjs/operators";
 import {AngularFireDatabase} from "@angular/fire/compat/database";
 import {BehaviorSubject, Observable} from "rxjs";
+import {MatDatepicker, MatDatepickerInput, MatDatepickerToggle} from "@angular/material/datepicker";
 
 @Component({
   selector: 'app-add-daily-sales',
@@ -54,6 +55,9 @@ import {BehaviorSubject, Observable} from "rxjs";
     NgFor,
     NgIf,
     AsyncPipe,
+    MatDatepickerToggle,
+    MatDatepicker,
+    MatDatepickerInput,
 
   ],
   providers: [
@@ -67,7 +71,7 @@ export class AddDailySalesComponent implements OnInit {
 
   isEditMode: boolean = false;
   dailySalesForm: FormGroup;
-  displayedColumns: string[] = ['sku', 'name', 'brand', 'model', 'variant', 'unit', 'quantity','avlQuntity','action'];
+  displayedColumns: string[] = ['sku', 'name', 'brand', 'model', 'variant', 'unit', 'quantity','action'];
   dealerdataSource = new MatTableDataSource<any>();
   vehicledataSource = new MatTableDataSource<any>();
   addedProducts: any[] = [];
@@ -160,10 +164,11 @@ export class AddDailySalesComponent implements OnInit {
     this.isEditMode = !!data?.id;
     this.dailySalesForm = this.fb.group({
       dealerOutlet: ['', Validators.required],
-      division: ['', Validators.required],
-      country: ['', Validators.required],
-      town: ['', Validators.required],
+      division: [''],
+      country: [''],
+      town: [''],
       vehicle: ['', Validators.required],
+      salesDate: ['', Validators.required]
     });
   }
 
@@ -225,6 +230,40 @@ export class AddDailySalesComponent implements OnInit {
   //     this.filterTownTypes();
   //   }, 300);
   // }
+  selectionOpen(isOpened: boolean, type: 'dealer' | 'vehicle' | 'country' | 'division' | 'town') {
+    if (!isOpened) return;
+
+    switch (type) {
+      case 'dealer':
+        this.dealerSearchText = '';
+        this.onDealerSearchChange({ target: { value: '' } }); // reset filter
+        break;
+
+      case 'vehicle':
+        this.vehicleSearchText = '';
+        this.filteredVehicles = [...this.vehicledataSource.data];
+        break;
+
+      case 'country':
+        this.countrySearchText = '';
+        this.filterCountries();
+        setTimeout(() => this.countrySearchInput?.nativeElement.focus(), 0);
+        break;
+
+      case 'division':
+        this.divisionSearchText = '';
+        this.filterDivisionTypes();
+        setTimeout(() => this.divisionSearchInput?.nativeElement.focus(), 0);
+        break;
+
+      case 'town':
+        this.townSearchText = '';
+        this.filterTownTypes();
+        setTimeout(() => this.townSearchInput?.nativeElement.focus(), 0);
+        break;
+    }
+  }
+
   onTownSelectOpened(isOpened: boolean) {
     if (isOpened) {
       this.townSearchText = '';
@@ -304,10 +343,12 @@ export class AddDailySalesComponent implements OnInit {
 
   onDealerSearchChange(event: any) {
     const searchValue = event.target.value.toLowerCase();
-    this.filteredDealersList = this.dealerdataSource.data.filter(d =>
+    const filtered = this.dealerdataSource.data.filter(d =>
       d.name.toLowerCase().includes(searchValue)
     );
+    this.filteredDealers$.next(filtered); // ✅ update observable, not local array
   }
+
 
 
   DealerList() {
@@ -315,28 +356,27 @@ export class AddDailySalesComponent implements OnInit {
     runInInjectionContext(this.injector, () => {
       this.addDealerService.getDealerList().subscribe({
         next: (data) => {
+          console.log("data", data);
           this.dealerdataSource.data = data;
+
+          // ✅ show all dealers initially
+          this.filteredDealers$.next(data);
+
           this.loadingService.setLoading(false);
 
-          // ✅ Check for edit mode and populate dropdowns after data is loaded
+          // --- handle edit mode ---
           this.route.queryParams.subscribe(params => {
             if (params['data']) {
               const rowData = JSON.parse(params['data']);
               console.log('Edit Mode Row Data:', rowData);
 
               this.dailySalesForm.patchValue({
-                country: rowData.country,
-              });
-
-              // Manually populate the cascading dropdowns
-              this.populateEditFormDropdowns(rowData);
-
-              // Patch the remaining values after dropdowns are populated
-              this.dailySalesForm.patchValue({
                 dealerOutlet: rowData.dealerOutlet,
+                country: rowData.country,
                 division: rowData.division,
                 town: rowData.town,
                 vehicle: rowData.name,
+                salesDate: rowData.salesDate ? new Date(rowData.salesDate) : ''  // ✅ works fine
               });
 
               this.addedProducts = [{
@@ -360,6 +400,7 @@ export class AddDailySalesComponent implements OnInit {
       });
     });
   }
+
 
   private populateEditFormDropdowns(rowData: any) {
     // Filter and populate Divisions
@@ -404,11 +445,19 @@ export class AddDailySalesComponent implements OnInit {
 
     if (!dealer) {
       this.vehicledataSource.data = [];
-      this.filteredVehicles = [];   // reset vehicle list
+      this.filteredVehicles = [];
       this.dailySalesForm.get('vehicle')?.reset();
       return;
     }
 
+    // ✅ Patch Country, Division, Town automatically
+    this.dailySalesForm.patchValue({
+      country: dealer.country,
+      division: dealer.division,
+      town: dealer.town,
+    });
+
+    // Load products for this dealer
     const availableProducts = this.dataSource.data.filter(
       (p: any) => p.dealerId === dealer.id && p.openingStock > 0
     );
@@ -426,14 +475,12 @@ export class AddDailySalesComponent implements OnInit {
         }));
 
         this.vehicledataSource.data = patchedProducts;
-
-        // ✅ Initialize filteredVehicles so dropdown shows values immediately
         this.filteredVehicles = [...patchedProducts];
-
         this.dailySalesForm.get('vehicle')?.reset();
       });
     });
   }
+
 
   onQuantityChange(product: any) {
     if (product.quantity > product.avlQuantity) {
@@ -523,11 +570,26 @@ export class AddDailySalesComponent implements OnInit {
             const username = userData.userName || 'Unknown User';
             const timestamp = Date.now();
 
+            const formValues = this.dailySalesForm.getRawValue();
+
+            let salesDateTime: number | null = null;
+            if (formValues.salesDate) {
+              const selectedDate = new Date(formValues.salesDate);
+
+              // Get current time
+              const now = new Date();
+              selectedDate.setHours(now.getHours(), now.getMinutes(), now.getSeconds(), now.getMilliseconds());
+
+              // Convert to timestamp for DB
+              salesDateTime = selectedDate.getTime();
+            }
+
             const baseInfo = {
               dealerOutlet: formValues.dealerOutlet,
               division: formValues.division,
               country: formValues.country,
               town: formValues.town,
+              salesDate: salesDateTime,   // ✅ date + current time merged
               status: 'Active',
               updatedBy: username,
               updatedAt: timestamp
