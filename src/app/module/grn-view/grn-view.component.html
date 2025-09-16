@@ -17,8 +17,9 @@
         <tr>
           <th style="border: 1px solid #ddd; padding: 8px; width: 20%;">Date:</th>
           <td style="border: 1px solid #ddd; padding: 8px;">
-            {{ data.createdAt ? (data.createdAt.toDate() | date: 'dd/MM/yyyy') : '' }}
+            {{ data.stockDate ? ((data.stockDate.toDate ? data.stockDate.toDate() : data.stockDate) | date:'dd-MMM-yyyy hh:mm a') : '' }}
           </td>
+
         </tr>
         <tr>
           <th style="border: 1px solid #ddd; padding: 8px;">Brand:</th>

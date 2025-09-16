@@ -47,6 +47,7 @@ import {LoadingService} from "../../Services/loading.service";
 import {map} from "rxjs/operators";
 import {AngularFireDatabase} from "@angular/fire/compat/database";
 import {BehaviorSubject, Observable} from "rxjs";
+import {MatDatepicker, MatDatepickerInput, MatDatepickerToggle} from "@angular/material/datepicker";
 
 @Component({
   selector: 'app-add-grn',
@@ -71,7 +72,10 @@ import {BehaviorSubject, Observable} from "rxjs";
     MatRowDef,
     MatTable,
     CommonModule,
-    MatTableModule
+    MatTableModule,
+    MatDatepickerToggle,
+    MatDatepicker,
+    MatDatepickerInput
   ],
   providers: [
     {provide: MAT_DIALOG_DATA, useValue: {}} // ✅ Fallback
@@ -146,30 +150,92 @@ export class AddGRNComponent implements OnInit{
       products: ['', Validators.required],
       country: ['', Validators.required],
       division: ['', Validators.required],
-      town: ['', Validators.required]
+      town: ['', Validators.required],
+      date: [null, Validators.required]   // 🔥 initially blank
     });
   }
+
+  // ngOnInit() {
+  //   this.setupCascadingDropdowns();
+  //   this.loadInventoryDaata();
+  //   this.DealerList();
+  //
+  //   // ✅ Initialize country list
+  //   this._countriesTypes$.subscribe(countries => {
+  //     this.filteredCountries = [...countries];  // show all countries initially
+  //   });
+  //
+  //   // ✅ Initialize division list (blank until country is selected)
+  //   this._divisionTypes$.subscribe(divisions => {
+  //     this.filteredDivisionTypes = [...divisions];
+  //   });
+  //
+  //   // ✅ Initialize towns list
+  //   this._townTypes$.subscribe(towns => {
+  //     this.filteredTowns$.next(towns);
+  //   });
+  // }
 
   ngOnInit() {
-    this.setupCascadingDropdowns();
     this.loadInventoryDaata();
     this.DealerList();
+  }
 
-    // ✅ Initialize country list
-    this._countriesTypes$.subscribe(countries => {
-      this.filteredCountries = [...countries];  // show all countries initially
+// Dealer search
+  onDealerSearchChange(event: any) {
+    const searchValue = event.target.value.toLowerCase();
+    const allDealers = this.dealerdataSource.data;
+
+    if (!searchValue) {
+      this.filteredDealers$.next(allDealers);
+    } else {
+      this.filteredDealers$.next(
+        allDealers.filter((dealer: any) =>
+          dealer.name.toLowerCase().includes(searchValue)
+        )
+      );
+    }
+  }
+
+// ✅ When dealer changes → auto-populate location + fetch vehicles
+  onDealerChange(event: any) {
+    const dealerName = event.value;
+    const dealer = this.dealerdataSource.data.find((d: any) => d.name === dealerName);
+
+    if (!dealer) return;
+
+    // Auto populate Country, Division, Town
+    this.grnForm.patchValue({
+      country: dealer.country,
+      division: dealer.division,
+      town: dealer.town
     });
 
-    // ✅ Initialize division list (blank until country is selected)
-    this._divisionTypes$.subscribe(divisions => {
-      this.filteredDivisionTypes = [...divisions];
-    });
+    // Fetch products of this dealer
+    const availableProducts = this.dataSource.data.filter(
+      (p: any) => p.dealerId === dealer.id && p.openingStock > 0
+    );
 
-    // ✅ Initialize towns list
-    this._townTypes$.subscribe(towns => {
-      this.filteredTowns$.next(towns);
+    this.vehicledataSource.data = availableProducts;
+    this.filteredVehicles = [...availableProducts];
+
+    this.grnForm.get('products')?.reset();
+  }
+
+  DealerList() {
+    this.loadingService.setLoading(true);
+    runInInjectionContext(this.injector, () => {
+      this.addDealerService.getDealerList().subscribe({
+        next: (data) => {
+          this.dealerdataSource.data = data;
+          this.filteredDealers$.next(data);
+          this.loadingService.setLoading(false);
+        },
+        error: () => this.loadingService.setLoading(false)
+      });
     });
   }
+
 
 
   setupCascadingDropdowns() {
@@ -283,76 +349,76 @@ export class AddGRNComponent implements OnInit{
   // Add inside AddGRNComponent class
 
 // Dealer search
-  onDealerSearchChange(event: any) {
-    const searchValue = event.target.value.toLowerCase();
-    const allDealers = this.dealerdataSource.data;
-
-    if (!searchValue) {
-      this.filteredDealers$.next(allDealers);
-    } else {
-      this.filteredDealers$.next(
-        allDealers.filter((dealer: any) =>
-          dealer.name.toLowerCase().includes(searchValue)
-        )
-      );
-    }
-  }
-
-
+//   onDealerSearchChange(event: any) {
+//     const searchValue = event.target.value.toLowerCase();
+//     const allDealers = this.dealerdataSource.data;
+//
+//     if (!searchValue) {
+//       this.filteredDealers$.next(allDealers);
+//     } else {
+//       this.filteredDealers$.next(
+//         allDealers.filter((dealer: any) =>
+//           dealer.name.toLowerCase().includes(searchValue)
+//         )
+//       );
+//     }
+//   }
 
 
-  DealerList() {
-    this.loadingService.setLoading(true);
-    runInInjectionContext(this.injector, () => {
-      this.addDealerService.getDealerList().subscribe({
-        next: (data) => {
-          this.dealerdataSource.data = data;
-          this.loadingService.setLoading(false);
 
-          // This is the key change for edit mode
-          this.route.queryParams.subscribe(params => {
-            if (params['data']) {
-              const rowData = JSON.parse(params['data']);
-              this.outlateId = rowData.outlateId;
 
-              this.grnForm.patchValue({
-                country: rowData.country,
-              });
-
-              // Call the new method to manually populate dropdowns
-              this.populateEditFormDropdowns(rowData);
-
-              // Patch the remaining values after the dropdowns are ready
-              this.grnForm.patchValue({
-                division: rowData.division,
-                town: rowData.town,
-                dealerOutlet: rowData.dealerOutlet,
-                products: rowData.products,
-                // typeOfGrn: rowData.typeOfGrn,
-              });
-
-              this.addedProducts = [{
-                docId: rowData.docId,
-                sku: rowData.sku ?? '',
-                name: rowData.name ?? '',
-                brand: rowData.brand ?? '',
-                model: rowData.model ?? '',
-                variant: rowData.variant ?? rowData.varient ?? '',
-                unit: rowData.unit ?? '',
-                quantity: rowData.quantity ?? 1
-              }];
-
-              this.grnForm.patchValue({ products: rowData.name });
-              this.grnForm.get('products')?.disable();
-              this.isEditMode = true;
-              this.data = rowData;
-            }
-          });
-        },
-        error: () => this.loadingService.setLoading(false)
-      });
-    });
-  }
+  // DealerList() {
+  //   this.loadingService.setLoading(true);
+  //   runInInjectionContext(this.injector, () => {
+  //     this.addDealerService.getDealerList().subscribe({
+  //       next: (data) => {
+  //         this.dealerdataSource.data = data;
+  //         this.loadingService.setLoading(false);
+  //
+  //         // This is the key change for edit mode
+  //         this.route.queryParams.subscribe(params => {
+  //           if (params['data']) {
+  //             const rowData = JSON.parse(params['data']);
+  //             this.outlateId = rowData.outlateId;
+  //
+  //             this.grnForm.patchValue({
+  //               country: rowData.country,
+  //             });
+  //
+  //             // Call the new method to manually populate dropdowns
+  //             this.populateEditFormDropdowns(rowData);
+  //
+  //             // Patch the remaining values after the dropdowns are ready
+  //             this.grnForm.patchValue({
+  //               division: rowData.division,
+  //               town: rowData.town,
+  //               dealerOutlet: rowData.dealerOutlet,
+  //               products: rowData.products,
+  //               // typeOfGrn: rowData.typeOfGrn,
+  //             });
+  //
+  //             this.addedProducts = [{
+  //               docId: rowData.docId,
+  //               sku: rowData.sku ?? '',
+  //               name: rowData.name ?? '',
+  //               brand: rowData.brand ?? '',
+  //               model: rowData.model ?? '',
+  //               variant: rowData.variant ?? rowData.varient ?? '',
+  //               unit: rowData.unit ?? '',
+  //               quantity: rowData.quantity ?? 1
+  //             }];
+  //
+  //             this.grnForm.patchValue({ products: rowData.name });
+  //             this.grnForm.get('products')?.disable();
+  //             this.isEditMode = true;
+  //             this.data = rowData;
+  //           }
+  //         });
+  //       },
+  //       error: () => this.loadingService.setLoading(false)
+  //     });
+  //   });
+  // }
 
   private populateEditFormDropdowns(rowData: any) {
     const divisions = [...new Set(
@@ -387,23 +453,23 @@ export class AddGRNComponent implements OnInit{
     });
   }
 
-  onDealerChange(event: any) {
-    const dealerName = event.value;
-    const dealer = this.dealerdataSource.data.find((d: any) => d.name === dealerName);
-
-    if (!dealer) return;
-
-    const availableProducts = this.dataSource.data.filter(
-      (p: any) => p.dealerId === dealer.id && p.openingStock > 0
-    );
-
-    this.vehicledataSource.data = availableProducts;
-
-    // ✅ Initialize filtered vehicles here
-    this.filteredVehicles = [...availableProducts];
-
-    this.grnForm.get('products')?.reset();
-  }
+  // onDealerChange(event: any) {
+  //   const dealerName = event.value;
+  //   const dealer = this.dealerdataSource.data.find((d: any) => d.name === dealerName);
+  //
+  //   if (!dealer) return;
+  //
+  //   const availableProducts = this.dataSource.data.filter(
+  //     (p: any) => p.dealerId === dealer.id && p.openingStock > 0
+  //   );
+  //
+  //   this.vehicledataSource.data = availableProducts;
+  //
+  //   // ✅ Initialize filtered vehicles here
+  //   this.filteredVehicles = [...availableProducts];
+  //
+  //   this.grnForm.get('products')?.reset();
+  // }
 
 
   isSubmitEnabled(): boolean {
@@ -475,12 +541,27 @@ export class AddGRNComponent implements OnInit{
           const username = userData.userName || 'Unknown User';
           const timestamp = Date.now();
 
+          // ✅ Combine selected date + current time
+          const selectedDate = formValues.date ? new Date(formValues.date) : null;
+          let dateTime: string | null = null;
+
+          if (selectedDate) {
+            const now = new Date();
+            selectedDate.setHours(
+              now.getHours(),
+              now.getMinutes(),
+              now.getSeconds(),
+              now.getMilliseconds()
+            );
+            dateTime = selectedDate.toISOString(); // 🔥 save with time
+          }
+
           const baseInfo = {
             dealerOutlet: formValues.dealerOutlet,
-            // typeOfGrn: formValues.typeOfGrn,
             country: formValues.country,
             division: formValues.division,
             town: formValues.town,
+            stockDate: dateTime,   // ✅ change "date" → "stockDate"
             status: 'Active',
             updatedBy: username,
             updatedAt: timestamp
@@ -557,6 +638,7 @@ export class AddGRNComponent implements OnInit{
       Swal.fire('Error', 'Something went wrong while submitting.', 'error');
     }
   }
+
 
   outlateId: any;
 
