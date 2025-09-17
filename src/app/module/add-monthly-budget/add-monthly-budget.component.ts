@@ -185,20 +185,35 @@ export class AddMonthlyBudgetComponent implements OnInit {
       }
     });
 
+// Subscribe to both country and year changes
+    this.budgetForm.get('country')?.valueChanges.subscribe((selectedCountry: string) => {
+      const selectedYear = this.budgetForm.get('year')?.value;
+      if (selectedYear && selectedCountry) {
+        this.updateDisabledMonths(selectedYear, selectedCountry);
+      } else {
+        this.disabledMonths = [];
+      }
+    });
+
     this.budgetForm.get('year')?.valueChanges.subscribe((selectedYear: string) => {
-      if (selectedYear) {
-        this.updateDisabledMonths(selectedYear);
+      const selectedCountry = this.budgetForm.get('country')?.value;
+      if (selectedYear && selectedCountry) {
+        this.updateDisabledMonths(selectedYear, selectedCountry);
       } else {
         this.disabledMonths = [];
       }
     });
   }
 
-  updateDisabledMonths(year: string) {
-    if (!this.budgetdataSource?.data) return;
+// Updated method to include country
+  updateDisabledMonths(year: string, country: string) {
+    if (!this.budgetdataSource?.data || !year || !country) {
+      this.disabledMonths = [];
+      return;
+    }
 
     const usedMonths = this.budgetdataSource.data
-      .filter((row: any) => row.year === year)
+      .filter((row: any) => row.year === year && row.country === country)
       .map((row: any) => row.month);
 
     this.disabledMonths = usedMonths;
@@ -342,21 +357,6 @@ export class AddMonthlyBudgetComponent implements OnInit {
     return match ? match[0].toUpperCase() : model;
   }
 
-  // loadProducts() {
-  //   this.loadingService.setLoading(true);
-  //   runInInjectionContext(this.injector, () => {
-  //     this.productService.getProductList().subscribe({
-  //       next: (data) => {
-  //         console.log("data", data)
-  //         this.vehicledataSource.data = data;
-  //         this._allProducts = data; // Populate the new array
-  //         this.filteredProducts = [...data]; // Initialize the filtered list
-  //         this.loadingService.setLoading(false);
-  //       },
-  //       error: () => this.loadingService.setLoading(false)
-  //     });
-  //   });
-  // }
 
 
   loadProducts() {
