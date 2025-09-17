@@ -342,7 +342,7 @@ export class MainComponent implements OnInit {
     let lastMonthQuantity = 0;
 
     data.forEach(item => {
-      const itemDate = new Date(item.createdAt.seconds * 1000);
+      const itemDate = this.getItemDate(item);
 
       if (itemDate >= currentMonthStart) {
         currentMonthQuantity += item.quantity;
@@ -359,6 +359,7 @@ export class MainComponent implements OnInit {
       this.monthlyPercentage = `${Math.abs(percentage).toFixed(0)}% ${percentage >= 0 ? 'Higher' : 'Lower'} Than Last Month`;
     }
   }
+
 
   calculateFiscalYearSales(data: any[]) {
     const now = new Date();
@@ -384,7 +385,7 @@ export class MainComponent implements OnInit {
     let lastFYQuantity = 0;
 
     data.forEach(item => {
-      const itemDate = new Date(item.createdAt.seconds * 1000);
+      const itemDate = this.getItemDate(item);
       if (itemDate >= currentFYStart) {
         currentFYQuantity += item.quantity;
       } else if (itemDate >= lastFYStart && itemDate <= lastFYEnd) {
@@ -393,8 +394,8 @@ export class MainComponent implements OnInit {
     });
 
     this.totalSalesFY = currentFYQuantity;
-    this.currentYearSales = currentFYQuantity; // Assign to new property
-    this.lastYearSales = lastFYQuantity; // Assign to new property
+    this.currentYearSales = currentFYQuantity;
+    this.lastYearSales = lastFYQuantity;
 
     if (lastFYQuantity === 0) {
       this.totalPercentageFY = currentFYQuantity > 0 ? '100% Higher Than Last Year' : 'No sales last year';
@@ -404,36 +405,34 @@ export class MainComponent implements OnInit {
     }
   }
 
+
   calculateYearlySales(data: any[]): { years: string[], quantities: number[] } {
     const now = new Date();
     const yearlySalesMap = new Map<number, number>();
 
-    // Initialize a map for the last 5 years with a quantity of 0
+    // Initialize last 5 years with 0
     for (let i = 0; i < 5; i++) {
       yearlySalesMap.set(now.getFullYear() - i, 0);
     }
 
-    // Iterate through the data and sum quantities by year
     data.forEach(item => {
-      // Ensure the data has a valid createdAt timestamp
-      if (item.createdAt && item.createdAt.seconds) {
-        const itemYear = new Date(item.createdAt.seconds * 1000).getFullYear();
-        if (yearlySalesMap.has(itemYear)) {
-          yearlySalesMap.set(itemYear, yearlySalesMap.get(itemYear)! + item.quantity);
-        }
+      const itemDate = this.getItemDate(item);
+      const itemYear = itemDate.getFullYear();
+
+      if (yearlySalesMap.has(itemYear)) {
+        yearlySalesMap.set(itemYear, yearlySalesMap.get(itemYear)! + item.quantity);
       }
     });
 
-    // Convert the map to sorted arrays for the chart
     const sortedYears = Array.from(yearlySalesMap.keys()).sort((a, b) => a - b);
     const sortedQuantities = sortedYears.map(year => yearlySalesMap.get(year)!);
 
-    // Return a formatted object with years and quantities
     return {
       years: sortedYears.map(String),
-      quantities: sortedQuantities
+      quantities: sortedQuantities,
     };
   }
+
 
   getLast10DaysSales(data: any[]): { x: string; y: number }[] {
     const salesMap = new Map<string, number>();
@@ -489,31 +488,25 @@ export class MainComponent implements OnInit {
   }
 
 
-
-
   calculateLast12MonthsSales(data: any[]) {
     const salesByMonth = new Map<string, number>();
     const now = new Date();
 
-    // Initialize map for the last 12 months with 0 sales
+    // Initialize last 12 months
     for (let i = 0; i < 12; i++) {
       const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
       const monthYearStr = `${d.getFullYear()}-${d.getMonth() + 1}`;
       salesByMonth.set(monthYearStr, 0);
     }
 
-    // Aggregate sales data by month
     data.forEach(item => {
-      if (item.createdAt && item.createdAt.seconds) {
-        const itemDate = new Date(item.createdAt.seconds * 1000);
-        const monthYearStr = `${itemDate.getFullYear()}-${itemDate.getMonth() + 1}`;
-        if (salesByMonth.has(monthYearStr)) {
-          salesByMonth.set(monthYearStr, salesByMonth.get(monthYearStr)! + item.quantity);
-        }
+      const itemDate = this.getItemDate(item);
+      const monthYearStr = `${itemDate.getFullYear()}-${itemDate.getMonth() + 1}`;
+      if (salesByMonth.has(monthYearStr)) {
+        salesByMonth.set(monthYearStr, salesByMonth.get(monthYearStr)! + item.quantity);
       }
     });
 
-    // Extract and sort the data for the chart
     const sortedMonths = Array.from(salesByMonth.keys()).sort((a, b) => {
       const [yearA, monthA] = a.split('-').map(Number);
       const [yearB, monthB] = b.split('-').map(Number);
@@ -529,6 +522,7 @@ export class MainComponent implements OnInit {
 
     this.monthlyChartData = sortedMonths.map(str => salesByMonth.get(str)!);
   }
+
 
   private areachart(years: string[] = [], quantities: number[] = []) {
     this.areaChartOptions = {
@@ -793,11 +787,11 @@ export class MainComponent implements OnInit {
     const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
 
     // Group sales by dealerOutlet
-    const salesByOutlet = new Map<string, { daily: number, monthly: number }>();
+    const salesByOutlet = new Map<string, { daily: number; monthly: number }>();
 
     salesData.forEach(item => {
       const outlet = item.dealerOutlet;
-      const itemDate = new Date(item.createdAt.seconds * 1000);
+      const itemDate = this.getItemDate(item);  // ✅ use helper
       itemDate.setHours(0, 0, 0, 0);
 
       if (!salesByOutlet.has(outlet)) {
@@ -829,6 +823,7 @@ export class MainComponent implements OnInit {
     this.dailyZeroSalesDataSource.data = dailyZero;
     this.monthlyZeroSalesDataSource.data = monthlyZero;
   }
+
 
 
 }
