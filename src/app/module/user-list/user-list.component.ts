@@ -75,7 +75,6 @@ export class UserListComponent implements OnInit{
 
   ngOnInit(): void {
     this.isLoading = true;
-    // Fetch employee data
     this.userService.getUsers().subscribe((snapshotChanges:any) => {
       this.users = [];
       snapshotChanges.forEach((snapshot:any) => {
@@ -85,12 +84,40 @@ export class UserListComponent implements OnInit{
         }
         this.users.push(emp);
       });
+
       this.dataSource = new MatTableDataSource(this.users);
       this.dataSource.paginator = this.paginator;
       this.dataSource.sort = this.sort;
+
+      // 👇 Custom filter logic
+      this.dataSource.filterPredicate = (data: any, filter: string): boolean => {
+        const searchTerm = filter.trim().toLowerCase();
+
+        // combine fields you want searchable
+        const fullName = `${data.first || ''} ${data.last || ''}`.toLowerCase();
+        const userName = (data.userName || '').toLowerCase();
+        const email = (data.email || '').toLowerCase();
+        const mobile = (data.mobile || '').toLowerCase();
+        const country = (data.country || '').toLowerCase();
+        const department = (data.department || '').toLowerCase();
+        const role = (data.role || '').toLowerCase();
+
+        // return true if search term is found in ANY field
+        return (
+          fullName.includes(searchTerm) ||
+          userName.includes(searchTerm) ||
+          email.includes(searchTerm) ||
+          mobile.includes(searchTerm) ||
+          country.includes(searchTerm) ||
+          department.includes(searchTerm) ||
+          role.includes(searchTerm)
+        );
+      };
+
       this.isLoading = false;
     });
   }
+
   navigateToAddUser(){
     this.router.navigate(['module/add-user']);
   }

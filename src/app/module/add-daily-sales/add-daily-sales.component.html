@@ -12,7 +12,7 @@
               <div class="row">
                 <div class="col-md-6">
                   <mat-form-field appearance="outline" class="w-100">
-                    <mat-label>Dealer/Outlet</mat-label>
+                    <mat-label>Select Dealer/Outlet</mat-label>
                     <mat-select formControlName="dealerOutlet"  (openedChange)="selectionOpen($event,'dealer')" (selectionChange)="onDealerChange($event)" panelClass="custom-select-panel" required>
 
                       <!-- 🔍 Search bar -->
@@ -38,7 +38,7 @@
 
                 <div class="col-md-6">
                   <mat-form-field appearance="outline" class="w-100">
-                    <mat-label>Vehicle</mat-label>
+                    <mat-label>Select Vehicle</mat-label>
                     <mat-select formControlName="vehicle" panelClass="custom-select-panel" required>
                       <!-- 🔍 Search bar -->
                       <div class="mat-select-search">
@@ -89,7 +89,7 @@
 
               <div class="row">
                 <mat-form-field appearance="outline" class="col-md-6">
-                  <mat-label>Date</mat-label>
+                  <mat-label>Select Date</mat-label>
                   <input #dateNameInput formControlName="salesDate" matInput [matDatepicker]="picker">
                   <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
                   <mat-datepicker #picker></mat-datepicker>

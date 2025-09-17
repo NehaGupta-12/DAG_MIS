@@ -263,13 +263,13 @@ export class AddUserComponent implements OnInit{
   initForm() {
     this.register = this.fb.group({
       first: ['', [Validators.required, Validators.pattern('[a-zA-Z]+')]],
-      last: [''],
+      last: ['', [Validators.required, Validators.pattern('[a-zA-Z]+')]],
       mobile: ['', [Validators.required, Validators.pattern('^[0-9]*$')]],
       email: ['', [Validators.required, Validators.email, Validators.minLength(5)],],
       address: [''],
-      city: ['', [Validators.required]],
-      state: ['', [Validators.required]],
-        country: ['', [Validators.required]],
+      city: ['', [Validators.required, Validators.pattern('[a-zA-Z]+')]],
+      state: ['', [Validators.required, Validators.pattern('[a-zA-Z]+')]],
+      country: ['', [Validators.required, Validators.pattern('[a-zA-Z]+')]],
       role: ['', [Validators.required]],
       userCode: ['', [Validators.required]],
       allowedOutlet: [[]],
@@ -305,7 +305,7 @@ export class AddUserComponent implements OnInit{
   initSecondForm() {
     this.secondForm = this.fb.group({
       first: ['', [Validators.required, Validators.pattern('[a-zA-Z]+')]],
-      last: [''],
+      last: ['', [Validators.required, Validators.pattern('[a-zA-Z]+')]],
       email: ['', [Validators.required, Validators.email, Validators.minLength(5)],],
       mobile: ['', [Validators.required, Validators.pattern('^[0-9]*$')]],
       address: [''],
@@ -336,7 +336,7 @@ export class AddUserComponent implements OnInit{
   initThirdForm() {
     this.thirdForm = this.fb.group({
       first: ['', [Validators.required, Validators.pattern('[a-zA-Z]+')]],
-      last: [''],
+      last: ['', [Validators.required, Validators.pattern('[a-zA-Z]+')]],
       password: ['', [Validators.required]],
       email: [
         '',

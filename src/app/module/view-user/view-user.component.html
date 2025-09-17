@@ -67,41 +67,42 @@
         <mat-form-field appearance="outline" class="w-100">
           <mat-label>Select Outlet</mat-label>
           <mat-select
-            formControlName="name"
-            multiple
-            #dealerSelect="matSelect"
-            panelClass="custom-select-panel"
-            (openedChange)="onDealerSelectOpened($event)"
+            [(value)]="selectedOutlet"
+          multiple
+          #dealerSelect="matSelect"
+          panelClass="custom-select-panel"
+          (openedChange)="onDealerSelectOpened($event)"
           >
-            <!-- ✅ Custom display -->
-            <mat-select-trigger>
-        <span *ngIf="dealerSelect.value?.length; else noSelection">
-          {{ dealerSelect.value[0] | slice:0:16 }}{{ dealerSelect.value[0].length > 16 ? '...' : '' }}
-          <span *ngIf="dealerSelect.value.length > 1" class="textcol">
-            (+{{ dealerSelect.value.length - 1 }} more)
-          </span>
+          <!-- Custom trigger -->
+          <mat-select-trigger>
+      <span *ngIf="dealerSelect.value?.length; else noSelection">
+        {{ dealerSelect.value[0] | slice:0:16 }}{{ dealerSelect.value[0].length > 16 ? '...' : '' }}
+        <span *ngIf="dealerSelect.value.length > 1" class="textcol">
+          (+{{ dealerSelect.value.length - 1 }} more)
         </span>
-              <ng-template #noSelection>
-                Select...
-              </ng-template>
-            </mat-select-trigger>
+      </span>
+            <ng-template #noSelection>
+              Select...
+            </ng-template>
+          </mat-select-trigger>
 
+          <!-- Search -->
+          <div class="mat-select-search" (click)="$event.stopPropagation()">
+            <input
+              matInput
+              placeholder="Search Outlet"
+              #outletSearchInput
+              (input)="onDealerSearchChange($event)"
+            />
+          </div>
 
-            <div class="mat-select-search" (click)="$event.stopPropagation()">
-              <input
-                matInput
-                placeholder="Search Outlet"
-                #outletSearchInput
-                (input)="onDealerSearchChange($event)"
-              />
-            </div>
-
-            <!-- ✅ Options -->
-            <mat-option *ngFor="let outlet of filteredDealerOptions" [value]="outlet?.name">
-              {{ outlet?.name }}
-            </mat-option>
+          <!-- Options -->
+          <mat-option *ngFor="let outlet of filteredDealerOptions" [value]="outlet?.name">
+            {{ outlet?.name }}
+          </mat-option>
           </mat-select>
         </mat-form-field>
+
 
 
       </div>

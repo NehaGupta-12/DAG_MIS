@@ -20,7 +20,7 @@
                 <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 mb-2">
                   <mat-form-field class="example-full-width" appearance="outline">
                     <mat-label>Showroom Name</mat-label>
-                    <input matInput formControlName="name" required>
+                    <input matInput formControlName="name" placeholder="Enter Showroom Name" required>
                     <!--                    <mat-icon class="material-icons-outlined color-icon p-3" matSuffix>face</mat-icon>-->
                     @if (dealerForm?.get('name')?.hasError('required')) {
                       <mat-error>
@@ -32,7 +32,7 @@
                 <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 mb-2">
                   <mat-form-field class="example-full-width" appearance="outline">
                     <mat-label>Outlet Code</mat-label>
-                    <input matInput formControlName="outletCode" required>
+                    <input matInput formControlName="outletCode" placeholder="Enter Outlet Code" required>
                     <!--                    <mat-icon class="material-icons-outlined color-icon p-3" matSuffix>face</mat-icon>-->
                     @if (dealerForm?.get('outletCode')?.hasError('required')) {
                       <mat-error>
@@ -43,7 +43,7 @@
                 </div>
                 <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 mb-2">
                   <mat-form-field class="example-full-width" appearance="outline">
-                    <mat-label>Outlet Type</mat-label>
+                    <mat-label>Select Outlet Type</mat-label>
                     <mat-select formControlName="outletType" required #outletTypeSelect panelClass="custom-select-panel" (openedChange)="onOutletTypeSelectOpened($event)">
                       <div class="mat-select-search">
                         <input matInput (input)="onOutletTypeSearchChange($event)" #outletTypeSearchInput placeholder="Search Outlet Type" />
@@ -59,7 +59,7 @@
                 </div>
                 <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 mb-2">
                   <mat-form-field class="example-full-width" appearance="outline">
-                    <mat-label>Division</mat-label>
+                    <mat-label>Select Division</mat-label>
                     <mat-select formControlName="division" required #divisionSelect panelClass="custom-select-panel" (openedChange)="onDivisionSelectOpened($event)">
                       <div class="mat-select-search">
                         <input matInput (input)="onDivisionSearchChange($event)" #divisionSearchInput placeholder="Search Division" />
@@ -77,7 +77,7 @@
                 </div>
                 <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 mb-2">
                   <mat-form-field class="example-full-width" appearance="outline">
-                    <mat-label>Country</mat-label>
+                    <mat-label>Select Country</mat-label>
                     <mat-select formControlName="country" required #countrySelect panelClass="custom-select-panel" (openedChange)="onCountrySelectOpened($event)">
                       <div class="mat-select-search">
                         <input matInput (input)="onCountrySearchChange($event)" #countrySearchInput placeholder="Search Country" />
@@ -93,7 +93,7 @@
                 </div>
                 <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 mb-2">
                   <mat-form-field class="example-full-width" appearance="outline">
-                    <mat-label>Town</mat-label>
+                    <mat-label>Select Town</mat-label>
                     <mat-select formControlName="town" required #townSelect panelClass="custom-select-panel" (openedChange)="onTownSelectOpened($event)">
                       <div class="mat-select-search">
                         <input matInput (input)="onTownSearchChange($event)" #townSearchInput placeholder="Search Town" />

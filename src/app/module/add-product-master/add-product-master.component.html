@@ -18,7 +18,7 @@
                 <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 mb-2">
                   <mat-form-field class="example-full-width" appearance="outline">
                     <mat-label>Name</mat-label>
-                    <input matInput formControlName="name" required>
+                    <input matInput formControlName="name" placeholder="Enter Vehicle Name" required>
 <!--                    <mat-icon class="material-icons-outlined color-icon p-3" matSuffix>face</mat-icon>-->
                     @if (productForm?.get('name')?.hasError('required')) {
                       <mat-error>
@@ -30,7 +30,7 @@
                 <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 mb-2">
                   <mat-form-field class="example-full-width" appearance="outline">
                     <mat-label>Brand Name</mat-label>
-                    <input matInput formControlName="brand" required>
+                    <input matInput formControlName="brand" placeholder="Enter Brand Name" required>
                     <!--                    <mat-icon class="material-icons-outlined color-icon p-3" matSuffix>face</mat-icon>-->
                     @if (productForm?.get('brand')?.hasError('required')) {
                       <mat-error>
@@ -56,7 +56,7 @@
 
                 <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 mb-2">
                   <mat-form-field class="example-full-width" appearance="outline">
-                    <mat-label>Model</mat-label>
+                    <mat-label>Select Model</mat-label>
                     <mat-select formControlName="model" required #modelSelect panelClass="custom-select-panel" (openedChange)="onModelSelectOpened($event)">
                       <div class="mat-select-search">
                         <input matInput (input)="onModelSearchChange($event)" #modelSearchInput placeholder="Search Model" />
@@ -72,7 +72,7 @@
                 </div>
                 <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 mb-2">
                   <mat-form-field class="example-full-width" appearance="outline">
-                    <mat-label>Category</mat-label>
+                    <mat-label>Select Category</mat-label>
                     <mat-select formControlName="category" required #categorySelect panelClass="custom-select-panel" (openedChange)="onCategorySelectOpened($event)">
                       <div class="mat-select-search">
                         <input matInput (input)="onCategorySearchChange($event)" #categorySearchInput placeholder="Search Category" />
@@ -108,7 +108,7 @@
 
                 <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 mb-2">
                   <mat-form-field class="example-full-width" appearance="outline">
-                    <mat-label>Varient</mat-label>
+                    <mat-label>Select Varient</mat-label>
                     <mat-select formControlName="varient" required #variantSelect panelClass="custom-select-panel" (openedChange)="onVariantSelectOpened($event)">
                       <div class="mat-select-search">
                         <input matInput (input)="onVariantSearchChange($event)" #variantSearchInput placeholder="Search Varient" />
@@ -125,7 +125,7 @@
 
                 <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 mb-2">
                   <mat-form-field class="example-full-width" appearance="outline">
-                    <mat-label>Engine CC</mat-label>
+                    <mat-label>Select Engine CC</mat-label>
                     <mat-select formControlName="engineCc" required #engineSelect panelClass="custom-select-panel" (openedChange)="onEngineSelectOpened($event)">
                       <div class="mat-select-search">
                         <input matInput (input)="onEngineSearchChange($event)" #engineSearchInput placeholder="Search Engine CC" />
@@ -162,7 +162,7 @@
 
                 <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 mb-2">
                   <mat-form-field class="example-full-width" appearance="outline">
-                    <mat-label>Unit Of Measurement</mat-label>
+                    <mat-label>Select Unit Of Measurement</mat-label>
                     <mat-select formControlName="unit" required #unitSelect panelClass="custom-select-panel" (openedChange)="onUnitSelectOpened($event)">
                       <div class="mat-select-search">
                         <input matInput (input)="onUnitSearchChange($event)" #unitSearchInput placeholder="Search Unit" />

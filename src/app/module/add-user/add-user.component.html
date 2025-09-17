@@ -18,6 +18,7 @@
                       formControlName="first"
                       required
                       (keypress)="allowOnlyAlphabets($event)"
+                      placeholder="Enter first name"
                     />
                     <mat-icon class="material-icons-outlined color-icon" matSuffix>face</mat-icon>
 
@@ -36,7 +37,7 @@
                 <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 mb-2">
                   <mat-form-field class="example-full-width" appearance="outline">
                     <mat-label>Last name</mat-label>
-                    <input matInput formControlName="last">
+                    <input matInput formControlName="last" placeholder="Enter Last name">
                     <mat-icon class="material-icons-outlined color-icon" matSuffix>face</mat-icon>
                   </mat-form-field>
                 </div>
@@ -45,7 +46,7 @@
                 <div class="col-xl-6 col-lg-6 col-md-6 col-sm-6 mb-2">
                   <mat-form-field class="example-full-width" appearance="outline">
                     <mat-label>Mobile No.</mat-label>
-                    <input matInput formControlName="mobile" required type="text" (keypress)="allowOnlyNumbers($event)">
+                    <input matInput formControlName="mobile" required type="text" (keypress)="allowOnlyNumbers($event)" placeholder="Enter Mobile No.">
                     <mat-icon class="material-icons-outlined color-icon" matSuffix>phone</mat-icon>
                     @if (register?.get('mobile')?.hasError('required') || register?.get('mobile')?.touched) {
                       <mat-error>
@@ -57,7 +58,7 @@
                 <div class="col-xl-6 col-lg-6 col-md-6 col-sm-6 mb-2">
                   <mat-form-field class="example-full-width" appearance="outline">
                     <mat-label>Email</mat-label>
-                    <input matInput formControlName="email" required>
+                    <input matInput formControlName="email" required placeholder="Enter Email">
                     <mat-icon class="material-icons-outlined color-icon" matSuffix>email</mat-icon>
                     @if (register?.get('email')?.hasError('required') || register?.get('email')?.touched) {
                       <mat-error>
@@ -69,7 +70,7 @@
 
               <div class="col-xl-6 col-lg-6 mb-2">
                 <mat-form-field class="example-full-width" appearance="outline">
-                  <mat-label>Role</mat-label>
+                  <mat-label>Select Role</mat-label>
                   <mat-select formControlName="role" required #roleSelect panelClass="custom-select-panel" (openedChange)="onRoleSelectOpened($event)">
                     <div class="mat-select-search">
                       <input matInput (input)="onRoleSearchChange($event)" #roleSearchInput placeholder="Search Role" />
@@ -86,7 +87,7 @@
 
               <div class="col-xl-6 col-lg-6 mb-2">
                 <mat-form-field class="example-full-width" appearance="outline">
-                  <mat-label>Department</mat-label>
+                  <mat-label>Select Department</mat-label>
                   <mat-select formControlName="department" required #deptSelect panelClass="custom-select-panel" (openedChange)="onDeptSelectOpened($event)">
                     <div class="mat-select-search">
                       <input matInput (input)="onDeptSearchChange($event)" #deptSearchInput placeholder="Search Department" />
@@ -106,7 +107,7 @@
                 <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 mb-2">
                   <mat-form-field class="example-full-width" appearance="outline">
                     <mat-label>City</mat-label>
-                    <input matInput formControlName="city" required>
+                    <input matInput formControlName="city" required placeholder="Enter City name">
                     <mat-icon class="material-icons-outlined color-icon" matSuffix>location_city</mat-icon>
                     @if (register?.get('city')?.hasError('required')) {
                       <mat-error>
@@ -118,7 +119,7 @@
                 <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 mb-2">
                   <mat-form-field class="example-full-width" appearance="outline">
                     <mat-label>State</mat-label>
-                    <input matInput formControlName="state" required>
+                    <input matInput formControlName="state" required placeholder="Enter State name">
                     <mat-icon class="material-icons-outlined color-icon" matSuffix>business</mat-icon>
                     @if (register?.get('state')?.hasError('required')) {
                       <mat-error>
@@ -131,7 +132,7 @@
               <div class="row">
                 <div class="col-xl-6 col-lg-6 col-md-6 col-sm-6 mb-2">
                   <mat-form-field class="example-full-width" appearance="outline">
-                    <mat-label>Country</mat-label>
+                    <mat-label>Select Country</mat-label>
                     <mat-select formControlName="country" required #countrySelect panelClass="custom-select-panel" (openedChange)="onCountrySelectOpened($event)">
                       <div class="mat-select-search">
                         <input matInput (input)="onCountrySearchChange($event)" #countrySearchInput placeholder="Search Country" />
@@ -149,7 +150,7 @@
                 <div class="col-xl-6 col-lg-6 col-md-6 col-sm-6 mb-2">
                   <mat-form-field class="example-full-width" appearance="outline">
                     <mat-label>User Code</mat-label>
-                    <input matInput type="text" formControlName="userCode"/>
+                    <input matInput type="text" formControlName="userCode" placeholder="Enter User Code"/>
                   </mat-form-field>
                 </div>
 
@@ -164,7 +165,7 @@
                 <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 mb-2">
                   <mat-form-field class="example-full-width" appearance="outline">
                     <mat-label>Address</mat-label>
-                    <textarea matInput formControlName="address"></textarea>
+                    <textarea matInput formControlName="address" placeholder="Enter Address"></textarea>
                   </mat-form-field>
                 </div>
               </div>
@@ -176,7 +177,7 @@
                     <div >
                       <mat-form-field appearance="outline">
                         <mat-label>Password</mat-label>
-                        <input matInput type="text" [formControl]="passwordControl"/>
+                        <input matInput type="text" [formControl]="passwordControl" placeholder="Enter Password"/>
                       </mat-form-field>
                       &nbsp; <button mat-raised-button (click)="changePassword()"
                                      style="background-color:#0056D2; color:#fff;">

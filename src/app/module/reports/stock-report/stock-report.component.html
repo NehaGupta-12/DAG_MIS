@@ -1,17 +1,21 @@
-
 <section class="content">
   <div class="content-block">
-    <div class="row p-3">
-      <div class="col-md-12">
-        <h4 class="text-center">Stock Report</h4>
+    <div class="card shadow">
+
+      <div class="materialTableHeader">
+        <div class="left">
+          <ul class="header-buttons-left">
+            <li class="tbl-title">
+              <h2 class="fs-4">Stock Report</h2>
+            </li>
+          </ul>
+        </div>
       </div>
-    </div>
 
-    <div class="card shadow p-4">
-      <form [formGroup]="dealerForm" class="row g-3 align-items-center">
-
+      <!-- Form -->
+      <form [formGroup]="dealerForm" class="row g-3 align-items-center my-2 mx-2">
         <!-- Country -->
-        <div class="col-md-2">
+        <div class="col-md-3">
           <mat-form-field appearance="outline" class="w-100">
             <mat-label>Select Country</mat-label>
             <mat-select formControlName="country" #countrySelect panelClass="custom-select-panel"
@@ -28,103 +32,6 @@
           </mat-form-field>
         </div>
 
-        <!-- Division -->
-<!--                <div class="col-md-2">-->
-<!--                  <mat-form-field appearance="outline" class="w-100">-->
-<!--                    <mat-label>Select Division</mat-label>-->
-<!--                    <mat-select formControlName="division" #divisionSelect panelClass="custom-select-panel"-->
-<!--                                (openedChange)="onDivisionSelectOpened($event)">-->
-<!--                      <div class="mat-select-search">-->
-<!--                        <input matInput placeholder="Search Division"-->
-<!--                               #divisionSearchInput-->
-<!--                               (input)="onDivisionSearchChange($event)" />-->
-<!--                      </div>-->
-<!--                      <mat-option *ngFor="let item of filteredOptions.division" [value]="item">-->
-<!--                        {{ item }}-->
-<!--                      </mat-option>-->
-<!--                    </mat-select>-->
-<!--                  </mat-form-field>-->
-<!--                </div>-->
-
-        <!-- Town -->
-<!--        <div class="col-md-2">-->
-<!--          <mat-form-field appearance="outline" class="w-100">-->
-<!--            <mat-label>Select Town</mat-label>-->
-<!--            <mat-select formControlName="town" #townSelect panelClass="custom-select-panel"-->
-<!--                        (openedChange)="onTownSelectOpened($event)">-->
-<!--              <div class="mat-select-search">-->
-<!--                <input matInput placeholder="Search Town"-->
-<!--                       #townSearchInput-->
-<!--                       (input)="onTownSearchChange($event)" />-->
-<!--              </div>-->
-<!--              <mat-option *ngFor="let item of filteredOptions.town" [value]="item">-->
-<!--                {{ item }}-->
-<!--              </mat-option>-->
-<!--            </mat-select>-->
-<!--          </mat-form-field>-->
-<!--        </div>-->
-
-        <!-- Showroom Name -->
-<!--        <div class="col-md-4">-->
-<!--          <mat-form-field appearance="outline" class="w-100">-->
-<!--            <mat-label>Select Outlet</mat-label>-->
-<!--            <mat-select formControlName="name" multiple #outletSelect panelClass="custom-select-panel"-->
-<!--                        (openedChange)="onOutletSelectOpened($event)">-->
-<!--              <div class="mat-select-search">-->
-<!--                <input matInput placeholder="Search Outlet"-->
-<!--                       #outletSearchInput-->
-<!--                       (input)="onOutletSearchChange($event)" />-->
-<!--              </div>-->
-<!--              <mat-option *ngFor="let dealer of filteredOptions.name" [value]="dealer">-->
-<!--                {{ dealer }}-->
-<!--              </mat-option>-->
-<!--            </mat-select>-->
-<!--          </mat-form-field>-->
-<!--        </div>-->
-
-
-        <!-- Product -->
-        <!--        <div class="col-md-4">-->
-        <!--          <mat-form-field appearance="outline" class="w-100">-->
-        <!--            <mat-label>Select Product</mat-label>-->
-        <!--            <input-->
-        <!--              type="text"-->
-        <!--              matInput-->
-        <!--              placeholder="Search Product"-->
-        <!--              [formControl]="productFilter"-->
-        <!--              [matAutocomplete]="autoProduct"-->
-        <!--            />-->
-        <!--            <mat-icon matSuffix>arrow_drop_down</mat-icon>-->
-        <!--            <mat-autocomplete #autoProduct="matAutocomplete" [displayWith]="displayFn">-->
-        <!--              <mat-option *ngFor="let item of filteredOptions.product" [value]="item">-->
-        <!--                {{ item }}-->
-        <!--              </mat-option>-->
-        <!--            </mat-autocomplete>-->
-        <!--          </mat-form-field>-->
-        <!--        </div>-->
-
-
-<!--        <div class="col-md-4">-->
-<!--          <mat-form-field class="example-full-width w-100" appearance="outline">-->
-<!--            <mat-label>Date</mat-label>-->
-
-<!--            <mat-date-range-input [rangePicker]="picker" formGroupName="period">-->
-<!--              <input matStartDate formControlName="start" placeholder="Start date">-->
-<!--              <input matEndDate formControlName="end" placeholder="End date">-->
-<!--            </mat-date-range-input>-->
-
-<!--            <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>-->
-<!--            <mat-date-range-picker #picker></mat-date-range-picker>-->
-
-<!--            <mat-error *ngIf="dealerForm.get('period.start')?.hasError('required') || dealerForm.get('period.end')?.hasError('required')">-->
-<!--              Date range is required-->
-<!--            </mat-error>-->
-<!--          </mat-form-field>-->
-<!--        </div>-->
-
-
-
-
         <!-- Action Buttons -->
         <div class="col-md-2 d-flex justify-content-end gap-2 mt-2">
           <button mat-mini-fab color="primary" matTooltip="Search" (click)="onSubmit()" [disabled]="dealerForm.invalid">
@@ -133,7 +40,9 @@
           <button mat-mini-fab color="warn" matTooltip="Clear" (click)="onCancel()">
             <mat-icon>clear</mat-icon>
           </button>
-          <button mat-mini-fab style="background-color:#28a745; color:#fff;" matTooltip="Export to Excel" (click)="exportToExcel()" [disabled]="!authService.hasPermission('Stock Report','export')">
+          <button mat-mini-fab style="background-color:#28a745; color:#fff;" matTooltip="Export to Excel"
+                  (click)="exportToExcel()"
+                  [disabled]="!authService.hasPermission('Stock Report','export')">
             <mat-icon>download</mat-icon>
           </button>
         </div>
@@ -141,13 +50,10 @@
 
       <!-- Table -->
       <hr />
-<!--      <div class="d-flex justify-content-between align-items-center my-3">-->
-<!--        <h5>{{ reportTitle }}</h5>-->
-<!--        <h5>{{ reportDate }}</h5>-->
-<!--      </div>-->
-
-      <div style="overflow-x: auto; width: 100%">
-        <table mat-table [dataSource]="finalTableData" class="mat-elevation-z1 w-100 custom-bordered" style="min-width: max-content;">
+      <div style="overflow-x: auto; width: 99%" class="mx-2 my-2">
+        <table mat-table [dataSource]="finalTableData"
+               class="mat-elevation-z1 w-100 custom-bordered"
+               style="min-width: max-content;">
 
           <ng-container matColumnDef="country">
             <th mat-header-cell *matHeaderCellDef> Country </th>
@@ -168,12 +74,6 @@
           <tr mat-row *matRowDef="let row; columns: tableColumns;"></tr>
         </table>
       </div>
-
-
     </div>
   </div>
 </section>
-
-
-
-

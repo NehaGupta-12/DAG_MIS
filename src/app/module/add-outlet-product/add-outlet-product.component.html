@@ -20,7 +20,7 @@
               <div class="row">
                 <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 mb-2">
                   <mat-form-field class="example-full-width" appearance="outline">
-                    <mat-label>Outlet/Dealer</mat-label>
+                    <mat-label>Select Outlet/Dealer</mat-label>
                     <mat-select formControlName="dealerOutlet" required #dealerSelect panelClass="custom-select-panel" (openedChange)="onDealerSelectOpened($event)">
                       <div class="mat-select-search">
                         <input matInput (input)="onDealerSearchChange($event)" #dealerSearchInput placeholder="Search Outlet/Dealer" />
@@ -36,7 +36,7 @@
                 </div>
                 <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 mb-2">
                   <mat-form-field class="example-full-width" appearance="outline">
-                    <mat-label>Products</mat-label>
+                    <mat-label>Select Products</mat-label>
                     <mat-select
                       required
                       formControlName="products"
