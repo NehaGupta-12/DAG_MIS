@@ -19,3 +19,17 @@ mat-icon {
   color: #6a6a6a; /* Use a dark color to make the text visible */
   opacity: 1; /* Some browsers might require this to show the placeholder */
 }
+.spinner-container {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999999 !important;
+  background-color: rgba(255, 255, 255, 0.8);
+  width: 100vw;
+  height: 100vh;
+}
+

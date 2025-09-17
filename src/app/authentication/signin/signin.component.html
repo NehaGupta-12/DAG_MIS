@@ -1,3 +1,6 @@
+<div class="spinner-container" *ngIf="isLoading">
+  <mat-spinner diameter="60"></mat-spinner>
+</div>
 <div class="container-fluid p-0">
   <div class="row g-0">
     <div class="col-lg-5">
@@ -16,7 +19,7 @@
                 </div>
 
                 <div class="p-2 mt-4">
-                  <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+                  <form [formGroup]="loginForm">
                     @if (error) {
                       <div class="alert alert-danger mb-3 mt-0">{{error}}</div>
                     }
@@ -103,7 +106,7 @@
 
                     <div class="container-login100-form-btn mt-3" >
                       <button mat-flat-button  style="
-            background-color:#0056D2; border-radius: 24px; color:#fff; "  class="login100-form-btn" type="submit">
+            background-color:#0056D2; border-radius: 24px; color:#fff; "  class="login100-form-btn" type="button" (click)="onSubmit()" [disabled]="isLoading">
                         Login
                       </button>
                     </div>
@@ -143,3 +146,4 @@
     </div>
   </div>
 </div>
+

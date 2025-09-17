@@ -7,15 +7,17 @@ import {
   Validators,
   FormsModule,
   ReactiveFormsModule,
+
 } from '@angular/forms';
 // import { AuthService } from '@core';
 import { UnsubscribeOnDestroyAdapter } from '@shared';
 import { MatButtonModule } from '@angular/material/button';
-import { NgClass } from '@angular/common';
+import {NgClass, NgIf} from '@angular/common';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { AuthService } from '../auth.service';
 import {LoadingService} from "../../Services/loading.service";
+import {MatProgressSpinnerModule} from "@angular/material/progress-spinner";
 @Component({
   selector: 'app-signin',
   templateUrl: './signin.component.html',
@@ -28,6 +30,8 @@ import {LoadingService} from "../../Services/loading.service";
     MatFormFieldModule,
     NgClass,
     MatButtonModule,
+    MatProgressSpinnerModule,
+    NgIf
   ],
   standalone: true
 })
@@ -40,6 +44,7 @@ export class SigninComponent
   error = '';
   hidePassword = true;
   hide = true;
+  isLoading : boolean = false;
   constructor(
     private formBuilder: UntypedFormBuilder,
     private router: Router,
@@ -74,8 +79,7 @@ export class SigninComponent
       return;
     }
 
-    // ✅ Start loader before login request
-    this.loadingService.setLoading(true);
+   this.isLoading = true;
 
     this.authService
       .login(
@@ -84,7 +88,7 @@ export class SigninComponent
       )
       .then((res) => {
         // ✅ stop loader on success
-        this.loadingService.setLoading(false);
+        this.isLoading = false;
         // Navigate after successful login
         this.router.navigate(['/dashboard/main']);
       })
@@ -92,7 +96,7 @@ export class SigninComponent
         console.error('Login error:', err);
         this.error = 'Login failed. Please check your credentials.';
         // ✅ stop loader on error
-        this.loadingService.setLoading(false);
+        this.isLoading = false;
       });
   }
 
