@@ -499,7 +499,9 @@ export class AddDailySalesComponent implements OnInit {
       this.dailySalesForm.get('dealerOutlet')?.valid &&
       this.dailySalesForm.get('division')?.valid &&
       this.dailySalesForm.get('country')?.valid &&
-      this.dailySalesForm.get('town')?.valid;
+      this.dailySalesForm.get('town')?.valid &&
+      this.dailySalesForm.get('salesDate')?.valid;
+
 
     const hasProducts = this.addedProducts.length > 0;
     const allQuantitiesValid = this.addedProducts.every(p => p.quantity && p.quantity > 0);

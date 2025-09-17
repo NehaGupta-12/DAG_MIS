@@ -224,6 +224,7 @@ export class MainComponent implements OnInit {
     runInInjectionContext(this.injector, () => {
       this.dailySlaes.getDailySalesList().subscribe((data) => {
         let filteredData = data;
+        console.log("All Sales Data:", data);
         let filteredOutlets = this.outletdataSource.data; // Store a mutable copy
 
         if (selectedCountry && selectedCountry !== 'All') {
@@ -285,6 +286,17 @@ export class MainComponent implements OnInit {
     });
   }
 
+  // Get the correct sales date
+  getItemDate(item: any): Date {
+    if (item.salesDate) {
+      return new Date(item.salesDate); // Already in ms
+    } else if (item.createdAt?.seconds) {
+      return new Date(item.createdAt.seconds * 1000); // Firestore timestamp
+    }
+    return new Date(); // fallback
+  }
+
+
   calculateDailySales(data: any[]) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -296,7 +308,7 @@ export class MainComponent implements OnInit {
     let yesterdayQuantity = 0;
 
     data.forEach(item => {
-      const itemDate = new Date(item.createdAt.seconds * 1000);
+      const itemDate = this.getItemDate(item);
       itemDate.setHours(0, 0, 0, 0);
 
       if (itemDate.getTime() === today.getTime()) {
@@ -307,9 +319,8 @@ export class MainComponent implements OnInit {
     });
 
     this.todaySales = todayQuantity;
-    this.yesterdaySales = yesterdayQuantity; // 👈 store it here
+    this.yesterdaySales = yesterdayQuantity;
 
-    // Optional percentage message
     if (yesterdayQuantity === 0) {
       this.todayPercentage = todayQuantity > 0 ? '100% Higher Than Yesterday' : 'No sales yesterday';
     } else {
@@ -317,6 +328,7 @@ export class MainComponent implements OnInit {
       this.todayPercentage = `${Math.abs(percentage).toFixed(0)}% ${percentage >= 0 ? 'Higher' : 'Lower'} Than Yesterday`;
     }
   }
+
 
 
 
@@ -442,8 +454,15 @@ export class MainComponent implements OnInit {
 
     // Sum up quantities for each day
     data.forEach((item) => {
-      if (item.createdAt && item.createdAt.seconds) {
-        const itemDate = new Date(item.createdAt.seconds * 1000);
+      let itemDate: Date | null = null;
+
+      if (item.salesDate) {
+        itemDate = new Date(item.salesDate); // already ms
+      } else if (item.createdAt?.seconds) {
+        itemDate = new Date(item.createdAt.seconds * 1000);
+      }
+
+      if (itemDate) {
         itemDate.setHours(0, 0, 0, 0); // Reset to midnight local time
 
         const itemKey = itemDate.getFullYear() + '-' +
@@ -468,6 +487,7 @@ export class MainComponent implements OnInit {
       };
     });
   }
+
 
 
 

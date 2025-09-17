@@ -473,7 +473,9 @@ export class AddGRNComponent implements OnInit{
 
 
   isSubmitEnabled(): boolean {
-    const formValid = this.grnForm.get('dealerOutlet')?.valid;
+    const formValid =
+      this.grnForm.get('dealerOutlet')?.valid &&
+      this.grnForm.get('date')?.valid;
 
     const hasProducts = this.addedProducts.length > 0;
     const allQuantitiesValid = this.addedProducts.every(p => p.quantity && p.quantity > 0);

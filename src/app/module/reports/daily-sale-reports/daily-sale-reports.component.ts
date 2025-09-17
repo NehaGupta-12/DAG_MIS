@@ -149,7 +149,7 @@ export class DailySaleReportsComponent implements OnInit{
     @Inject(MAT_DIALOG_DATA) public data: any
   ) {
     this.dealerForm = this.fb.group({
-      name: this.fb.control([], Validators.required),   // ✅ fixed
+      name: this.fb.control(''),   // ✅ fixed
       country: [''],
       division: [''],
       town: [''],
@@ -364,9 +364,9 @@ export class DailySaleReportsComponent implements OnInit{
       const qty = Number(item.quantity) || 0;
 
       // Handle Firestore timestamp
-      const itemDate = item.createdAt?.seconds
-        ? new Date(item.createdAt.seconds * 1000)
-        : new Date(item.createdAt);
+      const itemDate = item.salesDate
+        ? new Date(item.salesDate)
+        : (item.createdAt?.seconds ? new Date(item.createdAt.seconds * 1000) : new Date(item.createdAt));
 
       if (!report[product]) {
         report[product] = { YTD: 0, Month: 0, Day: 0 };
@@ -430,9 +430,9 @@ export class DailySaleReportsComponent implements OnInit{
 
       // Always fetch data (no disable)
       const filterFn = (item: any, outlet: string | null = null) => {
-        const itemDate = item.createdAt?.seconds
-          ? new Date(item.createdAt.seconds * 1000)
-          : new Date(item.createdAt);
+        const itemDate = item.salesDate
+          ? new Date(item.salesDate)
+          : (item.createdAt?.seconds ? new Date(item.createdAt.seconds * 1000) : new Date(item.createdAt));
 
         return (
           (!filters.country || item.country === filters.country) &&
