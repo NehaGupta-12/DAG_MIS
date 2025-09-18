@@ -71,7 +71,7 @@ export class AddStockTransferComponent implements OnInit {
 
   isEditMode: boolean = false;
   stockTransferForm: FormGroup;
-  displayedColumns: string[] = ['sku', 'name', 'brand', 'model', 'variant', 'unit', 'quantity', 'action'];
+  displayedColumns: string[] = ['sku', 'name', 'brand', 'model', 'unit', 'quantity', 'action'];
   dealerdataSource = new MatTableDataSource<any>();
   vehicledataSource = new MatTableDataSource<any>();
   addedProducts: any[] = [];
