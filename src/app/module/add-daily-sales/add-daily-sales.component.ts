@@ -167,7 +167,7 @@ export class AddDailySalesComponent implements OnInit {
       division: [''],
       country: [''],
       town: [''],
-      vehicle: ['', Validators.required],
+      vehicle: [[], Validators.required],
       salesDate: ['', Validators.required]
     });
   }
@@ -509,36 +509,76 @@ export class AddDailySalesComponent implements OnInit {
     return !!formValid && hasProducts && allQuantitiesValid;
   }
 
+  // addProduct() {
+  //   const selectedProductId = this.dailySalesForm.get('vehicle')?.value;
+  //   if (!selectedProductId) {
+  //     Swal.fire('Error', 'Please select a product before adding.', 'error');
+  //     return;
+  //   }
+  //
+  //   const product = this.vehicledataSource.data.find(p => p.name === selectedProductId);
+  //   if (product) {
+  //     const exists = this.addedProducts.some(p => p.productId === product.id);
+  //     if (exists) {
+  //       Swal.fire('Info', 'This product is already added.', 'info');
+  //       return;
+  //     }
+  //
+  //     this.addedProducts = [...this.addedProducts, {
+  //       productId: product.id,
+  //       sku: product.sku,
+  //       name: product.name,
+  //       brand: product.brand,
+  //       model: product.model,
+  //       variant: product.variant,
+  //       unit: product.unit,
+  //       avlQuantity: product.avlQuantity,
+  //       quantity: 1
+  //     }];
+  //     console.log(this.addedProducts);
+  //   }
+  //   this.dailySalesForm.get('vehicle')?.reset();
+  // }
   addProduct() {
-    const selectedProductId = this.dailySalesForm.get('vehicle')?.value;
-    if (!selectedProductId) {
-      Swal.fire('Error', 'Please select a product before adding.', 'error');
+    const selectedProducts = this.dailySalesForm.get('vehicle')?.value; // this will be an array
+    if (!selectedProducts || selectedProducts.length === 0) {
+      Swal.fire('Error', 'Please select at least one product before adding.', 'error');
       return;
     }
 
-    const product = this.vehicledataSource.data.find(p => p.name === selectedProductId);
-    if (product) {
-      const exists = this.addedProducts.some(p => p.productId === product.id);
-      if (exists) {
-        Swal.fire('Info', 'This product is already added.', 'info');
-        return;
-      }
+    let newProducts: any[] = [];
 
-      this.addedProducts = [...this.addedProducts, {
-        productId: product.id,
-        sku: product.sku,
-        name: product.name,
-        brand: product.brand,
-        model: product.model,
-        variant: product.variant,
-        unit: product.unit,
-        avlQuantity: product.avlQuantity,
-        quantity: 1
-      }];
+    selectedProducts.forEach((selectedName: string) => {
+      const product = this.vehicledataSource.data.find(p => p.name === selectedName);
+      if (product) {
+        const exists = this.addedProducts.some(p => p.productId === product.id);
+        if (!exists) {
+          newProducts.push({
+            productId: product.id,
+            sku: product.sku,
+            name: product.name,
+            brand: product.brand,
+            model: product.model,
+            variant: product.variant,
+            unit: product.unit,
+            avlQuantity: product.avlQuantity,
+            quantity: 1
+          });
+        } else {
+          Swal.fire('Info', `${product.name} is already added.`, 'info');
+        }
+      }
+    });
+
+    if (newProducts.length > 0) {
+      this.addedProducts = [...this.addedProducts, ...newProducts];
       console.log(this.addedProducts);
     }
+
+    // Reset selection after adding
     this.dailySalesForm.get('vehicle')?.reset();
   }
+
 
   removeProduct(index: number) {
     // Remove only the clicked product
