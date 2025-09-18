@@ -77,23 +77,21 @@
 
             </div>
             <div class="row">
-              <div class="col-4">
-                <p class="text-muted font-12 text-truncate">Target</p>
+              <div class="col-4 d-flex flex-column align-items-center">
+                <p class="text-muted font-12 text-truncate">Last 10 Day's</p>
                 <h6>
-                  <i class="fas fa-arrow-circle-up col-green m-r-5"></i>50
+                  {{ last10DaysSales | number }}
                 </h6>
               </div>
-              <div class="col-4">
+              <div class="col-4 d-flex flex-column align-items-center">
                 <p class="text-muted font-12 text-truncate">Yesterday's Sale</p>
                 <h6>
-                  <i class="fas fa-arrow-circle-down col-red m-r-5"></i>
                   {{ yesterdaySales | number }}
                 </h6>
               </div>
-              <div class="col-4">
+              <div class="col-4 d-flex flex-column align-items-center">
                 <p class="text-muted font-12 text-truncate">Today's Sale</p>
                 <h6>
-                  <i class="fas fa-arrow-circle-up col-green m-r-5"></i>
                   {{ todaySales | number }}
                 </h6>
               </div>
@@ -115,23 +113,25 @@
                 [tooltip]="areaChartOptions.tooltip!" [dataLabels]="areaChartOptions.dataLabels!"></apx-chart>
             </div>
             <div class="row">
-              <div class="col-4">
-                <p class="text-muted font-12 text-truncate">Target</p>
+              <div class="col-4 d-flex flex-column align-items-center">
+                <p class="text-muted font-12 text-truncate">Yearly Budget</p>
                 <h6>
-                  <i class="fas fa-arrow-circle-up col-green m-r-5"></i>2.5k
+                  <i *ngIf="currentMonthBudget > lastMonthBudget" class="fas fa-arrow-circle-up col-green m-r-5"></i>
+                  <i *ngIf="currentMonthBudget < lastMonthBudget" class="fas fa-arrow-circle-down col-red m-r-5"></i>
+                  <i *ngIf="currentMonthBudget === lastMonthBudget" class="fas fa-minus-circle text-muted m-r-5"></i>
+                  {{ currentMonthBudget | number }}
                 </h6>
               </div>
-              <div class="col-4">
+
+              <div class="col-4 d-flex flex-column align-items-center">
                 <p class="text-muted font-12 text-truncate">Last Year</p>
                 <h6>
-                  <i class="fas fa-arrow-circle-down col-red m-r-5"></i>
                   {{ lastYearSales || 0 }}
                 </h6>
               </div>
-              <div class="col-4">
+              <div class="col-4 d-flex flex-column align-items-center">
                 <p class="text-muted font-12 text-truncate">This Year</p>
                 <h6>
-                  <i class="fas fa-arrow-circle-up col-green m-r-5"></i>
                   {{ currentYearSales || 0 }}
                 </h6>
               </div>
@@ -153,6 +153,29 @@
                 [legend]="chartOptions.legend!" [markers]="chartOptions.markers!" [grid]="chartOptions.grid!"
                 [tooltip]="chartOptions.tooltip!" [yaxis]="chartOptions.yaxis!" [title]="chartOptions.title!">
               </apx-chart>
+            </div>
+            <div class="row">
+              <div class="col-4 d-flex flex-column align-items-center">
+                <p class="text-muted font-12 text-truncate">Monthly Target</p>
+                <h6>
+                  <i *ngIf="currentMonthTarget > lastMonthTarget" class="fas fa-arrow-circle-up col-green m-r-5"></i>
+                  <i *ngIf="currentMonthTarget < lastMonthTarget" class="fas fa-arrow-circle-down col-red m-r-5"></i>
+                  <i *ngIf="currentMonthTarget === lastMonthTarget" class="fas fa-minus-circle text-muted m-r-5"></i>
+                  {{ currentMonthTarget | number }}
+                </h6>
+              </div>
+              <div class="col-4 d-flex flex-column align-items-center">
+                <p class="text-muted font-12 text-truncate">Last Month</p>
+                <h6>
+                  {{ lastMonthSales || 0 }}
+                </h6>
+              </div>
+              <div class="col-4 d-flex flex-column align-items-center">
+                <p class="text-muted font-12 text-truncate">This Month</p>
+                <h6>
+                  {{ currentMonthSales || 0 }}
+                </h6>
+              </div>
             </div>
           </mat-card-content>
         </mat-card>

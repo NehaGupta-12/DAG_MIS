@@ -177,17 +177,46 @@ export class AddStockTransferComponent implements OnInit {
     const toOutletName = this.stockTransferForm.get('toDealerOutlet')?.value;
 
     if (fromOutletName && toOutletName) {
-      const fromProducts = this.dataSource.data.filter((p: any) => p.dealerOutlet === fromOutletName);
-      const toProducts = this.dataSource.data.filter((p: any) => p.dealerOutlet === toOutletName);
-
-      const commonProducts = fromProducts.filter((fp: any) =>
-        toProducts.some((tp: any) => tp.id === fp.id || tp.name === fp.name)
+      // Get inventory items for both outlets
+      const fromOutletInventory = this.dataSource.data.filter((item: any) =>
+        item.dealerOutlet === fromOutletName
       );
 
-      this.vehicledataSource.data = commonProducts;
+      const toOutletInventory = this.dataSource.data.filter((item: any) =>
+        item.dealerOutlet === toOutletName
+      );
+
+      // Find products that exist in both outlets' inventory
+      const commonInventoryProducts = fromOutletInventory.filter((fromItem: any) =>
+        toOutletInventory.some((toItem: any) =>
+          fromItem.name === toItem.name || fromItem.sku === toItem.sku
+        )
+      );
+
+      // Map inventory products to actual product details from productList
+      const availableProducts = commonInventoryProducts.map((inventoryItem: any) => {
+        // Find the corresponding product from productList using name or sku
+        const productDetail = this._allProducts.find((product: any) =>
+          product.name === inventoryItem.name || product.sku === inventoryItem.sku
+        );
+
+        // Return the product detail if found, otherwise return the inventory item
+        return productDetail || inventoryItem;
+      }).filter((product, index, self) =>
+        // Remove duplicates based on product name or sku
+        index === self.findIndex(p => p.name === product.name || p.sku === product.sku)
+      );
+
+      // Update the filtered products for the dropdown
+      this.vehicledataSource.data = availableProducts;
+      this.filteredProducts = [...availableProducts];
+
+      // Enable the products dropdown
       this.stockTransferForm.get('products')?.enable();
     } else {
+      // Clear products if outlets are not selected
       this.vehicledataSource.data = [];
+      this.filteredProducts = [];
       this.stockTransferForm.get('products')?.disable();
     }
   }
@@ -197,6 +226,7 @@ export class AddStockTransferComponent implements OnInit {
       this.loadingService.setLoading(true);
       this.addDealerService.getDealerList().subscribe({
         next: (data) => {
+          console.log("Dealer data",data)
           this.dealerdataSource.data = data;
           this._allDealers = data; // Populate the new array
           this.filteredFromDealers = [...data];
@@ -214,6 +244,7 @@ export class AddStockTransferComponent implements OnInit {
       this.productService.getProductList().subscribe({
         next: (data) => {
           this.vehicledataSource.data = data;
+          console.log(data,"data")
           this._allProducts = data; // Populate the new array
           this.filteredProducts = [...data];
           this.loadingService.setLoading(false);
@@ -263,11 +294,18 @@ export class AddStockTransferComponent implements OnInit {
     }
   }
 
-// --- Products Methods ---
+// Updated Products Methods
   filterProducts() {
     const searchText = this.productSearchText.toLowerCase();
-    this.filteredProducts = this._allProducts.filter(product => product.name.toLowerCase().includes(searchText));
+    // Filter from vehicledataSource instead of _allProducts to respect outlet filtering
+    this.filteredProducts = this.vehicledataSource.data.filter(product =>
+      product.name.toLowerCase().includes(searchText) ||
+      product.sku.toLowerCase().includes(searchText) ||
+      product.brand.toLowerCase().includes(searchText) ||
+      product.model.toLowerCase().includes(searchText)
+    );
   }
+
   onProductSearchChange(event: any) {
     clearTimeout(this.debounceTimer);
     this.debounceTimer = setTimeout(() => {
@@ -275,10 +313,11 @@ export class AddStockTransferComponent implements OnInit {
       this.filterProducts();
     }, 300);
   }
+
   onProductSelectOpened(isOpened: boolean) {
     if (isOpened) {
       this.productSearchText = '';
-      this.filterProducts();
+      this.filterProducts(); // This will now use vehicledataSource.data
       setTimeout(() => this.productSearchInput.nativeElement.focus(), 0);
     }
   }
@@ -331,8 +370,30 @@ export class AddStockTransferComponent implements OnInit {
     this.stockTransferForm.get('products')?.reset();
   }
 
-  removeProduct(index: number) {
-    this.addedProducts.splice(index, 1);
+  removeProduct(index: number, event?: Event) {
+    // Prevent event bubbling that might trigger other UI elements
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+
+    try {
+      // Validate index
+      if (index < 0 || index >= this.addedProducts.length) {
+        console.error('Invalid index for product removal:', index);
+        return;
+      }
+
+      // Create a new array without the item at the specified index
+      this.addedProducts = this.addedProducts.filter((_, i) => i !== index);
+
+      console.log('Product removed at index:', index);
+      console.log('Remaining products:', this.addedProducts.length);
+
+    } catch (error) {
+      console.error('Error removing product:', error);
+      Swal.fire('Error', 'Failed to remove product. Please try again.', 'error');
+    }
   }
 
   submitForm() {

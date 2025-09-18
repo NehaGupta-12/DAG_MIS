@@ -31,7 +31,7 @@ import {
   MatTable,
   MatTableDataSource
 } from "@angular/material/table";
-import {AsyncPipe, DecimalPipe, NgForOf} from "@angular/common";
+import {AsyncPipe, DecimalPipe, NgForOf, NgIf} from "@angular/common";
 import {FormControl, FormsModule, ReactiveFormsModule} from "@angular/forms";
 import {map, startWith} from "rxjs/operators";
 import {Observable} from "rxjs";
@@ -42,6 +42,8 @@ import {LoadingService} from "../../Services/loading.service";
 import {MatSort} from "@angular/material/sort";
 import {AddDealerService} from "../../module/add-dealer.service";
 import {MatPaginator} from "@angular/material/paginator";
+import {BudgetService} from "../../module/budget.service";
+import {MonthlyBudgetService} from "../../module/monthly-budget.service";
 
 export type ChartOptions = {
   series: ApexAxisChartSeries;
@@ -65,16 +67,11 @@ export type ChartOptions = {
   styleUrls: ['./main.component.scss'],
   imports: [
     NgApexchartsModule,
-    NgScrollbar,
     MatButtonModule,
     OrderInfoBoxComponent,
     MatCardModule,
-    NewOrderListComponent,
-    TableCardComponent,
     DecimalPipe,
-    AsyncPipe,
     FormsModule,
-    MatError,
     MatFormField,
     MatLabel,
     MatOption,
@@ -94,6 +91,7 @@ export type ChartOptions = {
     MatCellDef,
     MatPaginator,
     MatInput,
+    NgIf,
   ],
   standalone: true
 })
@@ -115,10 +113,13 @@ export class MainComponent implements OnInit {
   fiscalYearTitle: string = '';
   currentYearSales: number = 0;
   lastYearSales: number = 0;
+  currentMonthSales: number = 0;
+  lastMonthSales: number = 0;
   monthlyChartData: number[] = [];
   monthlyChartLabels: string[] = [];
   yesterdaySales: number = 0;
   totalSalesQuantity: number = 0;
+  last10DaysSales: number = 0;
   _countriesTypes$!: Observable<string[]>;
   countryControl = new FormControl('All');
   dailyZeroSalesDataSource = new MatTableDataSource<any>([]);
@@ -130,6 +131,10 @@ export class MainComponent implements OnInit {
   filteredCountries: string[] = []; // To hold the filtered list for the dropdown
   countrySearchText: string = ''; // To store the search input text
   debounceTimer: any;
+  currentMonthBudget: number = 0;
+  lastMonthBudget: number = 0;
+  currentMonthTarget: number = 0;
+  lastMonthTarget: number = 0;
 
   displayedColumns: string[] = [
     'id',
@@ -145,6 +150,8 @@ export class MainComponent implements OnInit {
     private mDatabase: AngularFireDatabase,
     private loadingService : LoadingService,
     private addDealerService: AddDealerService,
+    private budgetService: BudgetService,
+    private monthlybudgetService: MonthlyBudgetService,
   ) {
     //constructor
     this._countriesTypes$ = this.mDatabase
@@ -168,15 +175,14 @@ export class MainComponent implements OnInit {
     this.areachart();
     this.barchart();
     this.DealerList();
-    // this.loadSalesList();
+    this.loadbudget();
+    this.loadMonthlyBudget();
 
-    // Subscribe to country dropdown changes
     this.countryControl.valueChanges
-      .pipe(startWith(this.countryControl.value)) // Trigger an initial load
+      .pipe(startWith(this.countryControl.value))
       .subscribe((selectedCountry:any) => {
         this.loadSalesList(selectedCountry);
       });
-
   }
 
   filterCountries() {
@@ -224,7 +230,6 @@ export class MainComponent implements OnInit {
     runInInjectionContext(this.injector, () => {
       this.dailySlaes.getDailySalesList().subscribe((data) => {
         let filteredData = data;
-        console.log("All Sales Data:", data);
         let filteredOutlets = this.outletdataSource.data; // Store a mutable copy
 
         if (selectedCountry && selectedCountry !== 'All') {
@@ -263,10 +268,33 @@ export class MainComponent implements OnInit {
     runInInjectionContext(this.injector, () => {
       this.addDealerService.getDealerList().subscribe((data: any[]) => {
         this.outletdataSource.data = data;   // ✅ correct
-        console.log("All Dealers:", data);
       });
     });
   }
+
+
+  loadbudget() {
+    runInInjectionContext(this.injector, () => {
+      this.budgetService.getBudgetList().subscribe({
+        next: (data: any[]) => {
+          console.log("Raw Data:", data);
+          this.calculateCurrentMonthTarget(data);
+        },
+      });
+    });
+  }
+
+  loadMonthlyBudget() {
+    runInInjectionContext(this.injector, () => {
+      this.monthlybudgetService.getBudgetList().subscribe({
+        next: (data: any[]) => {
+          console.log("Monthly Raw Data:", data);
+          this.calculateMonthlyBudgetTargets(data);
+        },
+      });
+    });
+  }
+
 
 
 
@@ -306,6 +334,11 @@ export class MainComponent implements OnInit {
 
     let todayQuantity = 0;
     let yesterdayQuantity = 0;
+    let last10DaysQuantity = 0;
+
+    // Start date = 9 days before today
+    const last10DaysStart = new Date(today);
+    last10DaysStart.setDate(today.getDate() - 9);
 
     data.forEach(item => {
       const itemDate = this.getItemDate(item);
@@ -316,10 +349,16 @@ export class MainComponent implements OnInit {
       } else if (itemDate.getTime() === yesterday.getTime()) {
         yesterdayQuantity += item.quantity;
       }
+
+      // ✅ Include sales within the last 10 days (including today)
+      if (itemDate.getTime() >= last10DaysStart.getTime() && itemDate.getTime() <= today.getTime()) {
+        last10DaysQuantity += item.quantity;
+      }
     });
 
     this.todaySales = todayQuantity;
     this.yesterdaySales = yesterdayQuantity;
+    this.last10DaysSales = last10DaysQuantity; // <-- new field
 
     if (yesterdayQuantity === 0) {
       this.todayPercentage = todayQuantity > 0 ? '100% Higher Than Yesterday' : 'No sales yesterday';
@@ -327,14 +366,20 @@ export class MainComponent implements OnInit {
       const percentage = ((todayQuantity - yesterdayQuantity) / yesterdayQuantity) * 100;
       this.todayPercentage = `${Math.abs(percentage).toFixed(0)}% ${percentage >= 0 ? 'Higher' : 'Lower'} Than Yesterday`;
     }
-  }
 
+    console.log(`Today: ${this.todaySales}, Yesterday: ${this.yesterdaySales}, Last 10 Days: ${this.last10DaysSales}`);
+  }
 
 
 
   calculateMonthlySales(data: any[]) {
     const now = new Date();
+
+    // Current month range
     const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const currentMonthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+    // Last month range
     const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
     const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
 
@@ -344,21 +389,33 @@ export class MainComponent implements OnInit {
     data.forEach(item => {
       const itemDate = this.getItemDate(item);
 
-      if (itemDate >= currentMonthStart) {
+      // ✅ Current month check
+      if (itemDate >= currentMonthStart && itemDate <= currentMonthEnd) {
         currentMonthQuantity += item.quantity;
-      } else if (itemDate >= lastMonthStart && itemDate <= lastMonthEnd) {
+      }
+      // ✅ Last month check
+      else if (itemDate >= lastMonthStart && itemDate <= lastMonthEnd) {
         lastMonthQuantity += item.quantity;
       }
     });
 
-    this.monthlySales = currentMonthQuantity;
+    // Save in component variables
+    this.currentMonthSales = currentMonthQuantity;
+    this.lastMonthSales = lastMonthQuantity;
+
+    // Calculate percentage difference
     if (lastMonthQuantity === 0) {
-      this.monthlyPercentage = currentMonthQuantity > 0 ? '100% Higher Than Last Month' : 'No sales last month';
+      this.monthlyPercentage = currentMonthQuantity > 0
+        ? '100% Higher Than Last Month'
+        : 'No sales last month';
     } else {
       const percentage = ((currentMonthQuantity - lastMonthQuantity) / lastMonthQuantity) * 100;
       this.monthlyPercentage = `${Math.abs(percentage).toFixed(0)}% ${percentage >= 0 ? 'Higher' : 'Lower'} Than Last Month`;
     }
+
+    console.log(`Current Month: ${this.currentMonthSales}, Last Month: ${this.lastMonthSales}`);
   }
+
 
 
   calculateFiscalYearSales(data: any[]) {
@@ -822,6 +879,119 @@ export class MainComponent implements OnInit {
 
     this.dailyZeroSalesDataSource.data = dailyZero;
     this.monthlyZeroSalesDataSource.data = monthlyZero;
+  }
+
+  calculateCurrentMonthTarget(budgetData: any[]) {
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth(); // 0-based
+
+    // Determine FY
+    let currentFY: string;
+    if (currentMonth >= 3) {
+      currentFY = `${currentYear}-${currentYear + 1}`;
+    } else {
+      currentFY = `${currentYear - 1}-${currentYear}`;
+    }
+
+    // Month names
+    const monthNames = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+
+    const currentMonthName = monthNames[currentMonth];
+    const lastMonthName = monthNames[(currentMonth - 1 + 12) % 12];
+    const lastMonthFY = (currentMonth === 0)
+      ? `${currentYear - 1}-${currentYear}` // If Jan, last month is Dec in prev FY
+      : currentFY;
+
+    console.log(`Current FY: ${currentFY}, Current Month: ${currentMonthName}, Last Month: ${lastMonthName}`);
+
+    // Find current month budget
+    const currentMonthBudget = budgetData.find(b =>
+      b.year === currentFY && b.month === currentMonthName && b.status === 'Active'
+    );
+
+    if (currentMonthBudget && currentMonthBudget.products) {
+      this.currentMonthBudget = currentMonthBudget.products.reduce(
+        (sum: number, p: any) => sum + (p.targetQuantity || 0), 0
+      );
+    } else {
+      this.currentMonthBudget = 0;
+    }
+
+    // Find last month budget
+    const lastMonthBudget = budgetData.find(b =>
+      b.year === lastMonthFY && b.month === lastMonthName && b.status === 'Active'
+    );
+
+    if (lastMonthBudget && lastMonthBudget.products) {
+      this.lastMonthBudget = lastMonthBudget.products.reduce(
+        (sum: number, p: any) => sum + (p.targetQuantity || 0), 0
+      );
+    } else {
+      this.lastMonthBudget = 0;
+    }
+
+    console.log(`Current Target: ${this.currentMonthBudget}, Last Target: ${this.lastMonthBudget}`);
+  }
+
+
+  private calculateMonthlyBudgetTargets(budgetData: any[]) {
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth(); // 0-based
+
+    // Determine FY
+    let currentFY: string;
+    if (currentMonth >= 3) {
+      currentFY = `${currentYear}-${currentYear + 1}`;
+    } else {
+      currentFY = `${currentYear - 1}-${currentYear}`;
+    }
+
+    // Month names
+    const monthNames = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+
+    const currentMonthName = monthNames[currentMonth];
+    const lastMonthName = monthNames[(currentMonth - 1 + 12) % 12];
+    const lastMonthFY = (currentMonth === 0)
+      ? `${currentYear - 1}-${currentYear}` // If Jan, last month is Dec in prev FY
+      : currentFY;
+
+    console.log(`Current FY: ${currentFY}, Current Month: ${currentMonthName}, Last Month: ${lastMonthName}`);
+
+    // ---- Current Month ----
+    const currentMonthBudget = budgetData.find(b =>
+      b.year === currentFY && b.month === currentMonthName && b.status === 'Active'
+    );
+
+    if (currentMonthBudget && currentMonthBudget.products) {
+      this.currentMonthTarget = currentMonthBudget.products.reduce(
+        (sum: number, p: any) => sum + (p.targetQuantity || 0), 0
+      );
+    } else {
+      this.currentMonthTarget = 0;
+    }
+
+    // ---- Last Month ----
+    const lastMonthBudget = budgetData.find(b =>
+      b.year === lastMonthFY && b.month === lastMonthName && b.status === 'Active'
+    );
+
+    if (lastMonthBudget && lastMonthBudget.products) {
+      this.lastMonthTarget = lastMonthBudget.products.reduce(
+        (sum: number, p: any) => sum + (p.targetQuantity || 0), 0
+      );
+    } else {
+      this.lastMonthTarget = 0;
+    }
+
+    console.log(`Monthly → Current Target: ${this.currentMonthTarget}, Last Target: ${this.lastMonthTarget}`);
   }
 
 
