@@ -504,9 +504,9 @@ export class AddDailySalesComponent implements OnInit {
 
 
     const hasProducts = this.addedProducts.length > 0;
-    const allQuantitiesValid = this.addedProducts.every(p => p.quantity && p.quantity > 0);
+    // const allQuantitiesValid = this.addedProducts.every(p => p.quantity && p.quantity > 0);
 
-    return !!formValid && hasProducts && allQuantitiesValid;
+    return !!formValid && hasProducts;
   }
 
   // addProduct() {
@@ -562,7 +562,7 @@ export class AddDailySalesComponent implements OnInit {
             variant: product.variant,
             unit: product.unit,
             avlQuantity: product.avlQuantity,
-            quantity: 1
+            quantity: 0
           });
         } else {
           Swal.fire('Info', `${product.name} is already added.`, 'info');
@@ -591,10 +591,17 @@ export class AddDailySalesComponent implements OnInit {
 
   submitForm() {
     try {
-      const formValues = this.dailySalesForm.getRawValue();
-
       if (this.addedProducts.length === 0) {
         Swal.fire('Error', 'Please add at least one product.', 'error');
+        return;
+      }
+
+      // Filter out products with a quantity of 0 or less
+      const productsToSubmit = this.addedProducts.filter(p => p.quantity > 0);
+
+      // If no products have a quantity > 0, show an error and stop.
+      if (productsToSubmit.length === 0) {
+        Swal.fire('Error', 'Please enter a quantity greater than 0 for at least one product.', 'error');
         return;
       }
 
@@ -617,12 +624,8 @@ export class AddDailySalesComponent implements OnInit {
             let salesDateTime: number | null = null;
             if (formValues.salesDate) {
               const selectedDate = new Date(formValues.salesDate);
-
-              // Get current time
               const now = new Date();
               selectedDate.setHours(now.getHours(), now.getMinutes(), now.getSeconds(), now.getMilliseconds());
-
-              // Convert to timestamp for DB
               salesDateTime = selectedDate.getTime();
             }
 
@@ -631,7 +634,7 @@ export class AddDailySalesComponent implements OnInit {
               division: formValues.division,
               country: formValues.country,
               town: formValues.town,
-              salesDate: salesDateTime,   // ✅ date + current time merged
+              salesDate: salesDateTime,
               status: 'Active',
               updatedBy: username,
               updatedAt: timestamp
@@ -666,7 +669,8 @@ export class AddDailySalesComponent implements OnInit {
                 })
                 .finally(() => this.loadingService.setLoading(false));
             } else {
-              const createPromises = this.addedProducts.map(p => {
+              // ✅ NEW LOGIC: Use productsToSubmit instead of addedProducts
+              const createPromises = productsToSubmit.map(p => {
                 const productDoc = {
                   ...baseInfo,
                   id: p.id ?? '',
@@ -688,7 +692,7 @@ export class AddDailySalesComponent implements OnInit {
 
               Promise.all(createPromises)
                 .then(() => {
-                  Swal.fire('Added!', 'All products saved as separate documents.', 'success');
+                  Swal.fire('Added!', 'All valid products saved as separate documents.', 'success');
                   this.router.navigate(['/module/daily-sales-list']);
                 })
                 .catch(err => {

@@ -478,9 +478,9 @@ export class AddGRNComponent implements OnInit{
       this.grnForm.get('date')?.valid;
 
     const hasProducts = this.addedProducts.length > 0;
-    const allQuantitiesValid = this.addedProducts.every(p => p.quantity && p.quantity > 0);
+    // const allQuantitiesValid = this.addedProducts.every(p => p.quantity && p.quantity > 0);
 
-    return !!formValid && hasProducts && allQuantitiesValid;
+    return !!formValid && hasProducts;
   }
 
   // addProduct() {
@@ -536,7 +536,7 @@ export class AddGRNComponent implements OnInit{
             variant: product.variant,
             unit: product.unit,
             avlQuantity: product.avlQuantity,
-            quantity: 1
+            quantity: 0
           });
         } else {
           Swal.fire('Info', `${product.name} is already added.`, 'info');
@@ -565,8 +565,18 @@ export class AddGRNComponent implements OnInit{
     try {
       const formValues = this.grnForm.getRawValue();
 
+      // Check if there are any products at all
       if (this.addedProducts.length === 0) {
         Swal.fire('Error', 'Please add at least one product.', 'error');
+        return;
+      }
+
+      // Filter out products with a quantity of 0 or less
+      const productsToSubmit = this.addedProducts.filter(p => p.quantity > 0);
+
+      // If no products have a quantity > 0, show an error and stop.
+      if (productsToSubmit.length === 0) {
+        Swal.fire('Error', 'Please enter a quantity greater than 0 for at least one product.', 'error');
         return;
       }
 
@@ -583,7 +593,6 @@ export class AddGRNComponent implements OnInit{
           const username = userData.userName || 'Unknown User';
           const timestamp = Date.now();
 
-          // ✅ Combine selected date + current time
           const selectedDate = formValues.date ? new Date(formValues.date) : null;
           let dateTime: string | null = null;
 
@@ -595,7 +604,7 @@ export class AddGRNComponent implements OnInit{
               now.getSeconds(),
               now.getMilliseconds()
             );
-            dateTime = selectedDate.toISOString(); // 🔥 save with time
+            dateTime = selectedDate.toISOString();
           }
 
           const baseInfo = {
@@ -603,7 +612,7 @@ export class AddGRNComponent implements OnInit{
             country: formValues.country,
             division: formValues.division,
             town: formValues.town,
-            stockDate: dateTime,   // ✅ change "date" → "stockDate"
+            stockDate: dateTime,
             status: 'Active',
             updatedBy: username,
             updatedAt: timestamp
@@ -612,7 +621,7 @@ export class AddGRNComponent implements OnInit{
           this.loadingService.setLoading(true);
 
           if (this.isEditMode) {
-            const productToUpdate = this.addedProducts[0];
+            const productToUpdate = productsToSubmit[0]; // Use the filtered list
             const productDoc = {
               ...baseInfo,
               sku: productToUpdate.sku,
@@ -638,9 +647,9 @@ export class AddGRNComponent implements OnInit{
                 console.error('Error updating Daily Stock:', err);
                 Swal.fire('Error', 'Something went wrong while updating.', 'error');
               });
-
           } else {
-            const createPromises = this.addedProducts.map(p => {
+            // ✅ NEW LOGIC: Use productsToSubmit instead of addedProducts
+            const createPromises = productsToSubmit.map(p => {
               const productDoc = {
                 ...baseInfo,
                 id: p.id ?? '',
@@ -663,7 +672,7 @@ export class AddGRNComponent implements OnInit{
             Promise.all(createPromises)
               .then(() => {
                 this.loadingService.setLoading(false);
-                Swal.fire('Added!', 'All products saved and inventory updated.', 'success');
+                Swal.fire('Added!', 'All valid products saved and inventory updated.', 'success');
                 this.router.navigate(['/module/grn-list']);
               })
               .catch(err => {
