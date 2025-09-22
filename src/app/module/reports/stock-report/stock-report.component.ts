@@ -1,4 +1,12 @@
-import { Component, ElementRef, EnvironmentInjector, Inject, runInInjectionContext, ViewChild } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  EnvironmentInjector,
+  Inject,
+  OnInit,
+  runInInjectionContext,
+  ViewChild
+} from '@angular/core';
 import { MatAutocomplete, MatAutocompleteTrigger, MatOption } from "@angular/material/autocomplete";
 import {
   MatCell,
@@ -40,6 +48,7 @@ import { MatTooltip } from "@angular/material/tooltip";
 import { InventoryService } from "../../add-inventory/inventory.service";
 import { AuthService } from "../../../authentication/auth.service";
 import { GrnService } from "../../grn.service";
+import {LoadingService} from "../../../Services/loading.service";
 
 
 @Component({
@@ -80,28 +89,25 @@ import { GrnService } from "../../grn.service";
   standalone: true,
   styleUrl: './stock-report.component.scss'
 })
-export class StockReportComponent {
+export class StockReportComponent implements OnInit{
   isEditMode: boolean = false;
   dealerForm: FormGroup;
   dataSource: any[] = [];
   vehicledataSource: any[] = [];
   salesdataSource: any[] = [];
-  grnDataSource: any[] = [];
   filteredProducts: any[] = [];
   reportTitle: string = '';
   reportDate: string = '';
-  finalTableData: any[] = [];
   selectedCountry: string = '';
-  productHeaders: string[] = [];
-  tableColumns: string[] = [];
+  selectedOutlets: string[] = [];
   allOutletReports: { outlet: string; rows: any[] }[] = [];
-
   @ViewChild('countrySearchInput') countrySearchInput!: ElementRef;
   @ViewChild('divisionSearchInput') divisionSearchInput!: ElementRef;
   @ViewChild('townSearchInput') townSearchInput!: ElementRef;
   @ViewChild('outletSearchInput') outletSearchInput!: ElementRef;
-
+  // @ViewChild('outletSearchInput') outletSearchInput!: ElementRef;
   debounceTimer: any;
+
 
   // Filters
   nameFilter = new FormControl('');
@@ -109,6 +115,7 @@ export class StockReportComponent {
   countryFilter = new FormControl('');
   townFilter = new FormControl('');
   productFilter = new FormControl('');
+
 
   search: any = {
     name: '',
@@ -140,20 +147,20 @@ export class StockReportComponent {
     private injector: EnvironmentInjector,
     private route: ActivatedRoute,
     private mDatabase: AngularFireDatabase,
-    private productService: ProductMasterService,
-    private dailySlaes: DailySalesService,
+    private productService:ProductMasterService,
+    // private dailySlaes: DailySalesService,
     private grnService: GrnService,
-    public authService: AuthService,
+    public authService : AuthService,
+    private loadingService: LoadingService,
     @Inject(MAT_DIALOG_DATA) public data: any
   ) {
-    // initialize name as array because outlets select is multiple
     this.dealerForm = this.fb.group({
-      name: this.fb.control([]),
+      name: this.fb.control(''),   // ✅ fixed
       country: [''],
       division: [''],
       town: [''],
       product: [''],
-      period: this.fb.group({
+      period: this.fb.group({   // ✅ date range group
         start: [''],
         end: [''],
       }),
@@ -182,18 +189,31 @@ export class StockReportComponent {
           this.data = rowData;
         }
       }
+      this.townFilter.valueChanges.subscribe(val => {
+        this.filterOptions('town', val || '');
+        this.dealerForm.patchValue({ town: val }); // 🔹 keeps form in sync
+      });
+
     });
 
-    this.loadSalesList();
+    this.loadGrnList();
     this.DealerList();
     this.productList();
-    this.loadGrnData();
 
-    // Hook filters to filtering logic
+    // 🔹 Filter subscription
+    // this.nameFilter.valueChanges.subscribe(val => this.filterOptions('name', val || ''));
+    // this.outletTypeFilter.valueChanges.subscribe(val => this.filterOptions('outletType', val || ''));
+    // this.categoryFilter.valueChanges.subscribe(val => this.filterOptions('category', val || ''));
+    // this.divisionFilter.valueChanges.subscribe(val => this.filterOptions('division', val || ''));
+    // this.countryFilter.valueChanges.subscribe(val => this.filterOptions('country', val || ''));
+    // this.townFilter.valueChanges.subscribe(val => this.filterOptions('town', val || ''));
+
+    // 🔹 Hook filters to filtering logic
     this.nameFilter.valueChanges.subscribe(val => {
       this.filterOptions('name', val || '');
-      // For search input only; actual form value for outlets is array
+      this.dealerForm.patchValue({ name: val });
     });
+
 
     this.divisionFilter.valueChanges.subscribe(val => {
       this.filterOptions('division', val || '');
@@ -216,63 +236,12 @@ export class StockReportComponent {
     });
   }
 
-  // Country
-  onCountrySearchChange(event: any) {
-    clearTimeout(this.debounceTimer);
-    this.debounceTimer = setTimeout(() => {
-      const val = (event.target.value || '').toLowerCase();
-      this.filteredOptions.country = this.options.country.filter((c: string) =>
-        c.toLowerCase().includes(val)
-      );
-    }, 300);
-  }
-  onCountrySelectOpened(open: boolean) {
-    if (open) {
-      this.filteredOptions.country = [...this.options.country];
-      setTimeout(() => this.countrySearchInput.nativeElement.focus(), 0);
-    }
-  }
-
-  // Division
-  onDivisionSearchChange(event: any) {
-    clearTimeout(this.debounceTimer);
-    this.debounceTimer = setTimeout(() => {
-      const val = (event.target.value || '').toLowerCase();
-      this.filteredOptions.division = this.options.division.filter((d: string) =>
-        d.toLowerCase().includes(val)
-      );
-    }, 300);
-  }
-  onDivisionSelectOpened(open: boolean) {
-    if (open) {
-      this.filteredOptions.division = [...this.options.division];
-      setTimeout(() => this.divisionSearchInput.nativeElement.focus(), 0);
-    }
-  }
-
-  // Town
-  onTownSearchChange(event: any) {
-    clearTimeout(this.debounceTimer);
-    this.debounceTimer = setTimeout(() => {
-      const val = (event.target.value || '').toLowerCase();
-      this.filteredOptions.town = this.options.town.filter((t: string) =>
-        t.toLowerCase().includes(val)
-      );
-    }, 300);
-  }
-  onTownSelectOpened(open: boolean) {
-    if (open) {
-      this.filteredOptions.town = [...this.options.town];
-      setTimeout(() => this.townSearchInput.nativeElement.focus(), 0);
-    }
-  }
-
-  loadSalesList() {
+  loadGrnList() {
     runInInjectionContext(this.injector, () => {
-      this.dailySlaes.getDailySalesList().subscribe((data) => {
-        this.salesdataSource = data;
+      this.grnService.getGrnList().subscribe((data) => {
+        this.salesdataSource = data
         this.filteredProducts = [];
-        console.log('daily sales', data);
+        console.log('daily sales',data);
       });
     });
   }
@@ -281,7 +250,7 @@ export class StockReportComponent {
     runInInjectionContext(this.injector, () => {
       this.addDealerService.getDealerList().subscribe((data: any) => {
         this.dataSource = data;
-        console.log("All Dealers:", data);
+
         const names = Array.from(new Set(data.map((d: any) => d.name).filter(Boolean)));
         this.options.name = names;
         this.filteredOptions.name = [...names];
@@ -289,36 +258,150 @@ export class StockReportComponent {
     });
   }
 
+  // Country
+  onCountrySearchChange(event: any) {
+    clearTimeout(this.debounceTimer);
+    this.debounceTimer = setTimeout(() => {
+      const searchText = event.target.value.toLowerCase();
+      this.filteredOptions.country = this.options.country.filter((c: string) =>
+        c.toLowerCase().includes(searchText)
+      );
+    }, 300);
+  }
+  onCountrySelectOpened(isOpened: boolean) {
+    if (isOpened) {
+      this.filteredOptions.country = [...this.options.country];
+      setTimeout(() => this.countrySearchInput.nativeElement.focus(), 0);
+    }
+  }
+
+// Division
+  onDivisionSearchChange(event: any) {
+    clearTimeout(this.debounceTimer);
+    this.debounceTimer = setTimeout(() => {
+      const searchText = event.target.value.toLowerCase();
+      this.filteredOptions.division = this.options.division.filter((d: string) =>
+        d.toLowerCase().includes(searchText)
+      );
+    }, 300);
+  }
+  onDivisionSelectOpened(isOpened: boolean) {
+    if (isOpened) {
+      this.filteredOptions.division = [...this.options.division];
+      setTimeout(() => this.divisionSearchInput.nativeElement.focus(), 0);
+    }
+  }
+
+// Town
+  onTownSearchChange(event: any) {
+    clearTimeout(this.debounceTimer);
+    this.debounceTimer = setTimeout(() => {
+      const searchText = event.target.value.toLowerCase();
+      this.filteredOptions.town = this.options.town.filter((t: string) =>
+        t.toLowerCase().includes(searchText)
+      );
+    }, 300);
+  }
+  onTownSelectOpened(isOpened: boolean) {
+    if (isOpened) {
+      this.filteredOptions.town = [...this.options.town];
+      setTimeout(() => this.townSearchInput.nativeElement.focus(), 0);
+    }
+  }
+
+// Outlet(s)
+// search + debounce
+  onOutletSearchChange(event: any) {
+    clearTimeout(this.debounceTimer);
+    this.debounceTimer = setTimeout(() => {
+      const searchText = (event.target.value || '').toLowerCase();
+      this.filteredOptions.name = this.options.name.filter((o: string) =>
+        o.toLowerCase().includes(searchText)
+      );
+    }, 300);
+  }
+  // reset + focus when opened
+  onOutletSelectOpened(isOpened: boolean) {
+    if (isOpened) {
+      this.filteredOptions.name = [...this.options.name];
+      setTimeout(() => {
+        try {
+          this.outletSearchInput.nativeElement.focus();
+        } catch {}
+      }, 0);
+    }
+  }
+
   productList() {
     runInInjectionContext(this.injector, () => {
       this.productService.getProductList().subscribe((data) => {
         (this.productService as any).cachedProducts = data;
         this.vehicledataSource = data;
+
         // Extract product names for dropdown
         const productNames = Array.from(new Set(data.map((p: any) => p.name).filter(Boolean)));
         this.options.product = productNames;
         this.filteredOptions.product = [...productNames];
+
         console.log("All Products:", data);
       });
     });
   }
 
-  loadGrnData() {
-    runInInjectionContext(this.injector, () => {
-      this.grnService.getGrnList().subscribe(data => {
-        console.log('GRN Data:', data);
-        this.grnDataSource = data;
-      });
-    });
-  }
-
   getDateRanges(currentDate: Date) {
+    // Start of month
     const monthStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+
+    // Start of financial year (1st April)
     const fyStart = currentDate.getMonth() >= 3
-      ? new Date(currentDate.getFullYear(), 3, 1)
-      : new Date(currentDate.getFullYear() - 1, 3, 1);
+      ? new Date(currentDate.getFullYear(), 3, 1)   // If Apr-Dec
+      : new Date(currentDate.getFullYear() - 1, 3, 1); // If Jan-Mar
+
     return { monthStart, fyStart };
   }
+
+
+  generateReport(filteredData: any[], reportDate: Date) {
+    const { monthStart, fyStart } = this.getDateRanges(reportDate);
+    const report: any = {};
+
+    filteredData.forEach(item => {
+      const product = item.name;   // 🔹 Match strictly by product name
+      const qty = Number(item.quantity) || 0;
+
+      // Handle Firestore timestamp
+      const itemDate = item.salesDate
+        ? new Date(item.salesDate)
+        : (item.createdAt?.seconds ? new Date(item.createdAt.seconds * 1000) : new Date(item.createdAt));
+
+      if (!report[product]) {
+        report[product] = { YTD: 0, Month: 0, Day: 0 };
+      }
+
+      // YTD
+      if (itemDate >= fyStart && itemDate <= reportDate) {
+        report[product].YTD += qty;
+      }
+
+      // Month
+      if (itemDate >= monthStart && itemDate <= reportDate) {
+        report[product].Month += qty;
+      }
+
+      // Day
+      if (
+        itemDate.getFullYear() === reportDate.getFullYear() &&
+        itemDate.getMonth() === reportDate.getMonth() &&
+        itemDate.getDate() === reportDate.getDate()
+      ) {
+        report[product].Day += qty;
+      }
+    });
+
+    return report;
+  }
+
+
 
   // Filter options logic
   filterOptions(field: string, value: string) {
@@ -329,155 +412,162 @@ export class StockReportComponent {
     this.filteredOptions[field] = [...matched];
   }
 
-  // Outlet(s) helpers (search + open)
-  onOutletSearchChange(event: any) {
-    clearTimeout(this.debounceTimer);
-    this.debounceTimer = setTimeout(() => {
-      const searchText = (event.target.value || '').toLowerCase();
-      this.filteredOptions.name = this.options.name.filter((o: string) =>
-        o.toLowerCase().includes(searchText)
-      );
-    }, 300);
-  }
-  onOutletSelectOpened(isOpened: boolean) {
-    if (isOpened) {
-      this.filteredOptions.name = [...this.options.name];
-      setTimeout(() => {
-        try {
-          this.outletSearchInput.nativeElement.focus();
-        } catch { }
-      }, 0);
+
+
+
+
+  onSubmit() {
+    // Start loader
+    this.loadingService.setLoading(true);
+
+    try {
+      const filters = this.dealerForm.value;
+      const startDate = filters.period?.start ? new Date(filters.period.start) : null;
+      const endDate = filters.period?.end ? new Date(filters.period.end) : new Date();
+
+      if (startDate) startDate.setHours(0, 0, 0, 0);
+      if (endDate) endDate.setHours(23, 59, 59, 999);
+
+      const outlets = Array.isArray(filters.name) ? filters.name : (filters.name ? [filters.name] : []);
+
+      this.allOutletReports = [];
+
+      // Always fetch data (no disable)
+      const filterFn = (item: any, outlet: string | null = null) => {
+        const itemDate = item.salesDate
+          ? new Date(item.salesDate)
+          : (item.createdAt?.seconds ? new Date(item.createdAt.seconds * 1000) : new Date(item.createdAt));
+
+        return (
+          (!filters.country || item.country === filters.country) &&
+          (!filters.town || item.town === filters.town) &&
+          (!filters.division || item.division === filters.division) &&
+          (!outlet || item.dealerOutlet === outlet) &&
+          (!startDate || itemDate >= startDate) &&
+          (!endDate || itemDate <= endDate)
+        );
+      };
+
+      // Case 1: No outlet selected → show merged report
+      if (outlets.length === 0) {
+        const filtered = this.salesdataSource.filter(item => filterFn(item));
+        const report = this.generateReport(filtered, endDate);
+
+        const tempRows = this.buildRows(report);
+
+        // Group + totals
+        const grouped = this.groupAndColorRows(tempRows);
+
+        this.allOutletReports.push({
+          outlet: 'All Outlets',
+          rows: grouped
+        });
+
+      } else {
+        // Case 2: One or more outlets selected
+        outlets.forEach((outlet: string) => {
+          const filtered = this.salesdataSource.filter(item => filterFn(item, outlet));
+          const report = this.generateReport(filtered, endDate);
+
+          const tempRows = this.buildRows(report);
+          const grouped = this.groupAndColorRows(tempRows);
+
+          this.allOutletReports.push({
+            outlet,
+            rows: grouped
+          });
+        });
+
+        this.selectedCountry = filters.country || '';
+      }
+    } finally {
+      // Stop loader
+      this.loadingService.setLoading(false);
     }
   }
 
-  // Build rows for a single outlet (aggregate inventory per product)
-  private buildStockRowsForInventory(inventoryItems: any[]) {
-    // Map products (use model if available)
-    const productKeyToDisplay: Record<string, string> = {};
-    this.vehicledataSource.forEach((p: any) => {
-      if (p.name) productKeyToDisplay[p.name] = (p.model || p.name).toUpperCase();
-    });
+// ✅ Helper to build rows
+  private buildRows(report: any) {
+    return this.vehicledataSource.map((prod: any) => {
+      const key = prod.name;
+      const displayName = (prod.model || prod.name).toUpperCase();
+      const daySales = report[key]?.Day || 0;
+      const monthSales = report[key]?.Month || 0;
+      const ytdSales = report[key]?.YTD || 0;
 
-    // Aggregate quantities by product name
-    const agg: Record<string, number> = {};
-    inventoryItems.forEach(item => {
-      const key = item.name || 'UNKNOWN';
-      agg[key] = (agg[key] || 0) + (Number(item.quantity) || 0);
-    });
-
-    // Convert to rows array using the product master order (so all products appear)
-    const rows: any[] = this.vehicledataSource.map((p: any) => {
-      const key = p.name;
-      const qty = agg[key] || 0;
       let rowColor = '';
-      if (qty > 10) rowColor = 'green-row';
-      else if (qty >= 1) rowColor = 'yellow-row';
-      else rowColor = 'red-row';
-      return { product: (p.model || p.name).toUpperCase(), Qty: qty, rowColor };
+      if (daySales > 10 || monthSales > 10 || ytdSales > 10) {
+        rowColor = 'green-row';
+      } else if (daySales >= 1 || monthSales >= 1 || ytdSales >= 1) {
+        rowColor = 'yellow-row';
+      } else {
+        rowColor = 'red-row';
+      }
+
+      return { product: displayName, Day: daySales, Month: monthSales, YTD: ytdSales, rowColor };
+    });
+  }
+
+// ✅ Helper to group and add totals
+  private groupAndColorRows(tempRows: any[]) {
+    const grouped: any = {};
+    tempRows.forEach(row => {
+      if (!grouped[row.product]) {
+        grouped[row.product] = { product: row.product, Day: 0, Month: 0, YTD: 0, rowColor: '' };
+      }
+      grouped[row.product].Day += row.Day;
+      grouped[row.product].Month += row.Month;
+      grouped[row.product].YTD += row.YTD;
     });
 
-    // Add TOTAL row
+    const rows = Object.values(grouped);
+    rows.forEach((row: any) => {
+      if (row.product !== 'TOTAL') {
+        if (row.Day > 10 || row.Month > 10 || row.YTD > 10) {
+          row.rowColor = 'green-row';
+        } else if (row.Day >= 1 || row.Month >= 1 || row.YTD >= 1) {
+          row.rowColor = 'yellow-row';
+        } else {
+          row.rowColor = 'red-row';
+        }
+      }
+    });
+
     rows.push({
       product: 'TOTAL',
-      Qty: rows.reduce((s, r) => s + (r.Qty || 0), 0),
+      Day: rows.reduce((s: number, r: any) => s + r.Day, 0),
+      Month: rows.reduce((s: number, r: any) => s + r.Month, 0),
+      YTD: rows.reduce((s: number, r: any) => s + r.YTD, 0),
       rowColor: ''
     });
 
     return rows;
   }
 
-  // onSubmit: produce allOutletReports (mirrors DailySaleReportsComponent logic)
-  onSubmit() {
-    const filters = this.dealerForm.value;
-    const startDate = filters.period?.start ? new Date(filters.period.start) : null;
-    const endDate = filters.period?.end ? new Date(filters.period.end) : new Date();
 
-    if (startDate) startDate.setHours(0, 0, 0, 0);
-    if (endDate) endDate.setHours(23, 59, 59, 999);
 
-    const outlets = Array.isArray(filters.name) ? filters.name : (filters.name ? [filters.name] : []);
-
-    this.allOutletReports = [];
-    this.reportTitle = 'Stock Report';
-    this.selectedCountry = filters.country || '';
-
-    const inventoryFilterFn = (inv: any, outlet: string | null = null) => {
-      // date of inventory record
-      const invDate = inv?.stockDate
-        ? new Date(inv.stockDate)
-        : (inv?.createdAt?.seconds ? new Date(inv.createdAt.seconds * 1000) : (inv?.createdAt ? new Date(inv.createdAt) : null));
-
-      if (filters.country && inv.country && inv.country !== filters.country) return false;
-      if (filters.division && inv.division && inv.division !== filters.division) return false;
-      if (filters.town && inv.town && inv.town !== filters.town) return false;
-
-      if (outlet && inv.dealerOutlet !== outlet) return false;
-      // if outlet not provided, we'll still filter dealer info when grouping by dealers below
-
-      if (startDate && invDate && invDate < startDate) return false;
-      if (endDate && invDate && invDate > endDate) return false;
-
-      return true;
-    };
-
-    // Case 1: no outlet selected => aggregated "All Outlets"
-    if (outlets.length === 0) {
-      // Filter GRN/inventory globally (respecting country/division/town/date)
-      const filtered = this.grnDataSource.filter(inv => {
-        // also ensure dealerOutlet exists
-        return inventoryFilterFn(inv, null);
-      });
-
-      // aggregated across all dealers
-      const rows = this.buildStockRowsForInventory(filtered);
-      this.allOutletReports.push({ outlet: 'All Outlets', rows });
-
-      // set reportDate text for UI
-      this.reportDate = this.getReportDateText(startDate, endDate);
-    } else {
-      // Case 2: one or more outlets selected -> create a report for each
-      outlets.forEach((outlet: string) => {
-        const filtered = this.grnDataSource.filter(inv => inventoryFilterFn(inv, outlet));
-        const rows = this.buildStockRowsForInventory(filtered);
-        this.allOutletReports.push({ outlet, rows });
-      });
-      this.reportDate = this.getReportDateText(startDate, endDate);
-    }
-  }
-
-  private getReportDateText(startDate?: Date | null, endDate?: Date | null) {
-    let reportDateText = '';
-    if (startDate && endDate) {
-      const s = startDate.toLocaleDateString();
-      const e = endDate.toLocaleDateString();
-      reportDateText = `${s} - ${e}`;
-    } else if (startDate) {
-      reportDateText = new Date(startDate).toLocaleDateString();
-    } else {
-      reportDateText = new Date().toLocaleDateString();
-    }
-    return reportDateText;
-  }
 
   onCancel() {
-    // Reset
+    // Clear the selectedOutlets array
+    this.selectedOutlets = [];
+
+    // Reset the form
     this.dealerForm.reset();
-    // reset name to empty array
-    this.dealerForm.patchValue({ name: [] });
-    this.filteredProducts = [];
-    this.finalTableData = [];
-    this.allOutletReports = [];
-    Object.keys(this.options).forEach(key => {
-      this.filteredOptions[key] = [...this.options[key]];
-    });
+
+    // Reset the form controls that are tied to the filters
     this.nameFilter.reset();
     this.divisionFilter.reset();
     this.countryFilter.reset();
     this.townFilter.reset();
     this.productFilter.reset();
-    this.reportDate = '';
-    this.selectedCountry = '';
-    this.reportTitle = '';
+
+    // Restore the filtered options to their original state
+    Object.keys(this.options).forEach(key => {
+      this.filteredOptions[key] = [...this.options[key]];
+    });
+
+    // Clear the displayed reports
+    this.allOutletReports = [];
   }
 
   exportToExcel() {
@@ -490,67 +580,137 @@ export class StockReportComponent {
     const worksheet = workbook.addWorksheet("Stock Report");
 
     let currentRow = 1;
-    const reportDateText = this.reportDate || this.getReportDateText(null, null);
-    const country = this.dealerForm.value.country || '';
+
+    // 🔹 Build date text
+    let reportDateText = '';
+    if (this.dealerForm.value.period?.start && this.dealerForm.value.period?.end) {
+      const start = new Date(this.dealerForm.value.period.start).toLocaleDateString();
+      const end = new Date(this.dealerForm.value.period.end).toLocaleDateString();
+      reportDateText = `${start} - ${end}`;
+    } else if (this.dealerForm.value.period?.start) {
+      reportDateText = new Date(this.dealerForm.value.period.start).toLocaleDateString();
+    } else {
+      reportDateText = new Date().toLocaleDateString(); // default today
+    }
 
     this.allOutletReports.forEach((report, index) => {
-      // Title
-      const titleRow = worksheet.addRow([`Stock Report - ${report.outlet}`]);
-      worksheet.mergeCells(currentRow, 1, currentRow, 4);
+      const colCount = report.rows.length + 1; // +1 for "Particulars"
+
+      // 🔹 Title row
+      const titleRow = worksheet.addRow([`Cumulative for the month - ${report.outlet}`]);
+      worksheet.mergeCells(currentRow, 1, currentRow, colCount);
       titleRow.font = { bold: true, size: 14 };
       titleRow.alignment = { vertical: 'middle', horizontal: 'center' };
+      titleRow.height = 20;
+      titleRow.eachCell(cell => {
+        cell.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'FFFF00' }
+        };
+      });
       currentRow++;
 
-      // Date / Country row
-      const dateRow = worksheet.addRow([`Date: ${reportDateText}${country ? ' | Country: ' + country : ''}`]);
-      worksheet.mergeCells(currentRow, 1, currentRow, 4);
+      // 🔹 Date row (always filled now)
+      const country = this.dealerForm.value.country || '';
+      const dateText = `Date: ${reportDateText}${country ? ' | Country: ' + country : ''}`;
+      const dateRow = worksheet.addRow([dateText]);
+
+      worksheet.mergeCells(currentRow, 1, currentRow, colCount);
       dateRow.alignment = { vertical: 'middle', horizontal: 'center' };
+      dateRow.height = 20;
+      dateRow.eachCell(cell => {
+        cell.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'FFFF00' }
+        };
+      });
       currentRow++;
 
-      // Header
-      const headerRow = worksheet.addRow(['Product', 'Qty']);
+      // 🔹 Header row
+      const headers = ['Products Name', ...report.rows.map(p => p.product.toUpperCase())];
+      const headerRow = worksheet.addRow(headers);
       headerRow.font = { bold: true };
+      headerRow.height = 40;
       headerRow.eachCell(c => {
         c.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+        c.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'F4B083' }
+        };
       });
       currentRow++;
 
-      // Data rows
-      report.rows.forEach(r => {
-        const row = worksheet.addRow([r.product, r.Qty]);
-        row.eachCell(cell => {
-          cell.border = {
-            top: { style: 'thin' },
-            left: { style: 'thin' },
-            bottom: { style: 'thin' },
-            right: { style: 'thin' }
-          };
-          cell.alignment = { vertical: 'middle', horizontal: 'center' };
-        });
-        currentRow++;
-      });
+      // 🔹 Data rows
+      worksheet.addRow(['Sales for the day', ...report.rows.map(p => p.Day)]); currentRow++;
+      worksheet.addRow(['Cumulative for the month', ...report.rows.map(p => p.Month)]); currentRow++;
+      worksheet.addRow(['YTD', ...report.rows.map(p => p.YTD)]); currentRow++;
 
-      // spacer
+      // 🔹 Spacer row only between outlets
       if (index < this.allOutletReports.length - 1) {
         worksheet.addRow([]);
         currentRow++;
       }
     });
 
-    // column widths
-    worksheet.columns.forEach((col, index) => {
-      col.width = index === 0 ? 40 : 12;
+    // 🔹 Borders + alignment for all cells
+    worksheet.eachRow((row, rowNumber) => {
+      row.eachCell(cell => {
+        cell.border = {
+          top: { style: 'thin' },
+          left: { style: 'thin' },
+          bottom: { style: 'thin' },
+          right: { style: 'thin' },
+        };
+        if (rowNumber > 1) {
+          cell.alignment = { vertical: 'middle', horizontal: 'center' };
+        }
+      });
     });
 
+    // 🔹 Column widths
+    worksheet.columns.forEach((col, index) => {
+      col.width = index === 0 ? 25 : 12;
+    });
+
+    // 🔹 Save Excel file
     workbook.xlsx.writeBuffer().then(data => {
       const blob = new Blob([data], { type: 'application/octet-stream' });
       FileSaver.saveAs(blob, `Stock_Report_${reportDateText}.xlsx`);
     });
   }
 
-  // Display helpers
-  displayFn(value: string) {
-    return value ? value : '';
+
+
+
+  toggleOutletSelection(outlet: string, isChecked: boolean) {
+    if (isChecked) {
+      if (!this.selectedOutlets.includes(outlet)) {
+        this.selectedOutlets.push(outlet);
+      }
+    } else {
+      this.selectedOutlets = this.selectedOutlets.filter(d => d !== outlet);
+    }
+
+    // Patch the form with the array of selected outlets
+    this.dealerForm.patchValue({ name: this.selectedOutlets });
+
+    // Update the input field to display the selected outlets as a comma-separated string
+    this.nameFilter.setValue(this.selectedOutlets.join(', '), { emitEvent: false });
   }
+  displayFn = (): string => {
+    if (!this.dealerForm) return '';
+    const selectedValues = this.dealerForm.get('name')?.value;
+    return Array.isArray(selectedValues) ? selectedValues.join(', ') : '';
+  }
+
+
+  displayCountry = (value: string): string => value ? value : '';
+  displayTown = (value: string): string => value ? value : '';
+  displayDivision = (value: string): string => value ? value : '';
+
+
 
 }
