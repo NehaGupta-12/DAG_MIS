@@ -82,3 +82,34 @@
 .mat-row, .mat-header-row {
   height: 28px;
 }
+
+
+.custom-bordered th,
+.custom-bordered td {
+  border: 2px solid #000 !important;
+  text-align: center;       /* ⬅️ centers text horizontally */
+  vertical-align: middle;   /* ⬅️ centers text vertically */
+}
+
+.custom-bordered tr:last-child td {
+  font-weight: bold;
+  background: #f1f1f1; /* light grey for distinction */
+}
+
+/* src/app/your-component-name/your-component-name.component.css */
+
+.red-row {
+  background-color: #fce4e4 !important; /* light red */
+}
+
+.yellow-row {
+  background-color: #fffde7 !important; /* light yellow */
+}
+
+.green-row {
+  background-color: #e8f5e9 !important; /* light green */
+}
+
+.textcol{
+  color: #0d8df3;
+}

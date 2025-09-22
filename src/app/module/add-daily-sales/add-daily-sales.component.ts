@@ -539,8 +539,48 @@ export class AddDailySalesComponent implements OnInit {
   //   }
   //   this.dailySalesForm.get('vehicle')?.reset();
   // }
+  // addProduct() {
+  //   const selectedProducts = this.dailySalesForm.get('vehicle')?.value; // this will be an array
+  //   if (!selectedProducts || selectedProducts.length === 0) {
+  //     Swal.fire('Error', 'Please select at least one product before adding.', 'error');
+  //     return;
+  //   }
+  //
+  //   let newProducts: any[] = [];
+  //
+  //   selectedProducts.forEach((selectedName: string) => {
+  //     const product = this.vehicledataSource.data.find(p => p.name === selectedName);
+  //     if (product) {
+  //       const exists = this.addedProducts.some(p => p.productId === product.id);
+  //       if (!exists) {
+  //         newProducts.push({
+  //           productId: product.id,
+  //           sku: product.sku,
+  //           name: product.name,
+  //           brand: product.brand,
+  //           model: product.model,
+  //           variant: product.variant,
+  //           unit: product.unit,
+  //           avlQuantity: product.avlQuantity,
+  //           quantity: 0
+  //         });
+  //       } else {
+  //         Swal.fire('Info', `${product.name} is already added.`, 'info');
+  //       }
+  //     }
+  //   });
+  //
+  //   if (newProducts.length > 0) {
+  //     this.addedProducts = [...this.addedProducts, ...newProducts];
+  //     console.log(this.addedProducts);
+  //   }
+  //
+  //   // Reset selection after adding
+  //   this.dailySalesForm.get('vehicle')?.reset();
+  // }
+
   addProduct() {
-    const selectedProducts = this.dailySalesForm.get('vehicle')?.value; // this will be an array
+    const selectedProducts = this.dailySalesForm.get('vehicle')?.value; // array of selected names
     if (!selectedProducts || selectedProducts.length === 0) {
       Swal.fire('Error', 'Please select at least one product before adding.', 'error');
       return;
@@ -578,6 +618,28 @@ export class AddDailySalesComponent implements OnInit {
     // Reset selection after adding
     this.dailySalesForm.get('vehicle')?.reset();
   }
+
+  // Toggle select/unselect all vehicles
+  toggleSelectAllVehicles() {
+    const allVehicleNames = this.vehicledataSource.data.map(v => v.name);
+    const selectedVehicles: string[] = this.dailySalesForm.get('vehicle')?.value || [];
+
+    if (this.isAllVehiclesSelected()) {
+      // All selected → unselect all
+      this.dailySalesForm.get('vehicle')?.setValue([]);
+    } else {
+      // Select all
+      this.dailySalesForm.get('vehicle')?.setValue(allVehicleNames);
+    }
+  }
+
+// Check if all vehicles are selected
+  isAllVehiclesSelected(): boolean {
+    const selectedVehicles: string[] = this.dailySalesForm.get('vehicle')?.value || [];
+    const allVehicleNames = this.vehicledataSource.data.map(v => v.name);
+    return allVehicleNames.length > 0 && allVehicleNames.every(name => selectedVehicles.includes(name));
+  }
+
 
 
   removeProduct(index: number) {

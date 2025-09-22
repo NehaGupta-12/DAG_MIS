@@ -1,5 +1,5 @@
-import {Component, ElementRef, EnvironmentInjector, Inject, runInInjectionContext, ViewChild} from '@angular/core';
-import {MatAutocomplete, MatAutocompleteTrigger, MatOption} from "@angular/material/autocomplete";
+import { Component, ElementRef, EnvironmentInjector, Inject, runInInjectionContext, ViewChild } from '@angular/core';
+import { MatAutocomplete, MatAutocompleteTrigger, MatOption } from "@angular/material/autocomplete";
 import {
   MatCell,
   MatCellDef,
@@ -17,28 +17,29 @@ import {
   MatEndDate,
   MatStartDate
 } from "@angular/material/datepicker";
-import {MatInput, MatInputModule, MatLabel, MatSuffix} from "@angular/material/input";
-import {MatButtonModule, MatMiniFabButton} from "@angular/material/button";
-import {CommonModule, NgForOf, NgIf} from "@angular/common";
-import {FormControl, FormGroup, FormsModule, ReactiveFormsModule, UntypedFormBuilder} from "@angular/forms";
-import {AddDealerService} from "../../add-dealer.service";
-import {ActivatedRoute} from "@angular/router";
-import {AngularFireDatabase} from "@angular/fire/compat/database";
-import {ProductMasterService} from "../../product-master.service";
-import {DailySalesService} from "../../daily-sales.service";
-import {MAT_DIALOG_DATA, MatDialogModule} from "@angular/material/dialog";
-import {map} from "rxjs/operators";
+import { MatInput, MatInputModule, MatLabel, MatSuffix } from "@angular/material/input";
+import { MatButtonModule, MatMiniFabButton } from "@angular/material/button";
+import { CommonModule, NgForOf, NgIf } from "@angular/common";
+import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, UntypedFormBuilder } from "@angular/forms";
+import { AddDealerService } from "../../add-dealer.service";
+import { ActivatedRoute } from "@angular/router";
+import { AngularFireDatabase } from "@angular/fire/compat/database";
+import { ProductMasterService } from "../../product-master.service";
+import { DailySalesService } from "../../daily-sales.service";
+import { MAT_DIALOG_DATA, MatDialogModule } from "@angular/material/dialog";
+import { map } from "rxjs/operators";
 import Swal from "sweetalert2";
-import {Workbook} from "exceljs";
+import { Workbook } from "exceljs";
 import * as FileSaver from "file-saver";
-import {MatFormFieldModule} from "@angular/material/form-field";
-import {MatIconModule} from "@angular/material/icon";
-import {MatSelectModule} from "@angular/material/select";
-import {MatNativeDateModule, MatOptionModule} from "@angular/material/core";
-import {MatCheckboxModule} from "@angular/material/checkbox";
-import {MatTooltip} from "@angular/material/tooltip";
-import {InventoryService} from "../../add-inventory/inventory.service";
-import {AuthService} from "../../../authentication/auth.service";
+import { MatFormFieldModule } from "@angular/material/form-field";
+import { MatIconModule } from "@angular/material/icon";
+import { MatSelectModule } from "@angular/material/select";
+import { MatNativeDateModule, MatOptionModule } from "@angular/material/core";
+import { MatCheckboxModule } from "@angular/material/checkbox";
+import { MatTooltip } from "@angular/material/tooltip";
+import { InventoryService } from "../../add-inventory/inventory.service";
+import { AuthService } from "../../../authentication/auth.service";
+import { GrnService } from "../../grn.service";
 
 
 @Component({
@@ -74,7 +75,7 @@ import {AuthService} from "../../../authentication/auth.service";
     MatDatepickerModule,
     MatNativeDateModule,
   ],
-  providers: [{provide: MAT_DIALOG_DATA, useValue: {}}],
+  providers: [{ provide: MAT_DIALOG_DATA, useValue: {} }],
   templateUrl: './stock-report.component.html',
   standalone: true,
   styleUrl: './stock-report.component.scss'
@@ -85,13 +86,16 @@ export class StockReportComponent {
   dataSource: any[] = [];
   vehicledataSource: any[] = [];
   salesdataSource: any[] = [];
-  inventorydataSource: any[] = [];
+  grnDataSource: any[] = [];
   filteredProducts: any[] = [];
   reportTitle: string = '';
   reportDate: string = '';
   finalTableData: any[] = [];
+  selectedCountry: string = '';
   productHeaders: string[] = [];
   tableColumns: string[] = [];
+  allOutletReports: { outlet: string; rows: any[] }[] = [];
+
   @ViewChild('countrySearchInput') countrySearchInput!: ElementRef;
   @ViewChild('divisionSearchInput') divisionSearchInput!: ElementRef;
   @ViewChild('townSearchInput') townSearchInput!: ElementRef;
@@ -99,14 +103,12 @@ export class StockReportComponent {
 
   debounceTimer: any;
 
-
   // Filters
   nameFilter = new FormControl('');
   divisionFilter = new FormControl('');
   countryFilter = new FormControl('');
   townFilter = new FormControl('');
   productFilter = new FormControl('');
-
 
   search: any = {
     name: '',
@@ -138,19 +140,20 @@ export class StockReportComponent {
     private injector: EnvironmentInjector,
     private route: ActivatedRoute,
     private mDatabase: AngularFireDatabase,
-    private productService:ProductMasterService,
+    private productService: ProductMasterService,
     private dailySlaes: DailySalesService,
-    private inventoryService : InventoryService,
-    public authService : AuthService,
+    private grnService: GrnService,
+    public authService: AuthService,
     @Inject(MAT_DIALOG_DATA) public data: any
   ) {
+    // initialize name as array because outlets select is multiple
     this.dealerForm = this.fb.group({
-      name: [''],
+      name: this.fb.control([]),
       country: [''],
       division: [''],
       town: [''],
       product: [''],
-      period: this.fb.group({   // ✅ date range group
+      period: this.fb.group({
         start: [''],
         end: [''],
       }),
@@ -184,22 +187,13 @@ export class StockReportComponent {
     this.loadSalesList();
     this.DealerList();
     this.productList();
-    this.loadInventoryDaata();
+    this.loadGrnData();
 
-    // 🔹 Filter subscription
-    // this.nameFilter.valueChanges.subscribe(val => this.filterOptions('name', val || ''));
-    // this.outletTypeFilter.valueChanges.subscribe(val => this.filterOptions('outletType', val || ''));
-    // this.categoryFilter.valueChanges.subscribe(val => this.filterOptions('category', val || ''));
-    // this.divisionFilter.valueChanges.subscribe(val => this.filterOptions('division', val || ''));
-    // this.countryFilter.valueChanges.subscribe(val => this.filterOptions('country', val || ''));
-    // this.townFilter.valueChanges.subscribe(val => this.filterOptions('town', val || ''));
-
-    // 🔹 Hook filters to filtering logic
+    // Hook filters to filtering logic
     this.nameFilter.valueChanges.subscribe(val => {
       this.filterOptions('name', val || '');
-      this.dealerForm.patchValue({ name: val });
+      // For search input only; actual form value for outlets is array
     });
-
 
     this.divisionFilter.valueChanges.subscribe(val => {
       this.filterOptions('division', val || '');
@@ -226,7 +220,7 @@ export class StockReportComponent {
   onCountrySearchChange(event: any) {
     clearTimeout(this.debounceTimer);
     this.debounceTimer = setTimeout(() => {
-      const val = event.target.value.toLowerCase();
+      const val = (event.target.value || '').toLowerCase();
       this.filteredOptions.country = this.options.country.filter((c: string) =>
         c.toLowerCase().includes(val)
       );
@@ -239,11 +233,11 @@ export class StockReportComponent {
     }
   }
 
-// Division
+  // Division
   onDivisionSearchChange(event: any) {
     clearTimeout(this.debounceTimer);
     this.debounceTimer = setTimeout(() => {
-      const val = event.target.value.toLowerCase();
+      const val = (event.target.value || '').toLowerCase();
       this.filteredOptions.division = this.options.division.filter((d: string) =>
         d.toLowerCase().includes(val)
       );
@@ -256,11 +250,11 @@ export class StockReportComponent {
     }
   }
 
-// Town
+  // Town
   onTownSearchChange(event: any) {
     clearTimeout(this.debounceTimer);
     this.debounceTimer = setTimeout(() => {
-      const val = event.target.value.toLowerCase();
+      const val = (event.target.value || '').toLowerCase();
       this.filteredOptions.town = this.options.town.filter((t: string) =>
         t.toLowerCase().includes(val)
       );
@@ -273,29 +267,12 @@ export class StockReportComponent {
     }
   }
 
-// Outlet
-  onOutletSearchChange(event: any) {
-    clearTimeout(this.debounceTimer);
-    this.debounceTimer = setTimeout(() => {
-      const val = event.target.value.toLowerCase();
-      this.filteredOptions.name = this.options.name.filter((o: string) =>
-        o.toLowerCase().includes(val)
-      );
-    }, 300);
-  }
-  onOutletSelectOpened(open: boolean) {
-    if (open) {
-      this.filteredOptions.name = [...this.options.name];
-      setTimeout(() => this.outletSearchInput.nativeElement.focus(), 0);
-    }
-  }
-
   loadSalesList() {
     runInInjectionContext(this.injector, () => {
       this.dailySlaes.getDailySalesList().subscribe((data) => {
-        this.salesdataSource = data
+        this.salesdataSource = data;
         this.filteredProducts = [];
-        console.log('daily sales',data);
+        console.log('daily sales', data);
       });
     });
   }
@@ -326,160 +303,22 @@ export class StockReportComponent {
     });
   }
 
-  loadInventoryDaata() {
+  loadGrnData() {
     runInInjectionContext(this.injector, () => {
-      this.inventoryService.getInventoryAllData().subscribe(data => {
-        console.log('Inventory data:', data);
-        this.inventorydataSource = data;
+      this.grnService.getGrnList().subscribe(data => {
+        console.log('GRN Data:', data);
+        this.grnDataSource = data;
       });
     });
   }
 
   getDateRanges(currentDate: Date) {
-    // Start of month
     const monthStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-
-    // Start of financial year (1st April)
     const fyStart = currentDate.getMonth() >= 3
-      ? new Date(currentDate.getFullYear(), 3, 1)   // If Apr-Dec
-      : new Date(currentDate.getFullYear() - 1, 3, 1); // If Jan-Mar
-
+      ? new Date(currentDate.getFullYear(), 3, 1)
+      : new Date(currentDate.getFullYear() - 1, 3, 1);
     return { monthStart, fyStart };
   }
-
-
-
-
-  generateHorizontalInventoryReport(selectedOutlets: string[] = [], countryFilter: string | null, divisionFilter: string | null, townFilter: string | null) {
-    const allDealers = this.dataSource;
-    const allProducts = this.vehicledataSource;
-    const inventoryData = this.inventorydataSource;
-
-    // 🆕 New filtering logic for dealers 🆕
-    const filteredDealers = allDealers.filter(dealer => {
-      // Check if dealer is active
-      if (dealer.status !== 'Active') return false;
-
-      // Apply country filter
-      if (countryFilter && dealer.country !== countryFilter) return false;
-
-      // Apply division filter
-      if (divisionFilter && dealer.division !== divisionFilter) return false;
-
-      // Apply town filter
-      if (townFilter && dealer.town !== townFilter) return false;
-
-      // Apply outlet filter
-      if (selectedOutlets.length > 0 && !selectedOutlets.includes(dealer.name)) return false;
-
-      // If all filters pass, include the dealer
-      return true;
-    });
-
-    // ❌ Remove the old filtering logic (if selectedOutlets...) that was inside the forEach loop.
-
-    // Map product name => model
-    const nameToModelMap: Record<string, string> = {};
-    allProducts.forEach(product => {
-      if (product.name && product.model) {
-        nameToModelMap[product.name] = product.model;
-      }
-    });
-
-    const allModelNames = Array.from(
-      new Set(allProducts.filter(p => p.status === 'Active' && p.model).map(p => p.model))
-    );
-
-    const finalReport: any[] = [];
-
-    // 🔄 Iterate over the newly filtered list of dealers
-    filteredDealers.forEach(dealer => {
-      const dealerRow: any = {
-        name: dealer.name || '',
-        id: dealer.id || '',
-        division: dealer.division || '',
-        country: dealer.country || '',
-        town: dealer.town || '',
-      };
-      // ... rest of the existing code to build the report row for each dealer
-      allModelNames.forEach(model => {
-        dealerRow[model] = 0;
-      });
-
-      const dealerInventories = inventoryData.filter(inv => inv.dealerOutlet === dealer.name);
-      dealerInventories.forEach(inv => {
-        const modelName = nameToModelMap[inv.name];
-        if (modelName && dealerRow.hasOwnProperty(modelName)) {
-          dealerRow[modelName] += Number(inv.quantity) || 0;
-        }
-      });
-
-      const totalQty = allModelNames.reduce((sum, model) => sum + (dealerRow[model] || 0), 0);
-      dealerRow['total'] = totalQty;
-
-      finalReport.push(dealerRow);
-    });
-
-    this.finalTableData = finalReport;
-    this.productHeaders = allModelNames;
-    this.tableColumns = ['country', 'division', 'town', 'name', ...this.productHeaders, 'total'];
-  }
-
-  generateCountryInventoryReport(selectedCountry: string | null) {
-    const allDealers = this.dataSource;
-    const allProducts = this.vehicledataSource;
-    const inventoryData = this.inventorydataSource;
-
-    const filteredDealers = allDealers.filter(dealer => {
-      // Check if dealer is active
-      if (dealer.status !== 'Active') return false;
-      // Apply country filter
-      if (selectedCountry && dealer.country !== selectedCountry) return false;
-      return true;
-    });
-
-    // Map product name to model
-    const nameToModelMap: Record<string, string> = {};
-    allProducts.forEach(product => {
-      if (product.name && product.model) {
-        nameToModelMap[product.name] = product.model;
-      }
-    });
-
-    const allModelNames = Array.from(
-      new Set(allProducts.filter(p => p.status === 'Active' && p.model).map(p => p.model))
-    );
-
-    // Initialize an object to hold the aggregated country data
-    const aggregatedCountryData: any = {
-      country: selectedCountry || 'All Countries',
-      total: 0
-    };
-
-    allModelNames.forEach(model => {
-      aggregatedCountryData[model] = 0;
-    });
-
-    // Aggregate inventory data for the selected country
-    filteredDealers.forEach(dealer => {
-      const dealerInventories = inventoryData.filter(inv => inv.dealerOutlet === dealer.name);
-      dealerInventories.forEach(inv => {
-        const modelName = nameToModelMap[inv.name];
-        if (modelName && aggregatedCountryData.hasOwnProperty(modelName)) {
-          aggregatedCountryData[modelName] += Number(inv.quantity) || 0;
-        }
-      });
-    });
-
-    // Calculate total
-    aggregatedCountryData.total = allModelNames.reduce((sum, model) => sum + (aggregatedCountryData[model] || 0), 0);
-
-    // Update the table data and columns
-    this.finalTableData = [aggregatedCountryData];
-    this.productHeaders = allModelNames;
-    this.tableColumns = ['country', ...this.productHeaders, 'total'];
-  }
-
 
   // Filter options logic
   filterOptions(field: string, value: string) {
@@ -490,59 +329,144 @@ export class StockReportComponent {
     this.filteredOptions[field] = [...matched];
   }
 
-// Display selected value in input
-  displayFn(value: string) {
-    return value ? value : '';
+  // Outlet(s) helpers (search + open)
+  onOutletSearchChange(event: any) {
+    clearTimeout(this.debounceTimer);
+    this.debounceTimer = setTimeout(() => {
+      const searchText = (event.target.value || '').toLowerCase();
+      this.filteredOptions.name = this.options.name.filter((o: string) =>
+        o.toLowerCase().includes(searchText)
+      );
+    }, 300);
+  }
+  onOutletSelectOpened(isOpened: boolean) {
+    if (isOpened) {
+      this.filteredOptions.name = [...this.options.name];
+      setTimeout(() => {
+        try {
+          this.outletSearchInput.nativeElement.focus();
+        } catch { }
+      }, 0);
+    }
   }
 
-
-  onSubmit() {
-    // ... existing filter logic for sales data
-
-    const filters = this.dealerForm.value;
-    // ... (your existing date filtering logic) ...
-
-    // 🔹 Filter sales data based on date and other filters
-    const filtered = this.salesdataSource.filter(item => {
-      const itemDate = item.createdAt?.seconds
-        ? new Date(item.createdAt.seconds * 1000)
-        : new Date(item.createdAt);
-
-      return (
-        (!filters.country || item.country === filters.country) &&
-        (!filters.name || item.dealerOutlet === filters.name) &&
-        // Note: Your date filtering logic for sales data seems to be missing
-        // from the provided code snippet inside onSubmit(), but I'll assume
-        // it's there. I'll use the inventory data to match your request,
-        // which doesn't have a date filter.
-        true // Placeholder for date filtering
-      );
+  // Build rows for a single outlet (aggregate inventory per product)
+  private buildStockRowsForInventory(inventoryItems: any[]) {
+    // Map products (use model if available)
+    const productKeyToDisplay: Record<string, string> = {};
+    this.vehicledataSource.forEach((p: any) => {
+      if (p.name) productKeyToDisplay[p.name] = (p.model || p.name).toUpperCase();
     });
 
-    // 🔹 Call the new method to generate the horizontal inventory report
-    // Retrieve the selected outlets as an array
-    const selectedOutlets: string[] = filters.name || [];
+    // Aggregate quantities by product name
+    const agg: Record<string, number> = {};
+    inventoryItems.forEach(item => {
+      const key = item.name || 'UNKNOWN';
+      agg[key] = (agg[key] || 0) + (Number(item.quantity) || 0);
+    });
 
-    // const filters = this.dealerForm.value;
-    const selectedCountry: string = filters.country;
+    // Convert to rows array using the product master order (so all products appear)
+    const rows: any[] = this.vehicledataSource.map((p: any) => {
+      const key = p.name;
+      const qty = agg[key] || 0;
+      let rowColor = '';
+      if (qty > 10) rowColor = 'green-row';
+      else if (qty >= 1) rowColor = 'yellow-row';
+      else rowColor = 'red-row';
+      return { product: (p.model || p.name).toUpperCase(), Qty: qty, rowColor };
+    });
 
-    // Pass the selected outlets to the report generation function
-    this.generateHorizontalInventoryReport(selectedOutlets, filters.country, filters.division, filters.town);
-    this.generateCountryInventoryReport(selectedCountry);
+    // Add TOTAL row
+    rows.push({
+      product: 'TOTAL',
+      Qty: rows.reduce((s, r) => s + (r.Qty || 0), 0),
+      rowColor: ''
+    });
 
-    // The rest of your onSubmit() logic for sales reporting can remain as-is.
-    // For this specific request, the main focus is on the new report method.
+    return rows;
   }
 
+  // onSubmit: produce allOutletReports (mirrors DailySaleReportsComponent logic)
+  onSubmit() {
+    const filters = this.dealerForm.value;
+    const startDate = filters.period?.start ? new Date(filters.period.start) : null;
+    const endDate = filters.period?.end ? new Date(filters.period.end) : new Date();
 
+    if (startDate) startDate.setHours(0, 0, 0, 0);
+    if (endDate) endDate.setHours(23, 59, 59, 999);
 
+    const outlets = Array.isArray(filters.name) ? filters.name : (filters.name ? [filters.name] : []);
 
+    this.allOutletReports = [];
+    this.reportTitle = 'Stock Report';
+    this.selectedCountry = filters.country || '';
 
+    const inventoryFilterFn = (inv: any, outlet: string | null = null) => {
+      // date of inventory record
+      const invDate = inv?.stockDate
+        ? new Date(inv.stockDate)
+        : (inv?.createdAt?.seconds ? new Date(inv.createdAt.seconds * 1000) : (inv?.createdAt ? new Date(inv.createdAt) : null));
+
+      if (filters.country && inv.country && inv.country !== filters.country) return false;
+      if (filters.division && inv.division && inv.division !== filters.division) return false;
+      if (filters.town && inv.town && inv.town !== filters.town) return false;
+
+      if (outlet && inv.dealerOutlet !== outlet) return false;
+      // if outlet not provided, we'll still filter dealer info when grouping by dealers below
+
+      if (startDate && invDate && invDate < startDate) return false;
+      if (endDate && invDate && invDate > endDate) return false;
+
+      return true;
+    };
+
+    // Case 1: no outlet selected => aggregated "All Outlets"
+    if (outlets.length === 0) {
+      // Filter GRN/inventory globally (respecting country/division/town/date)
+      const filtered = this.grnDataSource.filter(inv => {
+        // also ensure dealerOutlet exists
+        return inventoryFilterFn(inv, null);
+      });
+
+      // aggregated across all dealers
+      const rows = this.buildStockRowsForInventory(filtered);
+      this.allOutletReports.push({ outlet: 'All Outlets', rows });
+
+      // set reportDate text for UI
+      this.reportDate = this.getReportDateText(startDate, endDate);
+    } else {
+      // Case 2: one or more outlets selected -> create a report for each
+      outlets.forEach((outlet: string) => {
+        const filtered = this.grnDataSource.filter(inv => inventoryFilterFn(inv, outlet));
+        const rows = this.buildStockRowsForInventory(filtered);
+        this.allOutletReports.push({ outlet, rows });
+      });
+      this.reportDate = this.getReportDateText(startDate, endDate);
+    }
+  }
+
+  private getReportDateText(startDate?: Date | null, endDate?: Date | null) {
+    let reportDateText = '';
+    if (startDate && endDate) {
+      const s = startDate.toLocaleDateString();
+      const e = endDate.toLocaleDateString();
+      reportDateText = `${s} - ${e}`;
+    } else if (startDate) {
+      reportDateText = new Date(startDate).toLocaleDateString();
+    } else {
+      reportDateText = new Date().toLocaleDateString();
+    }
+    return reportDateText;
+  }
 
   onCancel() {
+    // Reset
     this.dealerForm.reset();
+    // reset name to empty array
+    this.dealerForm.patchValue({ name: [] });
     this.filteredProducts = [];
-    this.finalTableData = []; // <- clear table
+    this.finalTableData = [];
+    this.allOutletReports = [];
     Object.keys(this.options).forEach(key => {
       this.filteredOptions[key] = [...this.options[key]];
     });
@@ -551,72 +475,82 @@ export class StockReportComponent {
     this.countryFilter.reset();
     this.townFilter.reset();
     this.productFilter.reset();
+    this.reportDate = '';
+    this.selectedCountry = '';
+    this.reportTitle = '';
   }
 
-
   exportToExcel() {
-    if (!this.finalTableData || this.finalTableData.length === 0) {
+    if (!this.allOutletReports || this.allOutletReports.length === 0) {
       Swal.fire('Info', 'No data available to export', 'info');
       return;
     }
 
     const workbook = new Workbook();
-    const worksheet = workbook.addWorksheet('Inventory Report');
+    const worksheet = workbook.addWorksheet("Stock Report");
 
-    // Updated headers
-    const headers = [
-      'S.N', 'Country',
-      ...this.productHeaders,
-      'Total'
-    ];
+    let currentRow = 1;
+    const reportDateText = this.reportDate || this.getReportDateText(null, null);
+    const country = this.dealerForm.value.country || '';
 
-    const headerRow = worksheet.addRow(headers);
-    headerRow.font = { bold: true };
-    headerRow.eachCell(cell => {
-      cell.fill = {
-        type: 'pattern',
-        pattern: 'solid',
-        fgColor: { argb: 'F4B083' },
-      };
-      cell.border = {
-        top: { style: 'thin' },
-        bottom: { style: 'thin' },
-        left: { style: 'thin' },
-        right: { style: 'thin' },
-      };
-      cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+    this.allOutletReports.forEach((report, index) => {
+      // Title
+      const titleRow = worksheet.addRow([`Stock Report - ${report.outlet}`]);
+      worksheet.mergeCells(currentRow, 1, currentRow, 4);
+      titleRow.font = { bold: true, size: 14 };
+      titleRow.alignment = { vertical: 'middle', horizontal: 'center' };
+      currentRow++;
+
+      // Date / Country row
+      const dateRow = worksheet.addRow([`Date: ${reportDateText}${country ? ' | Country: ' + country : ''}`]);
+      worksheet.mergeCells(currentRow, 1, currentRow, 4);
+      dateRow.alignment = { vertical: 'middle', horizontal: 'center' };
+      currentRow++;
+
+      // Header
+      const headerRow = worksheet.addRow(['Product', 'Qty']);
+      headerRow.font = { bold: true };
+      headerRow.eachCell(c => {
+        c.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+      });
+      currentRow++;
+
+      // Data rows
+      report.rows.forEach(r => {
+        const row = worksheet.addRow([r.product, r.Qty]);
+        row.eachCell(cell => {
+          cell.border = {
+            top: { style: 'thin' },
+            left: { style: 'thin' },
+            bottom: { style: 'thin' },
+            right: { style: 'thin' }
+          };
+          cell.alignment = { vertical: 'middle', horizontal: 'center' };
+        });
+        currentRow++;
+      });
+
+      // spacer
+      if (index < this.allOutletReports.length - 1) {
+        worksheet.addRow([]);
+        currentRow++;
+      }
     });
 
-    const countryData = this.finalTableData[0]; // Get the single aggregated row
-    const rowData = [
-      1, // S.N.
-      countryData.country,
-      ...this.productHeaders.map(model => countryData[model] || 0),
-      countryData.total,
-    ];
-
-    const row = worksheet.addRow(rowData);
-    row.eachCell(cell => {
-      cell.border = {
-        top: { style: 'thin' },
-        bottom: { style: 'thin' },
-        left: { style: 'thin' },
-        right: { style: 'thin' },
-      };
-      cell.alignment = { horizontal: 'center', vertical: 'middle' };
-    });
-
+    // column widths
     worksheet.columns.forEach((col, index) => {
-      if (index === 0) col.width = 6;
-      else if (index === 1) col.width = 15;
-      else if (index >= 2 && index < 2 + this.productHeaders.length) col.width = 10;
-      else col.width = 15;
+      col.width = index === 0 ? 40 : 12;
     });
 
     workbook.xlsx.writeBuffer().then(data => {
       const blob = new Blob([data], { type: 'application/octet-stream' });
-      FileSaver.saveAs(blob, `Inventory_Report_${new Date().toISOString().slice(0, 10)}.xlsx`);
+      FileSaver.saveAs(blob, `Stock_Report_${reportDateText}.xlsx`);
     });
+  }
+
+  // Display helpers
+  displayFn(value: string) {
+    return value ? value : '';
   }
 
 }

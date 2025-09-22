@@ -32,6 +32,96 @@
           </mat-form-field>
         </div>
 
+        <!-- Division -->
+        <div class="col-md-3">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Select Division</mat-label>
+            <mat-select formControlName="division" #divisionSelect panelClass="custom-select-panel"
+                        (openedChange)="onDivisionSelectOpened($event)">
+              <div class="mat-select-search">
+                <input matInput placeholder="Search Division" #divisionSearchInput
+                       (input)="onDivisionSearchChange($event)" />
+              </div>
+              <mat-option *ngFor="let division of filteredOptions.division" [value]="division">
+                {{ division }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <!-- Town -->
+        <div class="col-md-3">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Select Town</mat-label>
+            <mat-select formControlName="town" #townSelect panelClass="custom-select-panel"
+                        (openedChange)="onTownSelectOpened($event)">
+              <div class="mat-select-search">
+                <input matInput placeholder="Search Town" #townSearchInput
+                       (input)="onTownSearchChange($event)" />
+              </div>
+              <mat-option *ngFor="let town of filteredOptions.town" [value]="town">
+                {{ town }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <!-- Showroom Name / Outlets (multi) -->
+        <div class="col-md-3">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Select Outlet(s)</mat-label>
+            <mat-select
+              formControlName="name"
+              multiple
+              #outletSelect="matSelect"
+              panelClass="custom-select-panel"
+              (openedChange)="onOutletSelectOpened($event)"
+            >
+              <mat-select-trigger>
+                <span *ngIf="outletSelect.value?.length; else noSelection">
+                  {{ outletSelect.value[0] | slice:0:16 }}{{ outletSelect.value[0].length > 16 ? '...' : '' }}
+                  <span *ngIf="outletSelect.value.length > 1" class="textcol">
+                    (+{{ outletSelect.value.length - 1 }} more)
+                  </span>
+                </span>
+                <ng-template #noSelection>
+                  Select...
+                </ng-template>
+              </mat-select-trigger>
+
+              <!-- Search -->
+              <div class="mat-select-search" (click)="$event.stopPropagation()">
+                <input
+                  matInput
+                  placeholder="Search Outlet"
+                  #outletSearchInput
+                  (input)="onOutletSearchChange($event)"
+                />
+              </div>
+
+              <!-- Options -->
+              <mat-option *ngFor="let outlet of filteredOptions.name" [value]="outlet">
+                {{ outlet }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <!-- Date range -->
+        <div class="col-md-3">
+          <mat-form-field class="example-full-width w-100" appearance="outline">
+            <mat-label>Select Date</mat-label>
+
+            <mat-date-range-input [rangePicker]="picker" formGroupName="period">
+              <input matStartDate formControlName="start" placeholder="Start date">
+              <input matEndDate formControlName="end" placeholder="End date">
+            </mat-date-range-input>
+
+            <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+            <mat-date-range-picker #picker></mat-date-range-picker>
+          </mat-form-field>
+        </div>
+
         <!-- Action Buttons -->
         <div class="col-md-2 d-flex justify-content-end gap-2 mt-2">
           <button mat-mini-fab color="primary" matTooltip="Search" (click)="onSubmit()" [disabled]="dealerForm.invalid">
@@ -48,30 +138,33 @@
         </div>
       </form>
 
-      <!-- Table -->
+      <!-- Table / reports -->
       <hr />
-      <div style="overflow-x: auto; width: 99%" class="mx-2 my-2">
-        <table mat-table [dataSource]="finalTableData"
-               class="mat-elevation-z1 w-100 custom-bordered"
-               style="min-width: max-content;">
+      <div class="d-flex justify-content-between align-items-center my-3 mx-3">
+        <h5>{{ reportTitle }}</h5>
+        <div class="text-end">
+          <h5 *ngIf="selectedCountry">Country: {{ selectedCountry }}</h5>
+          <h5>{{ reportDate }}</h5>
+        </div>
+      </div>
 
-          <ng-container matColumnDef="country">
-            <th mat-header-cell *matHeaderCellDef> Country </th>
-            <td mat-cell *matCellDef="let row"> {{ row.country }} </td>
+      <!-- One table per outlet (or All Outlets) -->
+      <div *ngFor="let report of allOutletReports" class="mb-4 mx-3">
+        <h5 class="text-center">{{ report.outlet }} - Stock Report</h5>
+
+        <table mat-table [dataSource]="report.rows" class="mat-elevation-z1 w-100 custom-bordered" style="min-width: max-content;">
+          <ng-container matColumnDef="product">
+            <th mat-header-cell *matHeaderCellDef> Product </th>
+            <td mat-cell *matCellDef="let row"> {{ row.product }} </td>
           </ng-container>
 
-          <ng-container *ngFor="let col of productHeaders" [matColumnDef]="col">
-            <th mat-header-cell *matHeaderCellDef> {{ col }} </th>
-            <td mat-cell *matCellDef="let row"> {{ row[col] || 0 }} </td>
+          <ng-container matColumnDef="Qty">
+            <th mat-header-cell *matHeaderCellDef> Qty </th>
+            <td mat-cell *matCellDef="let row"> {{ row.Qty }} </td>
           </ng-container>
 
-          <ng-container matColumnDef="total">
-            <th mat-header-cell *matHeaderCellDef> Total </th>
-            <td mat-cell *matCellDef="let row"> {{ row.total }} </td>
-          </ng-container>
-
-          <tr mat-header-row *matHeaderRowDef="tableColumns"></tr>
-          <tr mat-row *matRowDef="let row; columns: tableColumns;"></tr>
+          <tr mat-header-row *matHeaderRowDef="['product','Qty']"></tr>
+          <tr mat-row *matRowDef="let row; columns: ['product','Qty']" [ngClass]="row.rowColor"></tr>
         </table>
       </div>
     </div>

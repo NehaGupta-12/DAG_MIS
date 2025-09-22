@@ -397,8 +397,6 @@ export class DailySaleReportsComponent implements OnInit{
 
 
 
-
-
   // Filter options logic
   filterOptions(field: string, value: string) {
     const searchTerm = value?.toLowerCase() || '';

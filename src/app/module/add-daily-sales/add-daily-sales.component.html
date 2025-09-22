@@ -39,7 +39,9 @@
                 <div class="col-md-6">
                   <mat-form-field appearance="outline" class="w-100">
                     <mat-label>Select Vehicle</mat-label>
-                    <mat-select formControlName="vehicle" panelClass="custom-select-panel"  multiple required>
+                    <mat-select formControlName="vehicle" panelClass="custom-select-panel" multiple
+                                (openedChange)="selectionOpen($event, 'vehicle')">
+
                       <!-- 🔍 Search bar -->
                       <div class="mat-select-search">
                         <input
@@ -49,18 +51,29 @@
                         />
                       </div>
 
+                      <!-- 🔹 Select All Option with Checkbox -->
+<!--                      <mat-option>-->
+                        <mat-checkbox
+                          [checked]="isAllVehiclesSelected()"
+                          (click)="$event.stopPropagation()"
+                          (change)="toggleSelectAllVehicles()">
+                          Select All
+                        </mat-checkbox>
+<!--                      </mat-option>-->
+
                       <!-- Vehicle list -->
                       <mat-option *ngFor="let product of filteredVehicles" [value]="product.name">
                         {{ product.name }}
                       </mat-option>
                     </mat-select>
+
                     <mat-error *ngIf="dailySalesForm.get('vehicle')?.hasError('required')">
                       Product is required
                     </mat-error>
                   </mat-form-field>
-
-
                 </div>
+
+
               </div>
               <!-- Auto-populated -->
               <div class="row">
