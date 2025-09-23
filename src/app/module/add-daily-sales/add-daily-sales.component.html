@@ -40,9 +40,10 @@
                   <mat-form-field appearance="outline" class="w-100">
                     <mat-label>Select Vehicle</mat-label>
                     <mat-select formControlName="vehicle" panelClass="custom-select-panel" multiple
+                                #outletSelect="matSelect"
                                 (openedChange)="selectionOpen($event, 'vehicle')">
 
-                      <!-- 🔍 Search bar -->
+                      <!-- Search bar -->
                       <div class="mat-select-search">
                         <input
                           matInput
@@ -51,9 +52,21 @@
                         />
                       </div>
 
+                      <mat-select-trigger>
+        <span *ngIf="outletSelect.value?.length; else noSelection">
+          {{ outletSelect.value[0] | slice:0:16 }}{{ outletSelect.value[0].length > 16 ? '...' : '' }}
+          <span *ngIf="outletSelect.value.length > 1" class="textcol">
+            (+{{ outletSelect.value.length - 1 }} more)
+          </span>
+        </span>
+                        <ng-template #noSelection>
+                          Select...
+                        </ng-template>
+                      </mat-select-trigger>
+
                       <!-- 🔹 Select All Option with Checkbox -->
 <!--                      <mat-option>-->
-                        <mat-checkbox
+                        <mat-checkbox class="mx-2"
                           [checked]="isAllVehiclesSelected()"
                           (click)="$event.stopPropagation()"
                           (change)="toggleSelectAllVehicles()">

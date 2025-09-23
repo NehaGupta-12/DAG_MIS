@@ -265,18 +265,19 @@ export class AddUserComponent implements OnInit{
       first: ['', [Validators.required, Validators.pattern('[a-zA-Z]+')]],
       last: ['', [Validators.required, Validators.pattern('[a-zA-Z]+')]],
       mobile: ['', [Validators.required, Validators.pattern('^[0-9]*$')]],
-      email: ['', [Validators.required, Validators.email, Validators.minLength(5)],],
+      email: ['', [Validators.required, Validators.email, Validators.minLength(5)]],
       address: [''],
-      city: ['', [Validators.required, Validators.pattern('[a-zA-Z]+')]],
-      state: ['', [Validators.required, Validators.pattern('[a-zA-Z]+')]],
-      country: ['', [Validators.required, Validators.pattern('[a-zA-Z]+')]],
+      city: ['', [Validators.required, Validators.pattern('^[a-zA-Z ]+$')]],   // ✅ allows spaces
+      state: ['', [Validators.required, Validators.pattern('^[a-zA-Z ]+$')]],  // ✅ allows spaces
+      country: ['', [Validators.required, Validators.pattern('^[a-zA-Z ]+$')]],// ✅ allows spaces
       role: ['', [Validators.required]],
       userCode: ['', [Validators.required]],
       allowedOutlet: [[]],
       department: ['', [Validators.required]],
       termcondition: [false, [Validators.requiredTrue]],
     });
-    // Capitalize first letter for first and last name
+
+    // Capitalize first/last name (unchanged)
     this.register.get('first')?.valueChanges.subscribe(value => {
       if (value) {
         const capitalized = value.charAt(0).toUpperCase() + value.slice(1);
@@ -295,6 +296,8 @@ export class AddUserComponent implements OnInit{
       }
     });
   }
+
+
   allowOnlyNumbers(event: KeyboardEvent) {
     const charCode = event.which ? event.which : event.keyCode;
     if (charCode < 48 || charCode > 57) {
@@ -306,12 +309,12 @@ export class AddUserComponent implements OnInit{
     this.secondForm = this.fb.group({
       first: ['', [Validators.required, Validators.pattern('[a-zA-Z]+')]],
       last: ['', [Validators.required, Validators.pattern('[a-zA-Z]+')]],
-      email: ['', [Validators.required, Validators.email, Validators.minLength(5)],],
+      email: ['', [Validators.required, Validators.email, Validators.minLength(5)]],
       mobile: ['', [Validators.required, Validators.pattern('^[0-9]*$')]],
       address: [''],
-      city: ['', [Validators.required]],
-      state: ['', [Validators.required]],
-      country: ['', [Validators.required]],
+      city: ['', [Validators.required, Validators.pattern('^[a-zA-Z ]+$')]],   // ✅ fixed
+      state: ['', [Validators.required, Validators.pattern('^[a-zA-Z ]+$')]],  // ✅ fixed
+      country: ['', [Validators.required, Validators.pattern('^[a-zA-Z ]+$')]],// ✅ fixed
       termcondition: [false, [Validators.requiredTrue]],
     });
   }
@@ -338,14 +341,11 @@ export class AddUserComponent implements OnInit{
       first: ['', [Validators.required, Validators.pattern('[a-zA-Z]+')]],
       last: ['', [Validators.required, Validators.pattern('[a-zA-Z]+')]],
       password: ['', [Validators.required]],
-      email: [
-        '',
-        [Validators.required, Validators.email, Validators.minLength(5)],
-      ],
+      email: ['', [Validators.required, Validators.email, Validators.minLength(5)]],
       address: [''],
-      city: ['', [Validators.required]],
-      state: ['', [Validators.required]],
-      country: ['', [Validators.required]],
+      city: ['', [Validators.required, Validators.pattern('^[a-zA-Z ]+$')]],   // ✅ fixed
+      state: ['', [Validators.required, Validators.pattern('^[a-zA-Z ]+$')]],  // ✅ fixed
+      country: ['', [Validators.required, Validators.pattern('^[a-zA-Z ]+$')]],// ✅ fixed
       termcondition: [false, [Validators.requiredTrue]],
     });
   }

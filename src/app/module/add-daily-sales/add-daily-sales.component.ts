@@ -22,7 +22,7 @@ import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatIconModule } from "@angular/material/icon";
 import { MatSelectModule } from "@angular/material/select";
 import { MatOptionModule } from "@angular/material/core";
-import {AsyncPipe, Location, NgFor, NgForOf, NgIf} from "@angular/common";
+import {AsyncPipe, Location, NgFor, NgForOf, NgIf, SlicePipe} from "@angular/common";
 import Swal from "sweetalert2";
 import { ActivatedRoute, Router } from "@angular/router";
 import { MAT_DIALOG_DATA } from "@angular/material/dialog";
@@ -58,6 +58,7 @@ import {MatDatepicker, MatDatepickerInput, MatDatepickerToggle} from "@angular/m
     MatDatepickerToggle,
     MatDatepicker,
     MatDatepickerInput,
+    SlicePipe,
 
   ],
   providers: [

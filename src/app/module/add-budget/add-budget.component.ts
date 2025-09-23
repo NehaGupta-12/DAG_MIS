@@ -27,6 +27,7 @@ import { BudgetService } from "../budget.service";
 import { ProductMasterService } from "../product-master.service";
 import {LoadingService} from "../../Services/loading.service";
 import {MonthlyBudgetService} from "../monthly-budget.service";
+import {MatCheckbox} from "@angular/material/checkbox";
 
 @Component({
   selector: 'app-add-budget',
@@ -46,6 +47,7 @@ import {MonthlyBudgetService} from "../monthly-budget.service";
     MatDatepickerModule,
     MatNativeDateModule,
     FormsModule,
+    MatCheckbox,
   ]
 })
 export class AddBudgetComponent implements OnInit {
@@ -369,23 +371,6 @@ export class AddBudgetComponent implements OnInit {
     return match ? match[0].toUpperCase() : model;
   }
 
-  // loadProducts() {
-  //   this.loadingService.setLoading(true);
-  //   runInInjectionContext(this.injector, () => {
-  //     this.productService.getProductList().subscribe({
-  //       next: (data) => {
-  //         console.log("data", data)
-  //         this.vehicledataSource.data = data;
-  //         this._allProducts = data; // Populate the new array
-  //         this.filteredProducts = [...data]; // Initialize the filtered list
-  //         this.loadingService.setLoading(false);
-  //       },
-  //       error: () => this.loadingService.setLoading(false)
-  //     });
-  //   });
-  // }
-
-
   loadProducts() {
     this.loadingService.setLoading(true);
     runInInjectionContext(this.injector, () => {
@@ -477,6 +462,33 @@ export class AddBudgetComponent implements OnInit {
     return map[monthName] ?? -1;
   }
 
+
+
+  // ----------------- PRODUCTS -----------------
+  toggleSelectAllProducts() {
+    const allProducts = this.filteredProducts.filter(p => !p.disabled);
+    const selectedProducts: any[] = this.targetForm.get('products')?.value || [];
+
+    if (this.isAllProductsSelected()) {
+      // Unselect all
+      this.targetForm.get('products')?.setValue([]);
+    } else {
+      // Select all
+      this.targetForm.get('products')?.setValue(allProducts);
+    }
+  }
+
+  isAllProductsSelected(): boolean {
+    const selectedProducts: any[] = this.targetForm.get('products')?.value || [];
+    const allEnabledProducts = this.filteredProducts.filter(p => !p.disabled);
+
+    return allEnabledProducts.length > 0 &&
+      allEnabledProducts.every(ap =>
+        selectedProducts.some(sp => sp.id === ap.id)
+      );
+  }
+
+
   addProduct() {
     const formValues = this.targetForm.getRawValue();
 
@@ -485,13 +497,12 @@ export class AddBudgetComponent implements OnInit {
       return;
     }
 
-    formValues.products.forEach((selectedProduct: string) => {
-      // ✅ search inside simplified products
-      const product = this._allProducts.find(p => p.name === selectedProduct);
-      if (!product) return;
+    formValues.products.forEach((selectedProduct: any) => {
+      // selectedProduct is now the full object
+      if (!selectedProduct || !selectedProduct.name) return;
 
       const exists = this.addedProducts.some((p: any) =>
-        p.name.toLowerCase() === selectedProduct.toLowerCase() &&
+        p.name.toLowerCase() === selectedProduct.name.toLowerCase() &&
         p.country.toLowerCase() === formValues.country.toLowerCase() &&
         p.year === formValues.year &&
         p.month === formValues.month
@@ -501,8 +512,8 @@ export class AddBudgetComponent implements OnInit {
         this.addedProducts = [
           ...this.addedProducts,
           {
-            name: product.name,
-            sku: product.sku || '',   // fallback if missing
+            name: selectedProduct.name,
+            sku: selectedProduct.sku || '',   // fallback if missing
             country: formValues.country,
             year: formValues.year,
             month: formValues.month,
@@ -515,6 +526,7 @@ export class AddBudgetComponent implements OnInit {
     // reset selection
     this.targetForm.get('products')?.reset([]);
   }
+
 
 
 

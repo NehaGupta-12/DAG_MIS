@@ -21,18 +21,13 @@
                       placeholder="Enter first name"
                     />
                     <mat-icon class="material-icons-outlined color-icon" matSuffix>face</mat-icon>
-
-                    <!-- Required validation -->
                     <mat-error *ngIf="register?.get('first')?.hasError('required')">
                       First name is required
                     </mat-error>
-
-                    <!-- Alphabet only validation -->
                     <mat-error *ngIf="register?.get('first')?.hasError('pattern')">
                       Only alphabets are allowed
                     </mat-error>
                   </mat-form-field>
-
                 </div>
                 <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 mb-2">
                   <mat-form-field class="example-full-width" appearance="outline">
@@ -110,9 +105,7 @@
                     <input matInput formControlName="city" required placeholder="Enter City name">
                     <mat-icon class="material-icons-outlined color-icon" matSuffix>location_city</mat-icon>
                     @if (register?.get('city')?.hasError('required')) {
-                      <mat-error>
-                        City name is required
-                      </mat-error>
+                      <mat-error>City name is required</mat-error>
                     }
                   </mat-form-field>
                 </div>
@@ -122,13 +115,12 @@
                     <input matInput formControlName="state" required placeholder="Enter State name">
                     <mat-icon class="material-icons-outlined color-icon" matSuffix>business</mat-icon>
                     @if (register?.get('state')?.hasError('required')) {
-                      <mat-error>
-                        State name is required
-                      </mat-error>
+                      <mat-error>State name is required</mat-error>
                     }
                   </mat-form-field>
                 </div>
               </div>
+
               <div class="row">
                 <div class="col-xl-6 col-lg-6 col-md-6 col-sm-6 mb-2">
                   <mat-form-field class="example-full-width" appearance="outline">
@@ -147,6 +139,7 @@
                     </mat-error>
                   </mat-form-field>
                 </div>
+
                 <div class="col-xl-6 col-lg-6 col-md-6 col-sm-6 mb-2">
                   <mat-form-field class="example-full-width" appearance="outline">
                     <mat-label>User Code</mat-label>

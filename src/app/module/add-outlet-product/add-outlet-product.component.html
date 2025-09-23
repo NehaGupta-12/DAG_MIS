@@ -43,8 +43,24 @@
                       #productSelect
                       panelClass="custom-select-panel"
                       (openedChange)="onProductSelectOpened($event)"
-                      multiple>
+                      multiple
+                      #outletSelect="matSelect">
 
+                      <!-- Trigger display -->
+                      <mat-select-trigger>
+      <span *ngIf="outletSelect.value?.length; else noSelection">
+        {{ outletSelect.value[0]?.name | slice:0:16 }}
+        {{ outletSelect.value[0]?.name?.length > 16 ? '...' : '' }}
+        <span *ngIf="outletSelect.value.length > 1" class="textcol">
+          (+{{ outletSelect.value.length - 1 }} more)
+        </span>
+      </span>
+                        <ng-template #noSelection>
+                          Select...
+                        </ng-template>
+                      </mat-select-trigger>
+
+                      <!-- Search bar -->
                       <div class="mat-select-search">
                         <input
                           matInput
@@ -53,6 +69,17 @@
                           placeholder="Search Products" />
                       </div>
 
+                      <!-- Select All checkbox (outside mat-option) -->
+                      <div class="px-2 py-1">
+                        <mat-checkbox
+                          [checked]="isAllProductsSelected()"
+                          (click)="$event.stopPropagation()"
+                          (change)="toggleSelectAllProducts()">
+                          Select All
+                        </mat-checkbox>
+                      </div>
+
+                      <!-- Product list -->
                       <mat-option *ngFor="let product of filteredProducts"
                                   [value]="product"
                                   [disabled]="product?.disabled">
@@ -60,6 +87,8 @@
                       </mat-option>
                     </mat-select>
                   </mat-form-field>
+
+
                 </div>
 
               </div>

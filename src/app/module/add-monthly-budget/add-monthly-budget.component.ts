@@ -17,26 +17,28 @@ import { Observable } from "rxjs";
 import { ProductMasterService } from "../product-master.service";
 import { MonthlyBudgetService } from "../monthly-budget.service";
 import {LoadingService} from "../../Services/loading.service";
+import {MatCheckbox} from "@angular/material/checkbox";
 
 @Component({
   selector: 'app-add-monthly-budget',
   standalone: true,
   templateUrl: './add-monthly-budget.component.html',
   styleUrls: ['./add-monthly-budget.component.scss'],
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    FormsModule,
-    NgForOf,
-    MatFormFieldModule,
-    MatInputModule,
-    MatIconModule,
-    MatSelectModule,
-    MatButtonModule,
-    MatTableModule,
-    MatDatepickerModule,
-    MatNativeDateModule
-  ]
+    imports: [
+        CommonModule,
+        ReactiveFormsModule,
+        FormsModule,
+        NgForOf,
+        MatFormFieldModule,
+        MatInputModule,
+        MatIconModule,
+        MatSelectModule,
+        MatButtonModule,
+        MatTableModule,
+        MatDatepickerModule,
+        MatNativeDateModule,
+        MatCheckbox
+    ]
 })
 export class AddMonthlyBudgetComponent implements OnInit {
 
@@ -450,6 +452,32 @@ export class AddMonthlyBudgetComponent implements OnInit {
     return map[monthName] ?? -1;
   }
 
+  // ----------------- PRODUCTS -----------------
+  toggleSelectAllProducts() {
+    const allProducts = this.filteredProducts.filter(p => !p.disabled);
+    const selectedProducts: any[] = this.budgetForm.get('products')?.value || [];
+
+    if (this.isAllProductsSelected()) {
+      // Unselect all
+      this.budgetForm.get('products')?.setValue([]);
+    } else {
+      // Select all
+      this.budgetForm.get('products')?.setValue(allProducts);
+    }
+  }
+
+  isAllProductsSelected(): boolean {
+    const selectedProducts: any[] = this.budgetForm.get('products')?.value || [];
+    const allEnabledProducts = this.filteredProducts.filter(p => !p.disabled);
+
+    return allEnabledProducts.length > 0 &&
+      allEnabledProducts.every(ap =>
+        selectedProducts.some(sp => sp.id === ap.id)
+      );
+  }
+
+
+
   addProduct() {
     const formValues = this.budgetForm.getRawValue();
 
@@ -458,13 +486,12 @@ export class AddMonthlyBudgetComponent implements OnInit {
       return;
     }
 
-    formValues.products.forEach((selectedProduct: string) => {
-      // ✅ search inside simplified products
-      const product = this._allProducts.find(p => p.name === selectedProduct);
-      if (!product) return;
+    formValues.products.forEach((selectedProduct: any) => {
+      // selectedProduct is now the full object
+      if (!selectedProduct || !selectedProduct.name) return;
 
       const exists = this.addedProducts.some((p: any) =>
-        p.name.toLowerCase() === selectedProduct.toLowerCase() &&
+        p.name.toLowerCase() === selectedProduct.name.toLowerCase() &&
         p.country.toLowerCase() === formValues.country.toLowerCase() &&
         p.year === formValues.year &&
         p.month === formValues.month
@@ -474,8 +501,8 @@ export class AddMonthlyBudgetComponent implements OnInit {
         this.addedProducts = [
           ...this.addedProducts,
           {
-            name: product.name,
-            sku: product.sku || '',   // fallback if missing
+            name: selectedProduct.name,
+            sku: selectedProduct.sku || '',   // fallback if missing
             country: formValues.country,
             year: formValues.year,
             month: formValues.month,

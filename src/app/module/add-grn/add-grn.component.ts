@@ -345,6 +345,28 @@ export class AddGRNComponent implements OnInit{
       );
     }
   }
+  // Toggle select/unselect all vehicles
+  toggleSelectAllVehicles() {
+    const allVehicleNames = this.vehicledataSource.data.map(v => v.name);
+    const selectedVehicles: string[] = this.grnForm.get('products')?.value || [];
+
+    if (this.isAllVehiclesSelected()) {
+      // All selected → unselect all
+      this.grnForm.get('products')?.setValue([]);
+    } else {
+      // Select all
+      this.grnForm.get('products')?.setValue(allVehicleNames);
+    }
+  }
+
+// Check if all vehicles are selected
+  isAllVehiclesSelected(): boolean {
+    const selectedVehicles: string[] = this.grnForm.get('products')?.value || [];
+    const allVehicleNames = this.vehicledataSource.data.map(v => v.name);
+    return allVehicleNames.length > 0 && allVehicleNames.every(name => selectedVehicles.includes(name));
+  }
+
+
 
   // Add inside AddGRNComponent class
 
