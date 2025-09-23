@@ -26,10 +26,10 @@
               </ul>
             </div>
             <div class="right">
-              <div class="right-side-btn">
+              <div class="right-side-btn  ">
                 <span [matTooltip]="!authService.hasPermission('User','create') ? 'No permission' : 'Add User'" matTooltipPosition="above">
 
-                <button mat-icon-button  class="tbl-header-btn col-green"  (click)="navigateToAddUser()"
+                <button mat-icon-button  class="tbl-header-btn col-green btn-large-icon "  (click)="navigateToAddUser()"
                         [disabled]="!authService.hasPermission('User','create')">
                   <mat-icon>add_circle_outline</mat-icon>
                 </button>

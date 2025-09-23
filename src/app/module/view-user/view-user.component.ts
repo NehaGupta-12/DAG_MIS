@@ -14,6 +14,7 @@ import {AngularFireDatabase} from "@angular/fire/compat/database";
 import Swal from "sweetalert2";
 import {AddDealerService} from "../add-dealer.service";
 import {FormsModule, ReactiveFormsModule} from "@angular/forms";
+import {MatCheckbox} from "@angular/material/checkbox";
 
 @Component({
   selector: 'app-view-user',
@@ -36,7 +37,8 @@ import {FormsModule, ReactiveFormsModule} from "@angular/forms";
     MatSelectModule,
     MatInput,
     FormsModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    MatCheckbox
 
   ]
 })
@@ -188,5 +190,26 @@ export class ViewUserComponent implements OnInit {
       });
     }
   }
+// ✅ Check if all filtered options are selected
+  isAllSelected(): boolean {
+    return this.filteredDealerOptions.length > 0 &&
+      this.filteredDealerOptions.every(opt => this.selectedOutlet.includes(opt?.name));
+  }
+
+// ✅ Check for partial selection (indeterminate state)
+  isIndeterminate(): boolean {
+    const selectedCount = this.filteredDealerOptions.filter(opt => this.selectedOutlet.includes(opt?.name)).length;
+    return selectedCount > 0 && selectedCount < this.filteredDealerOptions.length;
+  }
+
+// ✅ Toggle all on/off
+  toggleSelectAll(checked: boolean): void {
+    if (checked) {
+      this.selectedOutlet = this.filteredDealerOptions.map(opt => opt?.name);
+    } else {
+      this.selectedOutlet = [];
+    }
+  }
+
 
 }

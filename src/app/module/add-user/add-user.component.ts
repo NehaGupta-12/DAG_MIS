@@ -10,7 +10,7 @@ import {
 import {MatInputModule} from "@angular/material/input";
 import { MatCheckboxModule} from "@angular/material/checkbox";
 import { MatIconModule} from "@angular/material/icon";
-import { MatSelectModule} from "@angular/material/select";
+import {MatSelect, MatSelectModule} from "@angular/material/select";
 import { MatOptionModule} from "@angular/material/core";
 import { MatButtonModule} from "@angular/material/button";
 import {MatFormFieldModule} from "@angular/material/form-field";
@@ -73,6 +73,10 @@ export class AddUserComponent implements OnInit{
   @ViewChild('roleSearchInput') roleSearchInput!: ElementRef;
   @ViewChild('deptSearchInput') deptSearchInput!: ElementRef;
   @ViewChild('countrySearchInput') countrySearchInput!: ElementRef;
+  @ViewChild('countrySelect') countrySelect!: MatSelect;
+  // @ViewChild('countrySearchInput') countrySearchInput!: ElementRef;
+  @ViewChild('deptSelect') deptSelect!: MatSelect;
+  // @ViewChild('deptSearchInput') deptSearchInput!: ElementRef;
   _roles: string[] = [];
   filteredRoles: string[] = [];
   roleSearchText: string = '';
@@ -198,14 +202,34 @@ export class AddUserComponent implements OnInit{
     }
   }
 
-// --- Department Methods ---
-  filterDepartments() {
-    if (!this.deptSearchText) {
-      this.filteredDepartments = [...this._departments];
+  onDeptSelectOpened(isOpened: boolean) {
+    if (isOpened) {
+      // ✅ Reset search text & filtered list
+      this.deptSearchText = '';
+      this.filterDepartments();
+
+      // ✅ Clear input box visually
+      if (this.deptSearchInput) {
+        this.deptSearchInput.nativeElement.value = '';
+        setTimeout(() => this.deptSearchInput.nativeElement.focus(), 0);
+      }
     } else {
-      this.filteredDepartments = this._departments.filter(dept =>
-        dept.toLowerCase().includes(this.deptSearchText.toLowerCase())
-      );
+      // Dropdown close, reset search & filtered list
+      this.deptSearchText = '';
+      this.filterDepartments();
+
+      // ✅ Clear invalid selection if any
+      const currentValue = this.register?.get('department')?.value;
+      if (!this._departments.includes(currentValue)) {
+        this.register?.get('department')?.setValue(null);
+      }
+
+      // ✅ Force panel close if stuck
+      setTimeout(() => {
+        if (this.deptSelect.panelOpen) {
+          this.deptSelect.close();
+        }
+      }, 0);
     }
   }
 
@@ -217,12 +241,54 @@ export class AddUserComponent implements OnInit{
     }, 300);
   }
 
-  onDeptSelectOpened(isOpened: boolean) {
-    if (isOpened) {
-      this.deptSearchText = '';
-      this.filterDepartments();
-      setTimeout(() => this.deptSearchInput?.nativeElement.focus(), 0);
+  filterDepartments() {
+    if (!this.deptSearchText) {
+      this.filteredDepartments = [...this._departments];
+    } else {
+      const search = this.deptSearchText.toLowerCase();
+      this.filteredDepartments = this._departments.filter(dept =>
+        dept.toLowerCase().includes(search)
+      );
     }
+  }
+
+  onCountrySelectOpened(isOpened: boolean) {
+    if (isOpened) {
+      // ✅ Reset previous search text and filtered list
+      this.countrySearchText = '';
+      this.filterCountries();
+
+      // ✅ Clear the input box visually
+      if (this.countrySearchInput) {
+        this.countrySearchInput.nativeElement.value = '';
+        setTimeout(() => this.countrySearchInput.nativeElement.focus(), 0);
+      }
+    } else {
+      // Dropdown close, reset search and filtered list
+      this.countrySearchText = '';
+      this.filterCountries();
+
+      // ✅ If selected value is invalid, clear it
+      const currentValue = this.register?.get('country')?.value;
+      if (!this._countries.includes(currentValue)) {
+        this.register?.get('country')?.setValue(null);
+      }
+
+      // ✅ Force close panel if mat-select is stuck
+      setTimeout(() => {
+        if (this.countrySelect.panelOpen) {
+          this.countrySelect.close();
+        }
+      }, 0);
+    }
+  }
+
+  onCountrySearchChange(event: any) {
+    clearTimeout(this.debounceTimer);
+    this.debounceTimer = setTimeout(() => {
+      this.countrySearchText = event.target.value;
+      this.filterCountries();
+    }, 300);
   }
 
   filterCountries() {
@@ -233,29 +299,10 @@ export class AddUserComponent implements OnInit{
     if (!this.countrySearchText) {
       this.filteredCountries = sortedCountries;
     } else {
-      this.filteredCountries = sortedCountries.filter(country =>
-        country.toLowerCase().includes(this.countrySearchText.toLowerCase())
+      const search = this.countrySearchText.toLowerCase();
+      this.filteredCountries = sortedCountries.filter(c =>
+        c.toLowerCase().includes(search)
       );
-    }
-  }
-
-// Handles the search input with debouncing
-  onCountrySearchChange(event: any) {
-    clearTimeout(this.debounceTimer);
-    this.debounceTimer = setTimeout(() => {
-      this.countrySearchText = event.target.value;
-      this.filterCountries();
-    }, 300); // Adjust the delay as needed
-  }
-
-// Resets the search when the dropdown is opened
-  onCountrySelectOpened(isOpened: boolean) {
-    if (isOpened && this.countrySearchInput) {
-      this.countrySearchText = ''; // Clear search text
-      this.filterCountries(); // Reset the filtered list
-      setTimeout(() => {
-        this.countrySearchInput?.nativeElement.focus();
-      }, 0);
     }
   }
 

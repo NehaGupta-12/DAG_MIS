@@ -53,6 +53,8 @@ export class AddRoleComponent implements OnInit {
   isEditMode = false;
   _roles$!: Observable<string[]>;
   @ViewChild('roleSearchInput') roleSearchInput!: ElementRef;
+  @ViewChild('roleSelect') roleSelect!: MatSelect;
+  // @ViewChild('roleSearchInput') roleSearchInput!: ElementRef;
 
   _roles: string[] = [];
   filteredRoles: string[] = [];
@@ -132,11 +134,17 @@ export class AddRoleComponent implements OnInit {
     });
   }
 
-  // Add these methods to your component class
   filterRoles() {
-    const searchText = this.roleSearchText.toLowerCase();
-    this.filteredRoles = this._roles.filter(role => role.toLowerCase().includes(searchText));
+    if (!this.roleSearchText) {
+      this.filteredRoles = [...this._roles]; // reset all
+    } else {
+      const search = this.roleSearchText.toLowerCase();
+      this.filteredRoles = this._roles.filter(role =>
+        role.toLowerCase().includes(search)
+      );
+    }
   }
+
 
   onRoleSearchChange(event: any) {
     clearTimeout(this.debounceTimer);
@@ -148,13 +156,38 @@ export class AddRoleComponent implements OnInit {
 
   onRoleSelectOpened(isOpened: boolean) {
     if (isOpened) {
+      // ✅ Reset search text
       this.roleSearchText = '';
       this.filterRoles();
+
+      // ✅ Clear input box manually
+      if (this.roleSearchInput) {
+        this.roleSearchInput.nativeElement.value = '';
+        setTimeout(() => {
+          this.roleSearchInput.nativeElement.focus();
+        }, 0);
+      }
+    } else {
+      // Dropdown close logic
+      this.roleSearchText = '';
+      this.filterRoles();
+
+      const currentValue = this.role_form.get('roleName')?.value;
+      if (!this._roles.includes(currentValue)) {
+        this.role_form.get('roleName')?.setValue(null);
+      }
+
+      // Force close panel if stuck
       setTimeout(() => {
-        this.roleSearchInput.nativeElement.focus();
+        if (this.roleSelect.panelOpen) {
+          this.roleSelect.close();
+        }
       }, 0);
     }
   }
+
+
+
 
   get permissionsArray(): FormArray {
     return this.role_form.get('permissions') as FormArray;

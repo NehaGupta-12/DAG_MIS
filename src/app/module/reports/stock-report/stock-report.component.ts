@@ -348,95 +348,71 @@ export class StockReportComponent implements OnInit{
     });
   }
 
-  getDateRanges(currentDate: Date) {
-    // Start of month
-    const monthStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+  getDateRanges(selectedStart?: Date, selectedEnd?: Date) {
+    const startDate = selectedStart ? new Date(selectedStart) : new Date();
+    const endDate = selectedEnd ? new Date(selectedEnd) : new Date();
 
-    // Start of financial year (1st April)
-    const fyStart = currentDate.getMonth() >= 3
-      ? new Date(currentDate.getFullYear(), 3, 1)   // If Apr-Dec
-      : new Date(currentDate.getFullYear() - 1, 3, 1); // If Jan-Mar
+    startDate.setHours(0, 0, 0, 0);
+    endDate.setHours(23, 59, 59, 999);
 
-    return { monthStart, fyStart };
+    return { startDate, endDate };
   }
 
+  private normalizeDate(item: any): Date {
+    let itemDate: Date;
 
-  generateReport(filteredData: any[], reportDate: Date) {
-    const { monthStart, fyStart } = this.getDateRanges(reportDate);
+    if (item.salesDate) {
+      itemDate = new Date(item.salesDate);
+    } else if (item.stockDate) {
+      itemDate = new Date(item.stockDate); // ✅ Fix for GRN
+    } else if (item.createdAt?.seconds) {
+      itemDate = new Date(item.createdAt.seconds * 1000);
+    } else {
+      itemDate = new Date(item.createdAt);
+    }
+
+    itemDate.setHours(0, 0, 0, 0); // normalize to midnight
+    return itemDate;
+  }
+
+  generateReport(filteredData: any[], start?: Date, end?: Date) {
+    const { startDate, endDate } = this.getDateRanges(start, end);
     const report: any = {};
 
     filteredData.forEach(item => {
-      const product = item.name;   // 🔹 Match strictly by product name
+      const product = item.name;
       const qty = Number(item.quantity) || 0;
+      const itemDate = this.normalizeDate(item);
 
-      // Handle Firestore timestamp
-      const itemDate = item.salesDate
-        ? new Date(item.salesDate)
-        : (item.createdAt?.seconds ? new Date(item.createdAt.seconds * 1000) : new Date(item.createdAt));
+      if (!report[product]) report[product] = { YTD: 0, Month: 0, Day: 0 };
 
-      if (!report[product]) {
-        report[product] = { YTD: 0, Month: 0, Day: 0 };
-      }
-
-      // YTD
-      if (itemDate >= fyStart && itemDate <= reportDate) {
-        report[product].YTD += qty;
-      }
-
-      // Month
-      if (itemDate >= monthStart && itemDate <= reportDate) {
-        report[product].Month += qty;
-      }
-
-      // Day
-      if (
-        itemDate.getFullYear() === reportDate.getFullYear() &&
-        itemDate.getMonth() === reportDate.getMonth() &&
-        itemDate.getDate() === reportDate.getDate()
-      ) {
+      if (itemDate >= startDate && itemDate <= endDate) {
         report[product].Day += qty;
+        report[product].Month += qty;
+        report[product].YTD += qty;
       }
     });
 
     return report;
   }
 
-
-
-  // Filter options logic
-  filterOptions(field: string, value: string) {
-    const searchTerm = value?.toLowerCase() || '';
-    const matched = this.options[field].filter((item: string) =>
-      item.toLowerCase().includes(searchTerm)
-    );
-    this.filteredOptions[field] = [...matched];
-  }
-
-
-
-
-
   onSubmit() {
-    // Start loader
     this.loadingService.setLoading(true);
 
     try {
       const filters = this.dealerForm.value;
-      const startDate = filters.period?.start ? new Date(filters.period.start) : null;
-      const endDate = filters.period?.end ? new Date(filters.period.end) : new Date();
+
+      const startDate = filters.period?.start ? new Date(filters.period.start) : undefined;
+      const endDate = filters.period?.end ? new Date(filters.period.end) : undefined;
 
       if (startDate) startDate.setHours(0, 0, 0, 0);
       if (endDate) endDate.setHours(23, 59, 59, 999);
 
       const outlets = Array.isArray(filters.name) ? filters.name : (filters.name ? [filters.name] : []);
-
       this.allOutletReports = [];
 
-      // Always fetch data (no disable)
       const filterFn = (item: any, outlet: string | null = null) => {
-        const itemDate = item.salesDate
-          ? new Date(item.salesDate)
-          : (item.createdAt?.seconds ? new Date(item.createdAt.seconds * 1000) : new Date(item.createdAt));
+        const itemDate = this.normalizeDate(item);
 
         return (
           (!filters.country || item.country === filters.country) &&
@@ -448,42 +424,44 @@ export class StockReportComponent implements OnInit{
         );
       };
 
-      // Case 1: No outlet selected → show merged report
       if (outlets.length === 0) {
         const filtered = this.salesdataSource.filter(item => filterFn(item));
-        const report = this.generateReport(filtered, endDate);
+        const report = this.generateReport(filtered, startDate, endDate);
 
         const tempRows = this.buildRows(report);
-
-        // Group + totals
         const grouped = this.groupAndColorRows(tempRows);
 
-        this.allOutletReports.push({
-          outlet: 'All Outlets',
-          rows: grouped
-        });
+        this.allOutletReports.push({ outlet: 'All Outlets', rows: grouped });
 
       } else {
-        // Case 2: One or more outlets selected
         outlets.forEach((outlet: string) => {
           const filtered = this.salesdataSource.filter(item => filterFn(item, outlet));
-          const report = this.generateReport(filtered, endDate);
+          const report = this.generateReport(filtered, startDate, endDate);
 
           const tempRows = this.buildRows(report);
           const grouped = this.groupAndColorRows(tempRows);
 
-          this.allOutletReports.push({
-            outlet,
-            rows: grouped
-          });
+          this.allOutletReports.push({ outlet, rows: grouped });
         });
 
         this.selectedCountry = filters.country || '';
       }
     } finally {
-      // Stop loader
       this.loadingService.setLoading(false);
     }
+  }
+
+
+
+
+
+  // Filter options logic
+  filterOptions(field: string, value: string) {
+    const searchTerm = value?.toLowerCase() || '';
+    const matched = this.options[field].filter((item: string) =>
+      item.toLowerCase().includes(searchTerm)
+    );
+    this.filteredOptions[field] = [...matched];
   }
 
 // ✅ Helper to build rows
@@ -644,7 +622,7 @@ export class StockReportComponent implements OnInit{
       currentRow++;
 
       // 🔹 Data rows
-      worksheet.addRow(['Sales for the day', ...report.rows.map(p => p.Day)]); currentRow++;
+      worksheet.addRow(['Stock for the day', ...report.rows.map(p => p.Day)]); currentRow++;
       worksheet.addRow(['Cumulative for the month', ...report.rows.map(p => p.Month)]); currentRow++;
       worksheet.addRow(['YTD', ...report.rows.map(p => p.YTD)]); currentRow++;
 
