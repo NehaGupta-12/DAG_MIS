@@ -8,6 +8,7 @@ export interface UserDataModel {
   mobile?: string;
   address?: string;
   allowedOutlet?: string;
+  allowedCountries?: any;
   city?: string;
   state?: string;
   country?: string;

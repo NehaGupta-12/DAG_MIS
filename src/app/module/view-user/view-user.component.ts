@@ -14,37 +14,42 @@ import {AngularFireDatabase} from "@angular/fire/compat/database";
 import Swal from "sweetalert2";
 import {AddDealerService} from "../add-dealer.service";
 import {FormsModule, ReactiveFormsModule} from "@angular/forms";
+import {MatCheckbox} from "@angular/material/checkbox";
+import {MatIcon} from "@angular/material/icon";
 
 @Component({
   selector: 'app-view-user',
   templateUrl: './view-user.component.html',
   styleUrls: ['./view-user.component.scss'],
   standalone: true,
-  imports: [
-    MatDividerModule,
-    MatTableModule,
-    MatButton,
-    RouterLink,
-    MatFormField,
-    MatLabel,
-    MatSelect,
-    MatOption,
-    NgForOf,
-    AsyncPipe,
-    CommonModule,
-    NgIf,
-    MatSelectModule,
-    MatInput,
-    FormsModule,
-    ReactiveFormsModule
+    imports: [
+        MatDividerModule,
+        MatTableModule,
+        MatButton,
+        RouterLink,
+        MatFormField,
+        MatLabel,
+        MatSelect,
+        MatOption,
+        NgForOf,
+        AsyncPipe,
+        CommonModule,
+        NgIf,
+        MatSelectModule,
+        MatInput,
+        FormsModule,
+        ReactiveFormsModule,
+        MatCheckbox,
+        MatIcon
 
-  ]
+    ]
 })
 export class ViewUserComponent implements OnInit {
   userId: string | null = null;
   userData: any = null;
   selectedRole: string | null = null;
   selectedOutlet: any[] = [];
+  selectCountries: any[] = [];
   displayedColumns: string[] = ['address', 'city', 'country', 'department', 'email', 'mobileNumber'];
   _roles$!: Observable<string[]>;
   _departments$!: Observable<any[]>;
@@ -53,6 +58,7 @@ export class ViewUserComponent implements OnInit {
   roles: string[] = ['Admin', 'Manager', 'Sales Executive', 'Billing Executive'];
   outlets: string[] = ['Outlet 1', 'Outlet 2', 'Outlet 3'];
   @ViewChild('dealerSearchInput') dealerSearchInput!: ElementRef;
+  @ViewChild('countrySearchInput') countrySearchInput!: ElementRef;
   // ✅ Add these
   leftData: { field: string; value: string }[] = [];
   rightData: { field: string; value: string }[] = [];
@@ -60,7 +66,9 @@ export class ViewUserComponent implements OnInit {
   // selectedOutlet: string[] = [];
   filteredDealerOptions: any[] = [];
   debounceTimer:any;
-
+  _countries: string[] = [];
+  filteredCountries: string[] = [];
+  countrySearchText: string = '';
 
   constructor(private userService: UserService,
               private injector: EnvironmentInjector,
@@ -83,6 +91,16 @@ export class ViewUserComponent implements OnInit {
           return depts;
         })
       );
+    this._country$ = this.mDatabase
+      .object<{ subcategories: any[] }>('/typelist/Countries')
+      .valueChanges()
+      .pipe(map(data => data?.subcategories || []));
+
+
+    this._country$.subscribe(countries => {
+      this._countries = countries;
+      this.filterCountries(); // You already have this
+    });
   }
 
   ngOnInit(): void {
@@ -94,9 +112,8 @@ export class ViewUserComponent implements OnInit {
           if (user) {
             this.userData = user;
 
-            this.selectedOutlet = user.allowedOutlet
-              ? Object.values(user.allowedOutlet)  // ["Vehicles SR Retail Customer - KAGBELEN", "Vehicles SR Retail Customer - SOS-T7"]
-              : [];
+            this.selectedOutlet = user.allowedOutlet ? Object.values(user.allowedOutlet) : [];
+            this.selectCountries = user.allowedCountries ? Object.values(user?.allowedCountries) : [];
 
             this.selectedRole = user.role || null;
 
@@ -124,7 +141,37 @@ export class ViewUserComponent implements OnInit {
       });
     }
   }
+// Handles the search input with debouncing
+  onCountrySearchChange(event: any) {
+    clearTimeout(this.debounceTimer);
+    this.debounceTimer = setTimeout(() => {
+      this.countrySearchText = event.target.value;
+      this.filterCountries();
+    }, 300); // Adjust the delay as needed
+  }
+  // Resets the search when the dropdown is opened
+  onCountrySelectOpened(isOpened: boolean) {
+    if (isOpened && this.countrySearchInput) {
+      this.countrySearchText = ''; // Clear search text
+      this.filterCountries(); // Reset the filtered list
+      setTimeout(() => {
+        this.countrySearchInput?.nativeElement.focus();
+      }, 0);
+    }
+  }
+  filterCountries() {
+    const sortedCountries = [...this._countries].sort((a, b) =>
+      a.trim().toLowerCase().localeCompare(b.trim().toLowerCase())
+    );
 
+    if (!this.countrySearchText) {
+      this.filteredCountries = sortedCountries;
+    } else {
+      this.filteredCountries = sortedCountries.filter(country =>
+        country.toLowerCase().includes(this.countrySearchText.toLowerCase())
+      );
+    }
+  }
   DealerList() {
     runInInjectionContext(this.injector, () => {
       this.addDealerService.getDealerList().subscribe((data: any) => {
@@ -162,10 +209,8 @@ export class ViewUserComponent implements OnInit {
       const updatedData = {
         ...this.userData,
         role: this.selectedRole,
-        allowedOutlet: this.selectedOutlet.reduce((acc, outlet, i) => {
-          acc[i] = outlet;
-          return acc;
-        }, {} as any)
+        allowedOutlet: this.selectedOutlet.reduce((acc, outlet, i) => {acc[i] = outlet;return acc;}, {} as any),
+        allowedCountries: this.selectCountries.reduce((acc, country, i) => {acc[i] = country;return acc;}, {} as any)
       };
 
       this.userService.updateUser(this.userId, updatedData).then(() => {

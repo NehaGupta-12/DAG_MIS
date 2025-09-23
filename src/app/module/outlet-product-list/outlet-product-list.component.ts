@@ -24,6 +24,7 @@ import {AuthService} from "../../authentication/auth.service";
 import {MatFormField, MatInput, MatLabel} from "@angular/material/input";
 import {MatOption, MatSelect} from "@angular/material/select";
 import {AddDealerService} from "../add-dealer.service";
+import {UserDataModel} from "../add-user/UserData.model";
 
 @Component({
   selector: 'app-outlet-product-list',
@@ -59,7 +60,7 @@ export class OutletProductListComponent implements OnInit {
 
 
   dataSource = new MatTableDataSource<any>();
-
+  userData!: UserDataModel;
   filteredDealers: any[] = [];
   dealerSearchText: string = '';
   debounceTimer: any;
@@ -108,6 +109,8 @@ export class OutletProductListComponent implements OnInit {
   ngOnInit() {
     this.loadOutletProduct();
     this.DealerList();
+    this.userData = JSON.parse(localStorage.getItem('userData')!) as UserDataModel;
+    console.log(this.userData)
   }
 
 // ✅ Load Outlet Product with loader
@@ -264,4 +267,7 @@ export class OutletProductListComponent implements OnInit {
       .reduce((acc: number, val: number) => acc + val, 0);
   }
 
+  onSelectDealerChange(e:any) {
+
+  }
 }

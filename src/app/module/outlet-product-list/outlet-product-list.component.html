@@ -2,12 +2,13 @@
   <div class="container-fluid">
 
     <div class="d-flex justify-content-start mb-2">
-      <mat-form-field appearance="outline" class="compact-select">
+      <mat-form-field appearance="outline" class="compact-select col-md-6">
         <mat-label>Filter by Outlet</mat-label>
         <mat-select
           #dealerSelect
           panelClass="custom-select-panel"
           (openedChange)="onDealerSelectOpened($event)"
+          (selectionChange)="onSelectDealerChange($event)"
          >
 
           <div class="mat-select-search">

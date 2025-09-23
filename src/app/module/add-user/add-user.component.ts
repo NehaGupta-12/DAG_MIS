@@ -156,7 +156,8 @@ export class AddUserComponent implements OnInit{
             city: user.city || '',
             role: user.role || '',
             department: user.department || '',
-            allowedOutlet: user.allowedOutlet || [],  // ✅ outlets multi-select
+            allowedOutlet: user.allowedOutlet || [],
+            allowedCountries: user?.allowedCountries || [],
             state: user.state || '',
             country: user.country || '',
             termcondition: user.termcondition || false,
@@ -273,6 +274,7 @@ export class AddUserComponent implements OnInit{
       role: ['', [Validators.required]],
       userCode: ['', [Validators.required]],
       allowedOutlet: [[]],
+      allowedCountries: [[]],
       department: ['', [Validators.required]],
       termcondition: [false, [Validators.requiredTrue]],
     });
