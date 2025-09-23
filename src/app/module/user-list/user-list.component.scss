@@ -27,3 +27,16 @@
   font-weight: 600;
   text-align: center;
 }
+.btn-large-icon {
+  width: 55px;
+  height: 60px;
+  font-size: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+}
+.btn-large-icon mat-icon {
+  font-size: 30px;
+  margin-right: 2rem;
+}

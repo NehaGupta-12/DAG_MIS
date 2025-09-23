@@ -242,11 +242,13 @@ export class MainComponent implements OnInit {
         // ... (your existing recalculation logic) ...
 
         // 🔹 Recalculate sales summaries
+        // 🔹 Recalculate sales summaries
         this.totalSalesQuantity = filteredData.reduce((sum, item) => sum + item.quantity, 0);
         this.calculateDailySales(filteredData);
-        this.calculateMonthlySales(filteredData);
+        this.calculateLast12MonthsSales(filteredData); // fill monthlyChartData first
+        this.calculateMonthlySalesFromChart(); // update info box
         this.calculateFiscalYearSales(filteredData);
-        this.calculateLast12MonthsSales(filteredData);
+
 
         // 🔹 Update charts
         this.chart1();
@@ -262,6 +264,28 @@ export class MainComponent implements OnInit {
       });
     });
   }
+
+  calculateMonthlySalesFromChart() {
+    const lastIndex = this.monthlyChartData.length - 1;
+    const secondLastIndex = this.monthlyChartData.length - 2;
+
+    this.currentMonthSales = this.monthlyChartData[lastIndex] || 0;
+    const lastMonthSales = this.monthlyChartData[secondLastIndex] || 0;
+
+    this.monthlySales = this.currentMonthSales; // ✅ info box value
+
+    if (lastMonthSales === 0) {
+      this.monthlyPercentage = this.currentMonthSales > 0
+        ? '100% Higher Than Last Month'
+        : 'No sales last month';
+    } else {
+      const percentage = ((this.currentMonthSales - lastMonthSales) / lastMonthSales) * 100;
+      this.monthlyPercentage = `${Math.abs(percentage).toFixed(0)}% ${percentage >= 0 ? 'Higher' : 'Lower'} Than Last Month`;
+    }
+
+    console.log(`Info Box → Monthly Sales: ${this.monthlySales}, Percentage: ${this.monthlyPercentage}`);
+  }
+
 
 
   DealerList() {
@@ -373,48 +397,30 @@ export class MainComponent implements OnInit {
 
 
   calculateMonthlySales(data: any[]) {
-    const now = new Date();
+    // First, update last 12 months data
+    this.calculateLast12MonthsSales(data);
 
-    // Current month range
-    const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-    const currentMonthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    // Set current month and last month sales from monthlyChartData
+    const lastIndex = this.monthlyChartData.length - 1;
+    const secondLastIndex = this.monthlyChartData.length - 2;
 
-    // Last month range
-    const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-    const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
-
-    let currentMonthQuantity = 0;
-    let lastMonthQuantity = 0;
-
-    data.forEach(item => {
-      const itemDate = this.getItemDate(item);
-
-      // ✅ Current month check
-      if (itemDate >= currentMonthStart && itemDate <= currentMonthEnd) {
-        currentMonthQuantity += item.quantity;
-      }
-      // ✅ Last month check
-      else if (itemDate >= lastMonthStart && itemDate <= lastMonthEnd) {
-        lastMonthQuantity += item.quantity;
-      }
-    });
-
-    // Save in component variables
-    this.currentMonthSales = currentMonthQuantity;
-    this.lastMonthSales = lastMonthQuantity;
+    this.currentMonthSales = this.monthlyChartData[lastIndex] || 0;
+    const lastMonthSales = this.monthlyChartData[secondLastIndex] || 0;
 
     // Calculate percentage difference
-    if (lastMonthQuantity === 0) {
-      this.monthlyPercentage = currentMonthQuantity > 0
+    if (lastMonthSales === 0) {
+      this.monthlyPercentage = this.currentMonthSales > 0
         ? '100% Higher Than Last Month'
         : 'No sales last month';
     } else {
-      const percentage = ((currentMonthQuantity - lastMonthQuantity) / lastMonthQuantity) * 100;
+      const percentage = ((this.currentMonthSales - lastMonthSales) / lastMonthSales) * 100;
       this.monthlyPercentage = `${Math.abs(percentage).toFixed(0)}% ${percentage >= 0 ? 'Higher' : 'Lower'} Than Last Month`;
     }
 
-    console.log(`Current Month: ${this.currentMonthSales}, Last Month: ${this.lastMonthSales}`);
+    console.log(`Dashboard Monthly Sales: ${this.currentMonthSales}, Last Month: ${lastMonthSales}`);
   }
+
+
 
 
 
