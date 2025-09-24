@@ -8,7 +8,7 @@
         <div class="left">
           <ul class="header-buttons-left">
             <li class="tbl-title">
-              <h2 class="fs-4">Stock Report</h2>
+              <h2 class="fs-4">Stock Reoprt</h2>
             </li>
           </ul>
         </div>
@@ -23,18 +23,14 @@
             <mat-label>Select Country</mat-label>
             <mat-select formControlName="country" (openedChange)="onCountrySelectOpened($event)">
               <div class="mat-select-search" (click)="$event.stopPropagation()">
-                <input
-                  matInput
-                  #countrySearchInput
-                  placeholder="Search Country"
-                  (input)="filterCountry(countrySearchInput.value)" />
+                <input matInput #countrySearchInput placeholder="Search Country"
+                       (input)="filterCountry(countrySearchInput.value)" />
               </div>
               <mat-option *ngFor="let country of filteredOptions.country" [value]="country">
                 {{ country }}
               </mat-option>
             </mat-select>
           </mat-form-field>
-
         </div>
 
         <!-- DIVISION -->
