@@ -180,11 +180,8 @@ export class AddDealerComponent implements OnInit{
   // --- Outlet Type Methods ---
   filterOutletTypes() {
     const searchText = this.outletTypeSearchText.toLowerCase();
-    this.filteredOutletTypes = this._outletTypes.filter(type =>
-      type.toLowerCase().includes(searchText)
-    );
+    this.filteredOutletTypes = this._outletTypes.filter(type => type.toLowerCase().includes(searchText));
   }
-
   onOutletTypeSearchChange(event: any) {
     clearTimeout(this.debounceTimer);
     this.debounceTimer = setTimeout(() => {
@@ -192,30 +189,19 @@ export class AddDealerComponent implements OnInit{
       this.filterOutletTypes();
     }, 300);
   }
-
   onOutletTypeSelectOpened(isOpened: boolean) {
     if (isOpened) {
       this.outletTypeSearchText = '';
       this.filterOutletTypes();
-      setTimeout(() => this.outletTypeSearchInput.nativeElement.value = '', 0); // ✅ reset box
       setTimeout(() => this.outletTypeSearchInput.nativeElement.focus(), 0);
-    } else {
-      this.outletTypeSearchText = '';
-      this.filteredOutletTypes = [...this._outletTypes];
-      if (this.outletTypeSearchInput) {
-        this.outletTypeSearchInput.nativeElement.value = ''; // ✅ clear input when closing
-      }
     }
   }
 
 // --- Division Methods ---
   filterDivisionTypes() {
     const searchText = this.divisionSearchText.toLowerCase();
-    this.filteredDivisionTypes = this._divisionTypes.filter(type =>
-      type.toLowerCase().includes(searchText)
-    );
+    this.filteredDivisionTypes = this._divisionTypes.filter(type => type.toLowerCase().includes(searchText));
   }
-
   onDivisionSearchChange(event: any) {
     clearTimeout(this.debounceTimer);
     this.debounceTimer = setTimeout(() => {
@@ -223,30 +209,19 @@ export class AddDealerComponent implements OnInit{
       this.filterDivisionTypes();
     }, 300);
   }
-
   onDivisionSelectOpened(isOpened: boolean) {
     if (isOpened) {
       this.divisionSearchText = '';
       this.filterDivisionTypes();
-      setTimeout(() => this.divisionSearchInput.nativeElement.value = '', 0);
       setTimeout(() => this.divisionSearchInput.nativeElement.focus(), 0);
-    } else {
-      this.divisionSearchText = '';
-      this.filteredDivisionTypes = [...this._divisionTypes];
-      if (this.divisionSearchInput) {
-        this.divisionSearchInput.nativeElement.value = '';
-      }
     }
   }
 
 // --- Country Methods ---
   filterCountries() {
     const searchText = this.countrySearchText.toLowerCase();
-    this.filteredCountries = this._countriesTypes.filter(country =>
-      country.toLowerCase().includes(searchText)
-    );
+    this.filteredCountries = this._countriesTypes.filter(country => country.toLowerCase().includes(searchText));
   }
-
   onCountrySearchChange(event: any) {
     clearTimeout(this.debounceTimer);
     this.debounceTimer = setTimeout(() => {
@@ -254,30 +229,19 @@ export class AddDealerComponent implements OnInit{
       this.filterCountries();
     }, 300);
   }
-
   onCountrySelectOpened(isOpened: boolean) {
     if (isOpened) {
       this.countrySearchText = '';
       this.filterCountries();
-      setTimeout(() => this.countrySearchInput.nativeElement.value = '', 0);
       setTimeout(() => this.countrySearchInput.nativeElement.focus(), 0);
-    } else {
-      this.countrySearchText = '';
-      this.filteredCountries = [...this._countriesTypes];
-      if (this.countrySearchInput) {
-        this.countrySearchInput.nativeElement.value = '';
-      }
     }
   }
 
 // --- Town Methods ---
   filterTownTypes() {
     const searchText = this.townSearchText.toLowerCase();
-    this.filteredTownTypes = this._townTypes.filter(town =>
-      town.toLowerCase().includes(searchText)
-    );
+    this.filteredTownTypes = this._townTypes.filter(town => town.toLowerCase().includes(searchText));
   }
-
   onTownSearchChange(event: any) {
     clearTimeout(this.debounceTimer);
     this.debounceTimer = setTimeout(() => {
@@ -285,22 +249,13 @@ export class AddDealerComponent implements OnInit{
       this.filterTownTypes();
     }, 300);
   }
-
   onTownSelectOpened(isOpened: boolean) {
     if (isOpened) {
       this.townSearchText = '';
       this.filterTownTypes();
-      setTimeout(() => this.townSearchInput.nativeElement.value = '', 0);
       setTimeout(() => this.townSearchInput.nativeElement.focus(), 0);
-    } else {
-      this.townSearchText = '';
-      this.filteredTownTypes = [...this._townTypes];
-      if (this.townSearchInput) {
-        this.townSearchInput.nativeElement.value = '';
-      }
     }
   }
-
 
   submitForm() {
     if (this.dealerForm.valid) {

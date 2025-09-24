@@ -194,6 +194,13 @@ export class DailySaleReportsComponent implements OnInit{
     this.DealerList();
     this.productList();
 
+    // 🔹 Filter subscription
+    // this.nameFilter.valueChanges.subscribe(val => this.filterOptions('name', val || ''));
+    // this.outletTypeFilter.valueChanges.subscribe(val => this.filterOptions('outletType', val || ''));
+    // this.categoryFilter.valueChanges.subscribe(val => this.filterOptions('category', val || ''));
+    // this.divisionFilter.valueChanges.subscribe(val => this.filterOptions('division', val || ''));
+    // this.countryFilter.valueChanges.subscribe(val => this.filterOptions('country', val || ''));
+    // this.townFilter.valueChanges.subscribe(val => this.filterOptions('town', val || ''));
 
     // 🔹 Hook filters to filtering logic
     this.nameFilter.valueChanges.subscribe(val => {
@@ -245,87 +252,79 @@ export class DailySaleReportsComponent implements OnInit{
     });
   }
 
-  // @ViewChild('countrySearchInput') countrySearchInput!: ElementRef;
-  // @ViewChild('divisionSearchInput') divisionSearchInput!: ElementRef;
-  // @ViewChild('townSearchInput') townSearchInput!: ElementRef;
-  // @ViewChild('outletSearchInput') outletSearchInput!: ElementRef;
-
-// --- COUNTRY ---
+  // Country
+  onCountrySearchChange(event: any) {
+    clearTimeout(this.debounceTimer);
+    this.debounceTimer = setTimeout(() => {
+      const searchText = event.target.value.toLowerCase();
+      this.filteredOptions.country = this.options.country.filter((c: string) =>
+        c.toLowerCase().includes(searchText)
+      );
+    }, 300);
+  }
   onCountrySelectOpened(isOpened: boolean) {
     if (isOpened) {
-      if (this.countrySearchInput) this.countrySearchInput.nativeElement.value = '';
       this.filteredOptions.country = [...this.options.country];
       setTimeout(() => this.countrySearchInput.nativeElement.focus(), 0);
     }
   }
-  filterCountry(value: string) {
-    const search = (value || '').toLowerCase();
-    this.filteredOptions.country = this.options.country.filter(c => c.toLowerCase().includes(search));
-  }
 
-// --- DIVISION ---
+// Division
+  onDivisionSearchChange(event: any) {
+    clearTimeout(this.debounceTimer);
+    this.debounceTimer = setTimeout(() => {
+      const searchText = event.target.value.toLowerCase();
+      this.filteredOptions.division = this.options.division.filter((d: string) =>
+        d.toLowerCase().includes(searchText)
+      );
+    }, 300);
+  }
   onDivisionSelectOpened(isOpened: boolean) {
     if (isOpened) {
-      if (this.divisionSearchInput) this.divisionSearchInput.nativeElement.value = '';
       this.filteredOptions.division = [...this.options.division];
       setTimeout(() => this.divisionSearchInput.nativeElement.focus(), 0);
     }
   }
-  filterDivision(value: string) {
-    const search = (value || '').toLowerCase();
-    this.filteredOptions.division = this.options.division.filter(d => d.toLowerCase().includes(search));
-  }
 
-// --- TOWN ---
+// Town
+  onTownSearchChange(event: any) {
+    clearTimeout(this.debounceTimer);
+    this.debounceTimer = setTimeout(() => {
+      const searchText = event.target.value.toLowerCase();
+      this.filteredOptions.town = this.options.town.filter((t: string) =>
+        t.toLowerCase().includes(searchText)
+      );
+    }, 300);
+  }
   onTownSelectOpened(isOpened: boolean) {
     if (isOpened) {
-      if (this.townSearchInput) this.townSearchInput.nativeElement.value = '';
       this.filteredOptions.town = [...this.options.town];
       setTimeout(() => this.townSearchInput.nativeElement.focus(), 0);
     }
   }
-  filterTown(value: string) {
-    const search = (value || '').toLowerCase();
-    this.filteredOptions.town = this.options.town.filter(t => t.toLowerCase().includes(search));
-  }
 
-// --- OUTLETS ---
+// Outlet(s)
+// search + debounce
+  onOutletSearchChange(event: any) {
+    clearTimeout(this.debounceTimer);
+    this.debounceTimer = setTimeout(() => {
+      const searchText = (event.target.value || '').toLowerCase();
+      this.filteredOptions.name = this.options.name.filter((o: string) =>
+        o.toLowerCase().includes(searchText)
+      );
+    }, 300);
+  }
+  // reset + focus when opened
   onOutletSelectOpened(isOpened: boolean) {
     if (isOpened) {
-      if (this.outletSearchInput) this.outletSearchInput.nativeElement.value = '';
       this.filteredOptions.name = [...this.options.name];
-      setTimeout(() => this.outletSearchInput.nativeElement.focus(), 0);
+      setTimeout(() => {
+        try {
+          this.outletSearchInput.nativeElement.focus();
+        } catch {}
+      }, 0);
     }
   }
-  filterOutlet(value: string) {
-    const search = (value || '').toLowerCase();
-    this.filteredOptions.name = this.options.name.filter(o => o.toLowerCase().includes(search));
-  }
-
-
-
-// // ----------------- OUTLET SELECT ALL -----------------
-//   toggleSelectAllProducts() {
-//     const selectedOutlets: string[] = this.dealerForm.get('name')?.value || [];
-//     const allOutlets: string[] = [...this.filteredOptions.name];
-//
-//     if (this.isAllProductsSelected()) {
-//       // unselect all
-//       this.dealerForm.get('name')?.setValue([]);
-//     } else {
-//       // select all
-//       this.dealerForm.get('name')?.setValue(allOutlets);
-//     }
-//   }
-
-  isAllProductsSelected(): boolean {
-    const selectedOutlets: string[] = this.dealerForm.get('name')?.value || [];
-    const allOutlets: string[] = [...this.filteredOptions.name];
-
-    return allOutlets.length > 0 && allOutlets.every(o => selectedOutlets.includes(o));
-  }
-
-
 
   productList() {
     runInInjectionContext(this.injector, () => {

@@ -4,28 +4,15 @@
     <div class="d-flex justify-content-start mb-2">
       <mat-form-field appearance="outline" class="compact-select">
         <mat-label>Filter by Outlet</mat-label>
-        <mat-select
-          (selectionChange)="onOutletChange($event.value)"
-          #dealerSelect
-          panelClass="custom-select-panel"
-          (openedChange)="onDealerSelectOpened($event)">
-
-          <!-- Search box -->
+        <mat-select (selectionChange)="onOutletChange($event.value)" #dealerSelect panelClass="custom-select-panel" (openedChange)="onDealerSelectOpened($event)">
           <div class="mat-select-search">
-            <input
-              matInput
-              (input)="onDealerSearchChange($event)"
-              #dealerSearchInput
-              placeholder="Search Outlet" />
+            <input matInput (input)="onDealerSearchChange($event)" #dealerSearchInput placeholder="Search Outlet" />
           </div>
-
-          <!-- Options -->
           <mat-option *ngFor="let dealer of filteredDealers" [value]="dealer.name">
             {{ dealer.name }}
           </mat-option>
         </mat-select>
       </mat-form-field>
-
     </div>
 
     <div class="row">

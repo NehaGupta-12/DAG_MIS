@@ -208,14 +208,10 @@ export class AddOutletProductComponent implements OnInit {
     });
   }
 
-  // ----------------- DEALERS -----------------
   filterDealers() {
     const searchText = this.dealerSearchText.toLowerCase();
-    this.filteredDealers = this.dealers.filter(dealer =>
-      dealer.name.toLowerCase().includes(searchText)
-    );
+    this.filteredDealers = this.dealers.filter(dealer => dealer.name.toLowerCase().includes(searchText));
   }
-
   onDealerSearchChange(event: any) {
     clearTimeout(this.debounceTimer);
     this.debounceTimer = setTimeout(() => {
@@ -223,32 +219,18 @@ export class AddOutletProductComponent implements OnInit {
       this.filterDealers();
     }, 300);
   }
-
   onDealerSelectOpened(isOpened: boolean) {
     if (isOpened) {
-      this.resetDealerSearch();
-      setTimeout(() => this.dealerSearchInput?.nativeElement.focus(), 0);
-    } else {
-      this.resetDealerSearch();
+      this.dealerSearchText = '';
+      this.filterDealers();
+      setTimeout(() => this.dealerSearchInput.nativeElement.focus(), 0);
     }
   }
 
-  private resetDealerSearch() {
-    this.dealerSearchText = '';
-    this.filteredDealers = [...this.dealers];
-    if (this.dealerSearchInput) {
-      this.dealerSearchInput.nativeElement.value = '';
-    }
-  }
-
-// ----------------- PRODUCTS -----------------
   filterProducts() {
     const searchText = this.productSearchText.toLowerCase();
-    this.filteredProducts = this._allProducts.filter(product =>
-      product.name.toLowerCase().includes(searchText)
-    );
+    this.filteredProducts = this._allProducts.filter(product => product.name.toLowerCase().includes(searchText));
   }
-
   onProductSearchChange(event: any) {
     clearTimeout(this.debounceTimer);
     this.debounceTimer = setTimeout(() => {
@@ -256,48 +238,13 @@ export class AddOutletProductComponent implements OnInit {
       this.filterProducts();
     }, 300);
   }
-
   onProductSelectOpened(isOpened: boolean) {
     if (isOpened) {
-      this.resetProductSearch();
-      setTimeout(() => this.productSearchInput?.nativeElement.focus(), 0);
-    } else {
-      this.resetProductSearch();
+      this.productSearchText = '';
+      this.filterProducts();
+      setTimeout(() => this.productSearchInput.nativeElement.focus(), 0);
     }
   }
-
-  private resetProductSearch() {
-    this.productSearchText = '';
-    this.filteredProducts = [...this._allProducts];
-    if (this.productSearchInput) {
-      this.productSearchInput.nativeElement.value = '';
-    }
-  }
-
-// ----------------- PRODUCTS SELECT ALL -----------------
-  toggleSelectAllProducts() {
-    const allProducts = this.filteredProducts.filter(p => !p.disabled);
-    const selectedProducts: any[] = this.grnForm.get('products')?.value || [];
-
-    if (this.isAllProductsSelected()) {
-      this.grnForm.get('products')?.setValue([]);
-    } else {
-      this.grnForm.get('products')?.setValue(allProducts);
-    }
-  }
-
-  isAllProductsSelected(): boolean {
-    const selectedProducts: any[] = this.grnForm.get('products')?.value || [];
-    const allEnabledProducts = this.filteredProducts.filter(p => !p.disabled);
-
-    return (
-      allEnabledProducts.length > 0 &&
-      allEnabledProducts.every(ap =>
-        selectedProducts.some(sp => sp.id === ap.id)
-      )
-    );
-  }
-
 
   filterProductsForOutlet(selectedOutlet: string) {
     const dealer = this.allDealers.find(
@@ -331,28 +278,28 @@ export class AddOutletProductComponent implements OnInit {
   }
 
 
-  // // ----------------- PRODUCTS -----------------
-  //
-  // toggleSelectAllProducts() {
-  //   const allProducts = this.filteredProducts.filter(p => !p.disabled);
-  //   const selectedProducts: any[] = this.grnForm.get('products')?.value || [];
-  //
-  //   if (this.isAllProductsSelected()) {
-  //     this.grnForm.get('products')?.setValue([]);
-  //   } else {
-  //     this.grnForm.get('products')?.setValue(allProducts);
-  //   }
-  // }
-  //
-  // isAllProductsSelected(): boolean {
-  //   const selectedProducts: any[] = this.grnForm.get('products')?.value || [];
-  //   const allEnabledProducts = this.filteredProducts.filter(p => !p.disabled);
-  //
-  //   return allEnabledProducts.length > 0 &&
-  //     allEnabledProducts.every(ap =>
-  //       selectedProducts.some(sp => sp.id === ap.id)
-  //     );
-  // }
+  // ----------------- PRODUCTS -----------------
+
+  toggleSelectAllProducts() {
+    const allProducts = this.filteredProducts.filter(p => !p.disabled);
+    const selectedProducts: any[] = this.grnForm.get('products')?.value || [];
+
+    if (this.isAllProductsSelected()) {
+      this.grnForm.get('products')?.setValue([]);
+    } else {
+      this.grnForm.get('products')?.setValue(allProducts);
+    }
+  }
+
+  isAllProductsSelected(): boolean {
+    const selectedProducts: any[] = this.grnForm.get('products')?.value || [];
+    const allEnabledProducts = this.filteredProducts.filter(p => !p.disabled);
+
+    return allEnabledProducts.length > 0 &&
+      allEnabledProducts.every(ap =>
+        selectedProducts.some(sp => sp.id === ap.id)
+      );
+  }
 
 
   isSubmitEnabled(): boolean {

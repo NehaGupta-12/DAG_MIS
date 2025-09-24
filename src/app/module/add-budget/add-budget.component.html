@@ -12,7 +12,6 @@
               <!-- Country / Year / Month -->
               <div class="row">
                 <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 mb-2">
-                  <!-- Country -->
                   <mat-form-field class="example-full-width" appearance="outline">
                     <mat-label>Select Country</mat-label>
                     <mat-select formControlName="country" required #countrySelect panelClass="custom-select-panel" (openedChange)="onCountrySelectOpened($event)">
@@ -26,7 +25,6 @@
                 </div>
 
                 <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 mb-2">
-                  <!-- Year -->
                   <mat-form-field class="example-full-width" appearance="outline">
                     <mat-label>Select Year</mat-label>
                     <mat-select formControlName="year" required #yearSelect panelClass="custom-select-panel" (openedChange)="onYearSelectOpened($event)">
@@ -40,14 +38,15 @@
                 </div>
 
                 <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 mb-2">
-                  <!-- Month -->
                   <mat-form-field class="example-full-width" appearance="outline">
                     <mat-label>Select Month</mat-label>
                     <mat-select formControlName="month" required #monthSelect panelClass="custom-select-panel" (openedChange)="onMonthSelectOpened($event)">
                       <div class="mat-select-search">
                         <input matInput (input)="onMonthSearchChange($event)" #monthSearchInput placeholder="Search Month" />
                       </div>
-                      <mat-option *ngFor="let month of filteredMonths" [value]="month" [disabled]="disabledMonths.includes(month)">
+                      <mat-option *ngFor="let month of filteredMonths"
+                                  [value]="month"
+                                  [disabled]="disabledMonths.includes(month)">
                         {{ month }}
                       </mat-option>
                     </mat-select>
@@ -71,14 +70,26 @@
               <!-- Products -->
               <div class="row">
                 <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 mb-2">
-                  <!-- Products -->
                   <mat-form-field class="example-full-width" appearance="outline">
                     <mat-label>Select Models</mat-label>
-                    <mat-select formControlName="products" multiple #outletSelect="matSelect" #productSelect panelClass="custom-select-panel" (openedChange)="onProductSelectOpened($event)">
+                    <mat-select
+                      formControlName="products"
+                      multiple
+                      #outletSelect="matSelect"
+                      #productSelect
+                      panelClass="custom-select-panel"
+                      (openedChange)="onProductSelectOpened($event)">
+
+                      <!-- 🔍 Search box -->
                       <div class="mat-select-search">
-                        <input matInput (input)="onProductSearchChange($event)" #productSearchInput placeholder="Search Products" />
+                        <input
+                          matInput
+                          (input)="onProductSearchChange($event)"
+                          #productSearchInput
+                          placeholder="Search Products" />
                       </div>
 
+                      <!-- Trigger display -->
                       <mat-select-trigger>
       <span *ngIf="outletSelect.value?.length; else noSelection">
         {{ outletSelect.value[0]?.name | slice:0:16 }}
@@ -87,20 +98,30 @@
           (+{{ outletSelect.value.length - 1 }} more)
         </span>
       </span>
-                        <ng-template #noSelection>Select...</ng-template>
+                        <ng-template #noSelection>
+                          Select...
+                        </ng-template>
                       </mat-select-trigger>
 
+                      <!-- Select All checkbox (outside mat-option) -->
                       <div class="px-2 py-1">
-                        <mat-checkbox [checked]="isAllProductsSelected()"
-                                      (click)="$event.stopPropagation()"
-                                      (change)="toggleSelectAllProducts()">
+                        <mat-checkbox
+                          [checked]="isAllProductsSelected()"
+                          (click)="$event.stopPropagation()"
+                          (change)="toggleSelectAllProducts()">
                           Select All
                         </mat-checkbox>
                       </div>
 
-                      <mat-option *ngFor="let product of filteredProducts" [value]="product">{{ product?.name }}</mat-option>
+                      <!-- ✅ Multi Select Options -->
+                      <mat-option *ngFor="let product of filteredProducts" [value]="product">
+                        {{ product?.name }}
+                      </mat-option>
                     </mat-select>
-                    <mat-error *ngIf="targetForm.get('products')?.hasError('required')">Products are required</mat-error>
+
+                    <mat-error *ngIf="targetForm.get('products')?.hasError('required')">
+                      Products are required
+                    </mat-error>
                   </mat-form-field>
 
                 </div>

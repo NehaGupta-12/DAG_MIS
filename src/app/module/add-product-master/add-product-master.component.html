@@ -1,6 +1,11 @@
 <section class="content d-flex justify-content-center align-items-center">
   <div class="content-block w-100" style="max-width: 800px;">
-
+    <!-- 🔙 Back Button (outside the card, top-left) -->
+<!--    <div class="mb-3">-->
+<!--      <button mat-stroked-button color="primary" (click)="goBack()">-->
+<!--        <mat-icon>arrow_back</mat-icon> Back-->
+<!--      </button>-->
+<!--    </div>-->
     <div class="row clearfix justify-content-center">
       <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12">
         <div class="card shadow">
@@ -34,28 +39,28 @@
                     }
                   </mat-form-field>
                 </div>
-
+<!--                <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 mb-2">-->
+<!--                  <mat-form-field class="example-full-width" appearance="outline">-->
+<!--                    <mat-label>Sku</mat-label>-->
+<!--                    <input matInput formControlName="sku">-->
+<!--&lt;!&ndash;                    <mat-icon class="material-icons-outlined color-icon p-3" matSuffix>face</mat-icon>&ndash;&gt;-->
+<!--                    @if (productForm?.get('sku')?.hasError('required')) {-->
+<!--                      <mat-error>-->
+<!--                        Sku is required-->
+<!--                      </mat-error>-->
+<!--                    }-->
+<!--                  </mat-form-field>-->
+<!--                </div>-->
               </div>
               <div class="row">
 
                 <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 mb-2">
-                  <!-- Model Dropdown -->
                   <mat-form-field class="example-full-width" appearance="outline">
                     <mat-label>Select Model</mat-label>
-                    <mat-select formControlName="model"
-                                required
-                                #modelSelect
-                                panelClass="custom-select-panel"
-                                (openedChange)="onModelSelectOpened($event)"
-                                (closed)="onModelSelectClosed()">
-
+                    <mat-select formControlName="model" required #modelSelect panelClass="custom-select-panel" (openedChange)="onModelSelectOpened($event)">
                       <div class="mat-select-search">
-                        <input matInput
-                               (input)="onModelSearchChange($event)"
-                               #modelSearchInput
-                               placeholder="Search Model" />
+                        <input matInput (input)="onModelSearchChange($event)" #modelSearchInput placeholder="Search Model" />
                       </div>
-
                       <mat-option *ngFor="let model of filteredModels" [value]="model">
                         {{ model }}
                       </mat-option>
@@ -65,25 +70,13 @@
                     }
                   </mat-form-field>
                 </div>
-
                 <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 mb-2">
-                  <!-- Category Dropdown -->
                   <mat-form-field class="example-full-width" appearance="outline">
                     <mat-label>Select Category</mat-label>
-                    <mat-select formControlName="category"
-                                required
-                                #categorySelect
-                                panelClass="custom-select-panel"
-                                (openedChange)="onCategorySelectOpened($event)"
-                                (closed)="onCategorySelectClosed()">
-
+                    <mat-select formControlName="category" required #categorySelect panelClass="custom-select-panel" (openedChange)="onCategorySelectOpened($event)">
                       <div class="mat-select-search">
-                        <input matInput
-                               (input)="onCategorySearchChange($event)"
-                               #categorySearchInput
-                               placeholder="Search Category" />
+                        <input matInput (input)="onCategorySearchChange($event)" #categorySearchInput placeholder="Search Category" />
                       </div>
-
                       <mat-option *ngFor="let category of filteredCategories" [value]="category">
                         {{ category }}
                       </mat-option>
@@ -114,51 +107,29 @@
 <!--                </div>-->
 
                 <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 mb-2">
-                  <!-- Variant Dropdown -->
                   <mat-form-field class="example-full-width" appearance="outline">
-                    <mat-label>Select Variant</mat-label>
-                    <mat-select formControlName="varient"
-                                required
-                                #variantSelect
-                                panelClass="custom-select-panel"
-                                (openedChange)="onVariantSelectOpened($event)"
-                                (closed)="onVariantSelectClosed()">
-
+                    <mat-label>Select Varient</mat-label>
+                    <mat-select formControlName="varient" required #variantSelect panelClass="custom-select-panel" (openedChange)="onVariantSelectOpened($event)">
                       <div class="mat-select-search">
-                        <input matInput
-                               (input)="onVariantSearchChange($event)"
-                               #variantSearchInput
-                               placeholder="Search Variant" />
+                        <input matInput (input)="onVariantSearchChange($event)" #variantSearchInput placeholder="Search Varient" />
                       </div>
-
                       <mat-option *ngFor="let variant of filteredVariants" [value]="variant">
                         {{ variant }}
                       </mat-option>
                     </mat-select>
                     @if (productForm?.get('varient')?.hasError('required')) {
-                      <mat-error>Variant is required</mat-error>
+                      <mat-error>Varient is required</mat-error>
                     }
                   </mat-form-field>
                 </div>
 
                 <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 mb-2">
-                  <!-- Engine CC Dropdown -->
                   <mat-form-field class="example-full-width" appearance="outline">
                     <mat-label>Select Engine CC</mat-label>
-                    <mat-select formControlName="engineCc"
-                                required
-                                #engineSelect
-                                panelClass="custom-select-panel"
-                                (openedChange)="onEngineSelectOpened($event)"
-                                (closed)="onEngineSelectClosed()">
-
+                    <mat-select formControlName="engineCc" required #engineSelect panelClass="custom-select-panel" (openedChange)="onEngineSelectOpened($event)">
                       <div class="mat-select-search">
-                        <input matInput
-                               (input)="onEngineSearchChange($event)"
-                               #engineSearchInput
-                               placeholder="Search Engine CC" />
+                        <input matInput (input)="onEngineSearchChange($event)" #engineSearchInput placeholder="Search Engine CC" />
                       </div>
-
                       <mat-option *ngFor="let engine of filteredEngines" [value]="engine">
                         {{ engine }}
                       </mat-option>
@@ -190,23 +161,12 @@
               <div class="row">
 
                 <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 mb-2">
-                  <!-- Unit Dropdown -->
                   <mat-form-field class="example-full-width" appearance="outline">
                     <mat-label>Select Unit Of Measurement</mat-label>
-                    <mat-select formControlName="unit"
-                                required
-                                #unitSelect
-                                panelClass="custom-select-panel"
-                                (openedChange)="onUnitSelectOpened($event)"
-                                (closed)="onUnitSelectClosed()">
-
+                    <mat-select formControlName="unit" required #unitSelect panelClass="custom-select-panel" (openedChange)="onUnitSelectOpened($event)">
                       <div class="mat-select-search">
-                        <input matInput
-                               (input)="onUnitSearchChange($event)"
-                               #unitSearchInput
-                               placeholder="Search Unit" />
+                        <input matInput (input)="onUnitSearchChange($event)" #unitSearchInput placeholder="Search Unit" />
                       </div>
-
                       <mat-option *ngFor="let unit of filteredUnits" [value]="unit">
                         {{ unit }}
                       </mat-option>

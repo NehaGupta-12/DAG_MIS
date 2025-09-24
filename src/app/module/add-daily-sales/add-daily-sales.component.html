@@ -10,16 +10,10 @@
 
             <form class="register-form m-4" [formGroup]="dailySalesForm">
               <div class="row">
-                <!-- Dealer/Outlet -->
                 <div class="col-md-6">
                   <mat-form-field appearance="outline" class="w-100">
                     <mat-label>Select Dealer/Outlet</mat-label>
-                    <mat-select
-                      formControlName="dealerOutlet"
-                      (openedChange)="onDealerSelectOpened($event)"
-                      (selectionChange)="onDealerChange($event)"
-                      panelClass="custom-select-panel"
-                      required>
+                    <mat-select formControlName="dealerOutlet"  (openedChange)="selectionOpen($event,'dealer')" (selectionChange)="onDealerChange($event)" panelClass="custom-select-panel" required>
 
                       <!-- 🔍 Search bar -->
                       <div class="mat-select-search">
@@ -27,7 +21,6 @@
                           matInput
                           placeholder="Search Dealer"
                           (input)="onDealerSearchChange($event)"
-                          #dealerSearchInput
                         />
                       </div>
 
@@ -40,18 +33,15 @@
                       Dealer/Outlet is required
                     </mat-error>
                   </mat-form-field>
+
                 </div>
 
-                <!-- Vehicle -->
                 <div class="col-md-6">
                   <mat-form-field appearance="outline" class="w-100">
                     <mat-label>Select Vehicle</mat-label>
-                    <mat-select
-                      formControlName="vehicle"
-                      panelClass="custom-select-panel"
-                      multiple
-                      #outletSelect="matSelect"
-                      (openedChange)="onVehicleSelectOpened($event)">
+                    <mat-select formControlName="vehicle" panelClass="custom-select-panel" multiple
+                                #outletSelect="matSelect"
+                                (openedChange)="selectionOpen($event, 'vehicle')">
 
                       <!-- Search bar -->
                       <div class="mat-select-search">
@@ -59,7 +49,6 @@
                           matInput
                           placeholder="Search Vehicle"
                           (input)="onVehicleSearchChange($event)"
-                          #vehicleSearchInput
                         />
                       </div>
 
@@ -75,25 +64,27 @@
                         </ng-template>
                       </mat-select-trigger>
 
-                      <!-- Select All -->
-                      <mat-checkbox class="mx-2"
-                                    [checked]="isAllVehiclesSelected()"
-                                    (click)="$event.stopPropagation()"
-                                    (change)="toggleSelectAllVehicles()">
-                        Select All
-                      </mat-checkbox>
+                      <!-- 🔹 Select All Option with Checkbox -->
+<!--                      <mat-option>-->
+                        <mat-checkbox class="mx-2"
+                          [checked]="isAllVehiclesSelected()"
+                          (click)="$event.stopPropagation()"
+                          (change)="toggleSelectAllVehicles()">
+                          Select All
+                        </mat-checkbox>
+<!--                      </mat-option>-->
 
                       <!-- Vehicle list -->
                       <mat-option *ngFor="let product of filteredVehicles" [value]="product.name">
                         {{ product.name }}
                       </mat-option>
                     </mat-select>
+
                     <mat-error *ngIf="dailySalesForm.get('vehicle')?.hasError('required')">
                       Product is required
                     </mat-error>
                   </mat-form-field>
                 </div>
-
 
 
               </div>
