@@ -55,9 +55,8 @@ import {UserDataModel} from "../add-user/UserData.model";
   styleUrl: './outlet-product-list.component.scss'
 })
 export class OutletProductListComponent implements OnInit {
-
   @ViewChild('dealerSearchInput') dealerSearchInput!: ElementRef;
-
+  @ViewChild('dealerSelect') dealerSelect: any;
 
   dataSource = new MatTableDataSource<any>();
   userData!: UserDataModel;
@@ -141,28 +140,46 @@ export class OutletProductListComponent implements OnInit {
     });
   }
 
-  filterDealers() {
-    const searchText = this.dealerSearchText.toLowerCase();
-    this.filteredDealers = this.allDealers.filter(dealer => dealer.name.toLowerCase().includes(searchText));
-  }
-
-  onDealerSearchChange(event: any) {
-    clearTimeout(this.debounceTimer);
-    this.debounceTimer = setTimeout(() => {
-      this.dealerSearchText = event.target.value;
-      this.filterDealers();
-    }, 300); // Adjust the delay as needed
-  }
-
   onDealerSelectOpened(isOpened: boolean) {
     if (isOpened) {
       this.dealerSearchText = '';
-      this.filterDealers();
+      this.filteredDealers = [...this.allDealers];
       setTimeout(() => {
-        this.dealerSearchInput.nativeElement.focus();
+        if (this.dealerSearchInput) {
+          this.dealerSearchInput.nativeElement.value = '';
+          this.dealerSearchInput.nativeElement.focus();
+        }
       }, 0);
+    } else {
+      // Reset on close
+      this.dealerSearchText = '';
+      this.filteredDealers = [...this.allDealers];
+      if (this.dealerSearchInput) {
+        this.dealerSearchInput.nativeElement.value = '';
+      }
     }
   }
+
+  onDealerSearchChange(event: any) {
+    const value = event.target.value;
+    this.dealerSearchText = value;  // Keep the original value with spaces
+    this.filterDealers();
+    event.stopPropagation();
+  }
+
+  filterDealers() {
+    if (!this.dealerSearchText) {
+      this.filteredDealers = [...this.allDealers];
+      return;
+    }
+
+    const searchText = this.dealerSearchText.toLowerCase();
+    this.filteredDealers = this.allDealers.filter(dealer =>
+      dealer.name.toLowerCase().includes(searchText)
+    );
+  }
+
+
 
 // Triggered when user clicks Search
   onSearchClick(selectedDealerName: string) {

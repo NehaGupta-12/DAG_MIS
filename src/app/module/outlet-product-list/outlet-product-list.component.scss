@@ -60,3 +60,47 @@
   text-align: center;
 }
 
+.search-container {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background-color: white;
+  padding: 8px;
+  border-bottom: 1px solid #e0e0e0;
+
+  input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    outline: none;
+    font-size: 14px;
+
+    &:focus {
+      border-color: #0056D2;
+    }
+  }
+}
+
+::ng-deep {
+  .mat-mdc-select-panel {
+    min-width: 100% !important;
+  }
+
+  .mat-mdc-select-panel mat-option {
+    white-space: normal;
+    line-height: 1.2;
+    height: auto !important;
+    padding: 8px 16px;
+  }
+
+  .search-container {
+    margin: 0;
+    padding: 8px;
+
+    input {
+      margin: 0;
+      width: 100%;
+    }
+  }
+}

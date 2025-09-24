@@ -9,17 +9,23 @@
           panelClass="custom-select-panel"
           (openedChange)="onDealerSelectOpened($event)"
           (selectionChange)="onSelectDealerChange($event)"
-         >
-
-          <div class="mat-select-search">
-            <input matInput (input)="onDealerSearchChange($event)" #dealerSearchInput placeholder="Search Outlet" />
+        >
+          <div class="search-container" (click)="$event.stopPropagation()">
+            <input
+              matInput
+              #dealerSearchInput
+              [value]="dealerSearchText"
+              (input)="onDealerSearchChange($event)"
+              (click)="$event.stopPropagation()"
+              (keydown)="$event.stopPropagation()"
+              placeholder="Search Outlet"
+              class="search-input"
+            />
           </div>
-
           <mat-option *ngFor="let dealer of filteredDealers" [value]="dealer.name">
             {{ dealer.name }}
           </mat-option>
         </mat-select>
-
       </mat-form-field>
 
       <div>
@@ -218,4 +224,3 @@
     </div>
   </div>
 </section>
-
