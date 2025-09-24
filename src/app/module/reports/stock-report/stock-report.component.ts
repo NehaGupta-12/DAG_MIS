@@ -692,14 +692,17 @@ export class StockReportComponent implements OnInit{
 // --- COUNTRY ---
   onCountrySelectOpened(isOpened: boolean) {
     if (isOpened) {
-      if (this.countrySearchInput) this.countrySearchInput.nativeElement.value = '';
-      this.filteredOptions.country = [...this.options.country];
-      setTimeout(() => this.countrySearchInput?.nativeElement.focus(), 0);
-    } else {
-      if (this.countrySearchInput) this.countrySearchInput.nativeElement.value = '';
-      this.filteredOptions.country = [...this.options.country];
+      this.filterCountry(''); // ✅ reset filter
+      setTimeout(() => {
+        if (this.countrySearchInput) {
+          this.countrySearchInput.nativeElement.value = ''; // ✅ clear input
+          this.countrySearchInput.nativeElement.placeholder = 'Search Country'; // ✅ placeholder stays
+          this.countrySearchInput.nativeElement.focus();
+        }
+      });
     }
   }
+
   filterCountry(value: string) {
     const search = (value || '').toLowerCase();
     this.filteredOptions.country = this.options.country.filter(c => c.toLowerCase().includes(search));

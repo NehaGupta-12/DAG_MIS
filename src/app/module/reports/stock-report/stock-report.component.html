@@ -23,14 +23,18 @@
             <mat-label>Select Country</mat-label>
             <mat-select formControlName="country" (openedChange)="onCountrySelectOpened($event)">
               <div class="mat-select-search" (click)="$event.stopPropagation()">
-                <input matInput #countrySearchInput placeholder="Search Country"
-                       (input)="filterCountry(countrySearchInput.value)" />
+                <input
+                  matInput
+                  #countrySearchInput
+                  placeholder="Search Country"
+                  (input)="filterCountry(countrySearchInput.value)" />
               </div>
               <mat-option *ngFor="let country of filteredOptions.country" [value]="country">
                 {{ country }}
               </mat-option>
             </mat-select>
           </mat-form-field>
+
         </div>
 
         <!-- DIVISION -->
