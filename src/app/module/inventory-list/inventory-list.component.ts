@@ -146,10 +146,12 @@ export class InventoryListComponent implements OnInit {
   this.loadInventoryDaata()
   }
 
-  // Add these methods to your component class
+// ----------------- DEALERS -----------------
   filterDealers() {
     const searchText = this.dealerSearchText.toLowerCase();
-    this.filteredDealers = this.allDealers.filter(dealer => dealer.name.toLowerCase().includes(searchText));
+    this.filteredDealers = this.allDealers.filter(dealer =>
+      dealer.name.toLowerCase().includes(searchText)
+    );
   }
 
   onDealerSearchChange(event: any) {
@@ -157,18 +159,50 @@ export class InventoryListComponent implements OnInit {
     this.debounceTimer = setTimeout(() => {
       this.dealerSearchText = event.target.value;
       this.filterDealers();
-    }, 300); // Adjust the delay as needed
+    }, 300);
   }
 
   onDealerSelectOpened(isOpened: boolean) {
     if (isOpened) {
-      this.dealerSearchText = '';
-      this.filterDealers();
-      setTimeout(() => {
-        this.dealerSearchInput.nativeElement.focus();
-      }, 0);
+      this.resetDealerSearch();
+      setTimeout(() => this.dealerSearchInput?.nativeElement.focus(), 0);
+    } else {
+      this.resetDealerSearch();
     }
   }
+
+  private resetDealerSearch() {
+    this.dealerSearchText = '';
+    this.filteredDealers = [...this.allDealers];
+    if (this.dealerSearchInput) this.dealerSearchInput.nativeElement.value = '';
+  }
+
+// ----------------- OUTLET SELECTION -----------------
+  onOutletChange(selectedOutlet: string) {
+    if (!selectedOutlet) {
+      this.dataSource.data = [];
+      return;
+    }
+
+    const selectedDealer = this.allDealers.find(d => d.name === selectedOutlet);
+    const dealerId = selectedDealer?.name;
+
+    if (!dealerId) {
+      console.error('Error: Could not find dealer ID for selected outlet.');
+      this.dataSource.data = [];
+      return;
+    }
+
+    runInInjectionContext(this.injector, () => {
+      this.inventoryService.getInventoryData(dealerId).subscribe((data: any[]) => {
+        console.log('Inventory data for selected dealer:', data);
+        this.dataSource.data = data;
+        this.dataSource.paginator = this.paginator;
+        this.dataSource.sort = this.sort;
+      });
+    });
+  }
+
 
   DealerList() {
     runInInjectionContext(this.injector, () => {
@@ -193,31 +227,7 @@ export class InventoryListComponent implements OnInit {
   }
 
 
-  onOutletChange(selectedOutlet: string) {debugger
-    if (!selectedOutlet) {
-      this.dataSource.data = [];
-      return;
-    }
 
-    // Find the dealer ID from the allDealers array
-    const selectedDealer = this.allDealers.find((d: any) => d.name === selectedOutlet);
-    const dealerId = selectedDealer?.name;
-
-    if (!dealerId) {
-      console.error('Error: Could not find dealer ID for selected outlet.');
-      this.dataSource.data = [];
-      return;
-    }
-    runInInjectionContext(this.injector, () => {
-    // Call the service method to get data for the specific dealer
-    this.inventoryService.getInventoryData(dealerId).subscribe((data: any[]) => {
-      console.log('Inventory data for selected dealer:', data);
-      this.dataSource.data = data;
-      this.dataSource.paginator = this.paginator;
-      this.dataSource.sort = this.sort;
-    });
-    });
-  }
 
 
   openDialog() {

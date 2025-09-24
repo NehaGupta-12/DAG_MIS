@@ -45,7 +45,6 @@ import { Workbook } from 'exceljs';
 import * as FileSaver from 'file-saver';
 import {AuthService} from "../../../authentication/auth.service";
 import {LoadingService} from "../../../Services/loading.service";
-import {CountryService} from "../../../Services/country.service";
 
 @Component({
   selector: 'app-daily-sale-reports',
@@ -147,7 +146,6 @@ export class DailySaleReportsComponent implements OnInit{
     private dailySlaes: DailySalesService,
     public authService : AuthService,
     private loadingService: LoadingService,
-    private countryService : CountryService,
     @Inject(MAT_DIALOG_DATA) public data: any
   ) {
     this.dealerForm = this.fb.group({
@@ -169,14 +167,8 @@ export class DailySaleReportsComponent implements OnInit{
       .pipe(map(d => d?.subcategories || [])).subscribe(data => { this.options.outletType = data; this.filteredOptions.outletType = [...data]; });
     this.mDatabase.object<{ subcategories: string[] }>('typelist/outletCategory').valueChanges()
       .pipe(map(d => d?.subcategories || [])).subscribe(data => { this.options.category = data; this.filteredOptions.category = [...data]; });
-    // this.mDatabase.object<{ subcategories: string[] }>('typelist/Countries').valueChanges()
-    //   .pipe(map(d => d?.subcategories || [])).subscribe(data => {
-    //     this.options.country = data; this.filteredOptions.country = [...data]; });
-    this.countryService.getCountries().subscribe(data => {
-      this.options.country = data;
-      this.filteredOptions.country = [...data];
-    });
-
+    this.mDatabase.object<{ subcategories: string[] }>('typelist/Countries').valueChanges()
+      .pipe(map(d => d?.subcategories || [])).subscribe(data => { this.options.country = data; this.filteredOptions.country = [...data]; });
     this.mDatabase.object<{ subcategories: string[] }>('typelist/Town').valueChanges()
       .pipe(map(d => d?.subcategories || [])).subscribe(data => { this.options.town = data; this.filteredOptions.town = [...data]; });
   }
@@ -202,13 +194,6 @@ export class DailySaleReportsComponent implements OnInit{
     this.DealerList();
     this.productList();
 
-    // 🔹 Filter subscription
-    // this.nameFilter.valueChanges.subscribe(val => this.filterOptions('name', val || ''));
-    // this.outletTypeFilter.valueChanges.subscribe(val => this.filterOptions('outletType', val || ''));
-    // this.categoryFilter.valueChanges.subscribe(val => this.filterOptions('category', val || ''));
-    // this.divisionFilter.valueChanges.subscribe(val => this.filterOptions('division', val || ''));
-    // this.countryFilter.valueChanges.subscribe(val => this.filterOptions('country', val || ''));
-    // this.townFilter.valueChanges.subscribe(val => this.filterOptions('town', val || ''));
 
     // 🔹 Hook filters to filtering logic
     this.nameFilter.valueChanges.subscribe(val => {
@@ -260,79 +245,87 @@ export class DailySaleReportsComponent implements OnInit{
     });
   }
 
-  // Country
-  onCountrySearchChange(event: any) {
-    clearTimeout(this.debounceTimer);
-    this.debounceTimer = setTimeout(() => {
-      const searchText = event.target.value.toLowerCase();
-      this.filteredOptions.country = this.options.country.filter((c: string) =>
-        c.toLowerCase().includes(searchText)
-      );
-    }, 300);
-  }
+  // @ViewChild('countrySearchInput') countrySearchInput!: ElementRef;
+  // @ViewChild('divisionSearchInput') divisionSearchInput!: ElementRef;
+  // @ViewChild('townSearchInput') townSearchInput!: ElementRef;
+  // @ViewChild('outletSearchInput') outletSearchInput!: ElementRef;
+
+// --- COUNTRY ---
   onCountrySelectOpened(isOpened: boolean) {
     if (isOpened) {
+      if (this.countrySearchInput) this.countrySearchInput.nativeElement.value = '';
       this.filteredOptions.country = [...this.options.country];
       setTimeout(() => this.countrySearchInput.nativeElement.focus(), 0);
     }
   }
-
-// Division
-  onDivisionSearchChange(event: any) {
-    clearTimeout(this.debounceTimer);
-    this.debounceTimer = setTimeout(() => {
-      const searchText = event.target.value.toLowerCase();
-      this.filteredOptions.division = this.options.division.filter((d: string) =>
-        d.toLowerCase().includes(searchText)
-      );
-    }, 300);
+  filterCountry(value: string) {
+    const search = (value || '').toLowerCase();
+    this.filteredOptions.country = this.options.country.filter(c => c.toLowerCase().includes(search));
   }
+
+// --- DIVISION ---
   onDivisionSelectOpened(isOpened: boolean) {
     if (isOpened) {
+      if (this.divisionSearchInput) this.divisionSearchInput.nativeElement.value = '';
       this.filteredOptions.division = [...this.options.division];
       setTimeout(() => this.divisionSearchInput.nativeElement.focus(), 0);
     }
   }
-
-// Town
-  onTownSearchChange(event: any) {
-    clearTimeout(this.debounceTimer);
-    this.debounceTimer = setTimeout(() => {
-      const searchText = event.target.value.toLowerCase();
-      this.filteredOptions.town = this.options.town.filter((t: string) =>
-        t.toLowerCase().includes(searchText)
-      );
-    }, 300);
+  filterDivision(value: string) {
+    const search = (value || '').toLowerCase();
+    this.filteredOptions.division = this.options.division.filter(d => d.toLowerCase().includes(search));
   }
+
+// --- TOWN ---
   onTownSelectOpened(isOpened: boolean) {
     if (isOpened) {
+      if (this.townSearchInput) this.townSearchInput.nativeElement.value = '';
       this.filteredOptions.town = [...this.options.town];
       setTimeout(() => this.townSearchInput.nativeElement.focus(), 0);
     }
   }
-
-// Outlet(s)
-// search + debounce
-  onOutletSearchChange(event: any) {
-    clearTimeout(this.debounceTimer);
-    this.debounceTimer = setTimeout(() => {
-      const searchText = (event.target.value || '').toLowerCase();
-      this.filteredOptions.name = this.options.name.filter((o: string) =>
-        o.toLowerCase().includes(searchText)
-      );
-    }, 300);
+  filterTown(value: string) {
+    const search = (value || '').toLowerCase();
+    this.filteredOptions.town = this.options.town.filter(t => t.toLowerCase().includes(search));
   }
-  // reset + focus when opened
+
+// --- OUTLETS ---
   onOutletSelectOpened(isOpened: boolean) {
     if (isOpened) {
+      if (this.outletSearchInput) this.outletSearchInput.nativeElement.value = '';
       this.filteredOptions.name = [...this.options.name];
-      setTimeout(() => {
-        try {
-          this.outletSearchInput.nativeElement.focus();
-        } catch { /* empty */ }
-      }, 0);
+      setTimeout(() => this.outletSearchInput.nativeElement.focus(), 0);
     }
   }
+  filterOutlet(value: string) {
+    const search = (value || '').toLowerCase();
+    this.filteredOptions.name = this.options.name.filter(o => o.toLowerCase().includes(search));
+  }
+
+
+
+// // ----------------- OUTLET SELECT ALL -----------------
+//   toggleSelectAllProducts() {
+//     const selectedOutlets: string[] = this.dealerForm.get('name')?.value || [];
+//     const allOutlets: string[] = [...this.filteredOptions.name];
+//
+//     if (this.isAllProductsSelected()) {
+//       // unselect all
+//       this.dealerForm.get('name')?.setValue([]);
+//     } else {
+//       // select all
+//       this.dealerForm.get('name')?.setValue(allOutlets);
+//     }
+//   }
+
+  isAllProductsSelected(): boolean {
+    const selectedOutlets: string[] = this.dealerForm.get('name')?.value || [];
+    const allOutlets: string[] = [...this.filteredOptions.name];
+
+    return allOutlets.length > 0 && allOutlets.every(o => selectedOutlets.includes(o));
+  }
+
+
 
   productList() {
     runInInjectionContext(this.injector, () => {

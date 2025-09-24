@@ -11,19 +11,35 @@
           <div class="body">
             <form class="register-form m-4" [formGroup]="grnForm">
               <div class="row">
-                <!-- Dealer (First Input) -->
+                <!-- Dealer/Outlet -->
                 <div class="col-md-6">
                   <mat-form-field appearance="outline" class="w-100">
                     <mat-label>Select Dealer/Outlet</mat-label>
-                    <mat-select formControlName="dealerOutlet" required (selectionChange)="onDealerChange($event)" panelClass="custom-select-panel">
+                    <mat-select
+                      formControlName="dealerOutlet"
+                      (openedChange)="onDealerSelectOpened($event)"
+                      (selectionChange)="onDealerChange($event)"
+                      panelClass="custom-select-panel"
+                      required>
+
+                      <!-- 🔍 Search bar -->
                       <div class="mat-select-search">
-                        <input matInput placeholder="Search Dealer" (input)="onDealerSearchChange($event)" />
+                        <input
+                          matInput
+                          placeholder="Search Dealer"
+                          (input)="onDealerSearchChange($event)"
+                          #dealerSearchInput
+                        />
                       </div>
-                      <mat-option *ngFor="let dealer of filteredDealers$ | async" [value]="dealer.name">
+
+                      <!-- Dealer list -->
+                      <mat-option *ngFor="let dealer of (filteredDealers$ | async)" [value]="dealer.name">
                         {{ dealer.name }}
                       </mat-option>
                     </mat-select>
-                    <mat-error *ngIf="grnForm.get('dealerOutlet')?.hasError('required')">Dealer/Outlet is required</mat-error>
+                    <mat-error *ngIf="grnForm.get('dealerOutlet')?.hasError('required')">
+                      Dealer/Outlet is required
+                    </mat-error>
                   </mat-form-field>
                 </div>
 
@@ -31,16 +47,21 @@
                 <div class="col-md-6">
                   <mat-form-field appearance="outline" class="w-100">
                     <mat-label>Select Vehicle</mat-label>
+                    <mat-select
+                      formControlName="products"
+                      panelClass="custom-select-panel"
+                      multiple
+                      #outletSelect="matSelect"
+                      (openedChange)="onVehicleSelectOpened($event)">
 
-                    <mat-select formControlName="products" required multiple
-                                #outletSelect="matSelect"
-                                panelClass="custom-select-panel"
-                                >
-
+                      <!-- Search bar -->
                       <div class="mat-select-search">
-                        <input matInput placeholder="Search Vehicle"
-                               (input)="onVehicleSearchChange($event)" />
-
+                        <input
+                          matInput
+                          placeholder="Search Vehicle"
+                          (input)="onVehicleSearchChange($event)"
+                          #vehicleSearchInput
+                        />
                       </div>
 
                       <mat-select-trigger>
@@ -55,7 +76,7 @@
                         </ng-template>
                       </mat-select-trigger>
 
-                      <!-- 🔹 Select All Option with Checkbox -->
+                      <!-- Select All -->
                       <mat-checkbox class="mx-2"
                                     [checked]="isAllVehiclesSelected()"
                                     (click)="$event.stopPropagation()"
@@ -63,13 +84,19 @@
                         Select All
                       </mat-checkbox>
 
-                      <mat-option *ngFor="let product of filteredVehicles"
-                                  [value]="product.name">{{ product.name }}</mat-option>
+                      <!-- Vehicle list -->
+                      <mat-option *ngFor="let product of filteredVehicles" [value]="product.name">
+                        {{ product.name }}
+                      </mat-option>
                     </mat-select>
-
-                    <mat-error *ngIf="grnForm.get('products')?.hasError('required')">Product is required</mat-error>
+                    <mat-error *ngIf="grnForm.get('products')?.hasError('required')">
+                      Product is required
+                    </mat-error>
                   </mat-form-field>
                 </div>
+
+
+
               </div>
 
               <!-- Auto Populated Fields -->
