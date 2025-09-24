@@ -21,8 +21,8 @@
           <mat-form-field appearance="outline" class="w-100">
             <mat-label>Select Country</mat-label>
             <mat-select formControlName="country" (openedChange)="onCountrySelectOpened($event)">
-              <div class="mat-select-search">
-                <input matInput placeholder="Search Country" #countrySearchInput
+              <div class="mat-select-search" (click)="$event.stopPropagation()">
+                <input matInput #countrySearchInput placeholder="Search Country"
                        (input)="filterCountry(countrySearchInput.value)" />
               </div>
               <mat-option *ngFor="let country of filteredOptions.country" [value]="country">
@@ -34,11 +34,12 @@
 
         <!-- DIVISION -->
         <div class="col-md-3">
+          <!-- DIVISION -->
           <mat-form-field appearance="outline" class="w-100">
             <mat-label>Select Division</mat-label>
             <mat-select formControlName="division" (openedChange)="onDivisionSelectOpened($event)">
-              <div class="mat-select-search">
-                <input matInput placeholder="Search Division" #divisionSearchInput
+              <div class="mat-select-search" (click)="$event.stopPropagation()">
+                <input matInput #divisionSearchInput placeholder="Search Division"
                        (input)="filterDivision(divisionSearchInput.value)" />
               </div>
               <mat-option *ngFor="let division of filteredOptions.division" [value]="division">
@@ -50,11 +51,12 @@
 
         <!-- TOWN -->
         <div class="col-md-3">
+          <!-- TOWN -->
           <mat-form-field appearance="outline" class="w-100">
             <mat-label>Select Town</mat-label>
             <mat-select formControlName="town" (openedChange)="onTownSelectOpened($event)">
-              <div class="mat-select-search">
-                <input matInput placeholder="Search Town" #townSearchInput
+              <div class="mat-select-search"  (click)="$event.stopPropagation()">
+                <input matInput #townSearchInput placeholder="Search Town"
                        (input)="filterTown(townSearchInput.value)" />
               </div>
               <mat-option *ngFor="let town of filteredOptions.town" [value]="town">
@@ -85,13 +87,13 @@
                        (input)="filterOutlet(outletSearchInput.value)" />
               </div>
 
-              <!--              <div class="px-2 py-1">-->
-              <!--                <mat-checkbox [checked]="isAllOutletsSelected()"-->
-              <!--                              (click)="$event.stopPropagation()"-->
-              <!--                              (change)="toggleSelectAllOutlets()">-->
-              <!--                  Select All-->
-              <!--                </mat-checkbox>-->
-              <!--              </div>-->
+              <div class="px-2 py-1">
+              <mat-checkbox [checked]="isAllOutletsSelected()"
+                                            (click)="$event.stopPropagation()"
+                                            (change)="toggleSelectAllOutlets()">
+                                Select All
+              </mat-checkbox>
+              </div>
 
               <mat-option *ngFor="let outlet of filteredOptions.name" [value]="outlet">
                 {{ outlet }}
