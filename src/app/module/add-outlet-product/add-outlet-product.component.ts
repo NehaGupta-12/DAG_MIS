@@ -52,7 +52,7 @@ import {LoadingService} from "../../Services/loading.service";
     MatTableModule
   ],
   providers: [
-    {provide: MAT_DIALOG_DATA, useValue: {}} // ✅ Fallback
+    {provide: MAT_DIALOG_DATA, useValue: {}}
   ],
   templateUrl: './add-outlet-product.component.html',
   standalone: true,
@@ -209,41 +209,82 @@ export class AddOutletProductComponent implements OnInit {
   }
 
   filterDealers() {
+    if (!this.dealerSearchText) {
+      this.filteredDealers = [...this.dealers];
+      return;
+    }
     const searchText = this.dealerSearchText.toLowerCase();
-    this.filteredDealers = this.dealers.filter(dealer => dealer.name.toLowerCase().includes(searchText));
+    this.filteredDealers = this.dealers.filter(dealer =>
+      dealer.name.toLowerCase().includes(searchText)
+    );
   }
   onDealerSearchChange(event: any) {
-    clearTimeout(this.debounceTimer);
-    this.debounceTimer = setTimeout(() => {
-      this.dealerSearchText = event.target.value;
-      this.filterDealers();
-    }, 300);
+    const value = event.target.value;
+    this.dealerSearchText = value;
+    this.filterDealers();
+    event.stopPropagation();
   }
+
   onDealerSelectOpened(isOpened: boolean) {
     if (isOpened) {
       this.dealerSearchText = '';
-      this.filterDealers();
-      setTimeout(() => this.dealerSearchInput.nativeElement.focus(), 0);
+      this.filteredDealers = [...this.dealers];
+      setTimeout(() => {
+        if (this.dealerSearchInput) {
+          this.dealerSearchInput.nativeElement.value = '';
+          this.dealerSearchInput.nativeElement.focus();
+        }
+      }, 0);
+    } else {
+      // Reset on close
+      this.dealerSearchText = '';
+      this.filteredDealers = [...this.dealers];
+      if (this.dealerSearchInput) {
+        this.dealerSearchInput.nativeElement.value = '';
+      }
     }
   }
 
   filterProducts() {
+    if (!this.productSearchText) {
+      this.filteredProducts = [...this._allProducts];
+      return;
+    }
     const searchText = this.productSearchText.toLowerCase();
-    this.filteredProducts = this._allProducts.filter(product => product.name.toLowerCase().includes(searchText));
+    this.filteredProducts = this._allProducts.filter(product =>
+      product.name.toLowerCase().includes(searchText)
+    );
   }
   onProductSearchChange(event: any) {
-    clearTimeout(this.debounceTimer);
-    this.debounceTimer = setTimeout(() => {
-      this.productSearchText = event.target.value;
-      this.filterProducts();
-    }, 300);
+    const value = event.target.value;
+    this.productSearchText = value;
+    this.filterProducts();
+    event.stopPropagation();
   }
+
   onProductSelectOpened(isOpened: boolean) {
     if (isOpened) {
       this.productSearchText = '';
-      this.filterProducts();
-      setTimeout(() => this.productSearchInput.nativeElement.focus(), 0);
+      this.filteredProducts = [...this._allProducts];
+      setTimeout(() => {
+        if (this.productSearchInput) {
+          this.productSearchInput.nativeElement.value = '';
+          this.productSearchInput.nativeElement.focus();
+        }
+      }, 0);
+    } else {
+      // Reset on close
+      this.productSearchText = '';
+      this.filteredProducts = [...this._allProducts];
+      if (this.productSearchInput) {
+        this.productSearchInput.nativeElement.value = '';
+      }
     }
+  }
+
+  // Prevent panel close when clicking on search input
+  onSearchClick(event: Event) {
+    event.stopPropagation();
   }
 
   filterProductsForOutlet(selectedOutlet: string) {

@@ -21,9 +21,16 @@
                 <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 mb-2">
                   <mat-form-field class="example-full-width" appearance="outline">
                     <mat-label>Select Outlet/Dealer</mat-label>
-                    <mat-select formControlName="dealerOutlet" required #dealerSelect panelClass="custom-select-panel" (openedChange)="onDealerSelectOpened($event)">
-                      <div class="mat-select-search">
-                        <input matInput (input)="onDealerSearchChange($event)" #dealerSearchInput placeholder="Search Outlet/Dealer" />
+                    <mat-select formControlName="dealerOutlet" required #dealerSelect (openedChange)="onDealerSelectOpened($event)">
+                      <div class="mat-select-search" (click)="$event.stopPropagation()">
+                        <input matInput
+                               #dealerSearchInput
+                               [value]="dealerSearchText"
+                               (input)="onDealerSearchChange($event)"
+                               (click)="$event.stopPropagation()"
+                               (keydown)="$event.stopPropagation()"
+                               placeholder="Search Outlet/Dealer"
+                               class="search-input" />
                       </div>
                       <mat-option *ngFor="let dealer of filteredDealers" [value]="dealer.name">
                         {{ dealer.name }}
@@ -37,15 +44,7 @@
                 <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 mb-2">
                   <mat-form-field class="example-full-width" appearance="outline">
                     <mat-label>Select Products</mat-label>
-                    <mat-select
-                      required
-                      formControlName="products"
-                      #productSelect
-                      panelClass="custom-select-panel"
-                      (openedChange)="onProductSelectOpened($event)"
-                      multiple
-                      #outletSelect="matSelect">
-
+                    <mat-select required formControlName="products" #productSelect (openedChange)="onProductSelectOpened($event)" multiple #outletSelect="matSelect">
                       <!-- Trigger display -->
                       <mat-select-trigger>
       <span *ngIf="outletSelect.value?.length; else noSelection">
@@ -61,19 +60,21 @@
                       </mat-select-trigger>
 
                       <!-- Search bar -->
-                      <div class="mat-select-search">
-                        <input
-                          matInput
-                          (input)="onProductSearchChange($event)"
-                          #productSearchInput
-                          placeholder="Search Products" />
+                      <div class="mat-select-search" (click)="$event.stopPropagation()">
+                        <input matInput
+                               #productSearchInput
+                               [value]="productSearchText"
+                               (input)="onProductSearchChange($event)"
+                               (click)="$event.stopPropagation()"
+                               (keydown)="$event.stopPropagation()"
+                               placeholder="Search Products"
+                               class="search-input" />
                       </div>
 
-                      <!-- Select All checkbox (outside mat-option) -->
-                      <div class="px-2 py-1">
+                      <!-- Select All checkbox -->
+                      <div class="select-all-container" (click)="$event.stopPropagation()">
                         <mat-checkbox
                           [checked]="isAllProductsSelected()"
-                          (click)="$event.stopPropagation()"
                           (change)="toggleSelectAllProducts()">
                           Select All
                         </mat-checkbox>

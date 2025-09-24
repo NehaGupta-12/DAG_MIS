@@ -12,3 +12,11 @@
 .textcol{
   color: #0d8df3;
 }
+.mat-select-search {
+  .search-input {
+    &::placeholder {
+      color: rgba(0, 0, 0, 0.54);
+      opacity: 1;
+    }
+  }
+}
