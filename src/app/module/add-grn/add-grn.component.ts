@@ -181,21 +181,21 @@ export class AddGRNComponent implements OnInit{
     this.DealerList();
   }
 
-// // Dealer search
-//   onDealerSearchChange(event: any) {
-//     const searchValue = event.target.value.toLowerCase();
-//     const allDealers = this.dealerdataSource.data;
-//
-//     if (!searchValue) {
-//       this.filteredDealers$.next(allDealers);
-//     } else {
-//       this.filteredDealers$.next(
-//         allDealers.filter((dealer: any) =>
-//           dealer.name.toLowerCase().includes(searchValue)
-//         )
-//       );
-//     }
-//   }
+// Dealer search
+  onDealerSearchChange(event: any) {
+    const searchValue = event.target.value.toLowerCase();
+    const allDealers = this.dealerdataSource.data;
+
+    if (!searchValue) {
+      this.filteredDealers$.next(allDealers);
+    } else {
+      this.filteredDealers$.next(
+        allDealers.filter((dealer: any) =>
+          dealer.name.toLowerCase().includes(searchValue)
+        )
+      );
+    }
+  }
 
 // ✅ When dealer changes → auto-populate location + fetch vehicles
   onDealerChange(event: any) {
@@ -334,17 +334,17 @@ export class AddGRNComponent implements OnInit{
     }
   }
 
-// // Vehicle
-//   onVehicleSearchChange(event: any) {
-//     const searchValue = event.target.value.toLowerCase();
-//     if (!searchValue) {
-//       this.filteredVehicles = [...this.vehicledataSource.data];
-//     } else {
-//       this.filteredVehicles = this.vehicledataSource.data.filter(v =>
-//         v.name.toLowerCase().includes(searchValue)
-//       );
-//     }
-//   }
+// Vehicle
+  onVehicleSearchChange(event: any) {
+    const searchValue = event.target.value.toLowerCase();
+    if (!searchValue) {
+      this.filteredVehicles = [...this.vehicledataSource.data];
+    } else {
+      this.filteredVehicles = this.vehicledataSource.data.filter(v =>
+        v.name.toLowerCase().includes(searchValue)
+      );
+    }
+  }
   // Toggle select/unselect all vehicles
   toggleSelectAllVehicles() {
     const allVehicleNames = this.vehicledataSource.data.map(v => v.name);
@@ -726,44 +726,4 @@ export class AddGRNComponent implements OnInit{
     this.location.back();
   }
 
-  // ----------------- Dealer -----------------
-  @ViewChild('dealerSearchInput') dealerSearchInput!: ElementRef;
-
-  onDealerSearchChange(event: any) {
-    const searchValue = event.target.value.toLowerCase();
-    const filtered = this.dealerdataSource.data.filter(d =>
-      d.name.toLowerCase().includes(searchValue)
-    );
-    this.filteredDealers$.next(filtered);
-  }
-
-  onDealerSelectOpened(isOpened: boolean) {
-    this.resetDealerSearch();
-    if (isOpened) setTimeout(() => this.dealerSearchInput.nativeElement.focus(), 0);
-  }
-
-  private resetDealerSearch() {
-    this.filteredDealers$.next(this.dealerdataSource.data);
-    if (this.dealerSearchInput) this.dealerSearchInput.nativeElement.value = '';
-  }
-
-// ----------------- Vehicle -----------------
-  @ViewChild('vehicleSearchInput') vehicleSearchInput!: ElementRef;
-
-  onVehicleSearchChange(event: any) {
-    const searchValue = event.target.value.toLowerCase();
-    this.filteredVehicles = this.vehicledataSource.data.filter(v =>
-      v.name.toLowerCase().includes(searchValue)
-    );
-  }
-
-  onVehicleSelectOpened(isOpened: boolean) {
-    this.resetVehicleSearch();
-    if (isOpened) setTimeout(() => this.vehicleSearchInput.nativeElement.focus(), 0);
-  }
-
-  private resetVehicleSearch() {
-    this.filteredVehicles = [...this.vehicledataSource.data];
-    if (this.vehicleSearchInput) this.vehicleSearchInput.nativeElement.value = '';
-  }
 }

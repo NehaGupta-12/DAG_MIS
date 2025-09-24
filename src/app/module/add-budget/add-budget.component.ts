@@ -255,11 +255,8 @@ export class AddBudgetComponent implements OnInit {
   // --- Country Methods ---
   filterCountries() {
     const searchText = this.countrySearchText.toLowerCase();
-    this.filteredCountries = this._countriesTypes.filter(country =>
-      country.toLowerCase().includes(searchText)
-    );
+    this.filteredCountries = this._countriesTypes.filter(country => country.toLowerCase().includes(searchText));
   }
-
   onCountrySearchChange(event: any) {
     clearTimeout(this.debounceTimer);
     this.debounceTimer = setTimeout(() => {
@@ -267,21 +264,11 @@ export class AddBudgetComponent implements OnInit {
       this.filterCountries();
     }, 300);
   }
-
   onCountrySelectOpened(isOpened: boolean) {
     if (isOpened) {
-      this.resetCountrySearch();
-      setTimeout(() => this.countrySearchInput?.nativeElement.focus(), 0);
-    } else {
-      this.resetCountrySearch();
-    }
-  }
-
-  private resetCountrySearch() {
-    this.countrySearchText = '';
-    this.filteredCountries = [...this._countriesTypes];
-    if (this.countrySearchInput) {
-      this.countrySearchInput.nativeElement.value = '';
+      this.countrySearchText = '';
+      this.filterCountries();
+      setTimeout(() => this.countrySearchInput.nativeElement.focus(), 0);
     }
   }
 
@@ -290,7 +277,6 @@ export class AddBudgetComponent implements OnInit {
     const searchText = this.yearSearchText.toLowerCase();
     this.filteredYears = this._yearTypes.filter(year => year.toLowerCase().includes(searchText));
   }
-
   onYearSearchChange(event: any) {
     clearTimeout(this.debounceTimer);
     this.debounceTimer = setTimeout(() => {
@@ -298,21 +284,11 @@ export class AddBudgetComponent implements OnInit {
       this.filterYears();
     }, 300);
   }
-
   onYearSelectOpened(isOpened: boolean) {
     if (isOpened) {
-      this.resetYearSearch();
-      setTimeout(() => this.yearSearchInput?.nativeElement.focus(), 0);
-    } else {
-      this.resetYearSearch();
-    }
-  }
-
-  private resetYearSearch() {
-    this.yearSearchText = '';
-    this.filteredYears = [...this._yearTypes];
-    if (this.yearSearchInput) {
-      this.yearSearchInput.nativeElement.value = '';
+      this.yearSearchText = '';
+      this.filterYears();
+      setTimeout(() => this.yearSearchInput.nativeElement.focus(), 0);
     }
   }
 
@@ -321,7 +297,6 @@ export class AddBudgetComponent implements OnInit {
     const searchText = this.monthSearchText.toLowerCase();
     this.filteredMonths = this._monthTypes.filter(month => month.toLowerCase().includes(searchText));
   }
-
   onMonthSearchChange(event: any) {
     clearTimeout(this.debounceTimer);
     this.debounceTimer = setTimeout(() => {
@@ -329,32 +304,19 @@ export class AddBudgetComponent implements OnInit {
       this.filterMonths();
     }, 300);
   }
-
   onMonthSelectOpened(isOpened: boolean) {
     if (isOpened) {
-      this.resetMonthSearch();
-      setTimeout(() => this.monthSearchInput?.nativeElement.focus(), 0);
-    } else {
-      this.resetMonthSearch();
-    }
-  }
-
-  private resetMonthSearch() {
-    this.monthSearchText = '';
-    this.filteredMonths = [...this._monthTypes];
-    if (this.monthSearchInput) {
-      this.monthSearchInput.nativeElement.value = '';
+      this.monthSearchText = '';
+      this.filterMonths();
+      setTimeout(() => this.monthSearchInput.nativeElement.focus(), 0);
     }
   }
 
 // --- Product Methods ---
   filterProducts() {
     const searchText = this.productSearchText.toLowerCase();
-    this.filteredProducts = this._allProducts.filter(product =>
-      product.name.toLowerCase().includes(searchText)
-    );
+    this.filteredProducts = this._allProducts.filter(product => product.name.toLowerCase().includes(searchText));
   }
-
   onProductSearchChange(event: any) {
     clearTimeout(this.debounceTimer);
     this.debounceTimer = setTimeout(() => {
@@ -362,46 +324,13 @@ export class AddBudgetComponent implements OnInit {
       this.filterProducts();
     }, 300);
   }
-
   onProductSelectOpened(isOpened: boolean) {
     if (isOpened) {
-      this.resetProductSearch();
-      setTimeout(() => this.productSearchInput?.nativeElement.focus(), 0);
-    } else {
-      this.resetProductSearch();
+      this.productSearchText = '';
+      this.filterProducts();
+      setTimeout(() => this.productSearchInput.nativeElement.focus(), 0);
     }
   }
-
-  private resetProductSearch() {
-    this.productSearchText = '';
-    this.filteredProducts = [...this._allProducts];
-    if (this.productSearchInput) {
-      this.productSearchInput.nativeElement.value = '';
-    }
-  }
-
-// ----------------- PRODUCTS SELECT ALL -----------------
-  toggleSelectAllProducts() {
-    const allProducts = this.filteredProducts.filter(p => !p.disabled);
-    const selectedProducts: any[] = this.targetForm.get('products')?.value || [];
-
-    if (this.isAllProductsSelected()) {
-      this.targetForm.get('products')?.setValue([]);
-    } else {
-      this.targetForm.get('products')?.setValue(allProducts);
-    }
-  }
-
-  isAllProductsSelected(): boolean {
-    const selectedProducts: any[] = this.targetForm.get('products')?.value || [];
-    const allEnabledProducts = this.filteredProducts.filter(p => !p.disabled);
-
-    return allEnabledProducts.length > 0 &&
-      allEnabledProducts.every(ap =>
-        selectedProducts.some(sp => sp.id === ap.id)
-      );
-  }
-
 
   private loadEditMode(params: any) {
     this.isEditMode = true;
@@ -537,29 +466,29 @@ export class AddBudgetComponent implements OnInit {
 
 
 
-  // // ----------------- PRODUCTS -----------------
-  // toggleSelectAllProducts() {
-  //   const allProducts = this.filteredProducts.filter(p => !p.disabled);
-  //   const selectedProducts: any[] = this.targetForm.get('products')?.value || [];
-  //
-  //   if (this.isAllProductsSelected()) {
-  //     // Unselect all
-  //     this.targetForm.get('products')?.setValue([]);
-  //   } else {
-  //     // Select all
-  //     this.targetForm.get('products')?.setValue(allProducts);
-  //   }
-  // }
-  //
-  // isAllProductsSelected(): boolean {
-  //   const selectedProducts: any[] = this.targetForm.get('products')?.value || [];
-  //   const allEnabledProducts = this.filteredProducts.filter(p => !p.disabled);
-  //
-  //   return allEnabledProducts.length > 0 &&
-  //     allEnabledProducts.every(ap =>
-  //       selectedProducts.some(sp => sp.id === ap.id)
-  //     );
-  // }
+  // ----------------- PRODUCTS -----------------
+  toggleSelectAllProducts() {
+    const allProducts = this.filteredProducts.filter(p => !p.disabled);
+    const selectedProducts: any[] = this.targetForm.get('products')?.value || [];
+
+    if (this.isAllProductsSelected()) {
+      // Unselect all
+      this.targetForm.get('products')?.setValue([]);
+    } else {
+      // Select all
+      this.targetForm.get('products')?.setValue(allProducts);
+    }
+  }
+
+  isAllProductsSelected(): boolean {
+    const selectedProducts: any[] = this.targetForm.get('products')?.value || [];
+    const allEnabledProducts = this.filteredProducts.filter(p => !p.disabled);
+
+    return allEnabledProducts.length > 0 &&
+      allEnabledProducts.every(ap =>
+        selectedProducts.some(sp => sp.id === ap.id)
+      );
+  }
 
 
   addProduct() {

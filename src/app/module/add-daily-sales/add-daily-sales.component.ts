@@ -337,30 +337,6 @@ export class AddDailySalesComponent implements OnInit {
       );
     }
   }
-  // ----------------- Dealer -----------------
-  @ViewChild('dealerSearchInput') dealerSearchInput!: ElementRef;
-
-  onDealerSearchChange(event: any) {
-    const searchValue = event.target.value.toLowerCase();
-    const filtered = this.dealerdataSource.data.filter(d =>
-      d.name.toLowerCase().includes(searchValue)
-    );
-    this.filteredDealers$.next(filtered);
-  }
-
-  onDealerSelectOpened(isOpened: boolean) {
-    this.resetDealerSearch();
-    if (isOpened) setTimeout(() => this.dealerSearchInput.nativeElement.focus(), 0);
-  }
-
-  private resetDealerSearch() {
-    this.filteredDealers$.next(this.dealerdataSource.data);
-    if (this.dealerSearchInput) this.dealerSearchInput.nativeElement.value = '';
-  }
-
-// ----------------- Vehicle -----------------
-  @ViewChild('vehicleSearchInput') vehicleSearchInput!: ElementRef;
-
   onVehicleSearchChange(event: any) {
     const searchValue = event.target.value.toLowerCase();
     this.filteredVehicles = this.vehicledataSource.data.filter(v =>
@@ -368,14 +344,12 @@ export class AddDailySalesComponent implements OnInit {
     );
   }
 
-  onVehicleSelectOpened(isOpened: boolean) {
-    this.resetVehicleSearch();
-    if (isOpened) setTimeout(() => this.vehicleSearchInput.nativeElement.focus(), 0);
-  }
-
-  private resetVehicleSearch() {
-    this.filteredVehicles = [...this.vehicledataSource.data];
-    if (this.vehicleSearchInput) this.vehicleSearchInput.nativeElement.value = '';
+  onDealerSearchChange(event: any) {
+    const searchValue = event.target.value.toLowerCase();
+    const filtered = this.dealerdataSource.data.filter(d =>
+      d.name.toLowerCase().includes(searchValue)
+    );
+    this.filteredDealers$.next(filtered); // ✅ update observable, not local array
   }
 
 
