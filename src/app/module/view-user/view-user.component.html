@@ -79,51 +79,51 @@
         </mat-form-field>
       </div>
     </div>
-    <div class="row">
-      <div class="col-md-6">
-        <mat-form-field appearance="outline" class="w-100">
-          <mat-label>Select Outlet</mat-label>
-          <mat-select
-            [(value)]="selectedOutlet"
-            multiple
-            #dealerSelect="matSelect"
-            panelClass="custom-select-panel"
-            (openedChange)="onDealerSelectOpened($event)"
-          >
-            <!-- Custom trigger -->
-            <mat-select-trigger>
-      <span *ngIf="dealerSelect.value?.length; else noSelection">
-        {{ dealerSelect.value[0] | slice:0:16 }}{{ dealerSelect.value[0].length > 16 ? '...' : '' }}
-        <span *ngIf="dealerSelect.value.length > 1" class="textcol">
-          (+{{ dealerSelect.value.length - 1 }} more)
-        </span>
-      </span>
-              <ng-template #noSelection>
-                Select...
-              </ng-template>
-            </mat-select-trigger>
+<!--    <div class="row">-->
+<!--      <div class="col-md-6">-->
+<!--        <mat-form-field appearance="outline" class="w-100">-->
+<!--          <mat-label>Select Outlet</mat-label>-->
+<!--          <mat-select-->
+<!--            [(value)]="selectedOutlet"-->
+<!--            multiple-->
+<!--            #dealerSelect="matSelect"-->
+<!--            panelClass="custom-select-panel"-->
+<!--            (openedChange)="onDealerSelectOpened($event)"-->
+<!--          >-->
+<!--            &lt;!&ndash; Custom trigger &ndash;&gt;-->
+<!--            <mat-select-trigger>-->
+<!--      <span *ngIf="dealerSelect.value?.length; else noSelection">-->
+<!--        {{ dealerSelect.value[0] | slice:0:16 }}{{ dealerSelect.value[0].length > 16 ? '...' : '' }}-->
+<!--        <span *ngIf="dealerSelect.value.length > 1" class="textcol">-->
+<!--          (+{{ dealerSelect.value.length - 1 }} more)-->
+<!--        </span>-->
+<!--      </span>-->
+<!--              <ng-template #noSelection>-->
+<!--                Select...-->
+<!--              </ng-template>-->
+<!--            </mat-select-trigger>-->
 
-            <!-- Search -->
-            <div class="mat-select-search" (click)="$event.stopPropagation()">
-              <input
-                matInput
-                placeholder="Search Outlet"
-                #outletSearchInput
-                (input)="onDealerSearchChange($event)"
-              />
-            </div>
+<!--            &lt;!&ndash; Search &ndash;&gt;-->
+<!--            <div class="mat-select-search" (click)="$event.stopPropagation()">-->
+<!--              <input-->
+<!--                matInput-->
+<!--                placeholder="Search Outlet"-->
+<!--                #outletSearchInput-->
+<!--                (input)="onDealerSearchChange($event)"-->
+<!--              />-->
+<!--            </div>-->
 
-            <!-- Options -->
-            <mat-option *ngFor="let outlet of filteredDealerOptions" [value]="outlet?.name">
-              {{ outlet?.name }}
-            </mat-option>
-          </mat-select>
-        </mat-form-field>
+<!--            &lt;!&ndash; Options &ndash;&gt;-->
+<!--            <mat-option *ngFor="let outlet of filteredDealerOptions" [value]="outlet?.name">-->
+<!--              {{ outlet?.name }}-->
+<!--            </mat-option>-->
+<!--          </mat-select>-->
+<!--        </mat-form-field>-->
 
 
 
-      </div>
-    </div>
+<!--      </div>-->
+<!--    </div>-->
     <!-- Buttons -->
     <div class="px-3 pb-3 text-center">
       <button mat-raised-button color="primary" class="me-2" (click)="updateUser()">

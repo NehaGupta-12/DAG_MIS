@@ -44,6 +44,7 @@ import {AddDealerService} from "../../module/add-dealer.service";
 import {MatPaginator} from "@angular/material/paginator";
 import {BudgetService} from "../../module/budget.service";
 import {MonthlyBudgetService} from "../../module/monthly-budget.service";
+import {CountryService} from "../../Services/country.service";
 
 export type ChartOptions = {
   series: ApexAxisChartSeries;
@@ -151,6 +152,7 @@ export class MainComponent implements OnInit {
     private loadingService : LoadingService,
     private addDealerService: AddDealerService,
     private budgetService: BudgetService,
+    private countryService : CountryService,
     private monthlybudgetService: MonthlyBudgetService,
   ) {
     //constructor
@@ -162,8 +164,12 @@ export class MainComponent implements OnInit {
       );
 
     // Subscribe to the observable to populate the local array
-    this._countriesTypes$.subscribe(countries => {
+    this.countryService.getCountries().subscribe(countries => {
       this._countriesTypes = countries;
+      console.log( this._countriesTypes)
+      this._countriesTypes.forEach(country => {
+        this.loadSalesList(country);
+      });
       this.filterCountries(); // Initialize the filtered list
     });
   }
@@ -178,11 +184,11 @@ export class MainComponent implements OnInit {
     this.loadbudget();
     this.loadMonthlyBudget();
 
-    this.countryControl.valueChanges
-      .pipe(startWith(this.countryControl.value))
-      .subscribe((selectedCountry:any) => {
-        this.loadSalesList(selectedCountry);
-      });
+    // this.loadSalesList.valueChanges
+    //   .pipe(startWith(this.countryControl.value))
+    //   .subscribe((selectedCountry:any) => {
+    //     this.loadSalesList(selectedCountry);
+    //   });
   }
 
   filterCountries() {
