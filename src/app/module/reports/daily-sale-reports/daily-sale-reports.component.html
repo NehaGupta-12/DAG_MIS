@@ -85,13 +85,13 @@
                        (input)="filterOutlet(outletSearchInput.value)" />
               </div>
 
-<!--              <div class="px-2 py-1">-->
-<!--                <mat-checkbox [checked]="isAllOutletsSelected()"-->
-<!--                              (click)="$event.stopPropagation()"-->
-<!--                              (change)="toggleSelectAllOutlets()">-->
-<!--                  Select All-->
-<!--                </mat-checkbox>-->
-<!--              </div>-->
+              <!--              <div class="px-2 py-1">-->
+              <!--                <mat-checkbox [checked]="isAllOutletsSelected()"-->
+              <!--                              (click)="$event.stopPropagation()"-->
+              <!--                              (change)="toggleSelectAllOutlets()">-->
+              <!--                  Select All-->
+              <!--                </mat-checkbox>-->
+              <!--              </div>-->
 
               <mat-option *ngFor="let outlet of filteredOptions.name" [value]="outlet">
                 {{ outlet }}
