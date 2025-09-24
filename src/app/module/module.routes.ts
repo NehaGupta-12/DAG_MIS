@@ -37,6 +37,7 @@ import {ViewUserComponent} from "./view-user/view-user.component";
 import {MenuListComponent} from "./Menu list/menu-list/menu-list.component";
 import {AddEditMenuListComponent} from "./Menu list/add-edit-menu-list/add-edit-menu-list.component";
 import {AuthGuard} from "../authentication/auth.guard";
+import {ActivityLogComponent} from "./activity-log/activity-log.component";
 
 export const MODULES_ROUTE: Route[] = [
   {
@@ -122,6 +123,11 @@ export const MODULES_ROUTE: Route[] = [
   {
     path: 'products-master-list',
     component: ProductMasterListComponent,
+    canActivate:[AuthGuard]
+  },
+  {
+    path:'activity-log',
+    component:ActivityLogComponent,
     canActivate:[AuthGuard]
   },
   {

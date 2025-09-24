@@ -87,6 +87,14 @@
           "class": "ml-menu",
           "groupTitle": false,
           "submenu": []
+        },
+        {
+          "path": "module/activity-log",
+          "title": "Role & Permission",
+          "icon": "",
+          "class": "ml-menu",
+          "groupTitle": false,
+          "submenu": []
         }
       ]
     },
