@@ -1,4 +1,4 @@
-  import {
+import {
   Component,
     ElementRef,
   EnvironmentInjector,
@@ -199,8 +199,13 @@
     onModelSelectOpened(isOpened: boolean) {
       if (isOpened) {
         this.modelSearchText = '';
-        this.filterModels();
+        this.filteredModels = [...this._modelTypes];
         setTimeout(() => this.modelSearchInput.nativeElement.focus(), 0);
+      } else {
+        // Reset on close
+        this.modelSearchText = '';
+        this.filteredModels = [...this._modelTypes];
+        this.modelSearchInput.nativeElement.value = '';
       }
     }
 
@@ -219,8 +224,13 @@
     onCategorySelectOpened(isOpened: boolean) {
       if (isOpened) {
         this.categorySearchText = '';
-        this.filterCategories();
+        this.filteredCategories = [...this._categoryTypes];
         setTimeout(() => this.categorySearchInput.nativeElement.focus(), 0);
+      } else {
+        // Reset on close
+        this.categorySearchText = '';
+        this.filteredCategories = [...this._categoryTypes];
+        this.categorySearchInput.nativeElement.value = '';
       }
     }
 
@@ -239,8 +249,13 @@
     onVariantSelectOpened(isOpened: boolean) {
       if (isOpened) {
         this.variantSearchText = '';
-        this.filterVariants();
+        this.filteredVariants = [...this._variantTypes];
         setTimeout(() => this.variantSearchInput.nativeElement.focus(), 0);
+      } else {
+        // Reset on close
+        this.variantSearchText = '';
+        this.filteredVariants = [...this._variantTypes];
+        this.variantSearchInput.nativeElement.value = '';
       }
     }
 
@@ -259,8 +274,13 @@
     onEngineSelectOpened(isOpened: boolean) {
       if (isOpened) {
         this.engineSearchText = '';
-        this.filterEngines();
+        this.filteredEngines = [...this._engineTypes];
         setTimeout(() => this.engineSearchInput.nativeElement.focus(), 0);
+      } else {
+        // Reset on close
+        this.engineSearchText = '';
+        this.filteredEngines = [...this._engineTypes];
+        this.engineSearchInput.nativeElement.value = '';
       }
     }
 
@@ -279,8 +299,13 @@
     onUnitSelectOpened(isOpened: boolean) {
       if (isOpened) {
         this.unitSearchText = '';
-        this.filterUnits();
+        this.filteredUnits = [...this._unitTypes];
         setTimeout(() => this.unitSearchInput.nativeElement.focus(), 0);
+      } else {
+        // Reset on close
+        this.unitSearchText = '';
+        this.filteredUnits = [...this._unitTypes];
+        this.unitSearchInput.nativeElement.value = '';
       }
     }
 

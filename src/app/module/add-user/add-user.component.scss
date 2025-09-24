@@ -1,0 +1,44 @@
+.search-container {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background-color: white;
+  padding: 8px;
+  border-bottom: 1px solid #e0e0e0;
+  margin: 0 -16px;
+}
+
+.search-input {
+  width: calc(100% - 16px);
+  padding: 8px;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  margin: 0 8px;
+  outline: none;
+  font-size: 14px;
+
+  &:focus {
+    border-color: #0056D2;
+    box-shadow: 0 0 0 1px rgba(0, 86, 210, 0.1);
+  }
+}
+
+::ng-deep {
+  .mat-mdc-select-panel {
+    max-height: 300px !important;
+  }
+
+  .mat-mdc-option {
+    font-size: 14px;
+    height: 40px !important;
+  }
+
+  .mdc-menu-surface.mat-mdc-select-panel {
+    padding: 0 !important;
+  }
+
+  .mat-mdc-select-panel .mat-mdc-option {
+    padding: 0 16px;
+  }
+}
+

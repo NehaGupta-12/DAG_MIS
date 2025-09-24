@@ -185,41 +185,26 @@ export class AddUserComponent implements OnInit{
 
 // --- Role Methods ---
   filterRoles() {
-    if (!this.roleSearchText) {
-      this.filteredRoles = [...this._roles];
-    } else {
-      const search = this.roleSearchText.toLowerCase();
-      this.filteredRoles = this._roles.filter(role =>
-        role.toLowerCase().includes(search)
-      );
-    }
-  }
-
-  onRoleSearchChange(event: any) {
-    clearTimeout(this.debounceTimer);
-    this.debounceTimer = setTimeout(() => {
-      this.roleSearchText = event.target.value;
-      this.filterRoles();
-    }, 300);
+    const searchText = this.roleSearchText.toLowerCase();
+    this.filteredRoles = this._roles.filter(role =>
+      role.toLowerCase().includes(searchText)
+    );
   }
 
   onRoleSelectOpened(isOpened: boolean) {
     if (isOpened) {
-      // ✅ Reset search text & filtered list when dropdown opens
       this.roleSearchText = '';
-      this.filterRoles();
-
-      // ✅ Clear input visually & focus
+      this.filteredRoles = [...this._roles];
       setTimeout(() => {
-        if (this.roleSearchInput) this.roleSearchInput.nativeElement.value = '';
-        this.roleSearchInput?.nativeElement.focus();
+        if (this.roleSearchInput) {
+          this.roleSearchInput.nativeElement.value = '';
+          this.roleSearchInput.nativeElement.focus();
+        }
       }, 0);
     } else {
-      // ✅ Reset search text when dropdown closes
+      // Reset on close
       this.roleSearchText = '';
-      this.filterRoles();
-
-      // ✅ Clear input visually
+      this.filteredRoles = [...this._roles];
       if (this.roleSearchInput) {
         this.roleSearchInput.nativeElement.value = '';
       }
@@ -228,108 +213,92 @@ export class AddUserComponent implements OnInit{
 
   onDeptSelectOpened(isOpened: boolean) {
     if (isOpened) {
-      // ✅ Reset search text & filtered list
       this.deptSearchText = '';
-      this.filterDepartments();
-
-      // ✅ Clear input box visually
-      if (this.deptSearchInput) {
-        this.deptSearchInput.nativeElement.value = '';
-        setTimeout(() => this.deptSearchInput.nativeElement.focus(), 0);
-      }
-    } else {
-      // Dropdown close, reset search & filtered list
-      this.deptSearchText = '';
-      this.filterDepartments();
-
-      // ✅ Clear invalid selection if any
-      const currentValue = this.register?.get('department')?.value;
-      if (!this._departments.includes(currentValue)) {
-        this.register?.get('department')?.setValue(null);
-      }
-
-      // ✅ Force panel close if stuck
+      this.filteredDepartments = [...this._departments];
       setTimeout(() => {
-        if (this.deptSelect.panelOpen) {
-          this.deptSelect.close();
+        if (this.deptSearchInput) {
+          this.deptSearchInput.nativeElement.value = '';
+          this.deptSearchInput.nativeElement.focus();
         }
       }, 0);
-    }
-  }
-
-  onDeptSearchChange(event: any) {
-    clearTimeout(this.debounceTimer);
-    this.debounceTimer = setTimeout(() => {
-      this.deptSearchText = event.target.value;
-      this.filterDepartments();
-    }, 300);
-  }
-
-  filterDepartments() {
-    if (!this.deptSearchText) {
-      this.filteredDepartments = [...this._departments];
     } else {
-      const search = this.deptSearchText.toLowerCase();
-      this.filteredDepartments = this._departments.filter(dept =>
-        dept.toLowerCase().includes(search)
-      );
+      // Reset on close
+      this.deptSearchText = '';
+      this.filteredDepartments = [...this._departments];
+      if (this.deptSearchInput) {
+        this.deptSearchInput.nativeElement.value = '';
+      }
+
+      // Clear invalid selection if any
+      const currentValue = this.register?.get('department')?.value;
+      if (currentValue && !this._departments.includes(currentValue)) {
+        this.register?.get('department')?.setValue(null);
+      }
     }
   }
 
   onCountrySelectOpened(isOpened: boolean) {
     if (isOpened) {
-      // ✅ Reset previous search text and filtered list
       this.countrySearchText = '';
-      this.filterCountries();
-
-      // ✅ Clear the input box visually
-      if (this.countrySearchInput) {
-        this.countrySearchInput.nativeElement.value = '';
-        setTimeout(() => this.countrySearchInput.nativeElement.focus(), 0);
-      }
-    } else {
-      // Dropdown close, reset search and filtered list
-      this.countrySearchText = '';
-      this.filterCountries();
-
-      // ✅ If selected value is invalid, clear it
-      const currentValue = this.register?.get('country')?.value;
-      if (!this._countries.includes(currentValue)) {
-        this.register?.get('country')?.setValue(null);
-      }
-
-      // ✅ Force close panel if mat-select is stuck
+      this.filteredCountries = [...this._countries];
       setTimeout(() => {
-        if (this.countrySelect.panelOpen) {
-          this.countrySelect.close();
+        if (this.countrySearchInput) {
+          this.countrySearchInput.nativeElement.value = '';
+          this.countrySearchInput.nativeElement.focus();
         }
       }, 0);
+    } else {
+      // Reset on close
+      this.countrySearchText = '';
+      this.filteredCountries = [...this._countries];
+      if (this.countrySearchInput) {
+        this.countrySearchInput.nativeElement.value = '';
+      }
+
+      // Clear invalid selection if any
+      const currentValue = this.register?.get('country')?.value;
+      if (currentValue && !this._countries.includes(currentValue)) {
+        this.register?.get('country')?.setValue(null);
+      }
     }
+  }
+
+  onRoleSearchChange(event: any) {
+    this.roleSearchText = event.target.value;
+    this.filterRoles();
+    event.stopPropagation();
+  }
+
+  onDeptSearchChange(event: any) {
+    this.deptSearchText = event.target.value;
+    this.filterDepartments();
+    event.stopPropagation();
   }
 
   onCountrySearchChange(event: any) {
-    clearTimeout(this.debounceTimer);
-    this.debounceTimer = setTimeout(() => {
-      this.countrySearchText = event.target.value;
-      this.filterCountries();
-    }, 300);
+    this.countrySearchText = event.target.value;
+    this.filterCountries();
+    event.stopPropagation();
+  }
+
+  filterDepartments() {
+    const searchText = this.deptSearchText.toLowerCase();
+    this.filteredDepartments = this._departments.filter(dept =>
+      dept.toLowerCase().includes(searchText)
+    );
   }
 
   filterCountries() {
-    const sortedCountries = [...this._countries].sort((a, b) =>
-      a.trim().toLowerCase().localeCompare(b.trim().toLowerCase())
+    const searchText = this.countrySearchText.toLowerCase();
+    this.filteredCountries = this._countries.filter(country =>
+      country.toLowerCase().includes(searchText)
     );
-
-    if (!this.countrySearchText) {
-      this.filteredCountries = sortedCountries;
-    } else {
-      const search = this.countrySearchText.toLowerCase();
-      this.filteredCountries = sortedCountries.filter(c =>
-        c.toLowerCase().includes(search)
-      );
-    }
   }
 
+  // Prevent panel close when clicking on search input
+  onSearchClick(event: Event) {
+    event.stopPropagation();
+  }
 
   initForm() {
     this.register = this.fb.group({
