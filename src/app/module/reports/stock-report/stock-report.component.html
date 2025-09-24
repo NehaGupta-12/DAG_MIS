@@ -16,15 +16,15 @@
 
       <form [formGroup]="dealerForm" class="row g-3 align-items-center my-2 mx-2">
 
+        <!-- COUNTRY -->
         <div class="col-md-3">
+          <!-- COUNTRY -->
           <mat-form-field appearance="outline" class="w-100">
             <mat-label>Select Country</mat-label>
-            <mat-select formControlName="country" #countrySelect panelClass="custom-select-panel"
-                        (openedChange)="onCountrySelectOpened($event)">
-              <!-- Search box -->
-              <div class="mat-select-search">
-                <input matInput placeholder="Search Country" #countrySearchInput
-                       (input)="onCountrySearchChange($event)" />
+            <mat-select formControlName="country" (openedChange)="onCountrySelectOpened($event)">
+              <div class="mat-select-search" (click)="$event.stopPropagation()">
+                <input matInput #countrySearchInput placeholder="Search Country"
+                       (input)="filterCountry(countrySearchInput.value)" />
               </div>
               <mat-option *ngFor="let country of filteredOptions.country" [value]="country">
                 {{ country }}
@@ -33,15 +33,15 @@
           </mat-form-field>
         </div>
 
+        <!-- DIVISION -->
         <div class="col-md-3">
+          <!-- DIVISION -->
           <mat-form-field appearance="outline" class="w-100">
             <mat-label>Select Division</mat-label>
-            <mat-select formControlName="division" #divisionSelect panelClass="custom-select-panel"
-                        (openedChange)="onDivisionSelectOpened($event)">
-              <!-- Search box -->
-              <div class="mat-select-search">
-                <input matInput placeholder="Search Division" #divisionSearchInput
-                       (input)="onDivisionSearchChange($event)" />
+            <mat-select formControlName="division" (openedChange)="onDivisionSelectOpened($event)">
+              <div class="mat-select-search" (click)="$event.stopPropagation()">
+                <input matInput #divisionSearchInput placeholder="Search Division"
+                       (input)="filterDivision(divisionSearchInput.value)" />
               </div>
               <mat-option *ngFor="let division of filteredOptions.division" [value]="division">
                 {{ division }}
@@ -49,15 +49,16 @@
             </mat-select>
           </mat-form-field>
         </div>
+
+        <!-- TOWN -->
         <div class="col-md-3">
+          <!-- TOWN -->
           <mat-form-field appearance="outline" class="w-100">
             <mat-label>Select Town</mat-label>
-            <mat-select formControlName="town" #townSelect panelClass="custom-select-panel"
-                        (openedChange)="onTownSelectOpened($event)">
-              <!-- Search box -->
-              <div class="mat-select-search">
-                <input matInput placeholder="Search Town" #townSearchInput
-                       (input)="onTownSearchChange($event)" />
+            <mat-select formControlName="town" (openedChange)="onTownSelectOpened($event)">
+              <div class="mat-select-search"  (click)="$event.stopPropagation()">
+                <input matInput #townSearchInput placeholder="Search Town"
+                       (input)="filterTown(townSearchInput.value)" />
               </div>
               <mat-option *ngFor="let town of filteredOptions.town" [value]="town">
                 {{ town }}
@@ -66,49 +67,41 @@
           </mat-form-field>
         </div>
 
-
-        <!-- Showroom Name -->
+        <!-- OUTLETS -->
         <div class="col-md-3">
           <mat-form-field appearance="outline" class="w-100">
             <mat-label>Select Outlet(s)</mat-label>
-            <mat-select
-              formControlName="name"
-              multiple
-              #outletSelect="matSelect"
-              panelClass="custom-select-panel"
-              (openedChange)="onOutletSelectOpened($event)"
-            >
-              <!-- Trigger showing first (truncated) + (+N more) -->
+            <mat-select formControlName="name" multiple (openedChange)="onOutletSelectOpened($event)">
               <mat-select-trigger>
-        <span *ngIf="outletSelect.value?.length; else noSelection">
-          {{ outletSelect.value[0] | slice:0:16 }}{{ outletSelect.value[0].length > 16 ? '...' : '' }}
-          <span *ngIf="outletSelect.value.length > 1" class="textcol">
-            (+{{ outletSelect.value.length - 1 }} more)
+        <span *ngIf="dealerForm.get('name')?.value!.length; else noSelection">
+          {{ dealerForm.get('name')?.value[0] | slice:0:16 }}
+          {{ dealerForm.get('name')?.value[0]?.length > 16 ? '...' : '' }}
+          <span *ngIf="dealerForm.get('name')?.value!.length > 1" class="textcol">
+            (+{{ dealerForm.get('name')?.value!.length - 1 }} more)
           </span>
         </span>
-                <ng-template #noSelection>
-                  Select...
-                </ng-template>
+                <ng-template #noSelection>Select...</ng-template>
               </mat-select-trigger>
 
-              <!-- Search -->
               <div class="mat-select-search" (click)="$event.stopPropagation()">
-                <input
-                  matInput
-                  placeholder="Search Outlet"
-                  #outletSearchInput
-                  (input)="onOutletSearchChange($event)"
-                />
+                <input matInput placeholder="Search Outlet" #outletSearchInput
+                       (input)="filterOutlet(outletSearchInput.value)" />
               </div>
 
-              <!-- Options -->
+              <div class="px-2 py-1">
+                <mat-checkbox [checked]="isAllOutletsSelected()"
+                              (click)="$event.stopPropagation()"
+                              (change)="toggleSelectAllOutlets()">
+                  Select All
+                </mat-checkbox>
+              </div>
+
               <mat-option *ngFor="let outlet of filteredOptions.name" [value]="outlet">
                 {{ outlet }}
               </mat-option>
             </mat-select>
           </mat-form-field>
         </div>
-
 
         <div class="col-md-3">
           <mat-form-field class="example-full-width w-100" appearance="outline">

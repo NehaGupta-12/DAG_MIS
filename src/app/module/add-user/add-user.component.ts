@@ -176,13 +176,21 @@ export class AddUserComponent implements OnInit{
     }
   }
 
-  // --- Role Methods ---
+  // 🔹 Search text variable
+  // roleSearchText: string = '';
+  // filteredRoles: string[] = [];
+  // _roles: string[] = []; // your full roles list
+
+  // @ViewChild('roleSearchInput') roleSearchInput!: ElementRef;
+
+// --- Role Methods ---
   filterRoles() {
     if (!this.roleSearchText) {
       this.filteredRoles = [...this._roles];
     } else {
+      const search = this.roleSearchText.toLowerCase();
       this.filteredRoles = this._roles.filter(role =>
-        role.toLowerCase().includes(this.roleSearchText.toLowerCase())
+        role.toLowerCase().includes(search)
       );
     }
   }
@@ -197,9 +205,24 @@ export class AddUserComponent implements OnInit{
 
   onRoleSelectOpened(isOpened: boolean) {
     if (isOpened) {
+      // ✅ Reset search text & filtered list when dropdown opens
       this.roleSearchText = '';
       this.filterRoles();
-      setTimeout(() => this.roleSearchInput?.nativeElement.focus(), 0);
+
+      // ✅ Clear input visually & focus
+      setTimeout(() => {
+        if (this.roleSearchInput) this.roleSearchInput.nativeElement.value = '';
+        this.roleSearchInput?.nativeElement.focus();
+      }, 0);
+    } else {
+      // ✅ Reset search text when dropdown closes
+      this.roleSearchText = '';
+      this.filterRoles();
+
+      // ✅ Clear input visually
+      if (this.roleSearchInput) {
+        this.roleSearchInput.nativeElement.value = '';
+      }
     }
   }
 
