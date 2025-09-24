@@ -122,7 +122,8 @@ export class MainComponent implements OnInit {
   totalSalesQuantity: number = 0;
   last10DaysSales: number = 0;
   _countriesTypes$!: Observable<string[]>;
-  countryControl = new FormControl('All');
+  // countryControl = new FormControl('All');
+  countryControl = new FormControl<string[] | null>([]);
   dailyZeroSalesDataSource = new MatTableDataSource<any>([]);
   monthlyZeroSalesDataSource = new MatTableDataSource<any>([]);
   @ViewChild('dailyPaginator') dailyPaginator!: MatPaginator;
@@ -154,25 +155,7 @@ export class MainComponent implements OnInit {
     private budgetService: BudgetService,
     private countryService : CountryService,
     private monthlybudgetService: MonthlyBudgetService,
-  ) {
-    //constructor
-    this._countriesTypes$ = this.mDatabase
-      .object<{ subcategories: string[] }>('typelist/Countries')
-      .valueChanges()
-      .pipe(
-        map(data => data?.subcategories || [])
-      );
-
-    // Subscribe to the observable to populate the local array
-    this.countryService.getCountries().subscribe(countries => {
-      this._countriesTypes = countries;
-      console.log( this._countriesTypes)
-      this._countriesTypes.forEach(country => {
-        this.loadSalesList(country);
-      });
-      this.filterCountries(); // Initialize the filtered list
-    });
-  }
+  ) {}
 
   ngOnInit() {
     this.loadingService.setLoading(true);
@@ -184,14 +167,33 @@ export class MainComponent implements OnInit {
     this.loadbudget();
     this.loadMonthlyBudget();
 
-    // this.loadSalesList.valueChanges
-    //   .pipe(startWith(this.countryControl.value))
-    //   .subscribe((selectedCountry:any) => {
-    //     this.loadSalesList(selectedCountry);
-    //   });
+    this.countryService.getCountries().subscribe(countries => {
+      this._countriesTypes = countries;
+      this.filteredCountries = [...this._countriesTypes];
+      this.countryControl.setValue(['All', ...this._countriesTypes]);
+      this.loadSalesList(this._countriesTypes);
+    });
+
+    this.countryControl.valueChanges
+      .pipe(startWith(this.countryControl.value))
+      .subscribe((selectedCountries) => {
+        const countries = (selectedCountries as string[]) || [];
+
+        if (countries.includes('All')) {
+          this.countryControl.setValue(['All', ...this._countriesTypes], { emitEvent: false });
+          this.loadSalesList(this._countriesTypes);
+        }  // Case 2: User deselects everything
+        else if (countries.length === 0) {debugger
+          this.loadSalesList([]);
+        }
+        // Case 3: Normal countries selected
+        else {
+          this.loadSalesList(countries);
+        }
+      });
   }
 
-  filterCountries() {
+    filterCountries() {
     const sortedCountries = [...this._countriesTypes].sort((a, b) =>
       a.trim().toLowerCase().localeCompare(b.trim().toLowerCase())
     );
@@ -230,31 +232,65 @@ export class MainComponent implements OnInit {
     this.monthlyZeroSalesDataSource.paginator = this.monthlyPaginator;
   }
 
-  loadSalesList(selectedCountry: string) {
+  // loadSalesList(selectedCountry: string) {
+  //   this.loadingService.setLoading(true);
+  //
+  //   runInInjectionContext(this.injector, () => {
+  //     this.dailySlaes.getDailySalesList().subscribe((data) => {
+  //       let filteredData = data;
+  //       let filteredOutlets = this.outletdataSource.data; // Store a mutable copy
+  //
+  //       if (selectedCountry && selectedCountry !== 'All') {
+  //         filteredData = data.filter(item => item.country === selectedCountry);
+  //         filteredOutlets = this.outletdataSource.data.filter(outlet => outlet.country === selectedCountry);
+  //       }
+  //
+  //       this.dataSource.data = filteredData;
+  //
+  //       // ... (your existing recalculation logic) ...
+  //
+  //       // 🔹 Recalculate sales summaries
+  //       // 🔹 Recalculate sales summaries
+  //       this.totalSalesQuantity = filteredData.reduce((sum, item) => sum + item.quantity, 0);
+  //       this.calculateDailySales(filteredData);
+  //       this.calculateLast12MonthsSales(filteredData); // fill monthlyChartData first
+  //       this.calculateMonthlySalesFromChart(); // update info box
+  //       this.calculateFiscalYearSales(filteredData);
+  //
+  //
+  //       // 🔹 Update charts
+  //       this.chart1();
+  //       const dailySalesData = this.getLast10DaysSales(filteredData);
+  //       this.barchart(dailySalesData);
+  //       const yearlyData = this.calculateYearlySales(filteredData);
+  //       this.areachart(yearlyData.years, yearlyData.quantities);
+  //
+  //       // 🔹 Update the zero-sales outlets using the filtered list
+  //       this.calculateZeroSales(filteredData, filteredOutlets);
+  //
+  //       this.loadingService.setLoading(false);
+  //     });
+  //   });
+  // }
+  loadSalesList(selectedCountries: string[] = []) {
     this.loadingService.setLoading(true);
-
     runInInjectionContext(this.injector, () => {
-      this.dailySlaes.getDailySalesList().subscribe((data) => {
-        let filteredData = data;
-        let filteredOutlets = this.outletdataSource.data; // Store a mutable copy
-
-        if (selectedCountry && selectedCountry !== 'All') {
-          filteredData = data.filter(item => item.country === selectedCountry);
-          filteredOutlets = this.outletdataSource.data.filter(outlet => outlet.country === selectedCountry);
+      this.dailySlaes.getDailySalesList().subscribe((data: any[]) => {
+        let filteredData: any[] = [];
+        let filteredOutlets: any[] = [];
+        if (selectedCountries.length === 0) {
+          filteredData = [];
+          filteredOutlets = [];
+        } else {
+          filteredData = data.filter(item => selectedCountries.includes(item.country));
+          filteredOutlets = this.outletdataSource.data.filter(outlet => selectedCountries.includes(outlet.country));
         }
-
         this.dataSource.data = filteredData;
-
-        // ... (your existing recalculation logic) ...
-
-        // 🔹 Recalculate sales summaries
-        // 🔹 Recalculate sales summaries
         this.totalSalesQuantity = filteredData.reduce((sum, item) => sum + item.quantity, 0);
         this.calculateDailySales(filteredData);
-        this.calculateLast12MonthsSales(filteredData); // fill monthlyChartData first
-        this.calculateMonthlySalesFromChart(); // update info box
+        this.calculateLast12MonthsSales(filteredData);
+        this.calculateMonthlySalesFromChart();
         this.calculateFiscalYearSales(filteredData);
-
 
         // 🔹 Update charts
         this.chart1();
@@ -262,13 +298,21 @@ export class MainComponent implements OnInit {
         this.barchart(dailySalesData);
         const yearlyData = this.calculateYearlySales(filteredData);
         this.areachart(yearlyData.years, yearlyData.quantities);
-
-        // 🔹 Update the zero-sales outlets using the filtered list
         this.calculateZeroSales(filteredData, filteredOutlets);
-
         this.loadingService.setLoading(false);
       });
     });
+  }
+
+
+
+
+  toggleAllCountries() {
+    if (this.countryControl.value?.includes('All')) {
+      this.countryControl.setValue([]); // unselect all
+    } else {
+      this.countryControl.setValue(['All', ...this._countriesTypes]); // select all
+    }
   }
 
   calculateMonthlySalesFromChart() {
