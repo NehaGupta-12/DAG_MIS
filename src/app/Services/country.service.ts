@@ -19,6 +19,51 @@ export class CountryService {
     private injector: Injector,
   ) {}
 
+  // getCountries(): Observable<string[]> {
+  //   this.userData = JSON.parse(localStorage.getItem('userData')!) as UserDataModel;
+  //
+  //   return this.userService.getUsers().pipe(
+  //     map((snapshotChanges: any[]) =>
+  //       snapshotChanges.map(snapshot => snapshot.payload.toJSON() as UserDataModel)
+  //     ),
+  //     map(users => {
+  //       this.users = users;
+  //       this.filterUser = this.users.find(u => u.email === this.userData.email);
+  //       return this.filterUser;
+  //     }),
+  //     switchMap(filterUser => {
+  //       if (!filterUser?.allowedCountries) {
+  //         console.warn('No allowed countries found for this user');
+  //         return of([]);
+  //       }
+  //
+  //       let allowedCountries: string[] = [];
+  //       if (Array.isArray(filterUser.allowedCountries)) {
+  //         allowedCountries = filterUser.allowedCountries;
+  //       } else if (typeof filterUser.allowedCountries === 'object') {
+  //         allowedCountries = Object.values(filterUser.allowedCountries);
+  //       }
+  //
+  //       if (!allowedCountries.length) {
+  //         console.warn('allowedCountries is empty after conversion');
+  //         return of([]);
+  //       }
+  //
+  //
+  //       return runInInjectionContext(this.injector, () =>
+  //         this.mDatabase
+  //           .object<{ subcategories: string[] }>('typelist/Countries')
+  //           .valueChanges()
+  //           .pipe(
+  //             map(data => data?.subcategories || []),
+  //             map(countries =>
+  //               countries.filter(c => allowedCountries.includes(c))
+  //             )
+  //           )
+  //       );
+  //     })
+  //   );
+  // }
   getCountries(): Observable<string[]> {
     this.userData = JSON.parse(localStorage.getItem('userData')!) as UserDataModel;
 
@@ -34,7 +79,7 @@ export class CountryService {
       switchMap(filterUser => {
         if (!filterUser?.allowedCountries) {
           console.warn('No allowed countries found for this user');
-          return of([]);
+          return of(["No country available for this user"]); // ✅ message array
         }
 
         let allowedCountries: string[] = [];
@@ -46,9 +91,8 @@ export class CountryService {
 
         if (!allowedCountries.length) {
           console.warn('allowedCountries is empty after conversion');
-          return of([]);
+          return of(["No country available for this user"]); // ✅ message array
         }
-
 
         return runInInjectionContext(this.injector, () =>
           this.mDatabase
@@ -56,12 +100,14 @@ export class CountryService {
             .valueChanges()
             .pipe(
               map(data => data?.subcategories || []),
-              map(countries =>
-                countries.filter(c => allowedCountries.includes(c))
-              )
+              map(countries => {
+                const filtered = countries.filter(c => allowedCountries.includes(c));
+                return filtered.length ? filtered : ["No country available for this user"]; // ✅ fallback
+              })
             )
         );
       })
     );
   }
+
 }

@@ -101,12 +101,46 @@
         </div>
         <div class="col-md-6 d-flex mb-2">
 
-          <button class="btn btn-primary" (click)="addSubCategory(newField); newField=''" [disabled]="!authService.hasPermission('Type/Dropdown','create')">
+          <button class="btn btn-primary" (click)="addOrUpdateSubCategory(newField); newField=''" [disabled]="!authService.hasPermission('Type/Dropdown','create')">
             Add {{ selectedCategory.name }}
           </button>
 
         </div>
       </div>
+
+      <!-- Subcategory Modal -->
+      <div *ngIf="showSubModal && isEditSub" class="modal-overlay">
+        <div class="modal-box card shadow">
+          <div class="card-body">
+            <h5 class="mb-3">Edit {{ selectedCategory?.name }}</h5>
+
+            <input
+              type="text"
+              [(ngModel)]="newField"
+              class="form-control mb-1"
+              [placeholder]="'Enter ' + selectedCategory?.name + ' *'"
+              [ngClass]="{'is-invalid': submitted && (!newField || newField.trim() === '')}"
+            />
+
+            <!-- Validation message -->
+            <div *ngIf="submitted && (!newField || newField.trim() === '')"
+                 class="text-danger mb-2" style="font-size: 13px;">
+              {{ selectedCategory?.name }} is required.
+            </div>
+
+            <div class="d-flex justify-content-start">
+              <!-- Cancel -->
+              <button class="btn btn-secondary me-2" (click)="closeSubModal()">Cancel</button>
+
+              <!-- Submit -->
+              <button class="btn btn-primary" (click)="addOrUpdateSubCategory(newField)">
+                 Update {{ selectedCategory?.name }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
 
       <!-- Subcategory List -->
       <div class="row mb-3">
@@ -130,6 +164,9 @@
               <tr *ngFor="let sub of selectedCategory.subcategories; let i = index">
                 <td>{{ sub }}</td>
                 <td>
+                  <button mat-icon-button color="primary" (click)="editSubCategory(sub, i)" [disabled]="!authService.hasPermission('Type/Dropdown','edit')">
+                    <app-feather-icons [icon]="'edit-2'" [class]="'tbl-fav-edit'"></app-feather-icons>
+                  </button>
                   <button mat-icon-button color="accent" (click)="deleteSubCategory(sub)" [disabled]="!authService.hasPermission('Type/Dropdown','delete')">
                     <app-feather-icons [icon]="'trash-2'" [class]="'tbl-fav-delete'"></app-feather-icons>
                   </button>

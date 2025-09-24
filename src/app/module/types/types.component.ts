@@ -84,6 +84,18 @@ export class TypesComponent implements OnInit {
     });
   }
 
+  // onSubmitCategory() {
+  //   this.submitted = true;
+  //
+  //   if (!this.newCategory || this.newCategory.trim() === '') {
+  //     return; // stop if empty, error will show
+  //   }
+  //
+  //   this.addCategory(this.newCategory.trim());
+  //   this.newCategory = '';
+  //   this.submitted = false; // reset
+  //   this.closeModal();
+  // }
   onSubmitCategory() {
     this.submitted = true;
 
@@ -91,11 +103,21 @@ export class TypesComponent implements OnInit {
       return; // stop if empty, error will show
     }
 
-    this.addCategory(this.newCategory.trim());
+    const newName = this.newCategory.trim();
+    const isDuplicate = this.categories.some(cat => cat.name.toLowerCase() === newName.toLowerCase());
+
+    if (isDuplicate) {
+      Swal.fire('Duplicate!', `Category "${newName}" already exists.`, 'warning');
+      return;
+    }
+
+    // ✅ Add new category
+    this.addCategory(newName);
     this.newCategory = '';
     this.submitted = false; // reset
     this.closeModal();
   }
+
 
   openModal() {
     this.showModal = true;
@@ -160,50 +182,54 @@ export class TypesComponent implements OnInit {
     });
   }
 
-// ✅ Add subcategory with loader
-  addSubCategory(field: string) {
-    if (!field.trim() || !this.selectedCategory) return;
 
-    this.loadingService.setLoading(true);
-    runInInjectionContext(this.injector, () => {
-      const mDatabase = this.injector.get(AngularFireDatabase);
-      const key = this.selectedCategory.name.replace(/\s+/g, '_');
 
-      mDatabase.object<any[]>(`typelist/${key}/subcategories`)
-        .valueChanges()
-        .pipe(take(1))
-        .subscribe({
-          next: (subcats) => {
-            const updatedSubcategories = subcats ? [...subcats, field] : [field];
 
-            mDatabase.object(`typelist/${key}/subcategories`)
-              .set(updatedSubcategories)
-              .then(() => {
-                console.log(`Subcategory "${field}" added to ${this.selectedCategory.name}`);
-                this.selectedCategory = {
-                  ...this.selectedCategory,
-                  subcategories: updatedSubcategories
-                };
 
-                const index = this.categories.findIndex(c => c.name === this.selectedCategory.name);
-                if (index > -1) {
-                  this.categories[index] = this.selectedCategory;
-                }
-
-                this.loadingService.setLoading(false);
-              })
-              .catch((err) => {
-                console.error('Failed to add subcategory', err);
-                this.loadingService.setLoading(false);
-              });
-          },
-          error: (err) => {
-            console.error('Failed to fetch subcategories', err);
-            this.loadingService.setLoading(false);
-          }
-        });
-    });
-  }
+// // ✅ Add subcategory with loader
+//   addSubCategory(field: string) {
+//     if (!field.trim() || !this.selectedCategory) return;
+//
+//     this.loadingService.setLoading(true);
+//     runInInjectionContext(this.injector, () => {
+//       const mDatabase = this.injector.get(AngularFireDatabase);
+//       const key = this.selectedCategory.name.replace(/\s+/g, '_');
+//
+//       mDatabase.object<any[]>(`typelist/${key}/subcategories`)
+//         .valueChanges()
+//         .pipe(take(1))
+//         .subscribe({
+//           next: (subcats) => {
+//             const updatedSubcategories = subcats ? [...subcats, field] : [field];
+//
+//             mDatabase.object(`typelist/${key}/subcategories`)
+//               .set(updatedSubcategories)
+//               .then(() => {
+//                 console.log(`Subcategory "${field}" added to ${this.selectedCategory.name}`);
+//                 this.selectedCategory = {
+//                   ...this.selectedCategory,
+//                   subcategories: updatedSubcategories
+//                 };
+//
+//                 const index = this.categories.findIndex(c => c.name === this.selectedCategory.name);
+//                 if (index > -1) {
+//                   this.categories[index] = this.selectedCategory;
+//                 }
+//
+//                 this.loadingService.setLoading(false);
+//               })
+//               .catch((err) => {
+//                 console.error('Failed to add subcategory', err);
+//                 this.loadingService.setLoading(false);
+//               });
+//           },
+//           error: (err) => {
+//             console.error('Failed to fetch subcategories', err);
+//             this.loadingService.setLoading(false);
+//           }
+//         });
+//     });
+//   }
 
 // ✅ Delete subcategory with loader
   deleteSubCategory(subCategory: string) {
@@ -271,5 +297,93 @@ export class TypesComponent implements OnInit {
       console.log('Data saved successfully!');
     });
   }
+  isEditSub = false;
+  subToEditIndex: number | null = null;
+  showSubModal = false;
 
+  editSubCategory(sub: any, i: number) {debugger
+    this.isEditSub = true;
+    this.showSubModal = true;
+    this.subToEditIndex = i;
+    this.newField = sub;
+  }
+  addOrUpdateSubCategory(field: string) {
+    if (!field.trim() || !this.selectedCategory) return;
+
+    const newName = field.trim().toLowerCase();
+    this.loadingService.setLoading(true);
+
+    runInInjectionContext(this.injector, () => {
+      const mDatabase = this.injector.get(AngularFireDatabase);
+      const key = this.selectedCategory.name.replace(/\s+/g, '_');
+
+      mDatabase.object<any[]>(`typelist/${key}/subcategories`)
+        .valueChanges()
+        .pipe(take(1))
+        .subscribe({
+          next: (subcats) => {
+            const updatedSubcategories = subcats ? [...subcats] : [];
+
+            // 🔹 Check for duplicate, ignoring the one being edited
+            const isDuplicate = updatedSubcategories.some((sub, idx) =>
+              sub.toLowerCase() === newName && idx !== this.subToEditIndex
+            );
+
+            if (isDuplicate) {
+              Swal.fire('Duplicate!', `Subcategory "${field.trim()}" already exists.`, 'warning');
+              this.loadingService.setLoading(false);
+              return;
+            }
+
+            let action = 'added';
+            if (this.isEditSub && this.subToEditIndex !== null) {
+              // ✅ Replace existing subcategory
+              updatedSubcategories[this.subToEditIndex] = field.trim();
+              action = 'updated';
+            } else {
+              // ✅ Add new subcategory
+              updatedSubcategories.push(field.trim());
+            }
+
+            mDatabase.object(`typelist/${key}/subcategories`)
+              .set(updatedSubcategories)
+              .then(() => {
+                this.selectedCategory = {
+                  ...this.selectedCategory,
+                  subcategories: updatedSubcategories
+                };
+
+                const index = this.categories.findIndex(c => c.name === this.selectedCategory.name);
+                if (index > -1) this.categories[index] = this.selectedCategory;
+
+                // 🔹 Show success message
+                Swal.fire('Success!', `Subcategory "${field.trim()}" ${action} successfully.`, 'success');
+
+                // Reset
+                this.newField = '';
+                this.isEditSub = false;
+                this.subToEditIndex = null;
+                this.loadingService.setLoading(false);
+              })
+              .catch((err) => {
+                console.error('Failed to save subcategory', err);
+                this.loadingService.setLoading(false);
+              });
+          },
+          error: (err) => {
+            console.error('Failed to fetch subcategories', err);
+            this.loadingService.setLoading(false);
+          }
+        });
+    });
+  }
+
+
+
+  closeSubModal() {
+    this.showSubModal = false;
+    this.isEditSub = false;
+    this.subToEditIndex = null;
+    this.newField = '';
+  }
 }
