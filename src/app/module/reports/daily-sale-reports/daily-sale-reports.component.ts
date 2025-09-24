@@ -707,8 +707,9 @@ export class DailySaleReportsComponent implements OnInit{
     }
   }
   filterCountry(value: string) {
-    const search = (value || '').toLowerCase();
-    this.filteredOptions.country = this.options.country.filter(c => c.toLowerCase().includes(search));
+    const searchText = value.trim().toLowerCase();
+    this.filteredOptions.country = this.options.country
+      .filter(c => c.toLowerCase().includes(searchText));
   }
 
 // --- DIVISION ---
