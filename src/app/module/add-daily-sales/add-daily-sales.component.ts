@@ -234,8 +234,39 @@ export class AddDailySalesComponent implements OnInit {
   //   }, 300);
   // }
   selectionOpen(isOpened: boolean, type: 'dealer' | 'vehicle' | 'country' | 'division' | 'town') {
-    if (!isOpened) return;
+    // Common reset function when dropdown closes
+    if (!isOpened) {
+      switch (type) {
+        case 'dealer':
+          this.dealerSearchText = '';
+          this.onDealerSearchChange({ target: { value: '' } }); // reset filter
+          this.filteredDealers$.next(this.dealerdataSource.data);
+          break;
 
+        case 'vehicle':
+          this.vehicleSearchText = '';
+          this.filteredVehicles = [...this.vehicledataSource.data];
+          break;
+
+        case 'country':
+          this.countrySearchText = '';
+          this.filterCountries();
+          break;
+
+        case 'division':
+          this.divisionSearchText = '';
+          this.filterDivisionTypes();
+          break;
+
+        case 'town':
+          this.townSearchText = '';
+          this.filterTownTypes();
+          break;
+      }
+      return;
+    }
+
+    // When dropdown opens
     switch (type) {
       case 'dealer':
         this.dealerSearchText = '';

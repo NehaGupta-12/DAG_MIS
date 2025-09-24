@@ -271,6 +271,10 @@ export class AddStockTransferComponent implements OnInit {
       this.fromDealerSearchText = '';
       this.filterFromDealers();
       setTimeout(() => this.fromDealerSearchInput.nativeElement.focus(), 0);
+    } else {
+      // Reset search when closing
+      this.fromDealerSearchText = '';
+      this.filterFromDealers();
     }
   }
 
@@ -291,6 +295,10 @@ export class AddStockTransferComponent implements OnInit {
       this.toDealerSearchText = '';
       this.filterToDealers();
       setTimeout(() => this.toDealerSearchInput.nativeElement.focus(), 0);
+    } else {
+      // Reset search when closing
+      this.toDealerSearchText = '';
+      this.filterToDealers();
     }
   }
 
@@ -317,8 +325,12 @@ export class AddStockTransferComponent implements OnInit {
   onProductSelectOpened(isOpened: boolean) {
     if (isOpened) {
       this.productSearchText = '';
-      this.filterProducts(); // This will now use vehicledataSource.data
+      this.filterProducts();
       setTimeout(() => this.productSearchInput.nativeElement.focus(), 0);
+    } else {
+      // Reset search when closing
+      this.productSearchText = '';
+      this.filterProducts();
     }
   }
 

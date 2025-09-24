@@ -18,13 +18,20 @@
                 <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 mb-2">
                   <mat-form-field class="example-full-width" appearance="outline">
                     <mat-label>From Outlet/Dealer</mat-label>
-                    <mat-select formControlName="fromDealerOutlet" required #fromDealerSelect panelClass="custom-select-panel"                                            (openedChange)="onFromDealerSelectOpened($event)">
-                      <div class="mat-select-search">
-                        <input matInput (input)="onFromDealerSearchChange($event)" #fromDealerSearchInput placeholder="Search Outlet/Dealer" />
+                    <mat-select formControlName="fromDealerOutlet" required #fromDealerSelect panelClass="custom-select-panel" (openedChange)="onFromDealerSelectOpened($event)">
+                      <div class="mat-select-search" (click)="$event.stopPropagation()">
+                        <input matInput
+                               #fromDealerSearchInput
+                               [value]="fromDealerSearchText"
+                               (input)="onFromDealerSearchChange($event)"
+                               (click)="$event.stopPropagation()"
+                               (keydown)="$event.stopPropagation()"
+                               placeholder="Search Outlet/Dealer"
+                               class="search-input" />
                       </div>
                       <mat-option *ngFor="let dealer of filteredFromDealers"
-                                  [value]="dealer.name"
-                                  [disabled]="dealer.name === stockTransferForm.get('toDealerOutlet')?.value">
+                                [value]="dealer.name"
+                                [disabled]="dealer.name === stockTransferForm.get('toDealerOutlet')?.value">
                         {{ dealer.name }}
                       </mat-option>
                     </mat-select>
@@ -38,12 +45,19 @@
                   <mat-form-field class="example-full-width" appearance="outline">
                     <mat-label>To Outlet/Dealer</mat-label>
                     <mat-select formControlName="toDealerOutlet" required #toDealerSelect panelClass="custom-select-panel" (openedChange)="onToDealerSelectOpened($event)">
-                      <div class="mat-select-search">
-                        <input matInput (input)="onToDealerSearchChange($event)" #toDealerSearchInput placeholder="Search Outlet/Dealer" />
+                      <div class="mat-select-search" (click)="$event.stopPropagation()">
+                        <input matInput
+                               #toDealerSearchInput
+                               [value]="toDealerSearchText"
+                               (input)="onToDealerSearchChange($event)"
+                               (click)="$event.stopPropagation()"
+                               (keydown)="$event.stopPropagation()"
+                               placeholder="Search Outlet/Dealer"
+                               class="search-input" />
                       </div>
                       <mat-option *ngFor="let dealer of filteredToDealers"
-                                  [value]="dealer.name"
-                                  [disabled]="dealer.name === stockTransferForm.get('fromDealerOutlet')?.value">
+                                [value]="dealer.name"
+                                [disabled]="dealer.name === stockTransferForm.get('fromDealerOutlet')?.value">
                         {{ dealer.name }}
                       </mat-option>
                     </mat-select>
@@ -64,8 +78,15 @@
                       [disabled]="!(stockTransferForm.get('fromDealerOutlet')?.value && stockTransferForm.get('toDealerOutlet')?.value)"
                       #productSelect panelClass="custom-select-panel"
                       (openedChange)="onProductSelectOpened($event)">
-                      <div class="mat-select-search">
-                        <input matInput (input)="onProductSearchChange($event)" #productSearchInput placeholder="Search Products" />
+                      <div class="mat-select-search" (click)="$event.stopPropagation()">
+                        <input matInput
+                               #productSearchInput
+                               [value]="productSearchText"
+                               (input)="onProductSearchChange($event)"
+                               (click)="$event.stopPropagation()"
+                               (keydown)="$event.stopPropagation()"
+                               placeholder="Search Products"
+                               class="search-input" />
                       </div>
                       <mat-option *ngFor="let product of filteredProducts" [value]="product?.name">
                         {{ product?.name }}

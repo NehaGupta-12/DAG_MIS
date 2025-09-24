@@ -14,14 +14,14 @@
                   <mat-form-field appearance="outline" class="w-100">
                     <mat-label>Select Dealer/Outlet</mat-label>
                     <mat-select formControlName="dealerOutlet"  (openedChange)="selectionOpen($event,'dealer')" (selectionChange)="onDealerChange($event)" panelClass="custom-select-panel" required>
-
-                      <!-- 🔍 Search bar -->
-                      <div class="mat-select-search">
-                        <input
-                          matInput
-                          placeholder="Search Dealer"
-                          (input)="onDealerSearchChange($event)"
-                        />
+                      <div class="mat-select-search" (click)="$event.stopPropagation()">
+                        <input matInput
+                               [value]="dealerSearchText"
+                               (input)="onDealerSearchChange($event)"
+                               (click)="$event.stopPropagation()"
+                               (keydown)="$event.stopPropagation()"
+                               placeholder="Search Dealer"
+                               class="search-input" />
                       </div>
 
                       <!-- Dealer list -->
@@ -42,14 +42,14 @@
                     <mat-select formControlName="vehicle" panelClass="custom-select-panel" multiple
                                 #outletSelect="matSelect"
                                 (openedChange)="selectionOpen($event, 'vehicle')">
-
-                      <!-- Search bar -->
-                      <div class="mat-select-search">
-                        <input
-                          matInput
-                          placeholder="Search Vehicle"
-                          (input)="onVehicleSearchChange($event)"
-                        />
+                      <div class="mat-select-search" (click)="$event.stopPropagation()">
+                        <input matInput
+                               [value]="vehicleSearchText"
+                               (input)="onVehicleSearchChange($event)"
+                               (click)="$event.stopPropagation()"
+                               (keydown)="$event.stopPropagation()"
+                               placeholder="Search Vehicle"
+                               class="search-input" />
                       </div>
 
                       <mat-select-trigger>
