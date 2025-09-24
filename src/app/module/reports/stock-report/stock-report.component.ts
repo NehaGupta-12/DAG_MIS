@@ -49,6 +49,7 @@ import { InventoryService } from "../../add-inventory/inventory.service";
 import { AuthService } from "../../../authentication/auth.service";
 import { GrnService } from "../../grn.service";
 import {LoadingService} from "../../../Services/loading.service";
+import {CountryService} from "../../../Services/country.service";
 
 
 @Component({
@@ -152,6 +153,7 @@ export class StockReportComponent implements OnInit{
     private grnService: GrnService,
     public authService : AuthService,
     private loadingService: LoadingService,
+    private countryService : CountryService,
     @Inject(MAT_DIALOG_DATA) public data: any
   ) {
     this.dealerForm = this.fb.group({
@@ -173,8 +175,13 @@ export class StockReportComponent implements OnInit{
       .pipe(map(d => d?.subcategories || [])).subscribe(data => { this.options.outletType = data; this.filteredOptions.outletType = [...data]; });
     this.mDatabase.object<{ subcategories: string[] }>('typelist/outletCategory').valueChanges()
       .pipe(map(d => d?.subcategories || [])).subscribe(data => { this.options.category = data; this.filteredOptions.category = [...data]; });
-    this.mDatabase.object<{ subcategories: string[] }>('typelist/Countries').valueChanges()
-      .pipe(map(d => d?.subcategories || [])).subscribe(data => { this.options.country = data; this.filteredOptions.country = [...data]; });
+    // this.mDatabase.object<{ subcategories: string[] }>('typelist/Countries').valueChanges()
+    //   .pipe(map(d => d?.subcategories || [])).subscribe(data => { this.options.country = data; this.filteredOptions.country = [...data]; });
+    this.countryService.getCountries().subscribe(data => {
+      this.options.country = data;
+      this.filteredOptions.country = [...data];
+    });
+
     this.mDatabase.object<{ subcategories: string[] }>('typelist/Town').valueChanges()
       .pipe(map(d => d?.subcategories || [])).subscribe(data => { this.options.town = data; this.filteredOptions.town = [...data]; });
   }
@@ -327,7 +334,7 @@ export class StockReportComponent implements OnInit{
       setTimeout(() => {
         try {
           this.outletSearchInput.nativeElement.focus();
-        } catch {}
+        } catch { /* empty */ }
       }, 0);
     }
   }

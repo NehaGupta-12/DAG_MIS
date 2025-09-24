@@ -28,6 +28,7 @@ import { ProductMasterService } from "../product-master.service";
 import {LoadingService} from "../../Services/loading.service";
 import {MonthlyBudgetService} from "../monthly-budget.service";
 import {MatCheckbox} from "@angular/material/checkbox";
+import {CountryService} from "../../Services/country.service";
 
 @Component({
   selector: 'app-add-budget',
@@ -98,7 +99,8 @@ export class AddBudgetComponent implements OnInit {
     private mDatabase: AngularFireDatabase,
     private budgetService: BudgetService,
     private injector: EnvironmentInjector,
-    private loadingService: LoadingService
+    private loadingService: LoadingService,
+    private countryService: CountryService,
   ) {
     // Dropdowns
     this._countriesTypes$ = this.mDatabase
@@ -117,7 +119,7 @@ export class AddBudgetComponent implements OnInit {
       .pipe(map(data => data?.subcategories || []));
 
     // Subscribe to the observables to get the data and populate the local arrays
-    this._countriesTypes$.subscribe(data => {
+    this.countryService.getCountries().subscribe(data => {
       this._countriesTypes = data;
       this.filteredCountries = [...this._countriesTypes];
     });

@@ -45,6 +45,7 @@ import { Workbook } from 'exceljs';
 import * as FileSaver from 'file-saver';
 import {AuthService} from "../../../authentication/auth.service";
 import {LoadingService} from "../../../Services/loading.service";
+import {CountryService} from "../../../Services/country.service";
 
 @Component({
   selector: 'app-daily-sale-reports',
@@ -146,6 +147,7 @@ export class DailySaleReportsComponent implements OnInit{
     private dailySlaes: DailySalesService,
     public authService : AuthService,
     private loadingService: LoadingService,
+    private countryService : CountryService,
     @Inject(MAT_DIALOG_DATA) public data: any
   ) {
     this.dealerForm = this.fb.group({
@@ -167,8 +169,14 @@ export class DailySaleReportsComponent implements OnInit{
       .pipe(map(d => d?.subcategories || [])).subscribe(data => { this.options.outletType = data; this.filteredOptions.outletType = [...data]; });
     this.mDatabase.object<{ subcategories: string[] }>('typelist/outletCategory').valueChanges()
       .pipe(map(d => d?.subcategories || [])).subscribe(data => { this.options.category = data; this.filteredOptions.category = [...data]; });
-    this.mDatabase.object<{ subcategories: string[] }>('typelist/Countries').valueChanges()
-      .pipe(map(d => d?.subcategories || [])).subscribe(data => { this.options.country = data; this.filteredOptions.country = [...data]; });
+    // this.mDatabase.object<{ subcategories: string[] }>('typelist/Countries').valueChanges()
+    //   .pipe(map(d => d?.subcategories || [])).subscribe(data => {
+    //     this.options.country = data; this.filteredOptions.country = [...data]; });
+    this.countryService.getCountries().subscribe(data => {
+      this.options.country = data;
+      this.filteredOptions.country = [...data];
+    });
+
     this.mDatabase.object<{ subcategories: string[] }>('typelist/Town').valueChanges()
       .pipe(map(d => d?.subcategories || [])).subscribe(data => { this.options.town = data; this.filteredOptions.town = [...data]; });
   }
@@ -321,7 +329,7 @@ export class DailySaleReportsComponent implements OnInit{
       setTimeout(() => {
         try {
           this.outletSearchInput.nativeElement.focus();
-        } catch {}
+        } catch { /* empty */ }
       }, 0);
     }
   }

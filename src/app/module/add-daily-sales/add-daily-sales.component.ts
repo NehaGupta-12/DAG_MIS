@@ -37,6 +37,7 @@ import {map} from "rxjs/operators";
 import {AngularFireDatabase} from "@angular/fire/compat/database";
 import {BehaviorSubject, Observable} from "rxjs";
 import {MatDatepicker, MatDatepickerInput, MatDatepickerToggle} from "@angular/material/datepicker";
+import {CountryService} from "../../Services/country.service";
 
 @Component({
   selector: 'app-add-daily-sales',
@@ -131,6 +132,7 @@ export class AddDailySalesComponent implements OnInit {
     private inventoryService: InventoryService,
     private loadingService: LoadingService,
     private mDatabase: AngularFireDatabase,
+    private countryService: CountryService,
     @Inject(MAT_DIALOG_DATA) public data: any,
   ) {
     this._divisionTypes$ = this.mDatabase
@@ -153,7 +155,7 @@ export class AddDailySalesComponent implements OnInit {
       this.filterDivisionTypes();
     });
 
-    this._countriesTypes$.subscribe(data => {
+    this.countryService.getCountries().subscribe(data => {
       this._countriesTypes = data;
       this.filterCountries();
     });

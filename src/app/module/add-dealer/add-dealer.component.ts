@@ -30,6 +30,7 @@ import {Observable} from "rxjs";
 import {AngularFireDatabase} from "@angular/fire/compat/database";
 import {map} from "rxjs/operators";
 import {LoadingService} from "../../Services/loading.service";
+import {CountryService} from "../../Services/country.service";
 export interface ListType {
   name: string
   id?: string
@@ -105,6 +106,7 @@ export class AddDealerComponent implements OnInit{
     private route: ActivatedRoute,
     private mDatabase: AngularFireDatabase,
     private loadingService: LoadingService,
+    private countryService: CountryService,
     @Inject(MAT_DIALOG_DATA) public data: any,
   ) {
     this._divisionTypes$ = this.mDatabase
@@ -143,10 +145,14 @@ export class AddDealerComponent implements OnInit{
       this.filterOutletTypes();
     });
 
-    this._countriesTypes$.subscribe(data => {
+    this.countryService.getCountries().subscribe(data => {
       this._countriesTypes = data;
       this.filterCountries();
     });
+    // this._countriesTypes$.subscribe(data => {
+    //   this._countriesTypes = data;
+    //   this.filterCountries();
+    // });
 
     this._townTypes$.subscribe(data => {
       this._townTypes = data;
