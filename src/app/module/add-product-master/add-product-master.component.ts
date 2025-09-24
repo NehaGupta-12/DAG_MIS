@@ -198,11 +198,64 @@
     }
     onModelSelectOpened(isOpened: boolean) {
       if (isOpened) {
+        // 🔹 Jab dropdown open ho to fresh reset
         this.modelSearchText = '';
         this.filterModels();
         setTimeout(() => this.modelSearchInput.nativeElement.focus(), 0);
+      } else {
+        // 🔹 Jab dropdown close ho to bhi reset
+        this.modelSearchText = '';
+        this.filteredModels = [...this._modelTypes];
       }
     }
+
+    // --- Model ---
+    onModelSelectClosed() {
+      this.modelSearchText = '';
+      this.filteredModels = [...this._modelTypes];
+      if (this.modelSearchInput) {
+        this.modelSearchInput.nativeElement.value = '';
+      }
+    }
+
+// --- Category ---
+    onCategorySelectClosed() {
+      this.categorySearchText = '';
+      this.filteredCategories = [...this._categoryTypes];
+      if (this.categorySearchInput) {
+        this.categorySearchInput.nativeElement.value = '';
+      }
+    }
+
+// --- Variant ---
+    onVariantSelectClosed() {
+      this.variantSearchText = '';
+      this.filteredVariants = [...this._variantTypes];
+      if (this.variantSearchInput) {
+        this.variantSearchInput.nativeElement.value = '';
+      }
+    }
+
+// --- Engine CC ---
+    onEngineSelectClosed() {
+      this.engineSearchText = '';
+      this.filteredEngines = [...this._engineTypes];
+      if (this.engineSearchInput) {
+        this.engineSearchInput.nativeElement.value = '';
+      }
+    }
+
+// --- Unit ---
+    onUnitSelectClosed() {
+      this.unitSearchText = '';
+      this.filteredUnits = [...this._unitTypes];
+      if (this.unitSearchInput) {
+        this.unitSearchInput.nativeElement.value = '';
+      }
+    }
+
+
+
 
 // --- Category Methods ---
     filterCategories() {
@@ -357,6 +410,8 @@
     goBack() {
       this.location.back();
     }
+
+
 
 
   }

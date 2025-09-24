@@ -1,12 +1,7 @@
 
 <section class="content d-flex justify-content-center align-items-center">
   <div class="content-block w-100" style="max-width: 900px;">
-    <!-- 🔙 Back Button (outside the card, top-left) -->
-    <!--    <div class="mb-3">-->
-    <!--      <button mat-stroked-button color="primary" (click)="goBack()">-->
-    <!--        <mat-icon>arrow_back</mat-icon> Back-->
-    <!--      </button>-->
-    <!--    </div>-->
+
     <div class="row clearfix justify-content-center mb-1">
       <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12">
         <div class="card shadow">
@@ -42,11 +37,15 @@
                   </mat-form-field>
                 </div>
                 <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 mb-2">
+                  <!-- Outlet Type -->
                   <mat-form-field class="example-full-width" appearance="outline">
                     <mat-label>Select Outlet Type</mat-label>
-                    <mat-select formControlName="outletType" required #outletTypeSelect panelClass="custom-select-panel" (openedChange)="onOutletTypeSelectOpened($event)">
+                    <mat-select formControlName="outletType" required
+                                #outletTypeSelect panelClass="custom-select-panel"
+                                (openedChange)="onOutletTypeSelectOpened($event)">
                       <div class="mat-select-search">
-                        <input matInput (input)="onOutletTypeSearchChange($event)" #outletTypeSearchInput placeholder="Search Outlet Type" />
+                        <input matInput (input)="onOutletTypeSearchChange($event)"
+                               #outletTypeSearchInput placeholder="Search Outlet Type" />
                       </div>
                       <mat-option *ngFor="let outlet of filteredOutletTypes" [value]="outlet">
                         {{ outlet }}
@@ -58,11 +57,15 @@
                   </mat-form-field>
                 </div>
                 <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 mb-2">
+                  <!-- Division -->
                   <mat-form-field class="example-full-width" appearance="outline">
                     <mat-label>Select Division</mat-label>
-                    <mat-select formControlName="division" required #divisionSelect panelClass="custom-select-panel" (openedChange)="onDivisionSelectOpened($event)">
+                    <mat-select formControlName="division" required
+                                #divisionSelect panelClass="custom-select-panel"
+                                (openedChange)="onDivisionSelectOpened($event)">
                       <div class="mat-select-search">
-                        <input matInput (input)="onDivisionSearchChange($event)" #divisionSearchInput placeholder="Search Division" />
+                        <input matInput (input)="onDivisionSearchChange($event)"
+                               #divisionSearchInput placeholder="Search Division" />
                       </div>
                       <mat-option *ngFor="let division of filteredDivisionTypes" [value]="division">
                         {{ division }}
@@ -76,11 +79,15 @@
 
                 </div>
                 <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 mb-2">
+                  <!-- Country -->
                   <mat-form-field class="example-full-width" appearance="outline">
                     <mat-label>Select Country</mat-label>
-                    <mat-select formControlName="country" required #countrySelect panelClass="custom-select-panel" (openedChange)="onCountrySelectOpened($event)">
+                    <mat-select formControlName="country" required
+                                #countrySelect panelClass="custom-select-panel"
+                                (openedChange)="onCountrySelectOpened($event)">
                       <div class="mat-select-search">
-                        <input matInput (input)="onCountrySearchChange($event)" #countrySearchInput placeholder="Search Country" />
+                        <input matInput (input)="onCountrySearchChange($event)"
+                               #countrySearchInput placeholder="Search Country" />
                       </div>
                       <mat-option *ngFor="let country of filteredCountries" [value]="country">
                         {{ country }}
@@ -92,11 +99,15 @@
                   </mat-form-field>
                 </div>
                 <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 mb-2">
+                  <!-- Town -->
                   <mat-form-field class="example-full-width" appearance="outline">
                     <mat-label>Select Town</mat-label>
-                    <mat-select formControlName="town" required #townSelect panelClass="custom-select-panel" (openedChange)="onTownSelectOpened($event)">
+                    <mat-select formControlName="town" required
+                                #townSelect panelClass="custom-select-panel"
+                                (openedChange)="onTownSelectOpened($event)">
                       <div class="mat-select-search">
-                        <input matInput (input)="onTownSearchChange($event)" #townSearchInput placeholder="Search Town" />
+                        <input matInput (input)="onTownSearchChange($event)"
+                               #townSearchInput placeholder="Search Town" />
                       </div>
                       <mat-option *ngFor="let town of filteredTownTypes" [value]="town">
                         {{ town }}

@@ -254,11 +254,14 @@ export class AddStockTransferComponent implements OnInit {
     });
   }
 
-  // --- From Dealer/Outlet Methods ---
+// ----------------- FROM DEALER -----------------
   filterFromDealers() {
     const searchText = this.fromDealerSearchText.toLowerCase();
-    this.filteredFromDealers = this._allDealers.filter(dealer => dealer.name.toLowerCase().includes(searchText));
+    this.filteredFromDealers = this._allDealers.filter(dealer =>
+      dealer.name.toLowerCase().includes(searchText)
+    );
   }
+
   onFromDealerSearchChange(event: any) {
     clearTimeout(this.debounceTimer);
     this.debounceTimer = setTimeout(() => {
@@ -266,19 +269,26 @@ export class AddStockTransferComponent implements OnInit {
       this.filterFromDealers();
     }, 300);
   }
+
   onFromDealerSelectOpened(isOpened: boolean) {
-    if (isOpened) {
-      this.fromDealerSearchText = '';
-      this.filterFromDealers();
-      setTimeout(() => this.fromDealerSearchInput.nativeElement.focus(), 0);
-    }
+    this.resetFromDealerSearch(); // reset on open/close
+    if (isOpened) setTimeout(() => this.fromDealerSearchInput.nativeElement.focus(), 0);
   }
 
-// --- To Dealer/Outlet Methods ---
+  private resetFromDealerSearch() {
+    this.fromDealerSearchText = '';
+    this.filteredFromDealers = [...this._allDealers];
+    if (this.fromDealerSearchInput) this.fromDealerSearchInput.nativeElement.value = '';
+  }
+
+// ----------------- TO DEALER -----------------
   filterToDealers() {
     const searchText = this.toDealerSearchText.toLowerCase();
-    this.filteredToDealers = this._allDealers.filter(dealer => dealer.name.toLowerCase().includes(searchText));
+    this.filteredToDealers = this._allDealers.filter(dealer =>
+      dealer.name.toLowerCase().includes(searchText)
+    );
   }
+
   onToDealerSearchChange(event: any) {
     clearTimeout(this.debounceTimer);
     this.debounceTimer = setTimeout(() => {
@@ -286,18 +296,21 @@ export class AddStockTransferComponent implements OnInit {
       this.filterToDealers();
     }, 300);
   }
+
   onToDealerSelectOpened(isOpened: boolean) {
-    if (isOpened) {
-      this.toDealerSearchText = '';
-      this.filterToDealers();
-      setTimeout(() => this.toDealerSearchInput.nativeElement.focus(), 0);
-    }
+    this.resetToDealerSearch(); // reset on open/close
+    if (isOpened) setTimeout(() => this.toDealerSearchInput.nativeElement.focus(), 0);
   }
 
-// Updated Products Methods
+  private resetToDealerSearch() {
+    this.toDealerSearchText = '';
+    this.filteredToDealers = [...this._allDealers];
+    if (this.toDealerSearchInput) this.toDealerSearchInput.nativeElement.value = '';
+  }
+
+// ----------------- PRODUCTS -----------------
   filterProducts() {
     const searchText = this.productSearchText.toLowerCase();
-    // Filter from vehicledataSource instead of _allProducts to respect outlet filtering
     this.filteredProducts = this.vehicledataSource.data.filter(product =>
       product.name.toLowerCase().includes(searchText) ||
       product.sku.toLowerCase().includes(searchText) ||
@@ -315,12 +328,16 @@ export class AddStockTransferComponent implements OnInit {
   }
 
   onProductSelectOpened(isOpened: boolean) {
-    if (isOpened) {
-      this.productSearchText = '';
-      this.filterProducts(); // This will now use vehicledataSource.data
-      setTimeout(() => this.productSearchInput.nativeElement.focus(), 0);
-    }
+    this.resetProductSearch(); // reset on open/close
+    if (isOpened) setTimeout(() => this.productSearchInput.nativeElement.focus(), 0);
   }
+
+  private resetProductSearch() {
+    this.productSearchText = '';
+    this.filterProducts(); // resets to full product list
+    if (this.productSearchInput) this.productSearchInput.nativeElement.value = '';
+  }
+
 
   loadInventoryDaata() {
     runInInjectionContext(this.injector, () => {
