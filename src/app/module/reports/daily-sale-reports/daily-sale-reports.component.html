@@ -70,11 +70,11 @@
             <mat-label>Select Outlet(s)</mat-label>
             <mat-select formControlName="name" multiple (openedChange)="onOutletSelectOpened($event)">
               <mat-select-trigger>
-        <span *ngIf="dealerForm.get('name')?.value?.length; else noSelection">
+        <span *ngIf="dealerForm.get('name')?.value!.length; else noSelection">
           {{ dealerForm.get('name')?.value[0] | slice:0:16 }}
           {{ dealerForm.get('name')?.value[0]?.length > 16 ? '...' : '' }}
-          <span *ngIf="dealerForm.get('name')?.value.length > 1" class="textcol">
-            (+{{ dealerForm.get('name')?.value.length - 1 }} more)
+          <span *ngIf="dealerForm.get('name')?.value!.length > 1" class="textcol">
+            (+{{ dealerForm.get('name')?.value!.length - 1 }} more)
           </span>
         </span>
                 <ng-template #noSelection>Select...</ng-template>
@@ -85,13 +85,13 @@
                        (input)="filterOutlet(outletSearchInput.value)" />
               </div>
 
-              <div class="px-2 py-1">
-                <mat-checkbox [checked]="isAllOutletsSelected()"
-                              (click)="$event.stopPropagation()"
-                              (change)="toggleSelectAllOutlets()">
-                  Select All
-                </mat-checkbox>
-              </div>
+<!--              <div class="px-2 py-1">-->
+<!--                <mat-checkbox [checked]="isAllOutletsSelected()"-->
+<!--                              (click)="$event.stopPropagation()"-->
+<!--                              (change)="toggleSelectAllOutlets()">-->
+<!--                  Select All-->
+<!--                </mat-checkbox>-->
+<!--              </div>-->
 
               <mat-option *ngFor="let outlet of filteredOptions.name" [value]="outlet">
                 {{ outlet }}
