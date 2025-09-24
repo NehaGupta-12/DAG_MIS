@@ -57,9 +57,16 @@
                 <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 mb-2">
                   <mat-form-field class="example-full-width" appearance="outline">
                     <mat-label>Select Model</mat-label>
-                    <mat-select formControlName="model" required #modelSelect panelClass="custom-select-panel" (openedChange)="onModelSelectOpened($event)">
-                      <div class="mat-select-search">
-                        <input matInput (input)="onModelSearchChange($event)" #modelSearchInput placeholder="Search Model" />
+                    <mat-select formControlName="model" required #modelSelect (openedChange)="onModelSelectOpened($event)">
+                      <div class="mat-select-search" (click)="$event.stopPropagation()">
+                        <input matInput
+                               #modelSearchInput
+                               [value]="modelSearchText"
+                               (input)="onModelSearchChange($event)"
+                               (click)="$event.stopPropagation()"
+                               (keydown)="$event.stopPropagation()"
+                               placeholder="Search Model"
+                               class="search-input" />
                       </div>
                       <mat-option *ngFor="let model of filteredModels" [value]="model">
                         {{ model }}
@@ -73,9 +80,16 @@
                 <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 mb-2">
                   <mat-form-field class="example-full-width" appearance="outline">
                     <mat-label>Select Category</mat-label>
-                    <mat-select formControlName="category" required #categorySelect panelClass="custom-select-panel" (openedChange)="onCategorySelectOpened($event)">
-                      <div class="mat-select-search">
-                        <input matInput (input)="onCategorySearchChange($event)" #categorySearchInput placeholder="Search Category" />
+                    <mat-select formControlName="category" required #categorySelect (openedChange)="onCategorySelectOpened($event)">
+                      <div class="mat-select-search" (click)="$event.stopPropagation()">
+                        <input matInput
+                               #categorySearchInput
+                               [value]="categorySearchText"
+                               (input)="onCategorySearchChange($event)"
+                               (click)="$event.stopPropagation()"
+                               (keydown)="$event.stopPropagation()"
+                               placeholder="Search Category"
+                               class="search-input" />
                       </div>
                       <mat-option *ngFor="let category of filteredCategories" [value]="category">
                         {{ category }}
@@ -109,9 +123,16 @@
                 <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 mb-2">
                   <mat-form-field class="example-full-width" appearance="outline">
                     <mat-label>Select Varient</mat-label>
-                    <mat-select formControlName="varient" required #variantSelect panelClass="custom-select-panel" (openedChange)="onVariantSelectOpened($event)">
-                      <div class="mat-select-search">
-                        <input matInput (input)="onVariantSearchChange($event)" #variantSearchInput placeholder="Search Varient" />
+                    <mat-select formControlName="varient" required #variantSelect (openedChange)="onVariantSelectOpened($event)">
+                      <div class="mat-select-search" (click)="$event.stopPropagation()">
+                        <input matInput
+                               #variantSearchInput
+                               [value]="variantSearchText"
+                               (input)="onVariantSearchChange($event)"
+                               (click)="$event.stopPropagation()"
+                               (keydown)="$event.stopPropagation()"
+                               placeholder="Search Varient"
+                               class="search-input" />
                       </div>
                       <mat-option *ngFor="let variant of filteredVariants" [value]="variant">
                         {{ variant }}
@@ -126,9 +147,16 @@
                 <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 mb-2">
                   <mat-form-field class="example-full-width" appearance="outline">
                     <mat-label>Select Engine CC</mat-label>
-                    <mat-select formControlName="engineCc" required #engineSelect panelClass="custom-select-panel" (openedChange)="onEngineSelectOpened($event)">
-                      <div class="mat-select-search">
-                        <input matInput (input)="onEngineSearchChange($event)" #engineSearchInput placeholder="Search Engine CC" />
+                    <mat-select formControlName="engineCc" required #engineSelect (openedChange)="onEngineSelectOpened($event)">
+                      <div class="mat-select-search" (click)="$event.stopPropagation()">
+                        <input matInput
+                               #engineSearchInput
+                               [value]="engineSearchText"
+                               (input)="onEngineSearchChange($event)"
+                               (click)="$event.stopPropagation()"
+                               (keydown)="$event.stopPropagation()"
+                               placeholder="Search Engine CC"
+                               class="search-input" />
                       </div>
                       <mat-option *ngFor="let engine of filteredEngines" [value]="engine">
                         {{ engine }}
@@ -163,9 +191,16 @@
                 <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 mb-2">
                   <mat-form-field class="example-full-width" appearance="outline">
                     <mat-label>Select Unit Of Measurement</mat-label>
-                    <mat-select formControlName="unit" required #unitSelect panelClass="custom-select-panel" (openedChange)="onUnitSelectOpened($event)">
-                      <div class="mat-select-search">
-                        <input matInput (input)="onUnitSearchChange($event)" #unitSearchInput placeholder="Search Unit" />
+                    <mat-select formControlName="unit" required #unitSelect (openedChange)="onUnitSelectOpened($event)">
+                      <div class="mat-select-search" (click)="$event.stopPropagation()">
+                        <input matInput
+                               #unitSearchInput
+                               [value]="unitSearchText"
+                               (input)="onUnitSearchChange($event)"
+                               (click)="$event.stopPropagation()"
+                               (keydown)="$event.stopPropagation()"
+                               placeholder="Search Unit"
+                               class="search-input" />
                       </div>
                       <mat-option *ngFor="let unit of filteredUnits" [value]="unit">
                         {{ unit }}

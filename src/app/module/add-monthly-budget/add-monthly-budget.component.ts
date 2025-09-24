@@ -242,82 +242,163 @@ export class AddMonthlyBudgetComponent implements OnInit {
 
   // --- Country Methods ---
   filterCountries() {
+    if (!this.countrySearchText) {
+      this.filteredCountries = [...this._countriesTypes];
+      return;
+    }
     const searchText = this.countrySearchText.toLowerCase();
-    this.filteredCountries = this._countriesTypes.filter(country => country.toLowerCase().includes(searchText));
+    this.filteredCountries = this._countriesTypes.filter(country =>
+      country.toLowerCase().includes(searchText)
+    );
   }
+
   onCountrySearchChange(event: any) {
-    clearTimeout(this.debounceTimer);
-    this.debounceTimer = setTimeout(() => {
-      this.countrySearchText = event.target.value;
-      this.filterCountries();
-    }, 300);
+    const value = event.target.value;
+    this.countrySearchText = value;
+    this.filterCountries();
+    event.stopPropagation();
   }
+
   onCountrySelectOpened(isOpened: boolean) {
     if (isOpened) {
       this.countrySearchText = '';
-      this.filterCountries();
-      setTimeout(() => this.countrySearchInput.nativeElement.focus(), 0);
+      this.filteredCountries = [...this._countriesTypes];
+      setTimeout(() => {
+        if (this.countrySearchInput) {
+          this.countrySearchInput.nativeElement.value = '';
+          this.countrySearchInput.nativeElement.focus();
+        }
+      }, 0);
+    } else {
+      // Reset on close
+      this.countrySearchText = '';
+      this.filteredCountries = [...this._countriesTypes];
+      if (this.countrySearchInput) {
+        this.countrySearchInput.nativeElement.value = '';
+      }
     }
   }
 
-// --- Year Methods ---
+  // --- Year Methods ---
   filterYears() {
+    if (!this.yearSearchText) {
+      this.filteredYears = [...this._yearTypes];
+      return;
+    }
     const searchText = this.yearSearchText.toLowerCase();
-    this.filteredYears = this._yearTypes.filter(year => year.toLowerCase().includes(searchText));
+    this.filteredYears = this._yearTypes.filter(year =>
+      year.toLowerCase().includes(searchText)
+    );
   }
+
   onYearSearchChange(event: any) {
-    clearTimeout(this.debounceTimer);
-    this.debounceTimer = setTimeout(() => {
-      this.yearSearchText = event.target.value;
-      this.filterYears();
-    }, 300);
+    const value = event.target.value;
+    this.yearSearchText = value;
+    this.filterYears();
+    event.stopPropagation();
   }
+
   onYearSelectOpened(isOpened: boolean) {
     if (isOpened) {
       this.yearSearchText = '';
-      this.filterYears();
-      setTimeout(() => this.yearSearchInput.nativeElement.focus(), 0);
+      this.filteredYears = [...this._yearTypes];
+      setTimeout(() => {
+        if (this.yearSearchInput) {
+          this.yearSearchInput.nativeElement.value = '';
+          this.yearSearchInput.nativeElement.focus();
+        }
+      }, 0);
+    } else {
+      // Reset on close
+      this.yearSearchText = '';
+      this.filteredYears = [...this._yearTypes];
+      if (this.yearSearchInput) {
+        this.yearSearchInput.nativeElement.value = '';
+      }
     }
   }
 
-// --- Month Methods ---
+  // --- Month Methods ---
   filterMonths() {
+    if (!this.monthSearchText) {
+      this.filteredMonths = [...this._monthTypes];
+      return;
+    }
     const searchText = this.monthSearchText.toLowerCase();
-    this.filteredMonths = this._monthTypes.filter(month => month.toLowerCase().includes(searchText));
+    this.filteredMonths = this._monthTypes.filter(month =>
+      month.toLowerCase().includes(searchText)
+    );
   }
+
   onMonthSearchChange(event: any) {
-    clearTimeout(this.debounceTimer);
-    this.debounceTimer = setTimeout(() => {
-      this.monthSearchText = event.target.value;
-      this.filterMonths();
-    }, 300);
+    const value = event.target.value;
+    this.monthSearchText = value;
+    this.filterMonths();
+    event.stopPropagation();
   }
+
   onMonthSelectOpened(isOpened: boolean) {
     if (isOpened) {
       this.monthSearchText = '';
-      this.filterMonths();
-      setTimeout(() => this.monthSearchInput.nativeElement.focus(), 0);
+      this.filteredMonths = [...this._monthTypes];
+      setTimeout(() => {
+        if (this.monthSearchInput) {
+          this.monthSearchInput.nativeElement.value = '';
+          this.monthSearchInput.nativeElement.focus();
+        }
+      }, 0);
+    } else {
+      // Reset on close
+      this.monthSearchText = '';
+      this.filteredMonths = [...this._monthTypes];
+      if (this.monthSearchInput) {
+        this.monthSearchInput.nativeElement.value = '';
+      }
     }
   }
 
-// --- Product Methods ---
+  // --- Product Methods ---
   filterProducts() {
+    if (!this.productSearchText) {
+      this.filteredProducts = [...this._allProducts];
+      return;
+    }
     const searchText = this.productSearchText.toLowerCase();
-    this.filteredProducts = this._allProducts.filter(product => product.name.toLowerCase().includes(searchText));
+    this.filteredProducts = this._allProducts.filter(product =>
+      product.name.toLowerCase().includes(searchText)
+    );
   }
+
   onProductSearchChange(event: any) {
-    clearTimeout(this.debounceTimer);
-    this.debounceTimer = setTimeout(() => {
-      this.productSearchText = event.target.value;
-      this.filterProducts();
-    }, 300);
+    const value = event.target.value;
+    this.productSearchText = value;
+    this.filterProducts();
+    event.stopPropagation();
   }
+
   onProductSelectOpened(isOpened: boolean) {
     if (isOpened) {
       this.productSearchText = '';
-      this.filterProducts();
-      setTimeout(() => this.productSearchInput.nativeElement.focus(), 0);
+      this.filteredProducts = [...this._allProducts];
+      setTimeout(() => {
+        if (this.productSearchInput) {
+          this.productSearchInput.nativeElement.value = '';
+          this.productSearchInput.nativeElement.focus();
+        }
+      }, 0);
+    } else {
+      // Reset on close
+      this.productSearchText = '';
+      this.filteredProducts = [...this._allProducts];
+      if (this.productSearchInput) {
+        this.productSearchInput.nativeElement.value = '';
+      }
     }
+  }
+
+  // Prevent panel close when clicking on search input
+  onSearchClick(event: Event) {
+    event.stopPropagation();
   }
 
   private loadEditMode(params: any) {

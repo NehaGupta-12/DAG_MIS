@@ -186,126 +186,196 @@ import {
 
     // --- Model Methods ---
     filterModels() {
+      if (!this.modelSearchText) {
+        this.filteredModels = [...this._modelTypes];
+        return;
+      }
       const searchText = this.modelSearchText.toLowerCase();
-      this.filteredModels = this._modelTypes.filter(model => model.toLowerCase().includes(searchText));
+      this.filteredModels = this._modelTypes.filter(model =>
+        model.toLowerCase().includes(searchText)
+      );
     }
+
     onModelSearchChange(event: any) {
-      clearTimeout(this.debounceTimer);
-      this.debounceTimer = setTimeout(() => {
-        this.modelSearchText = event.target.value;
-        this.filterModels();
-      }, 300);
+      const value = event.target.value;
+      this.modelSearchText = value;
+      this.filterModels();
+      event.stopPropagation();
     }
+
     onModelSelectOpened(isOpened: boolean) {
       if (isOpened) {
         this.modelSearchText = '';
         this.filteredModels = [...this._modelTypes];
-        setTimeout(() => this.modelSearchInput.nativeElement.focus(), 0);
+        setTimeout(() => {
+          if (this.modelSearchInput) {
+            this.modelSearchInput.nativeElement.value = '';
+            this.modelSearchInput.nativeElement.focus();
+          }
+        }, 0);
       } else {
         // Reset on close
         this.modelSearchText = '';
         this.filteredModels = [...this._modelTypes];
-        this.modelSearchInput.nativeElement.value = '';
+        if (this.modelSearchInput) {
+          this.modelSearchInput.nativeElement.value = '';
+        }
       }
     }
 
-// --- Category Methods ---
+    // --- Category Methods ---
     filterCategories() {
+      if (!this.categorySearchText) {
+        this.filteredCategories = [...this._categoryTypes];
+        return;
+      }
       const searchText = this.categorySearchText.toLowerCase();
-      this.filteredCategories = this._categoryTypes.filter(category => category.toLowerCase().includes(searchText));
+      this.filteredCategories = this._categoryTypes.filter(category =>
+        category.toLowerCase().includes(searchText)
+      );
     }
+
     onCategorySearchChange(event: any) {
-      clearTimeout(this.debounceTimer);
-      this.debounceTimer = setTimeout(() => {
-        this.categorySearchText = event.target.value;
-        this.filterCategories();
-      }, 300);
+      const value = event.target.value;
+      this.categorySearchText = value;
+      this.filterCategories();
+      event.stopPropagation();
     }
+
     onCategorySelectOpened(isOpened: boolean) {
       if (isOpened) {
         this.categorySearchText = '';
         this.filteredCategories = [...this._categoryTypes];
-        setTimeout(() => this.categorySearchInput.nativeElement.focus(), 0);
+        setTimeout(() => {
+          if (this.categorySearchInput) {
+            this.categorySearchInput.nativeElement.value = '';
+            this.categorySearchInput.nativeElement.focus();
+          }
+        }, 0);
       } else {
         // Reset on close
         this.categorySearchText = '';
         this.filteredCategories = [...this._categoryTypes];
-        this.categorySearchInput.nativeElement.value = '';
+        if (this.categorySearchInput) {
+          this.categorySearchInput.nativeElement.value = '';
+        }
       }
     }
 
-// --- Varient Methods ---
+    // --- Variant Methods ---
     filterVariants() {
+      if (!this.variantSearchText) {
+        this.filteredVariants = [...this._variantTypes];
+        return;
+      }
       const searchText = this.variantSearchText.toLowerCase();
-      this.filteredVariants = this._variantTypes.filter(variant => variant.toLowerCase().includes(searchText));
+      this.filteredVariants = this._variantTypes.filter(variant =>
+        variant.toLowerCase().includes(searchText)
+      );
     }
+
     onVariantSearchChange(event: any) {
-      clearTimeout(this.debounceTimer);
-      this.debounceTimer = setTimeout(() => {
-        this.variantSearchText = event.target.value;
-        this.filterVariants();
-      }, 300);
+      const value = event.target.value;
+      this.variantSearchText = value;
+      this.filterVariants();
+      event.stopPropagation();
     }
+
     onVariantSelectOpened(isOpened: boolean) {
       if (isOpened) {
         this.variantSearchText = '';
         this.filteredVariants = [...this._variantTypes];
-        setTimeout(() => this.variantSearchInput.nativeElement.focus(), 0);
+        setTimeout(() => {
+          if (this.variantSearchInput) {
+            this.variantSearchInput.nativeElement.value = '';
+            this.variantSearchInput.nativeElement.focus();
+          }
+        }, 0);
       } else {
         // Reset on close
         this.variantSearchText = '';
         this.filteredVariants = [...this._variantTypes];
-        this.variantSearchInput.nativeElement.value = '';
+        if (this.variantSearchInput) {
+          this.variantSearchInput.nativeElement.value = '';
+        }
       }
     }
 
-// --- Engine CC Methods ---
+    // --- Engine CC Methods ---
     filterEngines() {
+      if (!this.engineSearchText) {
+        this.filteredEngines = [...this._engineTypes];
+        return;
+      }
       const searchText = this.engineSearchText.toLowerCase();
-      this.filteredEngines = this._engineTypes.filter(engine => engine.toLowerCase().includes(searchText));
+      this.filteredEngines = this._engineTypes.filter(engine =>
+        engine.toLowerCase().includes(searchText)
+      );
     }
+
     onEngineSearchChange(event: any) {
-      clearTimeout(this.debounceTimer);
-      this.debounceTimer = setTimeout(() => {
-        this.engineSearchText = event.target.value;
-        this.filterEngines();
-      }, 300);
+      const value = event.target.value;
+      this.engineSearchText = value;
+      this.filterEngines();
+      event.stopPropagation();
     }
+
     onEngineSelectOpened(isOpened: boolean) {
       if (isOpened) {
         this.engineSearchText = '';
         this.filteredEngines = [...this._engineTypes];
-        setTimeout(() => this.engineSearchInput.nativeElement.focus(), 0);
+        setTimeout(() => {
+          if (this.engineSearchInput) {
+            this.engineSearchInput.nativeElement.value = '';
+            this.engineSearchInput.nativeElement.focus();
+          }
+        }, 0);
       } else {
         // Reset on close
         this.engineSearchText = '';
         this.filteredEngines = [...this._engineTypes];
-        this.engineSearchInput.nativeElement.value = '';
+        if (this.engineSearchInput) {
+          this.engineSearchInput.nativeElement.value = '';
+        }
       }
     }
 
-// --- Unit Methods ---
+    // --- Unit Methods ---
     filterUnits() {
+      if (!this.unitSearchText) {
+        this.filteredUnits = [...this._unitTypes];
+        return;
+      }
       const searchText = this.unitSearchText.toLowerCase();
-      this.filteredUnits = this._unitTypes.filter(unit => unit.toLowerCase().includes(searchText));
+      this.filteredUnits = this._unitTypes.filter(unit =>
+        unit.toLowerCase().includes(searchText)
+      );
     }
+
     onUnitSearchChange(event: any) {
-      clearTimeout(this.debounceTimer);
-      this.debounceTimer = setTimeout(() => {
-        this.unitSearchText = event.target.value;
-        this.filterUnits();
-      }, 300);
+      const value = event.target.value;
+      this.unitSearchText = value;
+      this.filterUnits();
+      event.stopPropagation();
     }
+
     onUnitSelectOpened(isOpened: boolean) {
       if (isOpened) {
         this.unitSearchText = '';
         this.filteredUnits = [...this._unitTypes];
-        setTimeout(() => this.unitSearchInput.nativeElement.focus(), 0);
+        setTimeout(() => {
+          if (this.unitSearchInput) {
+            this.unitSearchInput.nativeElement.value = '';
+            this.unitSearchInput.nativeElement.focus();
+          }
+        }, 0);
       } else {
         // Reset on close
         this.unitSearchText = '';
         this.filteredUnits = [...this._unitTypes];
-        this.unitSearchInput.nativeElement.value = '';
+        if (this.unitSearchInput) {
+          this.unitSearchInput.nativeElement.value = '';
+        }
       }
     }
 

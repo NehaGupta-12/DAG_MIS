@@ -148,34 +148,60 @@ export class InventoryListComponent implements OnInit {
 
   // Add these methods to your component class
   filterDealers() {
+    if (!this.dealerSearchText) {
+      this.filteredDealers = [...this.allDealers];
+      return;
+    }
     const searchText = this.dealerSearchText.toLowerCase();
-    this.filteredDealers = this.allDealers.filter(dealer => dealer.name.toLowerCase().includes(searchText));
+    this.filteredDealers = this.allDealers.filter(dealer =>
+      dealer.name.toLowerCase().includes(searchText)
+    );
   }
 
   onDealerSearchChange(event: any) {
-    clearTimeout(this.debounceTimer);
-    this.debounceTimer = setTimeout(() => {
-      this.dealerSearchText = event.target.value;
-      this.filterDealers();
-    }, 300); // Adjust the delay as needed
+    const value = event.target.value;
+    this.dealerSearchText = value;
+    this.filterDealers();
+    event.stopPropagation();
   }
 
   onDealerSelectOpened(isOpened: boolean) {
     if (isOpened) {
       this.dealerSearchText = '';
-      this.filterDealers();
+      this.filteredDealers = [...this.allDealers];
       setTimeout(() => {
-        this.dealerSearchInput.nativeElement.focus();
+        if (this.dealerSearchInput) {
+          this.dealerSearchInput.nativeElement.value = '';
+          this.dealerSearchInput.nativeElement.focus();
+        }
       }, 0);
+    } else {
+      // Reset on close
+      this.dealerSearchText = '';
+      this.filteredDealers = [...this.allDealers];
+      if (this.dealerSearchInput) {
+        this.dealerSearchInput.nativeElement.value = '';
+      }
     }
+  }
+
+  // Prevent panel close when clicking on search input
+  onSearchClick(event: Event) {
+    event.stopPropagation();
   }
 
   DealerList() {
     runInInjectionContext(this.injector, () => {
-      this.addDealerService.getDealerList().subscribe((data) => {
-        this.allDealers = data;
-        this.dealerdataSource.data = data;
-        this.filteredDealers = [...this.allDealers]; // Initialize the filtered list
+      this.addDealerService.getDealerList().subscribe({
+        next: (data) => {
+          this.allDealers = data;
+          this.dealerdataSource.data = data;
+          this.filteredDealers = [...this.allDealers];
+          console.log("All Dealers:", this.dealerdataSource.data);
+        },
+        error: (err) => {
+          console.error("Error loading dealers:", err);
+        }
       });
     });
   }
