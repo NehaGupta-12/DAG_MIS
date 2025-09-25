@@ -1,6 +1,6 @@
 import {Component, EnvironmentInjector, OnInit, runInInjectionContext, ViewChild, OnDestroy} from '@angular/core';
 
-import { Subject, takeUntil, map } from "rxjs";
+import { Subject, takeUntil, map,pipe } from "rxjs";
 import { MatPaginator } from "@angular/material/paginator";
 import { MatSort } from "@angular/material/sort";
 import {
@@ -28,15 +28,16 @@ import {MatIcon} from "@angular/material/icon";
 
 export interface ActivityLog {
   id?: string;
-  date: any;
+  date: number;
   section: string;
   action: string;
-  user: string;
-  description: string;
-  currentIp: string;
-  changes?: any;
+  user?: string;
+  description?: string;
+  currentIp?: string;
+  changes?: any[]; // array
   key?: string;
 }
+
 
 @Component({
   selector: 'app-activity-log',
@@ -87,7 +88,7 @@ export class ActivityLogComponent implements OnInit, OnDestroy {
   data: ActivityLog[] = [];
   filterdata: ActivityLog[] = [];
 
-  displayedColumns: string[] = ['date', 'section', 'action', 'user', 'description', 'currentIp', 'changes'];
+  displayedColumns: string[] = ['date', 'section', 'action', 'user', 'description', 'currentIp'];
 
   action: string[] = ['Delete', 'Login', 'Logout', 'Submit', 'Update', 'View'].sort((a, b) => a.localeCompare(b));
   section: string[] = [
@@ -140,20 +141,22 @@ export class ActivityLogComponent implements OnInit, OnDestroy {
     }
     runInInjectionContext(this.injector, () => {
       this.mService.getLogsByCount(3000)
-          .pipe(
-              takeUntil(this._destroyed$),
-              map(changes =>
-                  changes.map(c => ({id: c.payload.doc.id, ...c.payload.doc.data() as ActivityLog}))
-              )
+        .pipe(
+          takeUntil(this._destroyed$),
+          map(changes =>
+            changes.map(c =>
+              ({ key: c.payload.key, ...c.payload.val() })
+            )
           )
-          .subscribe(res => {
-            console.log(res)
-            this.data = res.reverse();
-            this.dataSource = new MatTableDataSource<ActivityLog>(this.data);
-            this.dataSource.paginator = this.paginator1;
-            this.dataSource.sort = this.sort;
-          });
+        ).subscribe(res => {
+        console.log(res);
+        this.data = res.reverse();
+        this.dataSource = new MatTableDataSource<ActivityLog>(this.data);
+        this.dataSource.paginator = this.paginator1;
+        this.dataSource.sort = this.sort;
+      });
     });
+
 
     this.filteredSection = [...this.section];
     this.filteredAction = [...this.action];
@@ -228,18 +231,5 @@ export class ActivityLogComponent implements OnInit, OnDestroy {
 
 
 }
-function extractTitles(routes: any[]): string[] {
-  let titles: string[] = [];
 
-  routes.forEach(route => {
-    if (route.title) {
-      titles.push(route.title);
-    }
-    if (route.submenu && route.submenu.length > 0) {
-      titles = titles.concat(extractTitles(route.submenu));
-    }
-  });
-
-  return titles;
-}
 
