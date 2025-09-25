@@ -15,6 +15,7 @@ import Swal from "sweetalert2";
 import {LoadingService} from "../../Services/loading.service";
 import {AuthService} from "../../authentication/auth.service";
 import {MatTooltip} from "@angular/material/tooltip";
+import {ActivityLogService} from "../activity-log/activity-log.service";
 
 
 @Component({
@@ -53,6 +54,8 @@ export class TypesComponent implements OnInit {
     private mDatabase: AngularFireDatabase,
     private injector: EnvironmentInjector,
     private loadingService: LoadingService,
+    private activityLogService: ActivityLogService,
+    // public authService: AuthService
     public authService : AuthService,
   ) {}
 
@@ -84,18 +87,6 @@ export class TypesComponent implements OnInit {
     });
   }
 
-  // onSubmitCategory() {
-  //   this.submitted = true;
-  //
-  //   if (!this.newCategory || this.newCategory.trim() === '') {
-  //     return; // stop if empty, error will show
-  //   }
-  //
-  //   this.addCategory(this.newCategory.trim());
-  //   this.newCategory = '';
-  //   this.submitted = false; // reset
-  //   this.closeModal();
-  // }
   onSubmitCategory() {
     this.submitted = true;
 
@@ -184,52 +175,6 @@ export class TypesComponent implements OnInit {
 
 
 
-
-
-// // ✅ Add subcategory with loader
-//   addSubCategory(field: string) {
-//     if (!field.trim() || !this.selectedCategory) return;
-//
-//     this.loadingService.setLoading(true);
-//     runInInjectionContext(this.injector, () => {
-//       const mDatabase = this.injector.get(AngularFireDatabase);
-//       const key = this.selectedCategory.name.replace(/\s+/g, '_');
-//
-//       mDatabase.object<any[]>(`typelist/${key}/subcategories`)
-//         .valueChanges()
-//         .pipe(take(1))
-//         .subscribe({
-//           next: (subcats) => {
-//             const updatedSubcategories = subcats ? [...subcats, field] : [field];
-//
-//             mDatabase.object(`typelist/${key}/subcategories`)
-//               .set(updatedSubcategories)
-//               .then(() => {
-//                 console.log(`Subcategory "${field}" added to ${this.selectedCategory.name}`);
-//                 this.selectedCategory = {
-//                   ...this.selectedCategory,
-//                   subcategories: updatedSubcategories
-//                 };
-//
-//                 const index = this.categories.findIndex(c => c.name === this.selectedCategory.name);
-//                 if (index > -1) {
-//                   this.categories[index] = this.selectedCategory;
-//                 }
-//
-//                 this.loadingService.setLoading(false);
-//               })
-//               .catch((err) => {
-//                 console.error('Failed to add subcategory', err);
-//                 this.loadingService.setLoading(false);
-//               });
-//           },
-//           error: (err) => {
-//             console.error('Failed to fetch subcategories', err);
-//             this.loadingService.setLoading(false);
-//           }
-//         });
-//     });
-//   }
 
 // ✅ Delete subcategory with loader
   deleteSubCategory(subCategory: string) {
@@ -386,4 +331,20 @@ export class TypesComponent implements OnInit {
     this.subToEditIndex = null;
     this.newField = '';
   }
+
+
+  // logAction(action: 'Add' | 'Edit' | 'Delete', description: string) {
+  //   const logEntry = {
+  //     date: Date.now(),
+  //     section: 'Type/Dropdown',
+  //     action: action,
+  //     user: this.authService.currentUser?.name || 'Unknown', // assuming your authService has user info
+  //     description: description,
+  //     currentIp: '', // optional: you can fetch IP if needed
+  //   };
+  //   this.activityLogService.logActivity(logEntry).then(() => {
+  //     console.log('Activity logged:', logEntry);
+  //   });
+  // }
+
 }
