@@ -1,23 +1,43 @@
 import { Injectable } from '@angular/core';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
-import { ActivityLog } from './activity-log.component'; // adjust path
+import { ActivityLog } from './activity-log.component';
+import {AngularFireDatabase} from "@angular/fire/compat/database"; // adjust path
 
 @Injectable({
   providedIn: 'root',
 })
 export class ActivityLogService {
-  private collectionName = 'activity-log';
+  currentIp = localStorage.getItem('currentip')!
+  collectionName  = 'activityLog';
 
-  constructor(private afs: AngularFirestore) {}
+  constructor(
+    private readonly mDatabase: AngularFireDatabase,
+    private readonly mFirestore:AngularFirestore
 
-  addLog(log: { date: number; currentIp: string; action: string; description: string; section: string }) {debugger
-    return this.afs.collection<ActivityLog>(this.collectionName).add(<ActivityLog>log);
+  ) {
+
   }
 
-  getLogsByCount(limit: number) {
-    return this.afs.collection<ActivityLog>(
-        this.collectionName,
-        ref => ref.orderBy('date', 'desc').limit(limit)
-    ).snapshotChanges();
+  async addLog (activity:ActivityLog)  {debugger
+    // activity.currentIp =this.currentIp
+    let email = await localStorage.getItem('userEmail')
+    // alert(email)
+    activity.user = email!
+    activity.description=activity.description + ' '+ email
+    activity.currentIp = this.currentIp
+    this.mDatabase.list(this.collectionName).push(activity)
+    console.log('Log Added ',JSON.stringify(activity))
   }
+  getLogs(){
+    return this.mDatabase.list<ActivityLog>(this.collectionName).valueChanges()
+  }
+  getLogsByCount(i:number){
+    return this.mDatabase.list<ActivityLog>(this.collectionName,ref => ref.limitToLast(i)).snapshotChanges()
+    // return this.mDatabase.list<ActivityLog>('activityLog').snapshotChanges()
+  }
+
+
+
+
+
 }

@@ -10,7 +10,8 @@ import {Permission} from "../interfaces/products.interface";
 import {RoleService} from "../Services/role.service";
 import {User} from "@core";
 import {AngularFirestore} from "@angular/fire/compat/firestore";
-import { ActivityLogService } from "../module/activity-log/activity-log.service"; // adjust path
+import { ActivityLogService } from "../module/activity-log/activity-log.service";
+import {ActivityLog} from "../module/activity-log/activity-log.component"; // adjust path
 
 @Injectable({
   providedIn: 'root',
@@ -119,19 +120,20 @@ export class AuthService {
         if (user.email) {
           localStorage.setItem('userEmail', user.email);
         }
-        runInInjectionContext(this.injector, async () => {debugger
-          let activity = {
+        runInInjectionContext(this.injector, async () => {
+          const currentIp = localStorage.getItem('currentip') || '';
+          let activity: ActivityLog = {
             date: new Date().getTime(),
             section: 'Login',
             action: 'Login',
-            user: user.email,
-            description: 'Login by user ' + user.email,
-            currentIp: localStorage.getItem('currentip') || '',
+            user: user.email || 'N/A',
+            description: 'Login by user ' + (user.email || 'N/A'),
+            currentIp: currentIp,
+            changes: [], // empty array by default
           };
-
-          await this.setUserData(user.uid);
           await this.mLogService.addLog(activity);
-          console.log('flow complete');
+          await this.setUserData(user.uid);
+          console.log('Login activity logged and user data set.');
         });
       }
     } catch (err: unknown) {

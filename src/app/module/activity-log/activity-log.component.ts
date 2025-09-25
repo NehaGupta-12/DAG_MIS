@@ -28,15 +28,16 @@ import {MatIcon} from "@angular/material/icon";
 
 export interface ActivityLog {
   id?: string;
-  date: any;
+  date: number;
   section: string;
   action: string;
-  user: string;
-  description: string;
-  currentIp: string;
-  changes?: any;
+  user?: string;
+  description?: string;
+  currentIp?: string;
+  changes?: any[]; // array
   key?: string;
 }
+
 
 @Component({
   selector: 'app-activity-log',
