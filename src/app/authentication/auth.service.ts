@@ -122,12 +122,12 @@ export class AuthService {
         }
         runInInjectionContext(this.injector, async () => {
           const currentIp = localStorage.getItem('currentip') || '';
-          let activity: ActivityLog = {
+          let activity : ActivityLog = {
             date: new Date().getTime(),
             section: 'Login',
             action: 'Login',
             user: user.email || 'N/A',
-            description: 'Login by user ' + (user.email || 'N/A'),
+            description: 'Login by user ',
             currentIp: currentIp,
             changes: [], // empty array by default
           };

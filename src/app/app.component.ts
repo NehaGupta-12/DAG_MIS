@@ -6,10 +6,11 @@ import {IpService} from "./Services/ip.service";
 import {HttpClient, HttpClientModule} from "@angular/common/http";
 import {Observable} from "rxjs";
 @Component({
-    selector: 'app-root',
-    imports: [RouterModule, PageLoaderComponent,HttpClientModule],
-    templateUrl: './app.component.html',
-    styleUrls: ['./app.component.scss']
+  selector: 'app-root',
+  imports: [RouterModule, PageLoaderComponent, HttpClientModule],
+  templateUrl: './app.component.html',
+  standalone: true,
+  styleUrls: ['./app.component.scss']
 })
 export class AppComponent {
   currentUrl!: string;
