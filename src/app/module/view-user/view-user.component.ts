@@ -111,7 +111,6 @@ export class ViewUserComponent implements OnInit {
         this.userService.getUserById(this.userId).subscribe((user: any) => {
           if (user) {
             this.userData = user;
-
             this.selectedOutlet = user.allowedOutlet ? Object.values(user.allowedOutlet) : [];
             this.selectCountries = user.allowedCountries ? Object.values(user?.allowedCountries) : [];
 
@@ -147,18 +146,22 @@ export class ViewUserComponent implements OnInit {
     this.debounceTimer = setTimeout(() => {
       this.countrySearchText = event.target.value;
       this.filterCountries();
-    }, 300); // Adjust the delay as needed
+    }, 300);
   }
-  // Resets the search when the dropdown is opened
+
   onCountrySelectOpened(isOpened: boolean) {
     if (isOpened && this.countrySearchInput) {
-      this.countrySearchText = ''; // Clear search text
-      this.filterCountries(); // Reset the filtered list
+      this.countrySearchText = '';
+      this.filterCountries();
       setTimeout(() => {
         this.countrySearchInput?.nativeElement.focus();
       }, 0);
+    } else if (!isOpened) {
+      this.countrySearchText = '';
+      this.filterCountries();
     }
   }
+
   filterCountries() {
     const sortedCountries = [...this._countries].sort((a, b) =>
       a.trim().toLowerCase().localeCompare(b.trim().toLowerCase())
@@ -168,10 +171,12 @@ export class ViewUserComponent implements OnInit {
       this.filteredCountries = sortedCountries;
     } else {
       this.filteredCountries = sortedCountries.filter(country =>
-        country.toLowerCase().includes(this.countrySearchText.toLowerCase())
+        country.toLowerCase().includes(this.countrySearchText.toLowerCase()) || this.selectCountries.includes(country)
       );
     }
   }
+
+
   DealerList() {
     runInInjectionContext(this.injector, () => {
       this.addDealerService.getDealerList().subscribe((data: any) => {
@@ -199,7 +204,7 @@ export class ViewUserComponent implements OnInit {
       setTimeout(() => {
         try {
           this.dealerSearchInput.nativeElement.focus();
-        } catch {}
+        } catch { /* empty */ }
       }, 0);
     }
   }
@@ -231,6 +236,19 @@ export class ViewUserComponent implements OnInit {
           confirmButtonText: 'Close'
         });
       });
+    }
+  }
+
+  isAllCountriesSelected(): boolean {
+    return this.filteredCountries.length > 0 &&
+      this.selectCountries.length === this.filteredCountries.length;
+  }
+
+  toggleSelectAllCountries(): void {
+    if (this.isAllCountriesSelected()) {
+      this.selectCountries = []; // Unselect all
+    } else {
+      this.selectCountries = [...this.filteredCountries]; // Select all
     }
   }
 
