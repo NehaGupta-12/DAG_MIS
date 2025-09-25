@@ -10,6 +10,7 @@ import {Permission} from "../interfaces/products.interface";
 import {RoleService} from "../Services/role.service";
 import {User} from "@core";
 import {AngularFirestore} from "@angular/fire/compat/firestore";
+import { ActivityLogService } from "../module/activity-log/activity-log.service"; // adjust path
 
 @Injectable({
   providedIn: 'root',
@@ -28,7 +29,8 @@ export class AuthService {
     private _snackBar: MatSnackBar,
     private injector: EnvironmentInjector,
     private roleService: RoleService,
-    private firestore : AngularFirestore
+    private firestore : AngularFirestore,
+    private mLogService: ActivityLogService   // ✅ inject ActivityLogService
   ) {
     this.currentUserSubject = new BehaviorSubject<User>(
       JSON.parse(localStorage.getItem('currentUser') || '{}')
@@ -117,8 +119,20 @@ export class AuthService {
         if (user.email) {
           localStorage.setItem('userEmail', user.email);
         }
+        runInInjectionContext(this.injector, async () => {debugger
+          let activity = {
+            date: new Date().getTime(),
+            section: 'Login',
+            action: 'Login',
+            user: user.email,
+            description: 'Login by user ' + user.email,
+            currentIp: localStorage.getItem('currentip') || '',
+          };
 
-        await this.setUserData(user.uid);
+          await this.setUserData(user.uid);
+          await this.mLogService.addLog(activity);
+          console.log('flow complete');
+        });
       }
     } catch (err: unknown) {
       if (err instanceof Error) {
@@ -130,7 +144,7 @@ export class AuthService {
   }
 
 
-  logout() {
+  async logout() {
     localStorage.removeItem('userData');
     localStorage.removeItem('userRolePermissions');
     this.router.navigate(['/authentication/signin']).then(() => {
@@ -139,7 +153,18 @@ export class AuthService {
         window.history.go(1);
       };
     });
+    runInInjectionContext(this.injector, async () => {
+      let activity = {
+        date: new Date().getTime(),
+        section: 'Logout',
+        action: 'Logout',
+        description: 'Logout by user ',
+        currentIp: localStorage.getItem('currentip')!,
+      };
+      await this.mLogService.addLog(activity);
+    })
   }
+
 
 
 

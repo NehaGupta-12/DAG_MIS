@@ -87,6 +87,14 @@
           "class": "ml-menu",
           "groupTitle": false,
           "submenu": []
+        },
+        {
+          "path": "/module/activity-log",
+          "title": "Activity Log",
+          "icon": "",
+          "class": "ml-menu",
+          "groupTitle": false,
+          "submenu": []
         }
       ]
     },
