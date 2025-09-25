@@ -1,13 +1,50 @@
+//
+//@use '@angular/material' as mat;
+//
+////  Core styles
+//@include mat.core();
+//
+//$light-primary: mat.m2-define-palette(mat.$m2-indigo-palette, 500);
+//$light-accent: mat.m2-define-palette(mat.$m2-cyan-palette, A200, A100, A400);
+//
+//// 3. Define the theme configuration
+//$theme-config: (
+//  color: (
+//    primary: $light-primary,
+//    accent: $light-accent,
+//  ),
+//  density: -5
+//);
+//
+//// Create the theme
+//$theme: mat.m2-define-light-theme($theme-config);
+//
+////Apply the theme
+//@include mat.all-component-themes($theme);
+//
+////  Apply component-specific styles
+//.mat-mdc-table {
+//  @include mat.table-density(-2);
+//}
+//
+//.mat-mdc-button,
+//.mat-mdc-raised-button,
+//.mat-mdc-outlined-button,
+//.mat-mdc-unelevated-button {
+//  @include mat.button-density(0);
+//}
 
+// 1️⃣ @use must be at the very top
 @use '@angular/material' as mat;
 
-//  Core styles
+// 2️⃣ Core styles
 @include mat.core();
 
+// 3️⃣ Define palettes
 $light-primary: mat.m2-define-palette(mat.$m2-indigo-palette, 500);
 $light-accent: mat.m2-define-palette(mat.$m2-cyan-palette, A200, A100, A400);
 
-// 3. Define the theme configuration
+// 4️⃣ Define the theme configuration
 $theme-config: (
   color: (
     primary: $light-primary,
@@ -16,13 +53,13 @@ $theme-config: (
   density: -5
 );
 
-// Create the theme
+// 5️⃣ Create the theme
 $theme: mat.m2-define-light-theme($theme-config);
 
-//Apply the theme
+// 6️⃣ Apply the theme to all components
 @include mat.all-component-themes($theme);
 
-//  Apply component-specific styles
+// 7️⃣ Component-specific density adjustments
 .mat-mdc-table {
   @include mat.table-density(-2);
 }

@@ -1,13 +1,65 @@
-/* You can add global styles to this file, and also import other style files */
+///* You can add global styles to this file, and also import other style files */
+//
+//
+//
+//
+//mat-icon {
+//  font-family: 'Material Icons' !important;
+//  color: inherit; /* allows color attribute to work */
+//}
+//
+///* for select field with search box */
+//.mat-select-search{
+//  padding-left: 10px;
+//  /* padding: 5px; */
+//  padding-top: 3px;
+//  padding-bottom: 3px;
+//  border: 1px solid;
+//  margin: 7px;
+//  border-radius: 5px;
+//}
+//
+//.custom-select-panel .mat-select-search input::placeholder {
+//  color: #6a6a6a; /* Use a dark color to make the text visible */
+//  opacity: 1; /* Some browsers might require this to show the placeholder */
+//}
+//.spinner-container {
+//  position: fixed;
+//  top: 50%;
+//  left: 50%;
+//  transform: translate(-50%, -50%);
+//  display: flex;
+//  justify-content: center;
+//  align-items: center;
+//  z-index: 999999 !important;
+//  background-color: rgba(255, 255, 255, 0.8);
+//  width: 100vw;
+//  height: 100vh;
+//}
+//
+//
+//html, body { height: 100%; }
+//body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+//
+//.snackbar-error {
+//  background-color: #d32f2f;
+//  color: white;
+//}
+//
+//.snackbar-success {
+//  background-color: #388e3c;
+//  color: white;
+//}
+@import 'assets/theme.scss'; // MUST be first
+
 mat-icon {
   font-family: 'Material Icons' !important;
-  color: inherit; /* allows color attribute to work */
+  color: inherit;
 }
 
 /* for select field with search box */
 .mat-select-search{
   padding-left: 10px;
-  /* padding: 5px; */
   padding-top: 3px;
   padding-bottom: 3px;
   border: 1px solid;
@@ -16,9 +68,10 @@ mat-icon {
 }
 
 .custom-select-panel .mat-select-search input::placeholder {
-  color: #6a6a6a; /* Use a dark color to make the text visible */
-  opacity: 1; /* Some browsers might require this to show the placeholder */
+  color: #6a6a6a;
+  opacity: 1;
 }
+
 .spinner-container {
   position: fixed;
   top: 50%;
@@ -33,3 +86,15 @@ mat-icon {
   height: 100vh;
 }
 
+html, body { height: 100%; }
+body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+
+.snackbar-error {
+  background-color: #d32f2f;
+  color: white;
+}
+
+.snackbar-success {
+  background-color: #388e3c;
+  color: white;
+}

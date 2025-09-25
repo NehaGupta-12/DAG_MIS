@@ -1,24 +1,169 @@
+//
+//// Include theming for Angular Material with `mat.theme()`.
+//// This Sass mixin will define CSS variables that are used for styling Angular Material
+//// components according to the Material 3 design spec.
+//// Learn more about theming and how to use it for your application's
+//// custom components at https://material.angular.dev/guide/theming
+//
+//
+//@use '@angular/material' as mat;
+//@import 'assets/theme.scss';
+//
+//
+//html {
+//  @include mat.theme((
+//    color: (
+//      primary: mat.$azure-palette,
+//      tertiary: mat.$blue-palette,
+//    ),
+//    typography: Roboto,
+//    density: 0,
+//  ));
+//}
+//
+//body {
+//  // Default the application to a light color theme. This can be changed to
+//  // `dark` to enable the dark color theme, or to `light dark` to defer to the
+//  // user's system settings.
+//  color-scheme: light;
+//
+//  // Set a default background, font and text colors for the application using
+//  // Angular Material's system-level CSS variables. Learn more about these
+//  // variables at https://material.angular.dev/guide/system-variables
+//  background-color: var(--mat-sys-surface);
+//  color: var(--mat-sys-on-surface);
+//  font: var(--mat-sys-body-medium);
+//
+//  // Reset the user agent margin.
+//  margin: 0;
+//}
+//@use "sass:meta";
+///*
+// *  Document   : style.css
+// *  Author     : RedStar Template
+// *  Description: This is a main style scss file for import all scss files.
+// *
+// *  Structure (with shortcodes):
+//                 [1. Common ]
+//                 [2. Fonts ]
+//                 [3. Components ]
+//                 [4. Apps]
+//                 [5. Pages ]
+//                 [6. Pugins ]
+//                 [7. UI ]
+//                 [8. Browser ]
+//
+//
+//
+///*                 [1. Common ]                   			*/
+///* Importing Bootstrap SCSS file. */
+//@import "../../../node_modules/bootstrap/dist/css/bootstrap.min.css";
+//@include meta.load-css("common/_variables");
+//@include meta.load-css("common/_mixins");
+//@include meta.load-css("common/_customanimate.scss");
+//@include meta.load-css("common/_general.scss");
+//@include meta.load-css("common/_demo.scss");
+//@include meta.load-css("common/_helpers.scss");
+//@include meta.load-css("common/_media.scss");
+//@include meta.load-css("common/_animation.scss");
+//@include meta.load-css("common/_rtl.scss");
+///*                 [2. Icons ]                   				*/
+//// @import "fonts/_material.scss";
+//@include meta.load-css("fonts/fontawesome/fontawesome.scss");
+//@include meta.load-css("fonts/fontawesome/regular.scss");
+//@include meta.load-css("fonts/fontawesome/solid.scss");
+//@include meta.load-css("fonts/fontawesome/brands.scss");
+//@import url(../fonts/themify-icons/themify-icons.css);
+//@import url(../fonts/simple-line-icons/css/simple-line-icons.css);
+//
+///*                 [3. Components ]                   		*/
+//@include meta.load-css("components/_breadcrumbs.scss");
+//@include meta.load-css("components/_checkboxradio.scss");
+//@include meta.load-css("components/_dropdownmenu.scss");
+//@include meta.load-css("components/_feed.scss");
+//@include meta.load-css("components/_formcomponents.scss");
+//@include meta.load-css("components/_infobox.scss");
+//@include meta.load-css("components/_inputformgroup.scss");
+//@include meta.load-css("components/_labels.scss");
+//@include meta.load-css("components/_leftsidebaroverlay.scss");
+//@include meta.load-css("components/_navbar");
+//@include meta.load-css("components/_navtabs.scss");
+//@include meta.load-css("components/_noticeboard.scss");
+//@include meta.load-css("components/_rightsidebar.scss");
+//@include meta.load-css("components/_searchbar.scss");
+//@include meta.load-css("components/_settingSidebar.scss");
+//@include meta.load-css("components/_switch.scss");
+//@include meta.load-css("components/_thumbnails.scss");
+//@include meta.load-css("components/_todo.scss");
+//
+///*                 [4. Apps]                   				*/
+//@include meta.load-css("apps/_calendar.scss");
+//@include meta.load-css("apps/_chat.scss");
+//@include meta.load-css("apps/_contactlist.scss");
+//@include meta.load-css("apps/_contactgrid.scss");
+//@include meta.load-css("apps/_dragdrop.scss");
+//@include meta.load-css("apps/_task.scss");
+//
+///*                 [5. Pages ]                   				*/
+//@include meta.load-css("pages/_dashboard.scss");
+//@include meta.load-css("pages/_inbox.scss");
+//@include meta.load-css("pages/_pricing.scss");
+//@include meta.load-css("pages/_profile.scss");
+//@include meta.load-css("pages/_timeline.scss");
+//@include meta.load-css("pages/_extra_pages.scss");
+//@include meta.load-css("pages/_auth.scss");
+//
+///*                 [6. Pugins ]                   				*/
+//@include meta.load-css("plugins/_carousel.scss");
+//@include meta.load-css("plugins/_charts.scss");
+//@include meta.load-css("plugins/_formwizard.scss");
+//@include meta.load-css("plugins/_imagegallery.scss");
+//@include meta.load-css("plugins/_maps.scss");
+//@include meta.load-css("plugins/_tables.scss");
+//
+///*                 [7. UI ]                   */
+//@include meta.load-css("ui/_alerts.scss");
+//@include meta.load-css("ui/_badgelistgroupitem.scss");
+//@include meta.load-css("ui/_buttons.scss");
+//@include meta.load-css("ui/_card.scss");
+//@include meta.load-css("ui/_collapse.scss");
+//@include meta.load-css("ui/_dialogs.scss");
+//@include meta.load-css("ui/_expansion.scss");
+//@include meta.load-css("ui/_mediaobject.scss");
+//@include meta.load-css("ui/_modals.scss");
+//@include meta.load-css("ui/_pageloader.scss");
+//@include meta.load-css("ui/_pagination.scss");
+//@include meta.load-css("ui/_panels.scss");
+//@include meta.load-css("ui/_preloaders.scss");
+//@include meta.load-css("ui/_progressbars.scss");
+//@include meta.load-css("ui/_slider.scss");
+//@include meta.load-css("ui/_snackbar.scss");
+//@include meta.load-css("ui/_tabs.scss");
+//@include meta.load-css("ui/_tooltippopovers.scss");
+//@include meta.load-css("ui/_ckeditor.scss");
+//
+///*                 [8. Browser ]                   			*/
+//@include meta.load-css("browser/_ie10.scss");
+//@include meta.load-css("browser/_ie11.scss");
+
+
+// =====================================================
+// 1️⃣ Sass @use statements — MUST be at the very top
+// =====================================================
 @use "sass:meta";
-/*
- *  Document   : style.css
- *  Author     : RedStar Template
- *  Description: This is a main style scss file for import all scss files.
- *
- *  Structure (with shortcodes):
-                 [1. Common ]
-                 [2. Fonts ]                   
-                 [3. Components ]       
-                 [4. Apps]                   
-                 [5. Pages ]    
-                 [6. Pugins ]     
-                 [7. UI ]     
-                 [8. Browser ]                               
+@use '@angular/material' as mat;
 
+// =====================================================
+// 2️⃣ Theme import
+// =====================================================
+@import 'assets/theme.scss';  // make sure this path is correct relative to styles.scss
 
-
-/*                 [1. Common ]                   			*/
-/* Importing Bootstrap SCSS file. */
+// =====================================================
+// 3️⃣ Bootstrap & Meta includes
+// =====================================================
 @import "../../../node_modules/bootstrap/dist/css/bootstrap.min.css";
+
+// Common
 @include meta.load-css("common/_variables");
 @include meta.load-css("common/_mixins");
 @include meta.load-css("common/_customanimate.scss");
@@ -28,8 +173,8 @@
 @include meta.load-css("common/_media.scss");
 @include meta.load-css("common/_animation.scss");
 @include meta.load-css("common/_rtl.scss");
-/*                 [2. Icons ]                   				*/
-// @import "fonts/_material.scss";
+
+// Fonts
 @include meta.load-css("fonts/fontawesome/fontawesome.scss");
 @include meta.load-css("fonts/fontawesome/regular.scss");
 @include meta.load-css("fonts/fontawesome/solid.scss");
@@ -37,7 +182,7 @@
 @import url(../fonts/themify-icons/themify-icons.css);
 @import url(../fonts/simple-line-icons/css/simple-line-icons.css);
 
-/*                 [3. Components ]                   		*/
+// Components
 @include meta.load-css("components/_breadcrumbs.scss");
 @include meta.load-css("components/_checkboxradio.scss");
 @include meta.load-css("components/_dropdownmenu.scss");
@@ -57,7 +202,7 @@
 @include meta.load-css("components/_thumbnails.scss");
 @include meta.load-css("components/_todo.scss");
 
-/*                 [4. Apps]                   				*/
+// Apps
 @include meta.load-css("apps/_calendar.scss");
 @include meta.load-css("apps/_chat.scss");
 @include meta.load-css("apps/_contactlist.scss");
@@ -65,7 +210,7 @@
 @include meta.load-css("apps/_dragdrop.scss");
 @include meta.load-css("apps/_task.scss");
 
-/*                 [5. Pages ]                   				*/
+// Pages
 @include meta.load-css("pages/_dashboard.scss");
 @include meta.load-css("pages/_inbox.scss");
 @include meta.load-css("pages/_pricing.scss");
@@ -74,7 +219,7 @@
 @include meta.load-css("pages/_extra_pages.scss");
 @include meta.load-css("pages/_auth.scss");
 
-/*                 [6. Pugins ]                   				*/
+// Plugins
 @include meta.load-css("plugins/_carousel.scss");
 @include meta.load-css("plugins/_charts.scss");
 @include meta.load-css("plugins/_formwizard.scss");
@@ -82,7 +227,7 @@
 @include meta.load-css("plugins/_maps.scss");
 @include meta.load-css("plugins/_tables.scss");
 
-/*                 [7. UI ]                   */
+// UI
 @include meta.load-css("ui/_alerts.scss");
 @include meta.load-css("ui/_badgelistgroupitem.scss");
 @include meta.load-css("ui/_buttons.scss");
@@ -103,6 +248,76 @@
 @include meta.load-css("ui/_tooltippopovers.scss");
 @include meta.load-css("ui/_ckeditor.scss");
 
-/*                 [8. Browser ]                   			*/
+// Browser
 @include meta.load-css("browser/_ie10.scss");
 @include meta.load-css("browser/_ie11.scss");
+
+// =====================================================
+// 4️⃣ Global CSS rules
+// =====================================================
+
+html {
+  @include mat.theme((
+    color: (
+      primary: mat.$azure-palette,
+      tertiary: mat.$blue-palette,
+    ),
+    typography: Roboto,
+    density: 0,
+  ));
+}
+
+body {
+  color-scheme: light;
+  background-color: var(--mat-sys-surface);
+  color: var(--mat-sys-on-surface);
+  font: var(--mat-sys-body-medium);
+  margin: 0;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+}
+
+mat-icon {
+  font-family: 'Material Icons' !important;
+  color: inherit;
+}
+
+/* Select search box */
+.mat-select-search {
+  padding-left: 10px;
+  padding-top: 3px;
+  padding-bottom: 3px;
+  border: 1px solid;
+  margin: 7px;
+  border-radius: 5px;
+}
+
+.custom-select-panel .mat-select-search input::placeholder {
+  color: #6a6a6a;
+  opacity: 1;
+}
+
+/* Spinner overlay */
+.spinner-container {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999999 !important;
+  background-color: rgba(255, 255, 255, 0.8);
+  width: 100vw;
+  height: 100vh;
+}
+
+/* Snackbar */
+.snackbar-error {
+  background-color: #d32f2f;
+  color: white;
+}
+
+.snackbar-success {
+  background-color: #388e3c;
+  color: white;
+}
