@@ -105,6 +105,27 @@ export class AddDealerService {
     );
   }
 
+  getAllDealerList(startAfter?: any): Observable<any[]> {
+    return this.firestore
+      .collection(this.collectionName, ref => {
+        let query: firebase.firestore.Query = ref.orderBy('createdAt', 'asc');
+        if (startAfter) {
+          query = query.startAfter(startAfter);
+        }
+        return query;
+      })
+      .snapshotChanges()
+      .pipe(
+        map(actions =>
+          actions.map(a => {
+            const data: any = a.payload.doc.data();
+            const id = a.payload.doc.id;
+            return { id, ...(data as any) };
+          })
+        )
+      );
+  }
+
 
 
 

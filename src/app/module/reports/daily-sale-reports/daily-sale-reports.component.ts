@@ -103,6 +103,7 @@ export class DailySaleReportsComponent implements OnInit{
   @ViewChild('outletSearchInput') outletSearchInput!: ElementRef;
   // @ViewChild('outletSearchInput') outletSearchInput!: ElementRef;
   debounceTimer: any;
+  countryOptionsLoaded: boolean = false;
 
 
   // Filters
@@ -151,25 +152,32 @@ export class DailySaleReportsComponent implements OnInit{
     @Inject(MAT_DIALOG_DATA) public data: any
   ) {
     this.dealerForm = this.fb.group({
-      name: this.fb.control(''),   // ✅ fixed
+      name: this.fb.control(''),
       country: [''],
       division: [''],
       town: [''],
       product: [''],
-      period: this.fb.group({   // ✅ date range group
+      period: this.fb.group({
         start: [''],
         end: [''],
       }),
     });
 
-    // Load Firebase options
+    // Load Firebase options (Division, OutletType, Category)
     this.mDatabase.object<{ subcategories: string[] }>('typelist/Division').valueChanges()
       .pipe(map(d => d?.subcategories || [])).subscribe(data => { this.options.division = data; this.filteredOptions.division = [...data]; });
     this.mDatabase.object<{ subcategories: string[] }>('typelist/outletType').valueChanges()
       .pipe(map(d => d?.subcategories || [])).subscribe(data => { this.options.outletType = data; this.filteredOptions.outletType = [...data]; });
     this.mDatabase.object<{ subcategories: string[] }>('typelist/outletCategory').valueChanges()
       .pipe(map(d => d?.subcategories || [])).subscribe(data => { this.options.category = data; this.filteredOptions.category = [...data]; });
-    this.countryService.getCountries().subscribe(data => { this.options.country = data; this.filteredOptions.country = [...data]; });
+
+    // COUNTRY LOADING: Load options and set flag when ready
+    this.countryService.getCountries().subscribe((data: string[]) => {
+      this.options.country = data;
+      this.filteredOptions.country = [...data];
+      this.countryOptionsLoaded = true; // 🌟 FLAG SET
+    });
+
     this.mDatabase.object<{ subcategories: string[] }>('typelist/Town').valueChanges()
       .pipe(map(d => d?.subcategories || [])).subscribe(data => { this.options.town = data; this.filteredOptions.town = [...data]; });
   }
@@ -396,6 +404,14 @@ export class DailySaleReportsComponent implements OnInit{
 
 
   onSubmit() {
+    // 🛑 SOLUTION: Stop execution if country options haven't been loaded yet.
+    // If the user clicks too early, stop here and inform them (optional).
+    if (!this.countryOptionsLoaded) {
+      // You can add a Swal.fire or similar notification here
+      this.loadingService.setLoading(false); // Ensure loader stops if running
+      return;
+    }
+
     // Start loader
     this.loadingService.setLoading(true);
 
@@ -411,15 +427,14 @@ export class DailySaleReportsComponent implements OnInit{
 
       this.allOutletReports = [];
 
-      // 🆕 Determine the list of countries to include in the filter
+      // Determine the list of countries to include in the filter
       const countriesToInclude: string[] = [];
       if (filters.country) {
         // Case 1: A specific country is selected
         countriesToInclude.push(filters.country);
       } else {
-        // Case 2: No country selected (default behavior is to include all fetched countries)
-        // This ensures that the report only includes sales data from the countries
-        // the user is authorized/configured to see (i.e., those in this.options.country).
+        // Case 2: No country selected, so include all countries returned by the service.
+        // This is safe because countryOptionsLoaded is true.
         countriesToInclude.push(...this.options.country);
       }
 
@@ -431,7 +446,7 @@ export class DailySaleReportsComponent implements OnInit{
           : (item.createdAt?.seconds ? new Date(item.createdAt.seconds * 1000) : new Date(item.createdAt));
 
         return (
-          // 🆕 UPDATED COUNTRY FILTER: Check if the item's country is in the calculated list
+          // Check if the item's country is in the calculated list
           (countriesToInclude.length === 0 || countriesToInclude.includes(item.country)) &&
           (!filters.town || item.town === filters.town) &&
           (!filters.division || item.division === filters.division) &&

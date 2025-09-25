@@ -111,6 +111,7 @@ export class ViewUserComponent implements OnInit {
         this.userService.getUserById(this.userId).subscribe((user: any) => {
           if (user) {
             this.userData = user;
+
             this.selectedOutlet = user.allowedOutlet ? Object.values(user.allowedOutlet) : [];
             this.selectCountries = user.allowedCountries ? Object.values(user?.allowedCountries) : [];
 
@@ -146,13 +147,13 @@ export class ViewUserComponent implements OnInit {
     this.debounceTimer = setTimeout(() => {
       this.countrySearchText = event.target.value;
       this.filterCountries();
-    }, 300);
+    }, 300); // Adjust the delay as needed
   }
-
+  // Resets the search when the dropdown is opened
   onCountrySelectOpened(isOpened: boolean) {
     if (isOpened && this.countrySearchInput) {
-      this.countrySearchText = '';
-      this.filterCountries();
+      this.countrySearchText = ''; // Clear search text
+      this.filterCountries(); // Reset the filtered list
       setTimeout(() => {
         this.countrySearchInput?.nativeElement.focus();
       }, 0);
@@ -179,8 +180,9 @@ export class ViewUserComponent implements OnInit {
 
   DealerList() {
     runInInjectionContext(this.injector, () => {
-      this.addDealerService.getDealerList().subscribe((data: any) => {
+      this.addDealerService.getAllDealerList().subscribe((data: any) => {
         this.dealerData = data;
+        console.log('Fetched dealer data:', this.dealerData);
         this.filteredDealerOptions = [...data]; // init with all
       });
     });
@@ -211,13 +213,29 @@ export class ViewUserComponent implements OnInit {
 
   updateUser(): void {
     if (this.userId) {
+      // 🔎 Find outlets matching the selected countries
+      const matchedOutlets = this.dealerData.filter(
+        (dealer: any) => this.selectCountries.includes(dealer.country)
+      );
+
+      // You can either save just outlet names or the full dealer objects
+      this.selectedOutlet = matchedOutlets.map((dealer: any) => dealer.name);
+
+      // Prepare final payload
       const updatedData = {
         ...this.userData,
         role: this.selectedRole,
-        allowedOutlet: this.selectedOutlet.reduce((acc, outlet, i) => {acc[i] = outlet;return acc;}, {} as any),
-        allowedCountries: this.selectCountries.reduce((acc, country, i) => {acc[i] = country;return acc;}, {} as any)
+        allowedOutlet: this.selectedOutlet.reduce((acc, outlet, i) => {
+          acc[i] = outlet;
+          return acc;
+        }, {} as any),
+        allowedCountries: this.selectCountries.reduce((acc, country, i) => {
+          acc[i] = country;
+          return acc;
+        }, {} as any)
       };
 
+      // 🔥 Update user
       this.userService.updateUser(this.userId, updatedData).then(() => {
         Swal.fire({
           title: 'Success!',
@@ -251,5 +269,6 @@ export class ViewUserComponent implements OnInit {
       this.selectCountries = [...this.filteredCountries]; // Select all
     }
   }
+
 
 }
