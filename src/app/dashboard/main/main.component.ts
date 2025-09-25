@@ -37,7 +37,7 @@ import {map, startWith} from "rxjs/operators";
 import {Observable} from "rxjs";
 import {AngularFireDatabase} from "@angular/fire/compat/database";
 import {MatError, MatFormField, MatInput, MatLabel} from "@angular/material/input";
-import {MatOption, MatSelect} from "@angular/material/select";
+import {MatOption, MatSelect, MatSelectModule} from "@angular/material/select";
 import {LoadingService} from "../../Services/loading.service";
 import {MatSort} from "@angular/material/sort";
 import {AddDealerService} from "../../module/add-dealer.service";
@@ -45,6 +45,7 @@ import {MatPaginator} from "@angular/material/paginator";
 import {BudgetService} from "../../module/budget.service";
 import {MonthlyBudgetService} from "../../module/monthly-budget.service";
 import {CountryService} from "../../Services/country.service";
+import {MatCheckbox} from "@angular/material/checkbox";
 
 export type ChartOptions = {
   series: ApexAxisChartSeries;
@@ -93,6 +94,8 @@ export type ChartOptions = {
     MatPaginator,
     MatInput,
     NgIf,
+    MatCheckbox,
+    MatSelectModule
   ],
   standalone: true
 })
@@ -170,27 +173,27 @@ export class MainComponent implements OnInit {
     this.countryService.getCountries().subscribe(countries => {
       this._countriesTypes = countries;
       this.filteredCountries = [...this._countriesTypes];
-      this.countryControl.setValue(['All', ...this._countriesTypes]);
+
+      // By default: show ALL data but dropdown has nothing checked (only "All" available)
+      this.countryControl.setValue(['All']);
       this.loadSalesList(this._countriesTypes);
     });
 
-    this.countryControl.valueChanges
-      .pipe(startWith(this.countryControl.value))
-      .subscribe((selectedCountries) => {
-        const countries = (selectedCountries as string[]) || [];
+    this.countryControl.valueChanges.subscribe((selected: string[] | null) => {
+      if (!selected) return;
 
-        if (countries.includes('All')) {
-          this.countryControl.setValue(['All', ...this._countriesTypes], { emitEvent: false });
-          this.loadSalesList(this._countriesTypes);
-        }  // Case 2: User deselects everything
-        else if (countries.length === 0) {debugger
-          this.loadSalesList([]);
-        }
-        // Case 3: Normal countries selected
-        else {
-          this.loadSalesList(countries);
-        }
-      });
+      if (selected.includes('All')) {
+        // If "All" is selected → show all data and replace selection with just "All"
+        this.countryControl.setValue(['All'], { emitEvent: false });
+        this.loadSalesList(this._countriesTypes);
+      } else if (selected.length === 0) {
+        // If nothing selected → show no data
+        this.loadSalesList([]);
+      } else {
+        // Otherwise show selected countries only
+        this.loadSalesList(selected);
+      }
+    });
   }
 
     filterCountries() {
@@ -1049,6 +1052,28 @@ export class MainComponent implements OnInit {
 
     console.log(`Monthly → Current Target: ${this.currentMonthTarget}, Last Target: ${this.lastMonthTarget}`);
   }
+
+  // Toggle select/unselect all countries
+  toggleSelectAllCountries() {
+    const allCountries = [...this._countriesTypes];
+    const selectedCountries: string[] = this.countryControl.value || [];
+
+    if (this.isAllCountriesSelected()) {
+      // Unselect all
+      this.countryControl.setValue([]);
+    } else {
+      // Select all
+      this.countryControl.setValue(allCountries);
+    }
+  }
+
+// Check if all countries are selected
+  isAllCountriesSelected(): boolean {
+    const selectedCountries: string[] = this.countryControl.value || [];
+    return this._countriesTypes.length > 0 &&
+      this._countriesTypes.every(c => selectedCountries.includes(c));
+  }
+
 
 
 
