@@ -108,6 +108,7 @@ export class StockReportComponent implements OnInit{
   @ViewChild('outletSearchInput') outletSearchInput!: ElementRef;
   // @ViewChild('outletSearchInput') outletSearchInput!: ElementRef;
   debounceTimer: any;
+  countryOptionsLoaded: boolean = false;
 
 
   // Filters
@@ -149,7 +150,7 @@ export class StockReportComponent implements OnInit{
     private route: ActivatedRoute,
     private mDatabase: AngularFireDatabase,
     private productService:ProductMasterService,
-    // private dailySlaes: DailySalesService,
+    // private dailySlaes: DailySalesService, // Already commented
     private grnService: GrnService,
     public authService : AuthService,
     private loadingService: LoadingService,
@@ -157,12 +158,12 @@ export class StockReportComponent implements OnInit{
     @Inject(MAT_DIALOG_DATA) public data: any
   ) {
     this.dealerForm = this.fb.group({
-      name: this.fb.control(''),   // ✅ fixed
-      country: [''],
+      name: this.fb.control(''),
+      country: [''], // Initialized to empty string
       division: [''],
       town: [''],
       product: [''],
-      period: this.fb.group({   // ✅ date range group
+      period: this.fb.group({
         start: [''],
         end: [''],
       }),
@@ -175,7 +176,14 @@ export class StockReportComponent implements OnInit{
       .pipe(map(d => d?.subcategories || [])).subscribe(data => { this.options.outletType = data; this.filteredOptions.outletType = [...data]; });
     this.mDatabase.object<{ subcategories: string[] }>('typelist/outletCategory').valueChanges()
       .pipe(map(d => d?.subcategories || [])).subscribe(data => { this.options.category = data; this.filteredOptions.category = [...data]; });
-    this.countryService.getCountries().subscribe(data => { this.options.country = data; this.filteredOptions.country = [...data]; });
+
+    // 🌟 UPDATED COUNTRY LOADING: Set flag on complete
+    this.countryService.getCountries().subscribe((data: string[]) => {
+      this.options.country = data;
+      this.filteredOptions.country = [...data];
+      this.countryOptionsLoaded = true; // ✅ Set flag here
+    });
+
     this.mDatabase.object<{ subcategories: string[] }>('typelist/Town').valueChanges()
       .pipe(map(d => d?.subcategories || [])).subscribe(data => { this.options.town = data; this.filteredOptions.town = [...data]; });
   }
@@ -398,6 +406,14 @@ export class StockReportComponent implements OnInit{
   }
 
   onSubmit() {
+    // 🛑 STEP 1: PREVENT RACE CONDITION (Ensures this.options.country is stable)
+    if (!this.countryOptionsLoaded) {
+      // If data isn't ready, ensure the loader stops and exit the function.
+      this.loadingService.setLoading(false);
+      console.warn('Country data is still loading. Please wait and try again.');
+      return;
+    }
+
     this.loadingService.setLoading(true);
 
     try {
@@ -412,11 +428,26 @@ export class StockReportComponent implements OnInit{
       const outlets = Array.isArray(filters.name) ? filters.name : (filters.name ? [filters.name] : []);
       this.allOutletReports = [];
 
+      // 🌟 STEP 2: Determine the list of countries to include
+      const countriesToInclude: string[] = [];
+      if (filters.country) {
+        // Case A: Specific country selected
+        countriesToInclude.push(filters.country);
+      } else {
+        // Case B: No country selected -> use all available countries from the service
+        // This is safe because of the check at the start of onSubmit().
+        countriesToInclude.push(...this.options.country);
+      }
+      // If countriesToInclude is empty here, it means the service returned no countries.
+
+
       const filterFn = (item: any, outlet: string | null = null) => {
         const itemDate = this.normalizeDate(item);
 
         return (
-          (!filters.country || item.country === filters.country) &&
+          // 🌟 STEP 3: Apply the dynamic country filter
+          // Filters only by the countries in countriesToInclude array.
+          (countriesToInclude.length === 0 || countriesToInclude.includes(item.country)) &&
           (!filters.town || item.town === filters.town) &&
           (!filters.division || item.division === filters.division) &&
           (!outlet || item.dealerOutlet === outlet) &&
@@ -527,27 +558,41 @@ export class StockReportComponent implements OnInit{
 
 
   onCancel() {
-    // Clear the selectedOutlets array
+    // clear outlets
     this.selectedOutlets = [];
 
-    // Reset the form
-    this.dealerForm.reset();
+    // reset form with proper defaults (empty strings / arrays, not null)
+    this.dealerForm.reset({
+      name: [],
+      country: '',
+      division: '',
+      town: '',
+      product: '',
+      period: {
+        start: '',
+        end: ''
+      }
+    });
 
-    // Reset the form controls that are tied to the filters
-    this.nameFilter.reset();
-    this.divisionFilter.reset();
-    this.countryFilter.reset();
-    this.townFilter.reset();
-    this.productFilter.reset();
+    // reset filters
+    this.nameFilter.setValue('', { emitEvent: false });
+    this.divisionFilter.setValue('', { emitEvent: false });
+    this.countryFilter.setValue('', { emitEvent: false });
+    this.townFilter.setValue('', { emitEvent: false });
+    this.productFilter.setValue('', { emitEvent: false });
 
-    // Restore the filtered options to their original state
+    // restore filteredOptions
     Object.keys(this.options).forEach(key => {
       this.filteredOptions[key] = [...this.options[key]];
     });
 
-    // Clear the displayed reports
+    // clear reports + headers
     this.allOutletReports = [];
+    this.reportTitle = '';
+    this.reportDate = '';
+    this.selectedCountry = '';
   }
+
 
   exportToExcel() {
     if (!this.allOutletReports || this.allOutletReports.length === 0) {

@@ -174,8 +174,9 @@ export class ViewUserComponent implements OnInit {
   }
   DealerList() {
     runInInjectionContext(this.injector, () => {
-      this.addDealerService.getDealerList().subscribe((data: any) => {
+      this.addDealerService.getAllDealerList().subscribe((data: any) => {
         this.dealerData = data;
+        console.log('Fetched dealer data:', this.dealerData);
         this.filteredDealerOptions = [...data]; // init with all
       });
     });
@@ -206,13 +207,29 @@ export class ViewUserComponent implements OnInit {
 
   updateUser(): void {
     if (this.userId) {
+      // 🔎 Find outlets matching the selected countries
+      const matchedOutlets = this.dealerData.filter(
+        (dealer: any) => this.selectCountries.includes(dealer.country)
+      );
+
+      // You can either save just outlet names or the full dealer objects
+      this.selectedOutlet = matchedOutlets.map((dealer: any) => dealer.name);
+
+      // Prepare final payload
       const updatedData = {
         ...this.userData,
         role: this.selectedRole,
-        allowedOutlet: this.selectedOutlet.reduce((acc, outlet, i) => {acc[i] = outlet;return acc;}, {} as any),
-        allowedCountries: this.selectCountries.reduce((acc, country, i) => {acc[i] = country;return acc;}, {} as any)
+        allowedOutlet: this.selectedOutlet.reduce((acc, outlet, i) => {
+          acc[i] = outlet;
+          return acc;
+        }, {} as any),
+        allowedCountries: this.selectCountries.reduce((acc, country, i) => {
+          acc[i] = country;
+          return acc;
+        }, {} as any)
       };
 
+      // 🔥 Update user
       this.userService.updateUser(this.userId, updatedData).then(() => {
         Swal.fire({
           title: 'Success!',
@@ -233,5 +250,6 @@ export class ViewUserComponent implements OnInit {
       });
     }
   }
+
 
 }
