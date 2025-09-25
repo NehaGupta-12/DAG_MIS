@@ -89,8 +89,8 @@
           "submenu": []
         },
         {
-          "path": "module/activity-log",
-          "title": "Role & Permission",
+          "path": "/module/activity-log",
+          "title": "Activity Log",
           "icon": "",
           "class": "ml-menu",
           "groupTitle": false,

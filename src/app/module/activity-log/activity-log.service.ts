@@ -1,55 +1,23 @@
-import {Injectable} from '@angular/core';
-import {AngularFirestore} from "@angular/fire/compat/firestore";
-import {Observable} from "rxjs";
-import {map} from "rxjs/operators";
-
-// export interface ActivityLog {
-//   date: number,
-//   section: string,
-//   action: string,
-//   user?: string,
-//   description: string
-//   currentIp: string
-// }
+import { Injectable } from '@angular/core';
+import { AngularFirestore } from '@angular/fire/compat/firestore';
+import { ActivityLog } from './activity-log.component'; // adjust path
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class ActivityLogService {
+  private collectionName = 'activity-log';
 
-  constructor(private firestore: AngularFirestore) {}
-  private collectionName = "activity-log";
+  constructor(private afs: AngularFirestore) {}
 
-  // currentIp = localStorage.getItem('currentip')!
-  // env = isDevMode() ? environment.testMode : environment.productionMode
-  //
-  // constructor(
-  //   private readonly mDatabase: AngularFireDatabase,
-  //   private readonly mFirestore:AngularFirestore
-  //
-  // ) {
-  //
-  // }
-  //
-  // async addLog (activity:ActivityLog)  {
-  //   // activity.currentIp =this.currentIp
-  //   let email =await localStorage.getItem('userEmail')
-  //   // alert(email)
-  //   activity.user=   email!
-  //   activity.description=activity.description + ' '+ email
-  //   activity.currentIp = this.currentIp
-  //   this.mDatabase.list(this.env.activityLog).push(activity)
-  //   console.log('Log Added ',JSON.stringify(activity))
-  // }
-  // getLogs(){
-  //   return this.mDatabase.list<ActivityLog>(this.env.activityLog).valueChanges()
-  // }
-  // getLogsByCount(i:number){
-  //   return this.mDatabase.list<ActivityLog>(this.env.activityLog,ref => ref.limitToLast(i)).snapshotChanges()
-  //   // return this.mDatabase.list<ActivityLog>('activityLog').snapshotChanges()
-  // }
+  addLog(log: { date: number; currentIp: string; action: string; description: string; section: string }) {debugger
+    return this.afs.collection<ActivityLog>(this.collectionName).add(<ActivityLog>log);
+  }
 
-
-
-
+  getLogsByCount(limit: number) {
+    return this.afs.collection<ActivityLog>(
+        this.collectionName,
+        ref => ref.orderBy('date', 'desc').limit(limit)
+    ).snapshotChanges();
+  }
 }

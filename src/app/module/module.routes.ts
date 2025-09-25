@@ -39,6 +39,7 @@ import {AddEditMenuListComponent} from "./Menu list/add-edit-menu-list/add-edit-
 import {AuthGuard} from "../authentication/auth.guard";
 import {ActivityLogComponent} from "./activity-log/activity-log.component";
 
+
 export const MODULES_ROUTE: Route[] = [
   {
     path: 'location',
@@ -125,6 +126,7 @@ export const MODULES_ROUTE: Route[] = [
     component: ProductMasterListComponent,
     canActivate:[AuthGuard]
   },
+
   {
     path:'activity-log',
     component:ActivityLogComponent,
