@@ -411,6 +411,19 @@ export class DailySaleReportsComponent implements OnInit{
 
       this.allOutletReports = [];
 
+      // 🆕 Determine the list of countries to include in the filter
+      const countriesToInclude: string[] = [];
+      if (filters.country) {
+        // Case 1: A specific country is selected
+        countriesToInclude.push(filters.country);
+      } else {
+        // Case 2: No country selected (default behavior is to include all fetched countries)
+        // This ensures that the report only includes sales data from the countries
+        // the user is authorized/configured to see (i.e., those in this.options.country).
+        countriesToInclude.push(...this.options.country);
+      }
+
+
       // Always fetch data (no disable)
       const filterFn = (item: any, outlet: string | null = null) => {
         const itemDate = item.salesDate
@@ -418,7 +431,8 @@ export class DailySaleReportsComponent implements OnInit{
           : (item.createdAt?.seconds ? new Date(item.createdAt.seconds * 1000) : new Date(item.createdAt));
 
         return (
-          (!filters.country || item.country === filters.country) &&
+          // 🆕 UPDATED COUNTRY FILTER: Check if the item's country is in the calculated list
+          (countriesToInclude.length === 0 || countriesToInclude.includes(item.country)) &&
           (!filters.town || item.town === filters.town) &&
           (!filters.division || item.division === filters.division) &&
           (!outlet || item.dealerOutlet === outlet) &&
