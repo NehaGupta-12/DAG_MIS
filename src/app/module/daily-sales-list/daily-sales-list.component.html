@@ -26,7 +26,7 @@
               </ul>
             </div>
             <div class="right">
-              <div class="right-side-btn">
+              <div class="right-side-btn tbl-header-btn col-green btn-large-icon">
                 <span [matTooltip]="!authService.hasPermission('Daily Sales','create') ? 'No permission' : 'Add Daily Sales'" matTooltipPosition="above">
 
                 <button mat-icon-button  class="tbl-header-btn col-green"  (click)="navigateToAddDailySales()" [disabled]="!authService.hasPermission('Daily Sales','create')">

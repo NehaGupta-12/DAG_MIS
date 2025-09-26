@@ -23,6 +23,7 @@ import {AddDealerService} from "../add-dealer.service";
 import Swal from "sweetalert2";
 import {LoadingService} from "../../Services/loading.service";
 import {AuthService} from "../../authentication/auth.service";
+import {ActivityLogService} from "../activity-log/activity-log.service";
 
 @Component({
   selector: 'app-dealer-list',
@@ -85,6 +86,8 @@ export class DealerListComponent implements OnInit{
     private injector: EnvironmentInjector,
     private loadingService: LoadingService,
     public authService : AuthService,
+
+    private activityLogService: ActivityLogService,
   ) {}
 
   ngOnInit() {
@@ -110,9 +113,23 @@ export class DealerListComponent implements OnInit{
     });
   }
 
+  // editDealer(row: any) {
+  //   this.router.navigate(['module/add-dealer'], {
+  //     queryParams: {data: JSON.stringify(row)}
+  //   });
+  // }
+
   editDealer(row: any) {
     this.router.navigate(['module/add-dealer'], {
-      queryParams: {data: JSON.stringify(row)}
+      queryParams: { data: JSON.stringify(row) }
+    });
+
+    // 👉 Log Activity
+    this.activityLogService.addLog({
+      date: Date.now(),
+      section: "Dealer",
+      action: "Edit",
+      description: `Edited Dealer: ${row.name} (${row.code})`
     });
   }
 
@@ -123,8 +140,20 @@ export class DealerListComponent implements OnInit{
     });
   }
 
+  // navigateToAddDealer() {
+  //   this.router.navigate(['module/add-dealer']);
+  // }
+
   navigateToAddDealer() {
     this.router.navigate(['module/add-dealer']);
+
+    // 👉 Log Activity
+    this.activityLogService.addLog({
+      date: Date.now(),
+      section: "Dealer",
+      action: "Add",
+      description: `Navigated to Add Dealer form`
+    });
   }
 
   ngAfterViewInit() {
@@ -144,6 +173,37 @@ export class DealerListComponent implements OnInit{
 
   isLoading: any;
 
+  // deleteDealer(id: string) {
+  //   Swal.fire({
+  //     title: 'Are you sure?',
+  //     text: 'You will not be able to recover this Dealer/Outlet!',
+  //     icon: 'warning',
+  //     showCancelButton: true,
+  //     confirmButtonText: 'Yes, delete it!',
+  //     cancelButtonText: 'No, cancel',
+  //   }).then((result) => {
+  //     if (result.isConfirmed) {
+  //       this.loadingService.setLoading(true); // ✅ start loader
+  //       runInInjectionContext(this.injector, () => {
+  //         this.addDealerService.deleteDealer(id)
+  //           .then(() => {
+  //             this.DealerList(); // ✅ reload list after delete
+  //             Swal.fire('Deleted!', 'Dealer/Outlet has been deleted.', 'success');
+  //           })
+  //           .catch((err) => {
+  //             console.error('Delete failed:', err);
+  //             Swal.fire('Error', 'Failed to delete Dealer/Outlet. Please try again.', 'error');
+  //           })
+  //           .finally(() => {
+  //             this.loadingService.setLoading(false); // ✅ stop loader
+  //           });
+  //       });
+  //     } else if (result.dismiss === Swal.DismissReason.cancel) {
+  //       Swal.fire('Cancelled', 'Dealer/Outlet data is safe.', 'info');
+  //     }
+  //   });
+  // }
+
   deleteDealer(id: string) {
     Swal.fire({
       title: 'Are you sure?',
@@ -154,19 +214,27 @@ export class DealerListComponent implements OnInit{
       cancelButtonText: 'No, cancel',
     }).then((result) => {
       if (result.isConfirmed) {
-        this.loadingService.setLoading(true); // ✅ start loader
+        this.loadingService.setLoading(true);
         runInInjectionContext(this.injector, () => {
           this.addDealerService.deleteDealer(id)
             .then(() => {
-              this.DealerList(); // ✅ reload list after delete
+              this.DealerList();
               Swal.fire('Deleted!', 'Dealer/Outlet has been deleted.', 'success');
+
+              // 👉 Log Activity
+              this.activityLogService.addLog({
+                date: Date.now(),
+                section: "Dealer",
+                action: "Delete",
+                description: `Deleted Dealer with ID: ${id}`
+              });
             })
             .catch((err) => {
               console.error('Delete failed:', err);
               Swal.fire('Error', 'Failed to delete Dealer/Outlet. Please try again.', 'error');
             })
             .finally(() => {
-              this.loadingService.setLoading(false); // ✅ stop loader
+              this.loadingService.setLoading(false);
             });
         });
       } else if (result.dismiss === Swal.DismissReason.cancel) {
@@ -174,5 +242,6 @@ export class DealerListComponent implements OnInit{
       }
     });
   }
+
 
 }

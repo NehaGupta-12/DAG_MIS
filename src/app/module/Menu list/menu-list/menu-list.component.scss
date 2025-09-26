@@ -1,0 +1,12 @@
+.btn-large-icon {
+  width: 80px;        /* increase button width */
+  height: 80px;       /* increase button height */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;         /* remove default padding */
+}
+
+.btn-large-icon mat-icon {
+  font-size: 27px;    /* increase icon size */
+}

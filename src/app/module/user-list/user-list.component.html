@@ -29,10 +29,12 @@
               <div class="right-side-btn  ">
                 <span [matTooltip]="!authService.hasPermission('User','create') ? 'No permission' : 'Add User'" matTooltipPosition="above">
 
-                <button mat-icon-button  class="tbl-header-btn col-green  "  (click)="navigateToAddUser()"
-                        [disabled]="!authService.hasPermission('User','create')">
-                  <mat-icon>add_circle_outline</mat-icon>
-                </button>
+               <button mat-icon-button class="tbl-header-btn col-green btn-large-icon"
+                       (click)="navigateToAddUser()"
+                       [disabled]="!authService.hasPermission('User','create')">
+  <mat-icon>add_circle_outline</mat-icon>
+</button>
+
                 </span>
               </div>
             </div>
@@ -115,7 +117,7 @@
 
                     </button>
                     </span>
-                    <span [matTooltip]="!authService.hasPermission('User','list') ? 'No permission' : 'View List'" matTooltipPosition="above">
+                    <span [matTooltip]="!authService.hasPermission('User','list') ? 'No permission' : 'View User'" matTooltipPosition="above">
                     <button mat-icon-button (click)="viewUser(element)"
                             [disabled]="!authService.hasPermission('User','list')">
                       <app-feather-icons [icon]="'eye'" [class]="'tbl-fav-view'"></app-feather-icons>

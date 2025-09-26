@@ -25,6 +25,7 @@ import {LoadingService} from "../../Services/loading.service";
 import {AuthService} from "../../authentication/auth.service";
 import {GrnViewComponent} from "../grn-view/grn-view.component";
 import {DailySaleViewComponent} from "../daily-sale-view/daily-sale-view.component";
+import {ActivityLogService} from "../activity-log/activity-log.service";
 
 
 
@@ -88,6 +89,7 @@ export class DailySalesListComponent implements OnInit {
     private dailySlaes: DailySalesService,
     private loadingService: LoadingService,
     public authService : AuthService,
+    private mService: ActivityLogService,
   ) {}
 
   ngOnInit() {
@@ -137,9 +139,24 @@ export class DailySalesListComponent implements OnInit {
     });
   }
 
+  // navigateToAddDailySales() {
+  //   this.router.navigate(['module/add-daily-sales']);
+  // }
+
+
+
+  // ✅ ADD
   navigateToAddDailySales() {
     this.router.navigate(['module/add-daily-sales']);
+
+    this.mService.addLog({
+      date: Date.now(),
+      section: 'DailySales',
+      action: 'Add',
+      description: `Navigated to add new Daily Sale`
+    });
   }
+
 
   ngAfterViewInit() {
     this.dataSource.paginator = this.paginator;
@@ -156,9 +173,48 @@ export class DailySalesListComponent implements OnInit {
     this.dataSource.filter = filterValue.trim().toLowerCase();
   }
 
-  deleteDailySales(row: any) {
-    const docId = row.docId; // ✅ Firestore document ID
+  // deleteDailySales(row: any) {
+  //   const docId = row.docId; // ✅ Firestore document ID
+  //
+  //   if (!docId) {
+  //     Swal.fire('Error', 'Missing document ID for this Daily Sale.', 'error');
+  //     return;
+  //   }
+  //
+  //   Swal.fire({
+  //     title: 'Are you sure?',
+  //     text: 'You will not be able to recover this Daily Sale!',
+  //     icon: 'warning',
+  //     showCancelButton: true,
+  //     confirmButtonText: 'Yes, delete it!',
+  //     cancelButtonText: 'No, cancel',
+  //   }).then((result) => {
+  //     if (!result.isConfirmed) return;
+  //
+  //     this.loadingService.setLoading(true); // ✅ start loader
+  //
+  //     runInInjectionContext(this.injector, () => {
+  //       this.dailySlaes.deleteDailySales(docId)
+  //         .then(() => {
+  //           // ✅ Optimistically update UI (remove row)
+  //           this.dataSource.data = this.dataSource.data.filter((p: any) => p.docId !== docId);
+  //
+  //           Swal.fire('Deleted!', 'Daily Sale has been deleted.', 'success');
+  //         })
+  //         .catch((err) => {
+  //           console.error('Delete failed:', err);
+  //           Swal.fire('Error', 'Failed to delete the Daily Sale. Please try again.', 'error');
+  //         })
+  //         .finally(() => {
+  //           this.loadingService.setLoading(false); // ✅ stop loader after completion
+  //         });
+  //     });
+  //   });
+  // }
 
+  // ✅ DELETE
+  deleteDailySales(row: any): void { // explicitly void
+    const docId = row.docId;
     if (!docId) {
       Swal.fire('Error', 'Missing document ID for this Daily Sale.', 'error');
       return;
@@ -174,26 +230,41 @@ export class DailySalesListComponent implements OnInit {
     }).then((result) => {
       if (!result.isConfirmed) return;
 
-      this.loadingService.setLoading(true); // ✅ start loader
+      this.loadingService.setLoading(true);
 
       runInInjectionContext(this.injector, () => {
         this.dailySlaes.deleteDailySales(docId)
           .then(() => {
-            // ✅ Optimistically update UI (remove row)
             this.dataSource.data = this.dataSource.data.filter((p: any) => p.docId !== docId);
-
             Swal.fire('Deleted!', 'Daily Sale has been deleted.', 'success');
+
+            // Log deletion
+            this.mService.addLog({
+              date: Date.now(),
+              section: 'DailySales',
+              action: 'Delete',
+              description: `Deleted Daily Sale for ${row.name} (SKU: ${row.sku})`
+            });
+
+            return; // ✅ explicit return
           })
           .catch((err) => {
             console.error('Delete failed:', err);
             Swal.fire('Error', 'Failed to delete the Daily Sale. Please try again.', 'error');
+            return; // ✅ explicit return
           })
           .finally(() => {
-            this.loadingService.setLoading(false); // ✅ stop loader after completion
+            this.loadingService.setLoading(false);
+            return; // ✅ explicit return
           });
       });
+
+      return; // ✅ explicit return after Swal
     });
+
+    return; // ✅ explicit return for the outer function
   }
+
 
   getTotalQuantity(row: any): number {
     if (!row?.products) return 0;

@@ -24,6 +24,7 @@ import {Menus} from "../../../interfaces/menu.interface";
 import {FeatherIconsComponent} from "@shared/components/feather-icons/feather-icons.component";
 import Swal from "sweetalert2";
 import {AuthService} from "../../../authentication/auth.service";
+import {ActivityLogService} from "../../activity-log/activity-log.service";
 
 @Component({
   selector: 'app-menu-list',
@@ -46,6 +47,7 @@ import {AuthService} from "../../../authentication/auth.service";
     FeatherIconsComponent,
   ],
   templateUrl: './menu-list.component.html',
+  standalone: true,
   styleUrl: './menu-list.component.scss'
 })
 export class MenuListComponent implements OnInit{
@@ -66,6 +68,7 @@ export class MenuListComponent implements OnInit{
     private injector : EnvironmentInjector,
     private menuService: MenuService,
     public authService : AuthService,
+    private mService: ActivityLogService,
   ) {}
 
   ngOnInit(): void {
@@ -74,16 +77,15 @@ export class MenuListComponent implements OnInit{
 
   loadMenuList() {
     runInInjectionContext(this.injector, () => {
-    this.menuService.fetchMenus().subscribe(menus => {
-      this.dataSource.data = menus.map((menu: any, index: number) => ({
-        ...menu,
-        serial: index + 1,
-        createdAt: menu.createdAt?.toDate
-          ? menu.createdAt.toDate().toLocaleString()
-          : menu.createdAt
-      }));
-      console.log(this.dataSource.data)
-    });
+      this.menuService.fetchMenus().subscribe(menus => {
+        this.dataSource.data = menus.map((menu: any, index: number) => ({
+          ...menu,
+          serial: index + 1,
+          createdAt: menu.createdAt?.toDate
+            ? menu.createdAt.toDate().toLocaleString()
+            : menu.createdAt
+        }));
+      });
     });
   }
 
@@ -96,22 +98,51 @@ export class MenuListComponent implements OnInit{
     this.dataSource.filter = filterValue;
   }
 
+  // ✅ ADD
   navigateToAddMenuList() {
     this.dialog.open(AddEditMenuListComponent, {
       width: '600px',
       disableClose: false,
       data: {}
+    }).afterClosed().subscribe(result => {
+      if (result) {
+        // reload after add
+        this.loadMenuList();
+
+        // 👉 log activity
+        this.mService.addLog({
+          date: Date.now(),
+          section: "Menu",
+          action: "Add",
+          description: `Added menu: ${result.menu_name}`,
+        });
+      }
     });
   }
 
+  // ✅ EDIT
   editMenuList(row: Menus) {
     this.dialog.open(AddEditMenuListComponent, {
       width: '600px',
       disableClose: false,
       data: row
+    }).afterClosed().subscribe(result => {
+      if (result) {
+        // reload after edit
+        this.loadMenuList();
+
+        // 👉 log activity
+        this.mService.addLog({
+          date: Date.now(),
+          section: "Menu",
+          action: "Edit",
+          description: `Edited menu: ${row.menu_name}`,
+        });
+      }
     });
   }
 
+  // ✅ DELETE
   deleteMenuList(row: Menus) {
     Swal.fire({
       title: 'Are you sure?',
@@ -123,20 +154,23 @@ export class MenuListComponent implements OnInit{
     }).then((result) => {
       if (!result.isConfirmed) return;
 
-      // this.loadingService.setLoading(true); // ✅ loader for delete
-
       runInInjectionContext(this.injector, () => {
         this.menuService.deleteMenu(row.id!)
           .then(() => {
             this.loadMenuList();
             Swal.fire('Deleted!', 'Menu has been deleted.', 'success');
+
+            // 👉 log activity
+            this.mService.addLog({
+              date: Date.now(),
+              section: "Menu",
+              action: "Delete",
+              description: `Deleted menu: ${row.menu_name}`,
+            });
           })
           .catch((err) => {
             console.error('Delete menu failed:', err);
             Swal.fire('Error', 'Failed to delete the menu. Please try again.', 'error');
-          })
-          .finally(() => {
-            // this.loadingService.setLoading(false);
           });
       });
     });

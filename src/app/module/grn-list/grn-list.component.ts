@@ -26,6 +26,7 @@ import {Validators} from "@angular/forms";
 import {LoadingService} from "../../Services/loading.service";
 import {AuthService} from "../../authentication/auth.service";
 import {GrnViewComponent} from "../grn-view/grn-view.component";
+import {ActivityLogService} from "../activity-log/activity-log.service";
 
 @Component({
   selector: 'app-grn-list',
@@ -88,6 +89,7 @@ export class GRNListComponent implements OnInit {
     private injector: EnvironmentInjector,
     private loadingService: LoadingService,
     public authService : AuthService,
+    private mService: ActivityLogService,
   ) {}
 
   ngOnInit() {
@@ -126,9 +128,24 @@ export class GRNListComponent implements OnInit {
     });
   }
 
-  navigateToAddGrn() {
+  // navigateToAddGrn() {
+  //   this.router.navigate(['module/add-grn']);
+  // }
+
+  navigateToAddGrn(): void {
     this.router.navigate(['module/add-grn']);
+
+    // Log adding new GRN
+    runInInjectionContext(this.injector, async () => {
+      await this.mService.addLog({
+        date: Date.now(),
+        section: 'GRN',
+        action: 'Add',
+        description: `Opened Add GRN form`
+      });
+    });
   }
+
 
   ngAfterViewInit() {
     this.dataSource.paginator = this.paginator;
@@ -147,8 +164,45 @@ export class GRNListComponent implements OnInit {
 
   isLoading: any;
 
-  deleteGrn(row: any) {
-    const docId = row.docId; // ✅ Firestore document ID
+  // deleteGrn(row: any) {
+  //   const docId = row.docId; // ✅ Firestore document ID
+  //
+  //   if (!docId) {
+  //     Swal.fire('Error', 'Missing document ID for this Daily Stock.', 'error');
+  //     return;
+  //   }
+  //
+  //   Swal.fire({
+  //     title: 'Are you sure?',
+  //     text: 'You will not be able to recover this Daily Stock!',
+  //     icon: 'warning',
+  //     showCancelButton: true,
+  //     confirmButtonText: 'Yes, delete it!',
+  //     cancelButtonText: 'No, cancel',
+  //   }).then((result) => {
+  //     if (!result.isConfirmed) return;
+  //
+  //     this.loadingService.setLoading(true); // ✅ start loader
+  //     runInInjectionContext(this.injector, () => {
+  //       this.grnService.deleteGrn(docId)
+  //         .then(() => {
+  //           // ✅ Optimistically update UI
+  //           this.dataSource.data = this.dataSource.data.filter((p: any) => p.docId !== docId);
+  //           Swal.fire('Deleted!', 'Daily Stock has been deleted.', 'success');
+  //         })
+  //         .catch((err) => {
+  //           console.error('Delete failed:', err);
+  //           Swal.fire('Error', 'Failed to delete the Daily Stock. Please try again.', 'error');
+  //         })
+  //         .finally(() => {
+  //           this.loadingService.setLoading(false); // ✅ stop loader
+  //         });
+  //     });
+  //   });
+  // }
+
+  deleteGrn(row: any): void {
+    const docId = row.docId;
 
     if (!docId) {
       Swal.fire('Error', 'Missing document ID for this Daily Stock.', 'error');
@@ -165,12 +219,22 @@ export class GRNListComponent implements OnInit {
     }).then((result) => {
       if (!result.isConfirmed) return;
 
-      this.loadingService.setLoading(true); // ✅ start loader
+      this.loadingService.setLoading(true);
+
       runInInjectionContext(this.injector, () => {
         this.grnService.deleteGrn(docId)
-          .then(() => {
-            // ✅ Optimistically update UI
+          .then(async () => {
+            // Update UI
             this.dataSource.data = this.dataSource.data.filter((p: any) => p.docId !== docId);
+
+            // ✅ Log deletion
+            await this.mService.addLog({
+              date: Date.now(),
+              section: 'GRN',
+              action: 'Delete',
+              description: `Deleted GRN for ${row.name} (SKU: ${row.sku})`
+            });
+
             Swal.fire('Deleted!', 'Daily Stock has been deleted.', 'success');
           })
           .catch((err) => {
@@ -178,11 +242,12 @@ export class GRNListComponent implements OnInit {
             Swal.fire('Error', 'Failed to delete the Daily Stock. Please try again.', 'error');
           })
           .finally(() => {
-            this.loadingService.setLoading(false); // ✅ stop loader
+            this.loadingService.setLoading(false);
           });
       });
     });
   }
+
 
   getTotalQuantity(row: any): number {
     if (!row?.items) return 0;

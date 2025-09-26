@@ -24,6 +24,7 @@ import Swal from "sweetalert2";
 import {AddShowroomComponent} from "../add-showroom/add-showroom.component";
 import {LoadingService} from "../../Services/loading.service";
 import {AuthService} from "../../authentication/auth.service";
+import {ActivityLogService} from "../activity-log/activity-log.service";
 
 @Component({
   selector: 'app-product-master-list',
@@ -94,6 +95,7 @@ export class ProductMasterListComponent implements OnInit {
     private injector: EnvironmentInjector,
     private loadingService: LoadingService,
     public authService : AuthService,
+    private mService: ActivityLogService,
   ) {}
 
   ngOnInit() {
@@ -106,7 +108,6 @@ export class ProductMasterListComponent implements OnInit {
     runInInjectionContext(this.injector, () => {
       this.productService.getProductList().subscribe({
         next: (data: any) => {
-          console.log("Fetched Products:", data);
           this.dataSource.data = data;
           this.dataSource.paginator = this.paginator;
           this.dataSource.sort = this.sort;
@@ -120,9 +121,24 @@ export class ProductMasterListComponent implements OnInit {
     });
   }
 
+  // goToEdit(row: any) {
+  //   this.router.navigate(['module/add-products-master'], {
+  //     queryParams: { data: JSON.stringify(row) }
+  //   });
+  // }
+
+  // ✅ EDIT product
   goToEdit(row: any) {
     this.router.navigate(['module/add-products-master'], {
       queryParams: { data: JSON.stringify(row) }
+    });
+
+    // 👉 log edit
+    this.mService.addLog({
+      date: Date.now(),
+      section: "Product",
+      action: "Edit",
+      description: `Edited product: ${row.name || row.sku}`
     });
   }
 
@@ -132,8 +148,21 @@ export class ProductMasterListComponent implements OnInit {
     });
   }
 
+  // navigateToAddProductMaster() {
+  //   this.router.navigate(['module/add-products-master']);
+  // }
+
+  // ✅ ADD product
   navigateToAddProductMaster() {
     this.router.navigate(['module/add-products-master']);
+
+    // 👉 log add
+    this.mService.addLog({
+      date: Date.now(),
+      section: "Product",
+      action: "Add",
+      description: `Navigated to add new product`
+    });
   }
 
   ngAfterViewInit() {
@@ -152,6 +181,38 @@ export class ProductMasterListComponent implements OnInit {
   }
 
 // Delete with loader
+//   delete(id: string) {
+//     Swal.fire({
+//       title: 'Are you sure?',
+//       text: 'You will not be able to recover this Product!',
+//       icon: 'warning',
+//       showCancelButton: true,
+//       confirmButtonText: 'Yes, delete it!',
+//       cancelButtonText: 'No, cancel',
+//     }).then((result) => {
+//       if (!result.isConfirmed) return;
+//
+//       this.loadingService.setLoading(true); // ✅ loader for delete
+//
+//       runInInjectionContext(this.injector, () => {
+//         this.productService.deleteProduct(id)
+//           .then(() => {
+//             this.productList();
+//             Swal.fire('Deleted!', 'Product has been deleted.', 'success');
+//           })
+//           .catch((err) => {
+//             console.error('Delete failed:', err);
+//             Swal.fire('Error', 'Failed to delete the product. Please try again.', 'error');
+//           })
+//           .finally(() => {
+//             this.loadingService.setLoading(false);
+//           });
+//       });
+//     });
+//   }
+
+
+  // ✅ DELETE product
   delete(id: string) {
     Swal.fire({
       title: 'Are you sure?',
@@ -163,13 +224,21 @@ export class ProductMasterListComponent implements OnInit {
     }).then((result) => {
       if (!result.isConfirmed) return;
 
-      this.loadingService.setLoading(true); // ✅ loader for delete
+      this.loadingService.setLoading(true);
 
       runInInjectionContext(this.injector, () => {
         this.productService.deleteProduct(id)
           .then(() => {
             this.productList();
             Swal.fire('Deleted!', 'Product has been deleted.', 'success');
+
+            // 👉 log delete
+            this.mService.addLog({
+              date: Date.now(),
+              section: "Product",
+              action: "Delete",
+              description: `Deleted product with ID: ${id}`
+            });
           })
           .catch((err) => {
             console.error('Delete failed:', err);
@@ -181,7 +250,6 @@ export class ProductMasterListComponent implements OnInit {
       });
     });
   }
-
   openAssignDialog(): void {
     const dialogRef = this.dialog.open(AddShowroomComponent, {
       width: '400px',

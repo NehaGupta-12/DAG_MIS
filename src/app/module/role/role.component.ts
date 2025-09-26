@@ -23,6 +23,7 @@ import {RoleService} from "../../Services/role.service";
 import {AuthService} from "../../authentication/auth.service";
 import Swal from "sweetalert2";
 import {LoadingService} from "../../Services/loading.service";
+import {ActivityLogService} from "../activity-log/activity-log.service";
 
 @Component({
   selector: 'app-role',
@@ -118,6 +119,7 @@ export class RoleComponent implements  OnInit{
               private injector : EnvironmentInjector,
               public authService : AuthService,
               private loaderService : LoadingService,
+              private mService: ActivityLogService,
               private roleService : RoleService) {
   }
 
@@ -125,16 +127,29 @@ export class RoleComponent implements  OnInit{
 ngOnInit() {
     this.loadRolesList()
 }
+  // loadRolesList() {
+  //   runInInjectionContext(this.injector, () => {
+  //     this.loaderService.setLoading(true);
+  //   this.roleService.getRoles().subscribe((data) => {
+  //     console.log(data)
+  //     this.dataSource.data = data;
+  //     this.dataSource.paginator = this.paginator;
+  //     this.dataSource.sort = this.sort;
+  //     this.loaderService.setLoading(false);
+  //   });
+  //   });
+  // }
+
+  // ✅ Load Roles
   loadRolesList() {
     runInInjectionContext(this.injector, () => {
       this.loaderService.setLoading(true);
-    this.roleService.getRoles().subscribe((data) => {
-      console.log(data)
-      this.dataSource.data = data;
-      this.dataSource.paginator = this.paginator;
-      this.dataSource.sort = this.sort;
-      this.loaderService.setLoading(false);
-    });
+      this.roleService.getRoles().subscribe((data) => {
+        this.dataSource.data = data;
+        this.dataSource.paginator = this.paginator;
+        this.dataSource.sort = this.sort;
+        this.loaderService.setLoading(false);
+      });
     });
   }
 
@@ -151,8 +166,21 @@ ngOnInit() {
     });
   }
 
-  navigateToAddRole(){
+  // navigateToAddRole(){
+  //   this.router.navigate(['module/add-role']);
+  // }
+
+  // ✅ ADD
+  navigateToAddRole() {
     this.router.navigate(['module/add-role']);
+
+    // 👉 Log Activity
+    this.mService.addLog({
+      date: Date.now(),
+      section: "Role",
+      action: "Add",
+      description: `Created a new Role`
+    });
   }
 
   ngAfterViewInit() {
@@ -174,12 +202,50 @@ ngOnInit() {
 
 
 
+  // editRole(id: string) {
+  //   this.router.navigate(['/module/edit-role',id]);
+  // }
+
+  // ✅ EDIT
   editRole(id: string) {
-    this.router.navigate(['/module/edit-role',id]);
+    this.router.navigate(['/module/edit-role', id]);
+
+    // 👉 Log Activity
+    this.mService.addLog({
+      date: Date.now(),
+      section: "Role",
+      action: "Edit",
+      description: `Edited Role with ID: ${id}`
+    });
   }
 
 
 
+  // deleteRole(roleId: string): void {
+  //   Swal.fire({
+  //     title: 'Are you sure?',
+  //     text: 'This action will permanently delete the role.',
+  //     icon: 'warning',
+  //     showCancelButton: true,
+  //     confirmButtonText: 'Yes, delete it!',
+  //     cancelButtonText: 'Cancel',
+  //     confirmButtonColor: '#d33',
+  //     cancelButtonColor: '#3085d6'
+  //   }).then((result) => {
+  //     if (result.isConfirmed) {
+  //       runInInjectionContext(this.injector, () => {
+  //         this.loaderService.setLoading(true);
+  //       this.roleService.deleteRole(roleId).then(() => {
+  //         Swal.fire('Deleted!', 'Role has been deleted successfully.', 'success');
+  //         this.loaderService.setLoading(false);
+  //       }).catch((error) => {
+  //         Swal.fire('Error!', 'Something went wrong: ' + error.message, 'error');
+  //       });
+  //       });
+  //     }
+  //   });
+  // }
+  // ✅ DELETE
   deleteRole(roleId: string): void {
     Swal.fire({
       title: 'Are you sure?',
@@ -194,17 +260,25 @@ ngOnInit() {
       if (result.isConfirmed) {
         runInInjectionContext(this.injector, () => {
           this.loaderService.setLoading(true);
-        this.roleService.deleteRole(roleId).then(() => {
-          Swal.fire('Deleted!', 'Role has been deleted successfully.', 'success');
-          this.loaderService.setLoading(false);
-        }).catch((error) => {
-          Swal.fire('Error!', 'Something went wrong: ' + error.message, 'error');
-        });
+          this.roleService.deleteRole(roleId).then(() => {
+            Swal.fire('Deleted!', 'Role has been deleted successfully.', 'success');
+            this.loaderService.setLoading(false);
+
+            // 👉 Log Activity
+            this.mService.addLog({
+              date: Date.now(),
+              section: "Role",
+              action: "Delete",
+              description: `Deleted Role with ID: ${roleId}`
+            });
+
+          }).catch((error) => {
+            Swal.fire('Error!', 'Something went wrong: ' + error.message, 'error');
+          });
         });
       }
     });
   }
-
 
 
 }

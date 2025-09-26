@@ -26,6 +26,7 @@ import {ViewMonthlyBudgetComponent} from "../view-monthly-budget/view-monthly-bu
 import {MonthlyBudgetService} from "../monthly-budget.service";
 import {LoadingService} from "../../Services/loading.service";
 import {AuthService} from "../../authentication/auth.service";
+import {ActivityLogService} from "../activity-log/activity-log.service";
 
 @Component({
   selector: 'app-monthly-budget-list',
@@ -87,6 +88,7 @@ export class MonthlyBudgetListComponent implements OnInit {
     private injector: EnvironmentInjector,
     private loadingService: LoadingService,
     public authService : AuthService,
+    private mService: ActivityLogService,
   ) {}
 
   ngOnInit() {
@@ -123,9 +125,23 @@ export class MonthlyBudgetListComponent implements OnInit {
   }
 
 
+  // editloadOutletProduct(row: any) {
+  //   this.router.navigate(['module/add-monthly-budget'], {
+  //     queryParams: { data: JSON.stringify(row) },
+  //   });
+  // }
+  // ✅ EDIT
   editloadOutletProduct(row: any) {
     this.router.navigate(['module/add-monthly-budget'], {
       queryParams: { data: JSON.stringify(row) },
+    });
+
+    // 👉 Log Activity
+    this.mService.addLog({
+      date: Date.now(),
+      section: "Monthly Budget",
+      action: "Edit",
+      description: `Edited Monthly Budget for ${row.country} - ${row.year}/${row.month}`
     });
   }
 
@@ -133,10 +149,23 @@ export class MonthlyBudgetListComponent implements OnInit {
     this.dialog.open(AddUserComponent, { autoFocus: false });
   }
 
+  // navigateToAddloadOutletProduct() {
+  //   this.router.navigate(['module/add-monthly-budget']);
+  // }
+
+
+  // ✅ ADD
   navigateToAddloadOutletProduct() {
     this.router.navigate(['module/add-monthly-budget']);
-  }
 
+    // 👉 Log Activity
+    this.mService.addLog({
+      date: Date.now(),
+      section: "Monthly Budget",
+      action: "Add",
+      description: `Created a new Monthly Budget`
+    });
+  }
   ngAfterViewInit() {
     this.dataSource.paginator = this.paginator;
     this.dataSource.sort = this.sort;
@@ -152,6 +181,41 @@ export class MonthlyBudgetListComponent implements OnInit {
   }
 
 // ✅ Delete budget with loader
+//   deleteBudget(row: any) {
+//     const docId = row.docId;
+//     if (!docId) {
+//       Swal.fire('Error', 'Missing document ID for this Monthly Target.', 'error');
+//       return;
+//     }
+//
+//     Swal.fire({
+//       title: 'Are you sure?',
+//       text: 'You will not be able to recover this Monthly Target Product!',
+//       icon: 'warning',
+//       showCancelButton: true,
+//       confirmButtonText: 'Yes, delete it!',
+//       cancelButtonText: 'No, cancel',
+//     }).then((result) => {
+//       if (!result.isConfirmed) return;
+//
+//       this.loadingService.setLoading(true);
+//
+//       runInInjectionContext(this.injector, () => {
+//         this.monthlybudgetService.deleteBudget(docId)
+//           .then(() => {
+//             this.dataSource.data = this.dataSource.data.filter((p: any) => p.docId !== docId);
+//             Swal.fire('Deleted!', 'Monthly Target Product has been deleted.', 'success');
+//             this.loadingService.setLoading(false);
+//           })
+//           .catch((err) => {
+//             console.error('Delete failed:', err);
+//             Swal.fire('Error', 'Failed to delete the Monthly Target product. Please try again.', 'error');
+//             this.loadingService.setLoading(false);
+//           });
+//       });
+//     });
+//   }
+
   deleteBudget(row: any) {
     const docId = row.docId;
     if (!docId) {
@@ -177,6 +241,14 @@ export class MonthlyBudgetListComponent implements OnInit {
             this.dataSource.data = this.dataSource.data.filter((p: any) => p.docId !== docId);
             Swal.fire('Deleted!', 'Monthly Target Product has been deleted.', 'success');
             this.loadingService.setLoading(false);
+
+            // 👉 Log Activity
+            this.mService.addLog({
+              date: Date.now(),
+              section: "Monthly Budget",
+              action: "Delete",
+              description: `Deleted Monthly Budget for ${row.country} - ${row.year}/${row.month}`
+            });
           })
           .catch((err) => {
             console.error('Delete failed:', err);
