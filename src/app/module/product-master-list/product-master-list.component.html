@@ -26,8 +26,8 @@
               </ul>
             </div>
             <div class="right">
-              <div class="right-side-btn">
-                <span [matTooltip]="!authService.hasPermission('Product Master','create') ? 'No permission' : 'Add Product Master'" matTooltipPosition="above">
+              <div class="right-side-btn tbl-header-btn col-green btn-large-icon">
+                <span [matTooltip]="!authService.hasPermission('Product Master','create') ? 'No permission' : 'Add Product'" matTooltipPosition="above">
 
                 <button mat-icon-button  class="tbl-header-btn col-green" (click)="navigateToAddProductMaster()" [disabled]="!authService.hasPermission('Product Master','create')">
                   <mat-icon>add_circle_outline</mat-icon>

@@ -49,22 +49,33 @@
         </mat-select>
       </mat-form-field>
 
+
+
       <mat-form-field appearance="outline">
+        <mat-label>Start Date</mat-label>
         <input matInput [matDatepicker]="startDatePicker" placeholder="Start Date" [(ngModel)]="startDateFilter">
         <mat-datepicker-toggle matSuffix [for]="startDatePicker"></mat-datepicker-toggle>
         <mat-datepicker #startDatePicker></mat-datepicker>
       </mat-form-field>
 
       <mat-form-field appearance="outline">
+        <mat-label>End Date</mat-label>
         <input matInput [matDatepicker]="endDatePicker" placeholder="End Date" [(ngModel)]="endDateFilter">
         <mat-datepicker-toggle matSuffix [for]="endDatePicker"></mat-datepicker-toggle>
         <mat-datepicker #endDatePicker></mat-datepicker>
       </mat-form-field>
 
-      <button mat-mini-fab color="accent" (click)="applyDateRangeFilter()"><mat-icon>search</mat-icon></button>
-      <button mat-mini-fab color="accent"  (click)="clearAll()" matTooltip="Clear">
+      <button mat-mini-fab color="accent" (click)="applyDateRangeFilter()">
+        <mat-icon>search</mat-icon>
+      </button>
+      <button mat-mini-fab color="accent" (click)="clearAll()" matTooltip="Clear">
         <mat-icon>clear</mat-icon>
       </button>
+
+
+
+
+
 
     </div>
 

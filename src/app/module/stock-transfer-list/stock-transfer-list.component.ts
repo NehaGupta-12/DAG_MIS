@@ -26,6 +26,7 @@ import {AddShowroomComponent} from "../add-showroom/add-showroom.component";
 import {ViewStockTransferComponent} from "../view-stock-transfer/view-stock-transfer.component";
 import {LoadingService} from "../../Services/loading.service";
 import {AuthService} from "../../authentication/auth.service";
+import {ActivityLogService} from "../activity-log/activity-log.service";
 
 @Component({
   selector: 'app-stock-transfer-list',
@@ -47,6 +48,7 @@ import {AuthService} from "../../authentication/auth.service";
     CommonModule
   ],
   templateUrl: './stock-transfer-list.component.html',
+  standalone: true,
   styleUrl: './stock-transfer-list.component.scss'
 })
 export class StockTransferListComponent implements OnInit {
@@ -86,6 +88,7 @@ export class StockTransferListComponent implements OnInit {
     private injector: EnvironmentInjector,
     private loadingService: LoadingService,
     public authService : AuthService,
+    private mService: ActivityLogService,
   ) {}
 
   ngOnInit() {
@@ -101,7 +104,6 @@ export class StockTransferListComponent implements OnInit {
           this.dataSource.data = data;
           this.dataSource.paginator = this.paginator;
           this.dataSource.sort = this.sort;
-          console.log(this.dataSource.data);
           this.loadingService.setLoading(false);
         },
         error: (err) => {
@@ -112,29 +114,32 @@ export class StockTransferListComponent implements OnInit {
     });
   }
 
+  // ✅ EDIT Stock Transfer
   editGrn(row: any) {
     this.router.navigate(['module/add-grn'], {
-      queryParams: {data: JSON.stringify(row)}
+      queryParams: { data: JSON.stringify(row) }
+    });
+
+    // 👉 log edit
+    this.mService.addLog({
+      date: Date.now(),
+      section: 'StockTransfer',
+      action: 'Edit',
+      description: `Edited Stock Transfer from ${row.fromOutletDealer} to ${row.toOutletDealer}`
     });
   }
 
-  openDialog() {
-    this.dialog.open(AddUserComponent, {
-      autoFocus: false
-    });
-  }
-
+  // ✅ ADD Stock Transfer
   navigateToAddStockTransfer() {
     this.router.navigate(['module/add-stock-transfer']);
-  }
 
-  ngAfterViewInit() {
-    this.dataSource.paginator = this.paginator;
-    this.dataSource.sort = this.sort;
-  }
-
-  getDisplayedColumns() {
-    return this.columnDefinitions.map(c => c.def);
+    // 👉 log add
+    this.mService.addLog({
+      date: Date.now(),
+      section: 'StockTransfer',
+      action: 'Add',
+      description: `Navigated to add new Stock Transfer`
+    });
   }
 
 // Filtering
@@ -144,7 +149,38 @@ export class StockTransferListComponent implements OnInit {
   }
 
 // ✅ Delete with loader
-  deleteGrn(id: string) {
+//   deleteGrn(id: string) {
+//     Swal.fire({
+//       title: 'Are you sure?',
+//       text: 'You will not be able to recover this Stock Transfer!',
+//       icon: 'warning',
+//       showCancelButton: true,
+//       confirmButtonText: 'Yes, delete it!',
+//       cancelButtonText: 'No, cancel',
+//     }).then((result) => {
+//       if (!result.isConfirmed) return;
+//
+//       this.loadingService.setLoading(true); // loader before deletion
+//
+//       runInInjectionContext(this.injector, () => {
+//         this.stockTransferService.deleteStockTransfer(id)
+//           .then(() => {
+//             this.loadLocationList();
+//             Swal.fire('Deleted!', 'Stock Transfer has been deleted.', 'success');
+//           })
+//           .catch((err) => {
+//             console.error('Delete failed:', err);
+//             Swal.fire('Error', 'Failed to delete the Stock Transfer. Please try again.', 'error');
+//           })
+//           .finally(() => {
+//             this.loadingService.setLoading(false);
+//           });
+//       });
+//     });
+//   }
+
+  // ✅ DELETE Stock Transfer
+  deleteGrn(id: string, row?: any) {
     Swal.fire({
       title: 'Are you sure?',
       text: 'You will not be able to recover this Stock Transfer!',
@@ -155,13 +191,21 @@ export class StockTransferListComponent implements OnInit {
     }).then((result) => {
       if (!result.isConfirmed) return;
 
-      this.loadingService.setLoading(true); // loader before deletion
+      this.loadingService.setLoading(true);
 
       runInInjectionContext(this.injector, () => {
         this.stockTransferService.deleteStockTransfer(id)
           .then(() => {
             this.loadLocationList();
             Swal.fire('Deleted!', 'Stock Transfer has been deleted.', 'success');
+
+            // 👉 log delete
+            this.mService.addLog({
+              date: Date.now(),
+              section: 'StockTransfer',
+              action: 'Delete',
+              description: `Deleted Stock Transfer from ${row?.fromOutletDealer} to ${row?.toOutletDealer} (ID: ${id})`
+            });
           })
           .catch((err) => {
             console.error('Delete failed:', err);
@@ -173,6 +217,7 @@ export class StockTransferListComponent implements OnInit {
       });
     });
   }
+
 
   getTotalQuantity(row: any): number {
     if (!row?.items) return 0;

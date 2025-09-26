@@ -25,6 +25,7 @@ import {MatFormField, MatInput, MatLabel} from "@angular/material/input";
 import {MatOption, MatSelect} from "@angular/material/select";
 import {AddDealerService} from "../add-dealer.service";
 import {UserDataModel} from "../add-user/UserData.model";
+import {ActivityLogService} from "../activity-log/activity-log.service";
 
 @Component({
   selector: 'app-outlet-product-list',
@@ -103,6 +104,7 @@ export class OutletProductListComponent implements OnInit {
     private loadingService: LoadingService,
     public authService : AuthService,
     private addDealerService: AddDealerService,
+    private activityLogService: ActivityLogService,
   ) {}
 
   ngOnInit() {
@@ -205,10 +207,25 @@ export class OutletProductListComponent implements OnInit {
     this.dataSource.data = []; // clear the table
   }
 
+  //
+  // editloadOutletProduct(row: any) {
+  //   this.router.navigate(['module/add-outlet-product'], {
+  //     queryParams: {data: JSON.stringify(row)}
+  //   });
+  // }
 
+  // 🔹 Edit Outlet Product
   editloadOutletProduct(row: any) {
     this.router.navigate(['module/add-outlet-product'], {
-      queryParams: {data: JSON.stringify(row)}
+      queryParams: { data: JSON.stringify(row) }
+    });
+
+    // 👉 Add log
+    this.activityLogService.addLog({
+      date: Date.now(),
+      section: "Outlet Product",
+      action: "Edit",
+      description: `Editing Outlet Product: ${row.name} (SKU: ${row.sku})`
     });
   }
 
@@ -216,8 +233,20 @@ export class OutletProductListComponent implements OnInit {
     this.dialog.open(AddUserComponent, { autoFocus: false });
   }
 
+  // navigateToAddloadOutletProduct() {
+  //   this.router.navigate(['module/add-outlet-product']);
+  // }
+  // 🔹 Navigate to ADD Outlet Product
   navigateToAddloadOutletProduct() {
     this.router.navigate(['module/add-outlet-product']);
+
+    // 👉 Add log
+    this.activityLogService.addLog({
+      date: Date.now(),
+      section: "Outlet Product",
+      action: "Add",
+      description: `Navigated to Add Outlet Product form`
+    });
   }
 
   ngAfterViewInit() {
@@ -235,13 +264,54 @@ export class OutletProductListComponent implements OnInit {
     this.dataSource.filter = filterValue.trim().toLowerCase();
   }
 
-// Delete with loader
+// // Delete with loader
+//   deleteOutletProduct(row: any) {
+//     console.log(row);
+//     const outletId = row.outletId || row.dealerId;
+//     const productId = row.id;
+//     const dealerOutlet = row.dealerOutlet; //
+//     console.log('outletId',outletId,'productId',productId ,'dealerOutlet',dealerOutlet)// 👈 you need this
+//
+//     if (!outletId || !productId || !dealerOutlet) {
+//       Swal.fire('Error', 'Missing outletId, dealerOutlet or productId on this row.', 'error');
+//       return;
+//     }
+//
+//     Swal.fire({
+//       title: 'Are you sure?',
+//       text: 'You will not be able to recover this Dealer/Outlet Product!',
+//       icon: 'warning',
+//       showCancelButton: true,
+//       confirmButtonText: 'Yes, delete it!',
+//       cancelButtonText: 'No, cancel',
+//     }).then((result) => {
+//       if (!result.isConfirmed) return;
+//
+//       this.loadingService.setLoading(true);
+//
+//       runInInjectionContext(this.injector, () => {
+//         this.outletProductService.deleteOutletProductAndInventory(outletId, productId, dealerOutlet) // 👈 pass 3rd arg
+//           .then(() => {
+//             this.dataSource.data = this.dataSource.data.filter((p: any) => p.id !== productId);
+//             Swal.fire('Deleted!', 'Dealer/Outlet Product has been deleted.', 'success');
+//           })
+//           .catch((err) => {
+//             console.error('Delete failed:', err);
+//             Swal.fire('Error', 'Failed to delete the product. Please try again.', 'error');
+//           })
+//           .finally(() => {
+//             this.loadingService.setLoading(false);
+//           });
+//       });
+//     });
+//   }
+
+  // 🔹 Delete Outlet Product
   deleteOutletProduct(row: any) {
     console.log(row);
     const outletId = row.outletId || row.dealerId;
     const productId = row.id;
-    const dealerOutlet = row.dealerOutlet; //
-    console.log('outletId',outletId,'productId',productId ,'dealerOutlet',dealerOutlet)// 👈 you need this
+    const dealerOutlet = row.dealerOutlet;
 
     if (!outletId || !productId || !dealerOutlet) {
       Swal.fire('Error', 'Missing outletId, dealerOutlet or productId on this row.', 'error');
@@ -261,10 +331,18 @@ export class OutletProductListComponent implements OnInit {
       this.loadingService.setLoading(true);
 
       runInInjectionContext(this.injector, () => {
-        this.outletProductService.deleteOutletProductAndInventory(outletId, productId, dealerOutlet) // 👈 pass 3rd arg
+        this.outletProductService.deleteOutletProductAndInventory(outletId, productId, dealerOutlet)
           .then(() => {
             this.dataSource.data = this.dataSource.data.filter((p: any) => p.id !== productId);
             Swal.fire('Deleted!', 'Dealer/Outlet Product has been deleted.', 'success');
+
+            // 👉 Add log
+            this.activityLogService.addLog({
+              date: Date.now(),
+              section: "Outlet Product",
+              action: "Delete",
+              description: `Deleted Product "${row.name}" (SKU: ${row.sku}) from Outlet "${dealerOutlet}"`
+            });
           })
           .catch((err) => {
             console.error('Delete failed:', err);
@@ -276,6 +354,7 @@ export class OutletProductListComponent implements OnInit {
       });
     });
   }
+
 
   getTotalQuantity(row: any): number {
     if (!row?.items) return 0;

@@ -76,7 +76,7 @@
               </ul>
             </div>
             <div class="right">
-              <div class="right-side-btn">
+              <div class="tbl-header-btn col-green btn-large-icon">
                 <span [matTooltip]="!authService.hasPermission('Outlet/Dealer Product List','create') ? 'No permission' : 'Add Outlet/Dealer Product'" matTooltipPosition="above">
 
                 <button mat-icon-button  class="tbl-header-btn col-green"  (click)="navigateToAddloadOutletProduct()" [disabled]="!authService.hasPermission('Outlet/Dealer Product List','create')">

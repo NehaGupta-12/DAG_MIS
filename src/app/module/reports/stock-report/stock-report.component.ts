@@ -50,6 +50,8 @@ import { AuthService } from "../../../authentication/auth.service";
 import { GrnService } from "../../grn.service";
 import {LoadingService} from "../../../Services/loading.service";
 import {CountryService} from "../../../Services/country.service";
+import {ActivityLogService} from "../../activity-log/activity-log.service";
+import {ActivityLog} from "../../activity-log/activity-log.component";
 
 
 @Component({
@@ -155,6 +157,7 @@ export class StockReportComponent implements OnInit{
     public authService : AuthService,
     private loadingService: LoadingService,
     private countryService : CountryService,
+    private mService: ActivityLogService,
     @Inject(MAT_DIALOG_DATA) public data: any
   ) {
     this.dealerForm = this.fb.group({
@@ -594,6 +597,118 @@ export class StockReportComponent implements OnInit{
   }
 
 
+  // exportToExcel() {
+  //   if (!this.allOutletReports || this.allOutletReports.length === 0) {
+  //     Swal.fire('Info', 'No data available to export', 'info');
+  //     return;
+  //   }
+  //
+  //   const workbook = new Workbook();
+  //   const worksheet = workbook.addWorksheet("Stock Report");
+  //
+  //   let currentRow = 1;
+  //
+  //   // 🔹 Build date text
+  //   let reportDateText = '';
+  //   if (this.dealerForm.value.period?.start && this.dealerForm.value.period?.end) {
+  //     const start = new Date(this.dealerForm.value.period.start).toLocaleDateString();
+  //     const end = new Date(this.dealerForm.value.period.end).toLocaleDateString();
+  //     reportDateText = `${start} - ${end}`;
+  //   } else if (this.dealerForm.value.period?.start) {
+  //     reportDateText = new Date(this.dealerForm.value.period.start).toLocaleDateString();
+  //   } else {
+  //     reportDateText = new Date().toLocaleDateString(); // default today
+  //   }
+  //
+  //   this.allOutletReports.forEach((report, index) => {
+  //     const colCount = report.rows.length + 1; // +1 for "Particulars"
+  //
+  //     // 🔹 Title row
+  //     const titleRow = worksheet.addRow([`Cumulative for the month - ${report.outlet}`]);
+  //     worksheet.mergeCells(currentRow, 1, currentRow, colCount);
+  //     titleRow.font = { bold: true, size: 14 };
+  //     titleRow.alignment = { vertical: 'middle', horizontal: 'center' };
+  //     titleRow.height = 20;
+  //     titleRow.eachCell(cell => {
+  //       cell.fill = {
+  //         type: 'pattern',
+  //         pattern: 'solid',
+  //         fgColor: { argb: 'FFFF00' }
+  //       };
+  //     });
+  //     currentRow++;
+  //
+  //     // 🔹 Date row (always filled now)
+  //     const country = this.dealerForm.value.country || '';
+  //     const dateText = `Date: ${reportDateText}${country ? ' | Country: ' + country : ''}`;
+  //     const dateRow = worksheet.addRow([dateText]);
+  //
+  //     worksheet.mergeCells(currentRow, 1, currentRow, colCount);
+  //     dateRow.alignment = { vertical: 'middle', horizontal: 'center' };
+  //     dateRow.height = 20;
+  //     dateRow.eachCell(cell => {
+  //       cell.fill = {
+  //         type: 'pattern',
+  //         pattern: 'solid',
+  //         fgColor: { argb: 'FFFF00' }
+  //       };
+  //     });
+  //     currentRow++;
+  //
+  //     // 🔹 Header row
+  //     const headers = ['Products Name', ...report.rows.map(p => p.product.toUpperCase())];
+  //     const headerRow = worksheet.addRow(headers);
+  //     headerRow.font = { bold: true };
+  //     headerRow.height = 40;
+  //     headerRow.eachCell(c => {
+  //       c.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+  //       c.fill = {
+  //         type: 'pattern',
+  //         pattern: 'solid',
+  //         fgColor: { argb: 'F4B083' }
+  //       };
+  //     });
+  //     currentRow++;
+  //
+  //     // 🔹 Data rows
+  //     worksheet.addRow(['Stock for the day', ...report.rows.map(p => p.Day)]); currentRow++;
+  //     worksheet.addRow(['Cumulative for the month', ...report.rows.map(p => p.Month)]); currentRow++;
+  //     worksheet.addRow(['YTD', ...report.rows.map(p => p.YTD)]); currentRow++;
+  //
+  //     // 🔹 Spacer row only between outlets
+  //     if (index < this.allOutletReports.length - 1) {
+  //       worksheet.addRow([]);
+  //       currentRow++;
+  //     }
+  //   });
+  //
+  //   // 🔹 Borders + alignment for all cells
+  //   worksheet.eachRow((row, rowNumber) => {
+  //     row.eachCell(cell => {
+  //       cell.border = {
+  //         top: { style: 'thin' },
+  //         left: { style: 'thin' },
+  //         bottom: { style: 'thin' },
+  //         right: { style: 'thin' },
+  //       };
+  //       if (rowNumber > 1) {
+  //         cell.alignment = { vertical: 'middle', horizontal: 'center' };
+  //       }
+  //     });
+  //   });
+  //
+  //   // 🔹 Column widths
+  //   worksheet.columns.forEach((col, index) => {
+  //     col.width = index === 0 ? 25 : 12;
+  //   });
+  //
+  //   // 🔹 Save Excel file
+  //   workbook.xlsx.writeBuffer().then(data => {
+  //     const blob = new Blob([data], { type: 'application/octet-stream' });
+  //     FileSaver.saveAs(blob, `Stock_Report_${reportDateText}.xlsx`);
+  //   });
+  // }
+
   exportToExcel() {
     if (!this.allOutletReports || this.allOutletReports.length === 0) {
       Swal.fire('Info', 'No data available to export', 'info');
@@ -602,7 +717,6 @@ export class StockReportComponent implements OnInit{
 
     const workbook = new Workbook();
     const worksheet = workbook.addWorksheet("Stock Report");
-
     let currentRow = 1;
 
     // 🔹 Build date text
@@ -614,11 +728,11 @@ export class StockReportComponent implements OnInit{
     } else if (this.dealerForm.value.period?.start) {
       reportDateText = new Date(this.dealerForm.value.period.start).toLocaleDateString();
     } else {
-      reportDateText = new Date().toLocaleDateString(); // default today
+      reportDateText = new Date().toLocaleDateString();
     }
 
     this.allOutletReports.forEach((report, index) => {
-      const colCount = report.rows.length + 1; // +1 for "Particulars"
+      const colCount = report.rows.length + 1;
 
       // 🔹 Title row
       const titleRow = worksheet.addRow([`Cumulative for the month - ${report.outlet}`]);
@@ -627,28 +741,19 @@ export class StockReportComponent implements OnInit{
       titleRow.alignment = { vertical: 'middle', horizontal: 'center' };
       titleRow.height = 20;
       titleRow.eachCell(cell => {
-        cell.fill = {
-          type: 'pattern',
-          pattern: 'solid',
-          fgColor: { argb: 'FFFF00' }
-        };
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFF00' } };
       });
       currentRow++;
 
-      // 🔹 Date row (always filled now)
+      // 🔹 Date row
       const country = this.dealerForm.value.country || '';
       const dateText = `Date: ${reportDateText}${country ? ' | Country: ' + country : ''}`;
       const dateRow = worksheet.addRow([dateText]);
-
       worksheet.mergeCells(currentRow, 1, currentRow, colCount);
       dateRow.alignment = { vertical: 'middle', horizontal: 'center' };
       dateRow.height = 20;
       dateRow.eachCell(cell => {
-        cell.fill = {
-          type: 'pattern',
-          pattern: 'solid',
-          fgColor: { argb: 'FFFF00' }
-        };
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFF00' } };
       });
       currentRow++;
 
@@ -659,11 +764,7 @@ export class StockReportComponent implements OnInit{
       headerRow.height = 40;
       headerRow.eachCell(c => {
         c.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
-        c.fill = {
-          type: 'pattern',
-          pattern: 'solid',
-          fgColor: { argb: 'F4B083' }
-        };
+        c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'F4B083' } };
       });
       currentRow++;
 
@@ -672,14 +773,14 @@ export class StockReportComponent implements OnInit{
       worksheet.addRow(['Cumulative for the month', ...report.rows.map(p => p.Month)]); currentRow++;
       worksheet.addRow(['YTD', ...report.rows.map(p => p.YTD)]); currentRow++;
 
-      // 🔹 Spacer row only between outlets
+      // 🔹 Spacer row
       if (index < this.allOutletReports.length - 1) {
         worksheet.addRow([]);
         currentRow++;
       }
     });
 
-    // 🔹 Borders + alignment for all cells
+    // 🔹 Borders + alignment
     worksheet.eachRow((row, rowNumber) => {
       row.eachCell(cell => {
         cell.border = {
@@ -703,10 +804,22 @@ export class StockReportComponent implements OnInit{
     workbook.xlsx.writeBuffer().then(data => {
       const blob = new Blob([data], { type: 'application/octet-stream' });
       FileSaver.saveAs(blob, `Stock_Report_${reportDateText}.xlsx`);
+
+      // 🔹 Log activity after successful export
+      const activity: ActivityLog = {
+        action: 'Export',
+        section: 'Stock Reports',
+        description: 'User exported stock report to Excel',
+        date: Date.now(),
+        user: '',       // fill with current user
+        currentIp: '',  // fill with IP if needed
+      };
+
+      this.mService.addLog(activity).then(() => {
+        console.log('Export action logged.');
+      }).catch(err => console.error('Failed to log export:', err));
     });
   }
-
-
 
 
   toggleOutletSelection(outlet: string, isChecked: boolean) {
