@@ -23,6 +23,21 @@ export class ProductMasterService {
         )
       );
   }
+    getProductListByCountry(country: string) {
+        return this.firestore
+            .collection(this.collectionName,ref => ref.where('availableIn','array-contains',country))
+
+            .snapshotChanges()
+            .pipe(
+                map(actions =>
+                    actions.map(a => {
+                        const data = a.payload.doc.data();
+                        const id = a.payload.doc.id;
+                        return { id, ...(data as any) }; // Add ID field to result
+                    })
+                )
+            );
+    }
 
 
   // // Fetch all callSheet with pagination
