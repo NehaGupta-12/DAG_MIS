@@ -241,7 +241,7 @@ export class DailySalesListComponent implements OnInit {
             // Log deletion
             this.mService.addLog({
               date: Date.now(),
-              section: 'DailySales',
+              section: 'Daily Sales',
               action: 'Delete',
               description: `Deleted Daily Sale for ${row.name} (SKU: ${row.sku})`
             });

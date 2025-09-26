@@ -139,7 +139,7 @@ export class GRNListComponent implements OnInit {
     runInInjectionContext(this.injector, async () => {
       await this.mService.addLog({
         date: Date.now(),
-        section: 'GRN',
+        section: 'Daily Stock',
         action: 'Add',
         description: `Opened Add GRN form`
       });
@@ -230,7 +230,7 @@ export class GRNListComponent implements OnInit {
             // ✅ Log deletion
             await this.mService.addLog({
               date: Date.now(),
-              section: 'GRN',
+              section: 'Daily Stock',
               action: 'Delete',
               description: `Deleted GRN for ${row.name} (SKU: ${row.sku})`
             });

@@ -348,7 +348,7 @@ export class ActivityLogComponent implements OnInit, AfterViewInit, OnDestroy {
 
   displayedColumns: string[] = ['date', 'section', 'action', 'user', 'description', 'currentIp'];
 
-  action: string[] = ['Delete', 'Login', 'Logout', 'Submit', 'Update'].sort((a, b) => a.localeCompare(b));
+  action: string[] = ['Delete','Add', 'Login', 'Logout', 'Submit', 'Update'].sort((a, b) => a.localeCompare(b));
   section: string[] = [
     "Dashboard","Daily Sales","Daily Stock","Inventory List",
     "Master","Menu List","Monthly Target","Operation","Outlet/Dealer",
@@ -404,12 +404,14 @@ export class ActivityLogComponent implements OnInit, AfterViewInit, OnDestroy {
     this.dataSource.sort = this.sort;
   }
 
-  filterSection() {
-    const search = this.searchText.toLowerCase();
-    this.filteredSection = this.section.filter(item =>
-      item.toLowerCase().includes(search)
-    );
-  }
+  // filterSection() {
+  //   const search = this.searchText.toLowerCase();
+  //   this.filteredSection = this.section.filter(item =>
+  //     item.toLowerCase().includes(search)
+  //   );
+  // }
+
+
 
   filterAction() {
     const search = this.searchActionText.toLowerCase();
@@ -474,20 +476,43 @@ export class ActivityLogComponent implements OnInit, AfterViewInit, OnDestroy {
     this.dataSource.filter = filterValue.trim().toLowerCase();
   }
 
+  // applyFilters() {
+  //   this.dataSource.data = this.data.filter(item => {
+  //     const sectionMatch = !this.sectionSelected || this.sectionSelected === 'All' || item.section === this.sectionSelected;
+  //     const actionMatch = !this.actionSelected || this.actionSelected === 'All' || item.action === this.actionSelected;
+  //
+  //     const start = this.startDateFilter ? new Date(this.startDateFilter).setHours(0,0,0,0) : null;
+  //     const end = this.endDateFilter ? new Date(this.endDateFilter).setHours(23,59,59,999) : null;
+  //     const date = typeof item.date === 'number' ? item.date : new Date(item.date).getTime();
+  //     const dateMatch = (!start || date >= start) && (!end || date <= end);
+  //
+  //     return sectionMatch && actionMatch && dateMatch;
+  //   });
+  //
+  // }
+
   applyFilters() {
-    this.dataSource.data = this.data.filter(item => {
-      const sectionMatch = !this.sectionSelected || this.sectionSelected === 'All' || item.section === this.sectionSelected;
-      const actionMatch = !this.actionSelected || this.actionSelected === 'All' || item.action === this.actionSelected;
+    this.dataSource.data = this.data
+      .filter(item => {
+        const sectionMatch = !this.sectionSelected || this.sectionSelected === 'All' || item.section === this.sectionSelected;
+        const actionMatch = !this.actionSelected || this.actionSelected === 'All' || item.action === this.actionSelected;
 
-      const start = this.startDateFilter ? new Date(this.startDateFilter).setHours(0,0,0,0) : null;
-      const end = this.endDateFilter ? new Date(this.endDateFilter).setHours(23,59,59,999) : null;
-      const date = typeof item.date === 'number' ? item.date : new Date(item.date).getTime();
-      const dateMatch = (!start || date >= start) && (!end || date <= end);
+        const start = this.startDateFilter ? new Date(this.startDateFilter).setHours(0,0,0,0) : null;
+        const end = this.endDateFilter ? new Date(this.endDateFilter).setHours(23,59,59,999) : null;
+        const date = typeof item.date === 'number' ? item.date : new Date(item.date).getTime();
+        const dateMatch = (!start || date >= start) && (!end || date <= end);
 
-      return sectionMatch && actionMatch && dateMatch;
-    });
-
+        return sectionMatch && actionMatch && dateMatch;
+      })
+      // 🔽 sort results by date ascending
+      .sort((a, b) => {
+        const dateA = typeof a.date === 'number' ? a.date : new Date(a.date).getTime();
+        const dateB = typeof b.date === 'number' ? b.date : new Date(b.date).getTime();
+        return dateA - dateB;
+      });
   }
+
+
   applyDateRangeFilter() {
     this.applyFilters();
   }

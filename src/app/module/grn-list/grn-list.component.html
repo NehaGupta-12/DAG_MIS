@@ -110,7 +110,7 @@
 <!--                      <app-feather-icons [icon]="'edit'" [class]="'tbl-fav-edit'"></app-feather-icons>-->
 <!--                    </button>-->
 <!--                    </span>-->
-                    <span [matTooltip]="!authService.hasPermission('Daily Stock','list') ? 'No permission' : 'Edit Daily Stock '" matTooltipPosition="above">
+                    <span [matTooltip]="!authService.hasPermission('Daily Stock','list') ? 'No permission' : 'View Daily Stock '" matTooltipPosition="above">
                       <button mat-icon-button color="primary"
                               (click)="viewGrn(row)"
                               [disabled]="!authService.hasPermission('Daily Stock','list')">
