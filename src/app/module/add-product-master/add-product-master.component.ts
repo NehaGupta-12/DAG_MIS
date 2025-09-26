@@ -31,6 +31,7 @@
   import {AngularFireDatabase} from "@angular/fire/compat/database";
   import {Observable} from "rxjs";
   import {LoadingService} from "../../Services/loading.service";
+  import {CountryService} from "../../Services/country.service";
 
   @Component({
     selector: 'app-add-product-master',
@@ -93,7 +94,7 @@
     unitSearchText: string = '';
 
     debounceTimer: any;
-
+countries$:Observable<string[]>
     constructor(
       private fb: UntypedFormBuilder,
       private location: Location,
@@ -102,9 +103,14 @@
       private route: ActivatedRoute,
       private router: Router,
       private mDatabase: AngularFireDatabase,
+      private readonly mCountryService:CountryService,
       private loadingService: LoadingService,
       @Inject(MAT_DIALOG_DATA) public data: any,
     ) {
+
+   this.countries$ = this.mCountryService.getCountries()
+
+
       // Subscribe to all observables and populate local arrays
       this._modelTypes$ = this.mDatabase
         .object<{ subcategories: string[] }>('typelist/Model')
@@ -165,6 +171,8 @@
         varient: ['', [Validators.required]],
         engineCc: ['', [Validators.required]],
         unit: ['', [Validators.required]],
+        availableIn: ['', [Validators.required]],
+
       });
     }
 
