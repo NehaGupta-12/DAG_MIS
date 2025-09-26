@@ -7,15 +7,15 @@
         <mat-select [(ngModel)]="sectionSelected" (selectionChange)="onSection($event)">
 
           <!-- Search box inside dropdown -->
-          <mat-option>
-            <input
-              matInput
-              placeholder="Search..."
-              [(ngModel)]="searchText"
-              (ngModelChange)="filterSection()"
-              (click)="$event.stopPropagation()"
-            />
-          </mat-option>
+<!--          <mat-option>-->
+<!--            <input-->
+<!--              matInput-->
+<!--              placeholder="Search..."-->
+<!--              [(ngModel)]="searchText"-->
+<!--              (ngModelChange)="filterSection()"-->
+<!--              (click)="$event.stopPropagation()"-->
+<!--            />-->
+<!--          </mat-option>-->
 
           <!-- Sorted + filtered results -->
           <mat-option *ngFor="let a of filteredSection" [value]="a">
@@ -31,15 +31,15 @@
         <mat-select [(ngModel)]="actionSelected" (selectionChange)="onAction($event)">
 
           <!-- Search box inside dropdown -->
-          <mat-option>
-            <input
-              matInput
-              placeholder="Search..."
-              [(ngModel)]="searchActionText"
-              (ngModelChange)="filterAction()"
-              (click)="$event.stopPropagation()"
-            />
-          </mat-option>
+<!--          <mat-option>-->
+<!--            <input-->
+<!--              matInput-->
+<!--              placeholder="Search..."-->
+<!--              [(ngModel)]="searchActionText"-->
+<!--              (ngModelChange)="filterAction()"-->
+<!--              (click)="$event.stopPropagation()"-->
+<!--            />-->
+<!--          </mat-option>-->
 
           <!-- Sorted + filtered results -->
           <mat-option *ngFor="let a of filteredAction" [value]="a">
@@ -65,10 +65,10 @@
         <mat-datepicker #endDatePicker></mat-datepicker>
       </mat-form-field>
 
-      <button mat-mini-fab color="accent" (click)="applyDateRangeFilter()">
+      <button mat-mini-fab color="primary" (click)="applyDateRangeFilter()">
         <mat-icon>search</mat-icon>
       </button>
-      <button mat-mini-fab color="accent" (click)="clearAll()" matTooltip="Clear">
+      <button mat-mini-fab color="warn" (click)="clearAll()" matTooltip="Clear">
         <mat-icon>clear</mat-icon>
       </button>
 
