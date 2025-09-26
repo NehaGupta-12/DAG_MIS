@@ -122,7 +122,7 @@ export class AddOutletProductComponent implements OnInit {
 
         this.grnForm = this.fb.group({
             products: [[], [Validators.required]],
-            dealerOutlet: ['', [Validators.required]],
+            dealerOutlet: ['',],
             remark: [''],
         });
     }
@@ -317,7 +317,8 @@ export class AddOutletProductComponent implements OnInit {
 
 
     isSubmitEnabled(): boolean {
-        const dealerValue = this.grnForm.getRawValue().dealerOutlet;
+        // const dealerValue = this.grnForm.getRawValue().dealerOutlet;
+        const dealerValue = this.dealerControl.value;
         const remarkValid = !!this.grnForm.get('remark')?.valid;
 
         const hasProducts = this.addedProducts.length > 0;
@@ -529,9 +530,29 @@ export class AddOutletProductComponent implements OnInit {
         });
     }
 
-    onChangeDealer() {
-        this.selectedDealer = this.dealerControl.value
-      this.productList();
+    // onChangeDealer() {
+    //     this.selectedDealer = this.dealerControl.value
+    //   this.productList();
+    // }
 
+  // Add this new method to your existing TypeScript class
+
+  onChangeDealer() {
+    const selectedDealer = this.dealerControl.value;
+
+    if (selectedDealer && selectedDealer.name) {
+      // 1. Store the selected object (as you use it later in productList/submitForm)
+      this.selectedDealer = selectedDealer;
+
+      // 2. CRITICAL FIX: Set the 'dealerOutlet' form control value to the dealer's NAME.
+      // This is what satisfies the '!!formValues.dealerOutlet' check in submitForm.
+      this.grnForm.get('dealerOutlet')?.setValue(selectedDealer.name);
+
+      // 3. Call productList() as per your original logic
+      this.productList();
+    } else {
+      this.selectedDealer = {};
+      this.grnForm.get('dealerOutlet')?.setValue(null);
     }
+  }
 }
