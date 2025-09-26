@@ -123,8 +123,10 @@
         <!--      Child Name Column-->
         <ng-container matColumnDef="section">
           <th mat-header-cell *matHeaderCellDef mat-sort-header> Section </th>
-          <td mat-cell *matCellDef="let element" [matTooltip]="element.key"> {{element.section   }} </td>
+          <td mat-cell *matCellDef="let element" > {{element.section   }} </td>
         </ng-container>
+
+<!--        [matTooltip]="element.key"-->
 
         <!--      Last Name Column-->
         <ng-container matColumnDef="action" >
