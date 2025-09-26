@@ -316,21 +316,35 @@ export class AddOutletProductComponent implements OnInit {
     }
 
 
-    isSubmitEnabled(): boolean {
-        // const dealerValue = this.grnForm.getRawValue().dealerOutlet;
-        const dealerValue = this.dealerControl.value;
-        const remarkValid = !!this.grnForm.get('remark')?.valid;
+    // isSubmitEnabled(): boolean {
+    //     // const dealerValue = this.grnForm.getRawValue().dealerOutlet;
+    //     const dealerValue = this.dealerControl.value;
+    //     const remarkValid = !!this.grnForm.get('remark')?.valid;
+    //
+    //     const hasProducts = this.addedProducts.length > 0;
+    //     const allQuantitiesValid = this.addedProducts.every(
+    //         p => p.openingStock && p.openingStock > 0
+    //     );
+    //
+    //     return !!dealerValue && remarkValid && hasProducts && allQuantitiesValid;
+    // }
 
-        const hasProducts = this.addedProducts.length > 0;
-        const allQuantitiesValid = this.addedProducts.every(
-            p => p.openingStock && p.openingStock > 0
-        );
+  isSubmitEnabled(): boolean {
+    const dealerValue = this.dealerControl.value;
+    const remarkValid = !!this.grnForm.get('remark')?.valid;
 
-        return !!dealerValue && remarkValid && hasProducts && allQuantitiesValid;
-    }
+    const hasProducts = this.addedProducts.length > 0;
+    // allow 0 also
+    const allQuantitiesValid = this.addedProducts.every(
+      p => p.openingStock !== null && p.openingStock >= 0
+    );
+
+    return !!dealerValue && remarkValid && hasProducts && allQuantitiesValid;
+  }
 
 
-    addProduct() {
+
+  addProduct() {
         const selectedProducts = this.grnForm.get('products')?.value || [];
         if (!selectedProducts.length) {
             Swal.fire('Error', 'Please select at least one product before adding.', 'error');

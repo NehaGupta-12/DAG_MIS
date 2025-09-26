@@ -69,4 +69,6 @@ export class AppComponent {
       localStorage.setItem('currentip', this.ipAddress);
     });
   }
+
+
 }
