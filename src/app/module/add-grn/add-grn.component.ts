@@ -212,14 +212,24 @@ export class AddGRNComponent implements OnInit{
     });
 
     // Fetch products of this dealer
+    // const availableProducts = this.dataSource.data.filter(
+    //   (p: any) => p.dealerId === dealer.id && p.openingStock > 0
+    // );
+    //
+    // this.vehicledataSource.data = availableProducts;
+    // this.filteredVehicles = [...availableProducts];
+    //
+    // this.grnForm.get('products')?.reset();
+
+    // Fetch ALL products of this dealer (including zero stock)
     const availableProducts = this.dataSource.data.filter(
-      (p: any) => p.dealerId === dealer.id && p.openingStock > 0
+      (p: any) => p.dealerId === dealer.id
     );
 
     this.vehicledataSource.data = availableProducts;
     this.filteredVehicles = [...availableProducts];
-
     this.grnForm.get('products')?.reset();
+
   }
 
   DealerList() {
