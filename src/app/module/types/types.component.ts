@@ -88,6 +88,31 @@ export class TypesComponent implements OnInit {
   }
 
 
+  onSubmitCategory() {
+    this.submitted = true;
+
+    if (!this.newCategory || this.newCategory.trim() === '') {
+      return; // stop if empty, error will show
+    }
+
+    const newName = this.newCategory.trim();
+    const isDuplicate = this.categories.some(cat => cat.name.toLowerCase() === newName.toLowerCase());
+
+    if (isDuplicate) {
+      Swal.fire('Duplicate!', `Category "${newName}" already exists.`, 'warning');
+      return;
+    }
+
+    // ✅ Add new category
+    this.addCategory(newName); // log will be handled inside addCategory
+
+    this.newCategory = '';
+    this.submitted = false; // reset
+    this.closeModal();
+  }
+
+
+
   // onSubmitCategory() {
   //   this.submitted = true;
   //
@@ -112,36 +137,36 @@ export class TypesComponent implements OnInit {
 
 
 
-  onSubmitCategory() {
-    this.submitted = true;
-
-    if (!this.newCategory || this.newCategory.trim() === '') {
-      return; // stop if empty, error will show
-    }
-
-    const newName = this.newCategory.trim();
-    const isDuplicate = this.categories.some(cat => cat.name.toLowerCase() === newName.toLowerCase());
-
-    if (isDuplicate) {
-      Swal.fire('Duplicate!', `Category "${newName}" already exists.`, 'warning');
-      return;
-    }
-
-    // ✅ Add new category
-    this.categories.push({ name: newName, subcategories: [] });
-
-    // 👉 Log Activity
-    this.activityLogService.addLog({
-      date: Date.now(),
-      section: "Type/Dropdown",
-      action: "Add",
-      description: `Added Type: ${newName}`
-    });
-
-    this.newCategory = '';
-    this.submitted = false; // reset
-    this.closeModal();
-  }
+  // onSubmitCategory() {
+  //   this.submitted = true;
+  //
+  //   if (!this.newCategory || this.newCategory.trim() === '') {
+  //     return; // stop if empty, error will show
+  //   }
+  //
+  //   const newName = this.newCategory.trim();
+  //   const isDuplicate = this.categories.some(cat => cat.name.toLowerCase() === newName.toLowerCase());
+  //
+  //   if (isDuplicate) {
+  //     Swal.fire('Duplicate!', `Category "${newName}" already exists.`, 'warning');
+  //     return;
+  //   }
+  //
+  //   // ✅ Add new category
+  //   this.categories.push({ name: newName, subcategories: [] });
+  //
+  //   // 👉 Log Activity
+  //   this.activityLogService.addLog({
+  //     date: Date.now(),
+  //     section: "Type/Dropdown",
+  //     action: "Add",
+  //     description: `Added Type: ${newName}`
+  //   });
+  //
+  //   this.newCategory = '';
+  //   this.submitted = false; // reset
+  //   this.closeModal();
+  // }
 
 
   openModal() {
@@ -153,6 +178,27 @@ export class TypesComponent implements OnInit {
   }
 
 // ✅ Add category with loader
+//   addCategory(name: string) {
+//     if (!name.trim()) return;
+//
+//     this.loadingService.setLoading(true);
+//     runInInjectionContext(this.injector, () => {
+//       const mDatabase = this.injector.get(AngularFireDatabase);
+//       const key = name.replace(/\s+/g, '_');
+//
+//       mDatabase.object(`typelist/${key}`).set({ name, subcategories: [] })
+//         .then(() => {
+//           this.newCategory = '';
+//           console.log('Category added successfully!');
+//           this.loadingService.setLoading(false);
+//         })
+//         .catch((err) => {
+//           console.error('Failed to add category', err);
+//           this.loadingService.setLoading(false);
+//         });
+//     });
+//   }
+
   addCategory(name: string) {
     if (!name.trim()) return;
 
@@ -165,6 +211,15 @@ export class TypesComponent implements OnInit {
         .then(() => {
           this.newCategory = '';
           console.log('Category added successfully!');
+
+          // ✅ Log activity after successful addition
+          this.activityLogService.addLog({
+            date: Date.now(),
+            section: "Type/Dropdown",
+            action: "Add",
+            description: `Added Type: ${name}`
+          });
+
           this.loadingService.setLoading(false);
         })
         .catch((err) => {
@@ -173,6 +228,7 @@ export class TypesComponent implements OnInit {
         });
     });
   }
+
 
 // ✅ Delete category with loader
   deleteCategory(name: string) {
