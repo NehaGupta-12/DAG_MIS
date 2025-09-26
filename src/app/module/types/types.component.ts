@@ -54,9 +54,9 @@ export class TypesComponent implements OnInit {
     private mDatabase: AngularFireDatabase,
     private injector: EnvironmentInjector,
     private loadingService: LoadingService,
-    private activityLogService: ActivityLogService,
-    // public authService: AuthService
     public authService : AuthService,
+    private activityLogService: ActivityLogService,
+
   ) {}
 
   ngOnInit() {
@@ -87,6 +87,31 @@ export class TypesComponent implements OnInit {
     });
   }
 
+
+  // onSubmitCategory() {
+  //   this.submitted = true;
+  //
+  //   if (!this.newCategory || this.newCategory.trim() === '') {
+  //     return; // stop if empty, error will show
+  //   }
+  //
+  //   const newName = this.newCategory.trim();
+  //   const isDuplicate = this.categories.some(cat => cat.name.toLowerCase() === newName.toLowerCase());
+  //
+  //   if (isDuplicate) {
+  //     Swal.fire('Duplicate!', `Category "${newName}" already exists.`, 'warning');
+  //     return;
+  //   }
+  //
+  //   // ✅ Add new category
+  //   this.addCategory(newName);
+  //   this.newCategory = '';
+  //   this.submitted = false; // reset
+  //   this.closeModal();
+  // }
+
+
+
   onSubmitCategory() {
     this.submitted = true;
 
@@ -103,7 +128,16 @@ export class TypesComponent implements OnInit {
     }
 
     // ✅ Add new category
-    this.addCategory(newName);
+    this.categories.push({ name: newName, subcategories: [] });
+
+    // 👉 Log Activity
+    this.activityLogService.addLog({
+      date: Date.now(),
+      section: "Type/Dropdown",
+      action: "Add",
+      description: `Added Type: ${newName}`
+    });
+
     this.newCategory = '';
     this.submitted = false; // reset
     this.closeModal();
@@ -142,6 +176,16 @@ export class TypesComponent implements OnInit {
 
 // ✅ Delete category with loader
   deleteCategory(name: string) {
+    this.categories = this.categories.filter(c => c.name !== name);
+
+    // 👉 Log Activity
+    this.activityLogService.addLog({
+      date: Date.now(),
+      section: "Type/Dropdown",
+      action: "Delete",
+      description: `Deleted Type: ${name}`
+    });
+
     Swal.fire({
       title: 'Are you sure?',
       text: 'You will not be able to recover this Type!',
@@ -176,7 +220,114 @@ export class TypesComponent implements OnInit {
 
 
 
+
+// // ✅ Add subcategory with loader
+//   addSubCategory(field: string) {
+//     if (!field.trim() || !this.selectedCategory) return;
+//
+//     this.loadingService.setLoading(true);
+//     runInInjectionContext(this.injector, () => {
+//       const mDatabase = this.injector.get(AngularFireDatabase);
+//       const key = this.selectedCategory.name.replace(/\s+/g, '_');
+//
+//       mDatabase.object<any[]>(`typelist/${key}/subcategories`)
+//         .valueChanges()
+//         .pipe(take(1))
+//         .subscribe({
+//           next: (subcats) => {
+//             const updatedSubcategories = subcats ? [...subcats, field] : [field];
+//
+//             mDatabase.object(`typelist/${key}/subcategories`)
+//               .set(updatedSubcategories)
+//               .then(() => {
+//                 console.log(`Subcategory "${field}" added to ${this.selectedCategory.name}`);
+//                 this.selectedCategory = {
+//                   ...this.selectedCategory,
+//                   subcategories: updatedSubcategories
+//                 };
+//
+//                 const index = this.categories.findIndex(c => c.name === this.selectedCategory.name);
+//                 if (index > -1) {
+//                   this.categories[index] = this.selectedCategory;
+//                 }
+//
+//                 this.loadingService.setLoading(false);
+//               })
+//               .catch((err) => {
+//                 console.error('Failed to add subcategory', err);
+//                 this.loadingService.setLoading(false);
+//               });
+//           },
+//           error: (err) => {
+//             console.error('Failed to fetch subcategories', err);
+//             this.loadingService.setLoading(false);
+//           }
+//         });
+//     });
+//   }
+
 // ✅ Delete subcategory with loader
+//   deleteSubCategory(subCategory: string) {
+//     if (!this.selectedCategory) return;
+//
+//
+//     Swal.fire({
+//       title: 'Are you sure?',
+//       text: `You will not be able to recover the sub type "${subCategory}"!`,
+//       icon: 'warning',
+//       showCancelButton: true,
+//       confirmButtonText: 'Yes, delete it!',
+//       cancelButtonText: 'No, cancel',
+//     }).then((result) => {
+//       if (result.isConfirmed) {
+//         this.loadingService.setLoading(true);
+//         runInInjectionContext(this.injector, () => {
+//           const mDatabase = this.injector.get(AngularFireDatabase);
+//           const key = this.selectedCategory.name.replace(/\s+/g, '_');
+//
+//           mDatabase.object<any[]>(`typelist/${key}/subcategories`)
+//             .valueChanges()
+//             .pipe(take(1))
+//             .subscribe({
+//               next: (subcats) => {
+//                 if (subcats && Array.isArray(subcats)) {
+//                   const updatedSubcategories = subcats.filter(item => item !== subCategory);
+//
+//                   mDatabase.object(`typelist/${key}/subcategories`)
+//                     .set(updatedSubcategories)
+//                     .then(() => {
+//                       Swal.fire('Deleted!', `Sub Type "${subCategory}" deleted.`, 'success');
+//                       this.selectedCategory = {
+//                         ...this.selectedCategory,
+//                         subcategories: updatedSubcategories
+//                       };
+//
+//                       const index = this.categories.findIndex(c => c.name === this.selectedCategory.name);
+//                       if (index > -1) {
+//                         this.categories[index] = this.selectedCategory;
+//                       }
+//
+//                       this.loadingService.setLoading(false);
+//                     })
+//                     .catch((error) => {
+//                       Swal.fire('Error!', 'Failed to delete Sub Type.', 'error');
+//                       console.error('Delete Sub Type error:', error);
+//                       this.loadingService.setLoading(false);
+//                     });
+//                 }
+//               },
+//               error: (err) => {
+//                 console.error('Failed to fetch subcategories', err);
+//                 this.loadingService.setLoading(false);
+//               }
+//             });
+//         });
+//       } else {
+//         Swal.fire('Cancelled', 'Sub Type is safe.', 'info');
+//       }
+//     });
+//   }
+
   deleteSubCategory(subCategory: string) {
     if (!this.selectedCategory) return;
 
@@ -206,15 +357,24 @@ export class TypesComponent implements OnInit {
                     .set(updatedSubcategories)
                     .then(() => {
                       Swal.fire('Deleted!', `Sub Type "${subCategory}" deleted.`, 'success');
+
+                      // ✅ Update local category
                       this.selectedCategory = {
                         ...this.selectedCategory,
                         subcategories: updatedSubcategories
                       };
-
                       const index = this.categories.findIndex(c => c.name === this.selectedCategory.name);
                       if (index > -1) {
                         this.categories[index] = this.selectedCategory;
                       }
+
+                      // 👉 Add Activity Log
+                      this.activityLogService.addLog({
+                        date: Date.now(),
+                        section: "Type/Dropdown",
+                        action: "Delete",
+                        description: `Deleted Sub Type: ${subCategory} from Category: ${this.selectedCategory.name}`
+                      });
 
                       this.loadingService.setLoading(false);
                     })
@@ -237,6 +397,7 @@ export class TypesComponent implements OnInit {
     });
   }
 
+
   private saveToDatabase() {
     this.mDatabase.object('categories').set(this.categories).then(() => {
       console.log('Data saved successfully!');
@@ -252,6 +413,79 @@ export class TypesComponent implements OnInit {
     this.subToEditIndex = i;
     this.newField = sub;
   }
+
+  // addOrUpdateSubCategory(field: string) {
+  //   if (!field.trim() || !this.selectedCategory) return;
+  //
+  //   const newName = field.trim().toLowerCase();
+  //   this.loadingService.setLoading(true);
+  //
+  //   runInInjectionContext(this.injector, () => {
+  //     const mDatabase = this.injector.get(AngularFireDatabase);
+  //     const key = this.selectedCategory.name.replace(/\s+/g, '_');
+  //
+  //     mDatabase.object<any[]>(`typelist/${key}/subcategories`)
+  //       .valueChanges()
+  //       .pipe(take(1))
+  //       .subscribe({
+  //         next: (subcats) => {
+  //           const updatedSubcategories = subcats ? [...subcats] : [];
+  //
+  //           // 🔹 Check for duplicate, ignoring the one being edited
+  //           const isDuplicate = updatedSubcategories.some((sub, idx) =>
+  //             sub.toLowerCase() === newName && idx !== this.subToEditIndex
+  //           );
+  //
+  //           if (isDuplicate) {
+  //             Swal.fire('Duplicate!', `Subcategory "${field.trim()}" already exists.`, 'warning');
+  //             this.loadingService.setLoading(false);
+  //             return;
+  //           }
+  //
+  //           let action = 'added';
+  //           if (this.isEditSub && this.subToEditIndex !== null) {
+  //             // ✅ Replace existing subcategory
+  //             updatedSubcategories[this.subToEditIndex] = field.trim();
+  //             action = 'updated';
+  //           } else {
+  //             // ✅ Add new subcategory
+  //             updatedSubcategories.push(field.trim());
+  //           }
+  //
+  //           mDatabase.object(`typelist/${key}/subcategories`)
+  //             .set(updatedSubcategories)
+  //             .then(() => {
+  //               this.selectedCategory = {
+  //                 ...this.selectedCategory,
+  //                 subcategories: updatedSubcategories
+  //               };
+  //
+  //               const index = this.categories.findIndex(c => c.name === this.selectedCategory.name);
+  //               if (index > -1) this.categories[index] = this.selectedCategory;
+  //
+  //               // 🔹 Show success message
+  //               Swal.fire('Success!', `Subcategory "${field.trim()}" ${action} successfully.`, 'success');
+  //
+  //               // Reset
+  //               this.newField = '';
+  //               this.isEditSub = false;
+  //               this.subToEditIndex = null;
+  //               this.loadingService.setLoading(false);
+  //             })
+  //             .catch((err) => {
+  //               console.error('Failed to save subcategory', err);
+  //               this.loadingService.setLoading(false);
+  //             });
+  //         },
+  //         error: (err) => {
+  //           console.error('Failed to fetch subcategories', err);
+  //           this.loadingService.setLoading(false);
+  //         }
+  //       });
+  //   });
+  // }
+
+
   addOrUpdateSubCategory(field: string) {
     if (!field.trim() || !this.selectedCategory) return;
 
@@ -304,6 +538,14 @@ export class TypesComponent implements OnInit {
                 // 🔹 Show success message
                 Swal.fire('Success!', `Subcategory "${field.trim()}" ${action} successfully.`, 'success');
 
+                // 👉 Log Activity
+                this.activityLogService.addLog({
+                  date: Date.now(),
+                  section: "Type/Dropdown",
+                  action: this.isEditSub ? "Update" : "Add",
+                  description: `Subcategory "${field.trim()}" ${action} in ${this.selectedCategory.name}`
+                });
+
                 // Reset
                 this.newField = '';
                 this.isEditSub = false;
@@ -325,26 +567,11 @@ export class TypesComponent implements OnInit {
 
 
 
+
   closeSubModal() {
     this.showSubModal = false;
     this.isEditSub = false;
     this.subToEditIndex = null;
     this.newField = '';
   }
-
-
-  // logAction(action: 'Add' | 'Edit' | 'Delete', description: string) {
-  //   const logEntry = {
-  //     date: Date.now(),
-  //     section: 'Type/Dropdown',
-  //     action: action,
-  //     user: this.authService.currentUser?.name || 'Unknown', // assuming your authService has user info
-  //     description: description,
-  //     currentIp: '', // optional: you can fetch IP if needed
-  //   };
-  //   this.activityLogService.logActivity(logEntry).then(() => {
-  //     console.log('Activity logged:', logEntry);
-  //   });
-  // }
-
 }
