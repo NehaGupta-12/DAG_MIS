@@ -381,7 +381,7 @@ export class DailySaleReportsComponent implements OnInit{
     const report: any = {};
 
     filteredData.forEach(item => {
-      const product = item.name;   // 🔹 Match strictly by product name
+      const model = (item.model || '').trim().toUpperCase(); // 🔹 use model
       const qty = Number(item.quantity) || 0;
 
       // Handle Firestore timestamp
@@ -389,18 +389,18 @@ export class DailySaleReportsComponent implements OnInit{
         ? new Date(item.salesDate)
         : (item.createdAt?.seconds ? new Date(item.createdAt.seconds * 1000) : new Date(item.createdAt));
 
-      if (!report[product]) {
-        report[product] = { YTD: 0, Month: 0, Day: 0 };
+      if (!report[model]) {
+        report[model] = { YTD: 0, Month: 0, Day: 0 };
       }
 
       // YTD
       if (itemDate >= fyStart && itemDate <= reportDate) {
-        report[product].YTD += qty;
+        report[model].YTD += qty;
       }
 
       // Month
       if (itemDate >= monthStart && itemDate <= reportDate) {
-        report[product].Month += qty;
+        report[model].Month += qty;
       }
 
       // Day
@@ -409,7 +409,7 @@ export class DailySaleReportsComponent implements OnInit{
         itemDate.getMonth() === reportDate.getMonth() &&
         itemDate.getDate() === reportDate.getDate()
       ) {
-        report[product].Day += qty;
+        report[model].Day += qty;
       }
     });
 
@@ -509,51 +509,52 @@ export class DailySaleReportsComponent implements OnInit{
 
 // ✅ Helper to build rows
   private buildRows(report: any) {
-    return this.vehicledataSource.map((prod: any) => {
-      const key = prod.name;
-      const displayName = (prod.model || prod.name).toUpperCase();
-      const daySales = report[key]?.Day || 0;
-      const monthSales = report[key]?.Month || 0;
-      const ytdSales = report[key]?.YTD || 0;
+    return Object.keys(report).map(key => {
+      const displayModel = key.trim().toUpperCase();
+      const { Day, Month, YTD } = report[key];
 
       let rowColor = '';
-      if (daySales > 10 || monthSales > 10 || ytdSales > 10) {
+      if (Day > 10 || Month > 10 || YTD > 10) {
         rowColor = 'green-row';
-      } else if (daySales >= 1 || monthSales >= 1 || ytdSales >= 1) {
+      } else if (Day >= 1 || Month >= 1 || YTD >= 1) {
         rowColor = 'yellow-row';
       } else {
         rowColor = 'red-row';
       }
 
-      return { product: displayName, Day: daySales, Month: monthSales, YTD: ytdSales, rowColor };
+      return { product: displayModel, Day, Month, YTD, rowColor };
     });
   }
 
 // ✅ Helper to group and add totals
+// ✅ Group rows + add a TOTAL row
   private groupAndColorRows(tempRows: any[]) {
-    const grouped: any = {};
+    const grouped: Record<string, any> = {};
+
     tempRows.forEach(row => {
-      if (!grouped[row.product]) {
-        grouped[row.product] = { product: row.product, Day: 0, Month: 0, YTD: 0, rowColor: '' };
+      const key = row.product;
+      if (!grouped[key]) {
+        grouped[key] = { product: key, Day: 0, Month: 0, YTD: 0, rowColor: '' };
       }
-      grouped[row.product].Day += row.Day;
-      grouped[row.product].Month += row.Month;
-      grouped[row.product].YTD += row.YTD;
+      grouped[key].Day += row.Day;
+      grouped[key].Month += row.Month;
+      grouped[key].YTD += row.YTD;
     });
 
     const rows = Object.values(grouped);
+
+    // Apply row colors consistently
     rows.forEach((row: any) => {
-      if (row.product !== 'TOTAL') {
-        if (row.Day > 10 || row.Month > 10 || row.YTD > 10) {
-          row.rowColor = 'green-row';
-        } else if (row.Day >= 1 || row.Month >= 1 || row.YTD >= 1) {
-          row.rowColor = 'yellow-row';
-        } else {
-          row.rowColor = 'red-row';
-        }
+      if (row.Day > 10 || row.Month > 10 || row.YTD > 10) {
+        row.rowColor = 'green-row';
+      } else if (row.Day >= 1 || row.Month >= 1 || row.YTD >= 1) {
+        row.rowColor = 'yellow-row';
+      } else {
+        row.rowColor = 'red-row';
       }
     });
 
+    // Add TOTAL row ✅
     rows.push({
       product: 'TOTAL',
       Day: rows.reduce((s: number, r: any) => s + r.Day, 0),
@@ -621,8 +622,5 @@ export class DailySaleReportsComponent implements OnInit{
       }).catch(err => console.error('Failed to log export:', err));
     });
   }
-
-
-
 
 }
