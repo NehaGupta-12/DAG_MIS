@@ -27,3 +27,127 @@
 .textcol{
   color: #0d8df3;
 }
+
+
+//
+///* Table container adjustments */
+//.responsive_table table.mat-cell {
+//  border-collapse: collapse;
+//  text-align: center;  /* Center all data in table */
+//}
+//
+///* Add vertical borders between columns */
+//.responsive_table table.mat-cell th,
+//.responsive_table table.mat-cell td {
+//  border-right: 1px solid #ddd;  /* vertical line */
+//  text-align: center;             /* center-align content */
+//}
+//
+///* Remove last column border to avoid double line at end */
+//.responsive_table table.mat-cell th:last-child,
+//.responsive_table table.mat-cell td:last-child {
+//  border-right: none;
+//}
+//
+///* Optional: horizontal lines for better separation */
+//.responsive_table table.mat-cell tr {
+//  border-bottom: 1px solid #ddd;
+//}
+//
+///* Optional: make header bold and center-aligned */
+//.responsive_table table.mat-cell th {
+//  font-weight: 600;
+//  text-align: center;
+//}
+
+
+
+/* Default table cell background is white */
+.responsive_table td,
+.responsive_table th {
+  background-color: white;
+}
+
+/* Only product and numeric columns get borders */
+.responsive_table .product-col,
+.responsive_table .number-col {
+  border-right: 1px solid #ccc;    /* vertical line */
+  border-bottom: 1px solid #ccc;   /* horizontal line */
+  text-align: center;
+  padding: 4px 8px;
+}
+
+/* Remove right border from last column */
+.responsive_table .number-col:last-child {
+  border-right: none;
+}
+
+/* Fixed widths */
+.responsive_table .product-col {
+  width: 200px;    /* adjust as needed */
+}
+
+.responsive_table .number-col {
+  width: 100px;    /* adjust as needed */
+}
+
+/* Optional: bold headers */
+.responsive_table th.product-col,
+.responsive_table th.number-col {
+  font-weight: 600;
+  text-align: center;
+}
+
+/* Add padding + inline-block so bg color wraps text only */
+.cell-color {
+  display: inline-block;       /* make width fit content */
+  padding: 2px 6px;            /* some spacing around text */
+  border-radius: 2px;          /* optional: slightly rounded corners */
+  text-align: center;
+}
+
+/* Conditional colors based on row data (only inner span) */
+.green-row .cell-color {
+  background-color: #c8e6c9;   /* light green */
+}
+
+.yellow-row .cell-color {
+  background-color: #fff9c4;   /* light yellow */
+}
+
+.red-row .cell-color {
+  background-color: #ffcdd2;   /* light red */
+}
+
+
+
+/* Outer border for the table */
+.responsive_table {
+  border: 1px solid #ccc;  /* outer line */
+  border-collapse: collapse;
+  width: 100%;
+}
+
+/* Borders for individual cells */
+.responsive_table .product-col,
+.responsive_table .number-col {
+  border-right: 1px solid #ccc;
+  border-bottom: 1px solid #ccc;
+  text-align: center;
+  padding: 4px 8px;
+}
+
+/* Remove right border from last column */
+.responsive_table .number-col:last-child {
+  border-right: none;
+}
+
+/* Reduce row height */
+.responsive_table tr {
+  height: 30px;  /* adjust as needed */
+}
+
+/* Only last row (TOTAL) bold */
+.responsive_table tr:last-child td {
+  font-weight: 700;
+}
