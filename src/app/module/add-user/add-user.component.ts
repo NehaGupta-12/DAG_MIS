@@ -92,7 +92,7 @@ export class AddUserComponent implements OnInit{
   debounceTimer: any;
 
   constructor(private fb: UntypedFormBuilder ,
-              private location: Location,
+              // private location: Location,
               private router : Router,
               private route : ActivatedRoute,
               private mDatabase : AngularFireDatabase,
@@ -391,48 +391,7 @@ export class AddUserComponent implements OnInit{
     });
   }
 
-  // async onRegister(): Promise<void> {
-  //   this.submitted = true;
-  //   if (this.register && this.register.valid) {
-  //     const formValue = { ...this.register.getRawValue() }; // Use getRawValue to include disabled fields
-  //     try {
-  //       if (this.isEditMode && this.userId) {
-  //         await this.userService.updateUser(this.userId, formValue);
-  //         Swal.fire({
-  //           title: 'Updated!',
-  //           text: 'User details have been updated successfully.',
-  //           icon: 'success',
-  //           timer: 2000,
-  //           showConfirmButton: false
-  //         }).then(() => this.router.navigate(['/module/user-list']));
-  //       } else {
-  //         const email = formValue.email;
-  //         const password = "password@123";
-  //         const response = await this.userService.createUser(email, password);
-  //         console.log('User created:', response);
-  //         if (response.success) {
-  //           this.register.addControl('uid', this.fb.control(response.uid));
-  //           await this.userService.addEmployee(response.uid, formValue);
-  //           Swal.fire({
-  //             title: 'Added!',
-  //             text: 'User details have been saved successfully.',
-  //             icon: 'success',
-  //             timer: 2000,
-  //             showConfirmButton: false
-  //           }).then(() => this.router.navigate(['/module/user-list']));
-  //         } else {
-  //           alert(`Error: ${response.error}`);
-  //         }
-  //       }
-  //     } catch (error) {
-  //       console.error('Error saving user:', error);
-  //     }
-  //   } else {
-  //     this.submitted = false;
-  //     alert("Form is Invalid. Please complete all required fields.");
-  //     console.log('INVALID CONTROLS', this.findInvalidControls());
-  //   }
-  // }
+
   async onRegister(): Promise<void> {
     this.submitted = true;
 
@@ -533,7 +492,7 @@ export class AddUserComponent implements OnInit{
   }
 
   goBack() {
-    this.location.back();
+    this.router.navigate(["/module/user-list"]);
   }
 
 

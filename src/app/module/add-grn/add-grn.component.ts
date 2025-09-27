@@ -733,7 +733,7 @@ export class AddGRNComponent implements OnInit{
   }
 
   goBack() {
-    this.location.back();
+    this.router.navigate(["/module/grn-list"]);
   }
 
   // ----------------- Dealer -----------------

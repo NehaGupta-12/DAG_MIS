@@ -52,6 +52,7 @@ import {AuthService} from "../../authentication/auth.service";
 export class UserListComponent implements OnInit{
   users : any[]=[];
   dataSource = new MatTableDataSource<any>(this.users);
+  hasCountry: boolean = false;
   // Define columns
   displayedColumns: string[] = [
     'sr',
@@ -75,6 +76,7 @@ export class UserListComponent implements OnInit{
 
   ngOnInit(): void {
     this.isLoading = true;
+
     this.userService.getUsers().subscribe((snapshotChanges:any) => {
       this.users = [];
       snapshotChanges.forEach((snapshot:any) => {
@@ -148,4 +150,6 @@ export class UserListComponent implements OnInit{
       console.error('User ID not found');
     }
   }
+
+
 }

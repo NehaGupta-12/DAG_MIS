@@ -20,7 +20,7 @@ import {
 } from "@angular/material/table";
 import { MatInputModule} from "@angular/material/input";
 import {CommonModule, Location, NgForOf} from "@angular/common";
-import {ActivatedRoute} from "@angular/router";
+import {ActivatedRoute, Router} from "@angular/router";
 import {AddDealerService} from "../add-dealer.service";
 import {ProductMasterService} from "../product-master.service";
 import {MAT_DIALOG_DATA} from "@angular/material/dialog";
@@ -106,6 +106,7 @@ export class AddStockTransferComponent implements OnInit {
     private stockTransferService: StockTransferService,
     private injector: EnvironmentInjector,
     private route: ActivatedRoute,
+    private router: Router,
     private addDealerService: AddDealerService,
     private productService: ProductMasterService,
     private outletProductService: OutletProductService,
@@ -508,7 +509,7 @@ export class AddStockTransferComponent implements OnInit {
   }
 
   goBack() {
-    this.dealer.back();
+    this.router.navigate(["/module/stock-transfer-list"]);
   }
 
 
