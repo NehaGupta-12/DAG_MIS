@@ -21,7 +21,7 @@
           <!-- COUNTRY -->
           <mat-form-field appearance="outline" class="w-100">
             <mat-label>Select Country</mat-label>
-            <mat-select formControlName="country" (openedChange)="onCountrySelectOpened($event)">
+            <mat-select formControlName="country" >
               <div class="mat-select-search" (click)="$event.stopPropagation()">
                 <input matInput #countrySearchInput placeholder="Search Country"
                        (input)="filterCountry(countrySearchInput.value)" />
@@ -38,7 +38,7 @@
           <!-- DIVISION -->
           <mat-form-field appearance="outline" class="w-100">
             <mat-label>Select Division</mat-label>
-            <mat-select formControlName="division" (openedChange)="onDivisionSelectOpened($event)">
+            <mat-select formControlName="division" >
               <div class="mat-select-search" (click)="$event.stopPropagation()">
                 <input matInput #divisionSearchInput placeholder="Search Division"
                        (input)="filterDivision(divisionSearchInput.value)" />
@@ -55,7 +55,7 @@
           <!-- TOWN -->
           <mat-form-field appearance="outline" class="w-100">
             <mat-label>Select Town</mat-label>
-            <mat-select formControlName="town" (openedChange)="onTownSelectOpened($event)">
+            <mat-select formControlName="town" >
               <div class="mat-select-search"  (click)="$event.stopPropagation()">
                 <input matInput #townSearchInput placeholder="Search Town"
                        (input)="filterTown(townSearchInput.value)" />
@@ -71,7 +71,7 @@
         <div class="col-md-3">
           <mat-form-field appearance="outline" class="w-100">
             <mat-label>Select Outlet(s)</mat-label>
-            <mat-select formControlName="name" multiple (openedChange)="onOutletSelectOpened($event)">
+            <mat-select formControlName="name" multiple >
               <mat-select-trigger>
         <span *ngIf="dealerForm.get('name')?.value!.length; else noSelection">
           {{ dealerForm.get('name')?.value[0] | slice:0:16 }}

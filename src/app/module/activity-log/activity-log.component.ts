@@ -378,6 +378,8 @@ export class ActivityLogComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!hasAccess) {
       this.router.navigate(['/not-authorized']);
       return;
+
+
     }
 
     runInInjectionContext(this.injector, () => {
@@ -390,7 +392,13 @@ export class ActivityLogComponent implements OnInit, AfterViewInit, OnDestroy {
             )
           )
         ).subscribe(res => {
-        this.data = res.reverse();
+        // 🔽 sort descending instead of just reverse()
+        this.data = res.sort((a, b) => {
+          const dateA = typeof a.date === 'number' ? a.date : new Date(a.date).getTime();
+          const dateB = typeof b.date === 'number' ? b.date : new Date(b.date).getTime();
+          return dateB - dateA;  // recent first
+        });
+
         this.dataSource.data = this.data;
       });
     });
@@ -491,6 +499,27 @@ export class ActivityLogComponent implements OnInit, AfterViewInit, OnDestroy {
   //
   // }
 
+  // applyFilters() {
+  //   this.dataSource.data = this.data
+  //     .filter(item => {
+  //       const sectionMatch = !this.sectionSelected || this.sectionSelected === 'All' || item.section === this.sectionSelected;
+  //       const actionMatch = !this.actionSelected || this.actionSelected === 'All' || item.action === this.actionSelected;
+  //
+  //       const start = this.startDateFilter ? new Date(this.startDateFilter).setHours(0,0,0,0) : null;
+  //       const end = this.endDateFilter ? new Date(this.endDateFilter).setHours(23,59,59,999) : null;
+  //       const date = typeof item.date === 'number' ? item.date : new Date(item.date).getTime();
+  //       const dateMatch = (!start || date >= start) && (!end || date <= end);
+  //
+  //       return sectionMatch && actionMatch && dateMatch;
+  //     })
+  //     // 🔽 sort results by date ascending
+  //     .sort((a, b) => {
+  //       const dateA = typeof a.date === 'number' ? a.date : new Date(a.date).getTime();
+  //       const dateB = typeof b.date === 'number' ? b.date : new Date(b.date).getTime();
+  //       return dateA - dateB;
+  //     });
+  // }
+
   applyFilters() {
     this.dataSource.data = this.data
       .filter(item => {
@@ -504,12 +533,14 @@ export class ActivityLogComponent implements OnInit, AfterViewInit, OnDestroy {
 
         return sectionMatch && actionMatch && dateMatch;
       })
-      // 🔽 sort results by date ascending
+      // ✅ sort results by date descending (recent first)
       .sort((a, b) => {
         const dateA = typeof a.date === 'number' ? a.date : new Date(a.date).getTime();
         const dateB = typeof b.date === 'number' ? b.date : new Date(b.date).getTime();
-        return dateA - dateB;
+        return dateB - dateA;
       });
+
+    // this.dataSource.data = this.data;
   }
 
 
