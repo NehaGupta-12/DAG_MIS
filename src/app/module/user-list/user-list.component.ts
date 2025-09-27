@@ -152,7 +152,7 @@ export class UserListComponent implements OnInit{
   }
   toggleStatus(user: any, isActive: boolean): void {
     const disable = !isActive;
-    alert(disable)
+    // alert(disable)
     this.functions.httpsCallable('disableUser')({
       uid: user.id,
       disabled: disable
