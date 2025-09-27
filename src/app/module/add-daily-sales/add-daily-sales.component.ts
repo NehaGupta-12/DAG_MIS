@@ -819,6 +819,6 @@ export class AddDailySalesComponent implements OnInit {
   }
 
   goBack() {
-    this.location.back();
+    this.router.navigate(["/module/daily-sales-list"]);
   }
 }

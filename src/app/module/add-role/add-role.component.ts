@@ -357,4 +357,6 @@ export class AddRoleComponent implements OnInit {
   onPermissionChange(index: number): void {
     // You can dynamically manage "all" checkbox here if needed
   }
+
+
 }
