@@ -180,20 +180,73 @@ countries$:Observable<string[]>
       });
     }
 
+    // ngOnInit() {
+    //   this.route.queryParams.subscribe(params => {
+    //     if (params['data']) {
+    //       const rowData = JSON.parse(params['data']);
+    //       console.log('Received row data:', rowData);
+    //
+    //       this.productForm.patchValue(rowData);
+    //
+    //       if (rowData.id) {
+    //         this.isEditMode = true;
+    //         this.data = rowData;
+    //       }
+    //     }
+    //   });
+    // }
+
+
     ngOnInit() {
-      this.route.queryParams.subscribe(params => {
-        if (params['data']) {
-          const rowData = JSON.parse(params['data']);
-          console.log('Received row data:', rowData);
+      // Ensure that uniqueCountries is populated before we try to use it for filtering
+      // by putting the subscription logic inside ngOnInit or ensuring it completes first.
+      // The constructor setup already handles this, but we'll use a safer approach below.
 
-          this.productForm.patchValue(rowData);
+      this.countries$.subscribe(countries => {
+        // This subscription already runs in the constructor, but doing it here
+        // ensures `this.uniqueCountries` is set before `ngOnInit` logic,
+        // especially if the observables are cold or the router navigates quickly.
+        this.uniqueCountries = countries || [];
 
-          if (rowData.id) {
-            this.isEditMode = true;
-            this.data = rowData;
+        this.route.queryParams.subscribe(params => {
+          if (params['data']) {
+            const rowData = JSON.parse(params['data']);
+            console.log('Received row data:', rowData);
+
+            if (rowData.id) {
+              this.isEditMode = true;
+              this.data = rowData;
+            }
+
+            // 1. Get the countries the product was originally saved with
+            const productSavedCountries: string[] = rowData.availableIn || [];
+
+            // 2. Filter the product's countries based on the current user's access
+            const userAccessibleCountries = this.filterAvailableCountriesForUser(productSavedCountries);
+
+            // 3. Create a partial object for patching
+            const patchData = {
+              ...rowData,
+              availableIn: userAccessibleCountries // Use the filtered list for the form
+            };
+
+            // 4. Patch the form with the filtered data
+            this.productForm.patchValue(patchData);
           }
-        }
+        });
       });
+    }
+
+    private filterAvailableCountriesForUser(productCountries: string[]): string[] {
+      if (!productCountries || productCountries.length === 0) {
+        return [];
+      }
+
+      // Use a Set for uniqueCountries for O(1) lookups for better performance
+      const allowedCountriesSet = new Set(this.uniqueCountries);
+
+      // Intersect the product's countries with the user's allowed countries
+      return productCountries.filter(country => allowedCountriesSet.has(country));
     }
 
     // --- Model Methods ---
