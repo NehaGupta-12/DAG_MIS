@@ -15,5 +15,6 @@ export interface UserDataModel {
   department?: string;
   userCode?: string;
   role?: string;
+  status?: string;
   termcondition?: string;
 }

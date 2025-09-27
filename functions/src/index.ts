@@ -65,3 +65,40 @@ export const changePassword = functions.https.onCall(
     }
   }
 );
+interface DisableUserRequest {
+  uid: string;
+  disabled: boolean;
+}
+
+export const disableUser = functions.https.onCall(
+  async (request: functions.https.CallableRequest<DisableUserRequest>, context) => {
+    const { uid, disabled } = request.data;
+
+    if (!uid) {
+      throw new functions.https.HttpsError(
+        'invalid-argument',
+        'Missing or invalid parameters: uid and disabled'
+      );
+    }
+
+    try {
+      // 🔹 Step 1: Actually disable/enable in Firebase Auth
+      await admin.auth().updateUser(uid, { disabled });
+      // 🔹 Step 2: Update your Realtime DB for UI
+      const status = disabled ? 'Inactive' : 'Active';
+      await admin.database().ref(`users/${uid}`).update({ status });
+
+      return {
+        message: `Successfully marked user ${uid} as ${status}`,
+        status,
+      };
+    } catch (error: any) {
+      console.error('Error disabling user:', error);
+      throw new functions.https.HttpsError(
+        'internal',
+        'Error disabling user: ' + error.message
+      );
+    }
+  }
+);
+

@@ -24,6 +24,11 @@ import {UserService} from "../add-user/user.service";
 import {UserDataModel} from "../add-user/UserData.model";
 import {deleteUser} from "@angular/fire/auth";
 import {AuthService} from "../../authentication/auth.service";
+import {MatSlideToggle} from "@angular/material/slide-toggle";
+import {MatSnackBar} from "@angular/material/snack-bar";
+import firebase from "firebase/compat";
+import Functions = firebase.functions.Functions;
+import {AngularFireFunctions} from "@angular/fire/compat/functions";
 
 @Component({
   selector: 'app-user-list',
@@ -43,7 +48,8 @@ import {AuthService} from "../../authentication/auth.service";
     MatIconModule,
     DatePipe,
     FeatherIconsComponent,
-    NgIf
+    NgIf,
+    MatSlideToggle
   ],
   templateUrl: './user-list.component.html',
   standalone: true,
@@ -62,6 +68,7 @@ export class UserListComponent implements OnInit{
     'country',
     'department',
     'role',
+    'status',
     'action'
   ];
 
@@ -71,6 +78,8 @@ export class UserListComponent implements OnInit{
               private router: Router,
               private userService: UserService,
               public authService : AuthService,
+              private snackBar : MatSnackBar,
+              private functions: AngularFireFunctions,
               ) {
   }
 
@@ -141,6 +150,29 @@ export class UserListComponent implements OnInit{
 
   deleteUser(element:any) {
   }
+  toggleStatus(user: any, isActive: boolean): void {
+    const disable = !isActive;
+    alert(disable)
+    this.functions.httpsCallable('disableUser')({
+      uid: user.id,
+      disabled: disable
+    }).subscribe({
+      next: (res: any) => {
+        user.status = res.status; // use returned status
+        this.snackBar.open(
+          `User ${user.first} ${user.last} marked as ${user.status}`,
+          '',
+          { duration: 3000 }
+        );
+      },
+      error: (err) => {
+        console.error('Error toggling user:', err);
+        this.snackBar.open('Failed to update user status', '', { duration: 3000 });
+      }
+    });
+  }
+
+
 
   viewUser(element:any) {
     console.log(element)
