@@ -286,6 +286,7 @@ export class MainComponent implements OnInit {
           filteredOutlets = [];
         } else {
           filteredData = data.filter(item => selectedCountries.includes(item.country));
+          // Ensure you filter outlets based on the selected countries as well
           filteredOutlets = this.outletdataSource.data.filter(outlet => selectedCountries.includes(outlet.country));
         }
         this.dataSource.data = filteredData;
@@ -301,6 +302,11 @@ export class MainComponent implements OnInit {
         this.barchart(dailySalesData);
         const yearlyData = this.calculateYearlySales(filteredData);
         this.areachart(yearlyData.years, yearlyData.quantities);
+
+        // 💡 NEW: Load budgets with the current country filter
+        this.loadbudget(selectedCountries);
+        this.loadMonthlyBudget(selectedCountries);
+
         this.calculateZeroSales(filteredData, filteredOutlets);
         this.loadingService.setLoading(false);
       });
@@ -350,28 +356,28 @@ export class MainComponent implements OnInit {
   }
 
 
-  loadbudget() {
+  loadbudget(selectedCountries: string[] = []) {
     runInInjectionContext(this.injector, () => {
       this.budgetService.getBudgetList().subscribe({
         next: (data: any[]) => {
-          console.log("Raw Data:", data);
-          this.calculateCurrentMonthTarget(data);
+          console.log("Raw Budget Data:", data);
+          this.calculateCurrentMonthTarget(data, selectedCountries); // 💡 Pass filter
         },
       });
     });
   }
 
-  loadMonthlyBudget() {
+// 💡 2. Updated loadMonthlyBudget to accept and forward selected countries
+  loadMonthlyBudget(selectedCountries: string[] = []) {
     runInInjectionContext(this.injector, () => {
       this.monthlybudgetService.getBudgetList().subscribe({
         next: (data: any[]) => {
           console.log("Monthly Raw Data:", data);
-          this.calculateMonthlyBudgetTargets(data);
+          this.calculateMonthlyBudgetTargets(data, selectedCountries); // 💡 Pass filter
         },
       });
     });
   }
-
 
 
 
@@ -940,7 +946,7 @@ export class MainComponent implements OnInit {
     this.monthlyZeroSalesDataSource.data = monthlyZero;
   }
 
-  calculateCurrentMonthTarget(budgetData: any[]) {
+  calculateCurrentMonthTarget(budgetData: any[], selectedCountries: string[] = []) { // 💡 Added selectedCountries
     const now = new Date();
     const currentYear = now.getFullYear();
     const currentMonth = now.getMonth(); // 0-based
@@ -962,42 +968,55 @@ export class MainComponent implements OnInit {
     const currentMonthName = monthNames[currentMonth];
     const lastMonthName = monthNames[(currentMonth - 1 + 12) % 12];
     const lastMonthFY = (currentMonth === 0)
-      ? `${currentYear - 1}-${currentYear}` // If Jan, last month is Dec in prev FY
+      ? `${currentYear - 1}-${currentYear}`
       : currentFY;
+
+    const isAllSelected = selectedCountries.includes('All') || selectedCountries.length === 0;
 
     console.log(`Current FY: ${currentFY}, Current Month: ${currentMonthName}, Last Month: ${lastMonthName}`);
 
-    // Find current month budget
-    const currentMonthBudget = budgetData.find(b =>
-      b.year === currentFY && b.month === currentMonthName && b.status === 'Active'
+    // Filter and Aggregate Current Month Budget
+    const currentMonthBudgets = budgetData.filter(b =>
+      b.year === currentFY &&
+      b.month === currentMonthName &&
+      b.status === 'Active' &&
+      (isAllSelected || selectedCountries.includes(b.country)) // 💡 Apply Country Filter
     );
 
-    if (currentMonthBudget && currentMonthBudget.products) {
-      this.currentMonthBudget = currentMonthBudget.products.reduce(
-        (sum: number, p: any) => sum + (p.targetQuantity || 0), 0
-      );
-    } else {
-      this.currentMonthBudget = 0;
-    }
+    this.currentMonthBudget = currentMonthBudgets.reduce((totalSum: number, budgetItem: any) => {
+      if (budgetItem.products) {
+        const productSum = budgetItem.products.reduce(
+          (sum: number, p: any) => sum + (p.targetQuantity || 0), 0
+        );
+        return totalSum + productSum;
+      }
+      return totalSum;
+    }, 0);
 
-    // Find last month budget
-    const lastMonthBudget = budgetData.find(b =>
-      b.year === lastMonthFY && b.month === lastMonthName && b.status === 'Active'
+
+    // Filter and Aggregate Last Month Budget
+    const lastMonthBudgets = budgetData.filter(b =>
+      b.year === lastMonthFY &&
+      b.month === lastMonthName &&
+      b.status === 'Active' &&
+      (isAllSelected || selectedCountries.includes(b.country)) // 💡 Apply Country Filter
     );
 
-    if (lastMonthBudget && lastMonthBudget.products) {
-      this.lastMonthBudget = lastMonthBudget.products.reduce(
-        (sum: number, p: any) => sum + (p.targetQuantity || 0), 0
-      );
-    } else {
-      this.lastMonthBudget = 0;
-    }
+    this.lastMonthBudget = lastMonthBudgets.reduce((totalSum: number, budgetItem: any) => {
+      if (budgetItem.products) {
+        const productSum = budgetItem.products.reduce(
+          (sum: number, p: any) => sum + (p.targetQuantity || 0), 0
+        );
+        return totalSum + productSum;
+      }
+      return totalSum;
+    }, 0);
 
     console.log(`Current Target: ${this.currentMonthBudget}, Last Target: ${this.lastMonthBudget}`);
   }
 
-
-  private calculateMonthlyBudgetTargets(budgetData: any[]) {
+// 💡 3. Updated calculateMonthlyBudgetTargets to filter and aggregate targets
+  private calculateMonthlyBudgetTargets(budgetData: any[], selectedCountries: string[] = []) { // 💡 Added selectedCountries
     const now = new Date();
     const currentYear = now.getFullYear();
     const currentMonth = now.getMonth(); // 0-based
@@ -1019,36 +1038,61 @@ export class MainComponent implements OnInit {
     const currentMonthName = monthNames[currentMonth];
     const lastMonthName = monthNames[(currentMonth - 1 + 12) % 12];
     const lastMonthFY = (currentMonth === 0)
-      ? `${currentYear - 1}-${currentYear}` // If Jan, last month is Dec in prev FY
+      ? `${currentYear - 1}-${currentYear}`
       : currentFY;
+
+    // Check if we should filter by country
+    const isAllSelected = selectedCountries.includes('All') || selectedCountries.length === 0;
+
 
     console.log(`Current FY: ${currentFY}, Current Month: ${currentMonthName}, Last Month: ${lastMonthName}`);
 
-    // ---- Current Month ----
-    const currentMonthBudget = budgetData.find(b =>
-      b.year === currentFY && b.month === currentMonthName && b.status === 'Active'
+    // ====================================================================
+    // AGGREGATION LOGIC for Current Month
+    // ====================================================================
+
+    // 1. Filter all budget entries for the current month, FY, status, AND country
+    const currentMonthBudgets = budgetData.filter(b =>
+      b.year === currentFY &&
+      b.month === currentMonthName &&
+      b.status === 'Active' &&
+      (isAllSelected || selectedCountries.includes(b.country)) // 💡 Apply Country Filter
     );
 
-    if (currentMonthBudget && currentMonthBudget.products) {
-      this.currentMonthTarget = currentMonthBudget.products.reduce(
-        (sum: number, p: any) => sum + (p.targetQuantity || 0), 0
-      );
-    } else {
-      this.currentMonthTarget = 0;
-    }
+    // 2. Aggregate the targetQuantity from all filtered entries
+    this.currentMonthTarget = currentMonthBudgets.reduce((totalSum: number, budgetItem: any) => {
+      if (budgetItem.products) {
+        const productSum = budgetItem.products.reduce(
+          (sum: number, p: any) => sum + (p.targetQuantity || 0), 0
+        );
+        return totalSum + productSum;
+      }
+      return totalSum;
+    }, 0);
 
-    // ---- Last Month ----
-    const lastMonthBudget = budgetData.find(b =>
-      b.year === lastMonthFY && b.month === lastMonthName && b.status === 'Active'
+
+    // ====================================================================
+    // AGGREGATION LOGIC for Last Month
+    // ====================================================================
+
+    // 1. Filter all budget entries for the last month, FY, status, AND country
+    const lastMonthBudgets = budgetData.filter(b =>
+      b.year === lastMonthFY &&
+      b.month === lastMonthName &&
+      b.status === 'Active' &&
+      (isAllSelected || selectedCountries.includes(b.country)) // 💡 Apply Country Filter
     );
 
-    if (lastMonthBudget && lastMonthBudget.products) {
-      this.lastMonthTarget = lastMonthBudget.products.reduce(
-        (sum: number, p: any) => sum + (p.targetQuantity || 0), 0
-      );
-    } else {
-      this.lastMonthTarget = 0;
-    }
+    // 2. Aggregate the targetQuantity from all filtered entries
+    this.lastMonthTarget = lastMonthBudgets.reduce((totalSum: number, budgetItem: any) => {
+      if (budgetItem.products) {
+        const productSum = budgetItem.products.reduce(
+          (sum: number, p: any) => sum + (p.targetQuantity || 0), 0
+        );
+        return totalSum + productSum;
+      }
+      return totalSum;
+    }, 0);
 
     console.log(`Monthly → Current Target: ${this.currentMonthTarget}, Last Target: ${this.lastMonthTarget}`);
   }
