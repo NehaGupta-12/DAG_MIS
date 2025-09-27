@@ -110,6 +110,10 @@ countries$:Observable<string[]>
 
    this.countries$ = this.mCountryService.getCountries()
 
+      this.countries$.subscribe(countries => {
+        this.uniqueCountries = countries || [];
+      });
+
 
       // Subscribe to all observables and populate local arrays
       this._modelTypes$ = this.mDatabase
@@ -457,9 +461,47 @@ countries$:Observable<string[]>
       }
     }
 
+    // goBack() {
+    //   this.location.back();
+    // }
+
     goBack() {
-      this.location.back();
+      this.router.navigate(['/module/product-master-list']);
     }
+
+
+    // --- Country Select All ---
+    toggleSelectAllCountries() {
+      const allCountries = this.uniqueCountries; // or from (countries$)
+      const selectedCountries: string[] = this.productForm.get('availableIn')?.value || [];
+
+      if (this.isAllCountriesSelected()) {
+        // If already all selected → clear
+        this.productForm.get('availableIn')?.setValue([]);
+      } else {
+        // Otherwise → select all
+        this.productForm.get('availableIn')?.setValue(allCountries);
+      }
+    }
+
+    isAllCountriesSelected(): boolean {
+      const selectedCountries: string[] = this.productForm.get('availableIn')?.value || [];
+      const allCountries = this.uniqueCountries; // or from (countries$)
+      return allCountries.length > 0 && allCountries.every(c => selectedCountries.includes(c));
+    }
+
+    getCountriesDisplay(): string {
+      const selected: string[] = this.productForm.get('availableIn')?.value || [];
+
+      if (selected.length === 0) {
+        return 'Select countries';
+      }
+      if (selected.length === 1) {
+        return selected[0];
+      }
+      return `${selected[0]} (+${selected.length - 1} others)`;
+    }
+
 
 
   }

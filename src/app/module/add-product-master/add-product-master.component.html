@@ -219,14 +219,30 @@
                 </div>
                   <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 mb-2">
 
-                      <mat-form-field class="example-full-width"  appearance="outline">
-                          <mat-label>Available In</mat-label>
-                          <mat-select formControlName="availableIn" multiple>
-                              @for (country of countries$|async; track $index){
-                                  <mat-option [value]="country">{{country}}</mat-option>
-                              }
-                          </mat-select>
-                      </mat-form-field>
+                    <mat-form-field class="example-full-width" appearance="outline">
+                      <mat-label>Available In</mat-label>
+                      <mat-select formControlName="availableIn" multiple>
+
+                        <!-- Custom Display -->
+                        <mat-select-trigger>
+                          {{ getCountriesDisplay() }}
+                        </mat-select-trigger>
+
+                        <!-- Select All Option -->
+                        <mat-checkbox class="mx-2"
+                                      [checked]="isAllCountriesSelected()"
+                                      (click)="$event.stopPropagation()"
+                                      (change)="toggleSelectAllCountries()">
+                          Select All
+                        </mat-checkbox>
+
+                        <!-- Country List -->
+                        <mat-option *ngFor="let country of uniqueCountries" [value]="country">
+                          {{ country }}
+                        </mat-option>
+                      </mat-select>
+                    </mat-form-field>
+
                   </div>
               </div>
 <!--              <div class="row">-->

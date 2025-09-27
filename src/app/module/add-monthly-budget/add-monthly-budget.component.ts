@@ -671,8 +671,12 @@ export class AddMonthlyBudgetComponent implements OnInit {
 
 
 
+  // goBack() {
+  //   this.dealer.back();
+  // }
+
   goBack() {
-    this.dealer.back();
+    this.router.navigate(['/module/monthly-budget-list']);
   }
 
   get canAddProduct(): boolean {

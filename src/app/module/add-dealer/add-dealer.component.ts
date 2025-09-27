@@ -25,7 +25,7 @@ import {AsyncPipe, CommonModule, Location} from "@angular/common";
 import {MAT_DIALOG_DATA, MatDialogModule} from "@angular/material/dialog";
 import {AddDealerService} from "../add-dealer.service";
 import Swal from "sweetalert2";
-import {ActivatedRoute} from "@angular/router";
+import {ActivatedRoute, Router} from "@angular/router";
 import {Observable} from "rxjs";
 import {AngularFireDatabase} from "@angular/fire/compat/database";
 import {map} from "rxjs/operators";
@@ -107,6 +107,7 @@ export class AddDealerComponent implements OnInit{
     private mDatabase: AngularFireDatabase,
     private loadingService: LoadingService,
     private countryService: CountryService,
+    private router: Router,
     @Inject(MAT_DIALOG_DATA) public data: any,
   ) {
     this._divisionTypes$ = this.mDatabase
@@ -333,7 +334,8 @@ export class AddDealerComponent implements OnInit{
   }
 
   goBack() {
-    this.dealer.back();
+    // this.dealer.back();
+    this.router.navigate(['/module/dealer-list']);
   }
 
 }

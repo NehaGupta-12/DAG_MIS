@@ -667,8 +667,13 @@ export class AddBudgetComponent implements OnInit {
 
 
 
+  // goBack() {
+  //   this.dealer.back();
+  // }
+
   goBack() {
-    this.dealer.back();
+    // this.dealer.back();
+    this.router.navigate(['/module/budget-list']);
   }
 
   get canAddProduct(): boolean {

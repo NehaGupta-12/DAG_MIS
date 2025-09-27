@@ -20,7 +20,7 @@ import {
 } from "@angular/material/table";
 import {MatInputModule} from "@angular/material/input";
 import {CommonModule, Location, NgForOf} from "@angular/common";
-import {ActivatedRoute} from "@angular/router";
+import {ActivatedRoute, Router} from "@angular/router";
 import {AddDealerService} from "../add-dealer.service";
 import {ProductMasterService} from "../product-master.service";
 import {MAT_DIALOG_DATA} from "@angular/material/dialog";
@@ -111,7 +111,8 @@ export class AddOutletProductComponent implements OnInit {
         private addDealerService: AddDealerService,
         private productService: ProductMasterService,
         private readonly mFirestore: AngularFirestore,
-        private loadingService: LoadingService
+        private loadingService: LoadingService,
+        private router: Router,
     ) {
         this.route.queryParams.subscribe(params => {
             this.data = JSON.parse(params['data']);
@@ -128,6 +129,7 @@ export class AddOutletProductComponent implements OnInit {
     }
 
     ngOnInit() {
+      this.ensureProductsIsArray();
         this.loadOutletProduct();
         this.DealerList();
 
@@ -168,6 +170,14 @@ export class AddOutletProductComponent implements OnInit {
         });
     }
 
+  private ensureProductsIsArray() {
+    const currentValue = this.grnForm.get('products')?.value;
+    if (!Array.isArray(currentValue)) {
+      console.warn('Products value is not an array, resetting to empty array:', currentValue);
+      this.grnForm.get('products')?.setValue([], { emitEvent: false });
+    }
+  }
+
     loadOutletProduct() {
         this.loadingService.setLoading(true);
         runInInjectionContext(this.injector, () => {
@@ -184,22 +194,37 @@ export class AddOutletProductComponent implements OnInit {
         });
     }
 
-    DealerList() {
-        this.loadingService.setLoading(true);
-        runInInjectionContext(this.injector, () => {
-            this.addDealerService.getDealerList().subscribe({
-                next: (data) => {
-                    this.allDealers = data;
-                    this.dealers = data;
-                    this.dealerdataSource.data = this.dealers;
-                    this.filteredDealers = [...this.dealers]; // Initialize the filtered list
-                    console.log("All Dealers:", this.dealerdataSource.data);
-                    this.loadingService.setLoading(false);
-                },
-                error: () => this.loadingService.setLoading(false)
-            });
-        });
-    }
+  DealerList() {
+    this.loadingService.setLoading(true);
+    runInInjectionContext(this.injector, () => {
+      this.addDealerService.getDealerList().subscribe({
+        next: (data) => {
+          this.allDealers = data;
+          this.dealers = data;
+          this.dealerdataSource.data = this.dealers;
+          this.filteredDealers = [...this.dealers];
+          console.log("All Dealers:", this.dealerdataSource.data);
+
+          // Handle edit mode after dealers are loaded
+          if (this.isEditMode && this.data?.dealerOutlet) {
+            const matchedDealer = this.allDealers.find(dealer =>
+              dealer.name === this.data.dealerOutlet || dealer.id === this.data.dealerId
+            );
+
+            if (matchedDealer) {
+              this.dealerControl.setValue(matchedDealer);
+              this.selectedDealer = matchedDealer;
+              this.grnForm.get('dealerOutlet')?.setValue(matchedDealer.name);
+              this.productList(); // Load products for the selected dealer
+            }
+          }
+
+          this.loadingService.setLoading(false);
+        },
+        error: () => this.loadingService.setLoading(false)
+      });
+    });
+  }
 
     productList() {
         this.loadingService.setLoading(true);
@@ -294,29 +319,47 @@ export class AddOutletProductComponent implements OnInit {
 
     // ----------------- PRODUCTS -----------------
 
-    toggleSelectAllProducts() {
-        const allProducts = this.filteredProducts.filter(p => !p.disabled);
-        const selectedProducts: any[] = this.grnForm.get('products')?.value || [];
 
-        if (this.isAllProductsSelected()) {
-            this.grnForm.get('products')?.setValue([]);
-        } else {
-            this.grnForm.get('products')?.setValue(allProducts);
-        }
+  toggleSelectAllProducts() {
+    const allProducts = this.filteredProducts.filter(p => !p.disabled);
+    const selectedProducts: any[] = this.grnForm.get('products')?.value || [];
+
+    // Add safety check for array
+    if (!Array.isArray(selectedProducts)) {
+      console.warn('selectedProducts is not an array in toggleSelectAllProducts:', selectedProducts);
+      this.grnForm.get('products')?.setValue([]);
+      return;
     }
 
-    isAllProductsSelected(): boolean {
-        const selectedProducts: any[] = this.grnForm.get('products')?.value || [];
-        const allEnabledProducts = this.filteredProducts.filter(p => !p.disabled);
+    if (this.isAllProductsSelected()) {
+      this.grnForm.get('products')?.setValue([]);
+    } else {
+      this.grnForm.get('products')?.setValue(allProducts);
+    }
+  }
 
-        return allEnabledProducts.length > 0 &&
-            allEnabledProducts.every(ap =>
-                selectedProducts.some(sp => sp.id === ap.id)
-            );
+  isAllProductsSelected(): boolean {
+    const selectedProducts: any[] = this.grnForm.get('products')?.value || [];
+    const allEnabledProducts = this.filteredProducts.filter(p => !p.disabled);
+
+    // Add safety checks
+    if (!Array.isArray(selectedProducts)) {
+      console.warn('selectedProducts is not an array:', selectedProducts);
+      return false;
     }
 
+    if (!Array.isArray(allEnabledProducts) || allEnabledProducts.length === 0) {
+      return false;
+    }
 
-    // isSubmitEnabled(): boolean {
+    return allEnabledProducts.every(ap =>
+      selectedProducts.some(sp => sp && sp.id === ap.id)
+    );
+  }
+
+
+
+  // isSubmitEnabled(): boolean {
     //     // const dealerValue = this.grnForm.getRawValue().dealerOutlet;
     //     const dealerValue = this.dealerControl.value;
     //     const remarkValid = !!this.grnForm.get('remark')?.valid;
@@ -522,9 +565,13 @@ export class AddOutletProductComponent implements OnInit {
     }
 
 
-    goBack() {
-        this.dealer.back();
-    }
+    // goBack() {
+    //     this.dealer.back();
+    // }
+
+  goBack() {
+    this.router.navigate(['/module/outlet-product-list']);
+  }
 
     private changeVariant() {
         this.loadingService.setLoading(true);
