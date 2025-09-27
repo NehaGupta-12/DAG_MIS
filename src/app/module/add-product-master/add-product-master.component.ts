@@ -444,6 +444,77 @@ countries$:Observable<string[]>
       }
     }
 
+    // onRegister() {
+    //   if (this.productForm.valid) {
+    //     Swal.fire({
+    //       title: this.isEditMode ? 'Update Product Details?' : 'Add Product Details?',
+    //       text: 'Are you sure you want to proceed?',
+    //       icon: 'question',
+    //       showCancelButton: true,
+    //       confirmButtonText: 'Yes',
+    //       cancelButtonText: 'No'
+    //     }).then((result: any) => {
+    //       if (result.isConfirmed) {
+    //         const { ...productData } = this.productForm.getRawValue();
+    //
+    //         const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+    //         const username = userData.userName || 'Unknown User';
+    //         const timestamp = Date.now();
+    //
+    //         const transformedData: any = { ...productData };
+    //
+    //         if (this.isEditMode && this.data.id) {
+    //           // ✅ Update logic
+    //           transformedData.updateBy = username;
+    //           transformedData.updatedAt = timestamp;
+    //
+    //           runInInjectionContext(this.injector, () => {
+    //             this.loadingService.setLoading(true);  // ✅ Start loader
+    //             this.productService.updateProduct(this.data.id, transformedData)
+    //               .then(() => {
+    //                 this.loadingService.setLoading(false);  // ✅ Stop loader
+    //                 Swal.fire('Updated!', 'Product details updated successfully.', 'success')
+    //                   .then(() => {
+    //                     this.router.navigate(['/module/product-master-list']);
+    //                   });
+    //               })
+    //               .catch(error => {
+    //                 this.loadingService.setLoading(false);  // ✅ Stop loader on error
+    //                 console.error('Error updating product details:', error);
+    //                 Swal.fire('Error', 'Something went wrong.', 'error');
+    //               });
+    //           });
+    //         } else {
+    //           // ✅ Add logic
+    //           transformedData.status = 'Active';
+    //           transformedData.createBy = username;
+    //           transformedData.createdAt = timestamp;
+    //
+    //           runInInjectionContext(this.injector, () => {
+    //             this.loadingService.setLoading(true);  // ✅ Start loader
+    //             this.productService.addProduct(transformedData)
+    //               .then(() => {
+    //                 this.loadingService.setLoading(false);  // ✅ Stop loader
+    //                 Swal.fire('Added!', 'Product details added successfully.', 'success')
+    //                   .then(() => {
+    //                     this.router.navigate(['/module/product-master-list']);
+    //                   });
+    //               })
+    //               .catch(error => {
+    //                 this.loadingService.setLoading(false);  // ✅ Stop loader on error
+    //                 console.error('Error adding product details:', error);
+    //                 Swal.fire('Error', 'Something went wrong.', 'error');
+    //               });
+    //           });
+    //         }
+    //       }
+    //     });
+    //   } else {
+    //     console.log('Form is invalid:', this.productForm.errors);
+    //   }
+    // }
+
+
     onRegister() {
       if (this.productForm.valid) {
         Swal.fire({
@@ -455,8 +526,8 @@ countries$:Observable<string[]>
           cancelButtonText: 'No'
         }).then((result: any) => {
           if (result.isConfirmed) {
-            const { ...productData } = this.productForm.getRawValue();
-
+            // Separate 'availableIn' from other form data
+            const { availableIn, ...productData } = this.productForm.getRawValue();
             const userData = JSON.parse(localStorage.getItem('userData') || '{}');
             const username = userData.userName || 'Unknown User';
             const timestamp = Date.now();
@@ -464,44 +535,84 @@ countries$:Observable<string[]>
             const transformedData: any = { ...productData };
 
             if (this.isEditMode && this.data.id) {
-              // ✅ Update logic
+              // ===================================
+              // ✅ ENHANCED UPDATE LOGIC (Country Merge)
+              // ===================================
+
+              // 1. Get the current user's submitted countries (what's checked on the form)
+              const submittedCountries: string[] = availableIn || [];
+
+              // 2. Get the existing, full list of countries saved on the product
+              // This uses the original data loaded into 'this.data' from the route/dialog
+              const existingCountries: string[] = this.data.availableIn || [];
+
+              // 3. Get the set of countries the current user is allowed to see/modify
+              const userAccessSet = new Set(this.uniqueCountries);
+
+              // 4. Initialize the final set of countries for the database
+              const finalCountriesSet = new Set<string>();
+
+              // A. Preserve countries the current user could NOT modify (countries outside their access list)
+              existingCountries.forEach(country => {
+                if (!userAccessSet.has(country)) {
+                  // Country the current user has NO access to: PRESERVE it.
+                  finalCountriesSet.add(country);
+                }
+              });
+
+              // B. Merge in the submitted countries.
+              // This implicitly handles additions (newly selected accessible countries)
+              // and deletions (accessible countries that were deselected).
+              submittedCountries.forEach(country => {
+                finalCountriesSet.add(country);
+              });
+
+              // 5. Update the transformed data with the merged array
+              transformedData.availableIn = Array.from(finalCountriesSet);
+
               transformedData.updateBy = username;
               transformedData.updatedAt = timestamp;
 
+              // Perform the update
               runInInjectionContext(this.injector, () => {
-                this.loadingService.setLoading(true);  // ✅ Start loader
+                this.loadingService.setLoading(true);
                 this.productService.updateProduct(this.data.id, transformedData)
                   .then(() => {
-                    this.loadingService.setLoading(false);  // ✅ Stop loader
+                    this.loadingService.setLoading(false);
                     Swal.fire('Updated!', 'Product details updated successfully.', 'success')
                       .then(() => {
                         this.router.navigate(['/module/product-master-list']);
                       });
                   })
                   .catch(error => {
-                    this.loadingService.setLoading(false);  // ✅ Stop loader on error
+                    this.loadingService.setLoading(false);
                     console.error('Error updating product details:', error);
                     Swal.fire('Error', 'Something went wrong.', 'error');
                   });
               });
+
             } else {
-              // ✅ Add logic
+              // ==============================
+              // ✅ ADD LOGIC
+              // ==============================
+              // For a new entry, just use the form value (which includes 'availableIn')
               transformedData.status = 'Active';
               transformedData.createBy = username;
               transformedData.createdAt = timestamp;
+              transformedData.availableIn = availableIn || []; // Ensure it's included
 
               runInInjectionContext(this.injector, () => {
-                this.loadingService.setLoading(true);  // ✅ Start loader
+                this.loadingService.setLoading(true);
                 this.productService.addProduct(transformedData)
                   .then(() => {
-                    this.loadingService.setLoading(false);  // ✅ Stop loader
+                    this.loadingService.setLoading(false);
                     Swal.fire('Added!', 'Product details added successfully.', 'success')
                       .then(() => {
                         this.router.navigate(['/module/product-master-list']);
                       });
                   })
                   .catch(error => {
-                    this.loadingService.setLoading(false);  // ✅ Stop loader on error
+                    this.loadingService.setLoading(false);
                     console.error('Error adding product details:', error);
                     Swal.fire('Error', 'Something went wrong.', 'error');
                   });
@@ -510,6 +621,7 @@ countries$:Observable<string[]>
           }
         });
       } else {
+        // Optional: Add logic to display form validation errors to the user
         console.log('Form is invalid:', this.productForm.errors);
       }
     }
