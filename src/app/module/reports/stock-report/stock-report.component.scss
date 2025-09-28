@@ -1,115 +1,206 @@
-.custom-bordered th,
-.custom-bordered td {
-  border: 2px solid #000 !important;
-  text-align: center;       /* ⬅️ centers text horizontally */
-  vertical-align: middle;   /* ⬅️ centers text vertically */
+//.custom-bordered th,
+//.custom-bordered td {
+//  border: 2px solid #000 !important;
+//  text-align: center;       /* ⬅️ centers text horizontally */
+//  vertical-align: middle;   /* ⬅️ centers text vertically */
+//}
+//
+//.custom-bordered tr:last-child td {
+//  font-weight: bold;
+//  background: #f1f1f1; /* light grey for distinction */
+//}
+//
+//
+///* Make table font smaller */
+//.mat-table {
+//  font-size: 12px; /* smaller font */
+//}
+//
+///* Adjust header cell styles */
+//.mat-header-cell {
+//  padding: 4px 8px !important;
+//  min-width: 60px; /* reduce min width */
+//  max-width: 70px; /* reduce max width */
+//  white-space: nowrap;
+//  overflow: hidden;
+//  text-overflow: ellipsis;
+//}
+//
+///* Adjust regular cell styles */
+//.mat-cell {
+//  padding: 4px 8px !important;
+//  min-width: 60px;
+//  max-width: 70px;
+//  white-space: nowrap;
+//  overflow: hidden;
+//  text-overflow: ellipsis;
+//}
+//
+///* For columns with longer content like 'name', give slightly wider space */
+//.mat-column-name {
+//  min-width: 100px;
+//  max-width: 150px;
+//}
+//
+///* For product columns */
+//.mat-column-division,
+//.mat-column-country,
+//.mat-column-town {
+//  min-width: 80px;
+//  max-width: 100px;
+//}
+//
+///* Optional: reduce table row height */
+//.mat-row, .mat-header-row {
+//  height: 32px;
+//}
+//
+///* Optional: make table container horizontally scrollable if needed */
+//.mat-table-container {
+//  overflow-x: auto;
+//}
+//
+//
+///* Smaller font for product columns */
+//.product-col {
+//  font-size: 11px;
+//}
+//
+///* Narrow product column widths */
+//.mat-header-cell.product-col,
+//.mat-cell.product-col {
+//  padding: 2px 6px !important;
+//  min-width: 40px !important;
+//  max-width: 50px !important;
+//  text-align: center;
+//  white-space: nowrap;
+//  overflow: hidden;
+//  text-overflow: ellipsis;
+//}
+//
+///* You can also reduce row height further */
+//.mat-row, .mat-header-row {
+//  height: 28px;
+//}
+//
+//
+//.custom-bordered th,
+//.custom-bordered td {
+//  border: 2px solid #000 !important;
+//  text-align: center;       /* ⬅️ centers text horizontally */
+//  vertical-align: middle;   /* ⬅️ centers text vertically */
+//}
+//
+//.custom-bordered tr:last-child td {
+//  font-weight: bold;
+//  background: #f1f1f1; /* light grey for distinction */
+//}
+//
+///* src/app/your-component-name/your-component-name.component.css */
+//
+//.red-row {
+//  background-color: #fce4e4 !important; /* light red */
+//}
+//
+//.yellow-row {
+//  background-color: #fffde7 !important; /* light yellow */
+//}
+//
+//.green-row {
+//  background-color: #e8f5e9 !important; /* light green */
+//}
+//
+//.textcol{
+//  color: #0d8df3;
+//}
+
+
+/* Default table cell background is white */
+.responsive_table td,
+.responsive_table th {
+  background-color: white;
 }
 
-.custom-bordered tr:last-child td {
-  font-weight: bold;
-  background: #f1f1f1; /* light grey for distinction */
-}
-
-
-/* Make table font smaller */
-.mat-table {
-  font-size: 12px; /* smaller font */
-}
-
-/* Adjust header cell styles */
-.mat-header-cell {
-  padding: 4px 8px !important;
-  min-width: 60px; /* reduce min width */
-  max-width: 70px; /* reduce max width */
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* Adjust regular cell styles */
-.mat-cell {
-  padding: 4px 8px !important;
-  min-width: 60px;
-  max-width: 70px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* For columns with longer content like 'name', give slightly wider space */
-.mat-column-name {
-  min-width: 100px;
-  max-width: 150px;
-}
-
-/* For product columns */
-.mat-column-division,
-.mat-column-country,
-.mat-column-town {
-  min-width: 80px;
-  max-width: 100px;
-}
-
-/* Optional: reduce table row height */
-.mat-row, .mat-header-row {
-  height: 32px;
-}
-
-/* Optional: make table container horizontally scrollable if needed */
-.mat-table-container {
-  overflow-x: auto;
-}
-
-
-/* Smaller font for product columns */
-.product-col {
-  font-size: 11px;
-}
-
-/* Narrow product column widths */
-.mat-header-cell.product-col,
-.mat-cell.product-col {
-  padding: 2px 6px !important;
-  min-width: 40px !important;
-  max-width: 50px !important;
+/* Only product and numeric columns get borders */
+.responsive_table .product-col,
+.responsive_table .number-col {
+  border-right: 1px solid #ccc;    /* vertical line */
+  border-bottom: 1px solid #ccc;   /* horizontal line */
   text-align: center;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  padding: 4px 8px;
 }
 
-/* You can also reduce row height further */
-.mat-row, .mat-header-row {
-  height: 28px;
+/* Remove right border from last column */
+.responsive_table .number-col:last-child {
+  border-right: none;
+}
+
+/* Fixed widths */
+.responsive_table .product-col {
+  width: 200px;    /* adjust as needed */
+}
+
+.responsive_table .number-col {
+  width: 100px;    /* adjust as needed */
+}
+
+/* Optional: bold headers */
+.responsive_table th.product-col,
+.responsive_table th.number-col {
+  font-weight: 600;
+  text-align: center;
+}
+
+/* Add padding + inline-block so bg color wraps text only */
+.cell-color {
+  display: inline-block;       /* make width fit content */
+  padding: 2px 6px;            /* some spacing around text */
+  border-radius: 2px;          /* optional: slightly rounded corners */
+  text-align: center;
+}
+
+/* Conditional colors based on row data (only inner span) */
+.green-row .cell-color {
+  background-color: #c8e6c9;   /* light green */
+}
+
+.yellow-row .cell-color {
+  background-color: #fff9c4;   /* light yellow */
+}
+
+.red-row .cell-color {
+  background-color: #ffcdd2;   /* light red */
 }
 
 
-.custom-bordered th,
-.custom-bordered td {
-  border: 2px solid #000 !important;
-  text-align: center;       /* ⬅️ centers text horizontally */
-  vertical-align: middle;   /* ⬅️ centers text vertically */
+
+/* Outer border for the table */
+.responsive_table {
+  border: 1px solid #ccc;  /* outer line */
+  border-collapse: collapse;
+  width: 100%;
 }
 
-.custom-bordered tr:last-child td {
-  font-weight: bold;
-  background: #f1f1f1; /* light grey for distinction */
+/* Borders for individual cells */
+.responsive_table .product-col,
+.responsive_table .number-col {
+  border-right: 1px solid #ccc;
+  border-bottom: 1px solid #ccc;
+  text-align: center;
+  padding: 4px 8px;
 }
 
-/* src/app/your-component-name/your-component-name.component.css */
-
-.red-row {
-  background-color: #fce4e4 !important; /* light red */
+/* Remove right border from last column */
+.responsive_table .number-col:last-child {
+  border-right: none;
 }
 
-.yellow-row {
-  background-color: #fffde7 !important; /* light yellow */
+/* Reduce row height */
+.responsive_table tr {
+  height: 30px;  /* adjust as needed */
 }
 
-.green-row {
-  background-color: #e8f5e9 !important; /* light green */
-}
-
-.textcol{
-  color: #0d8df3;
+/* Only last row (TOTAL) bold */
+.responsive_table tr:last-child td {
+  font-weight: 700;
 }

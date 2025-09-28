@@ -149,25 +149,38 @@
 
       <div *ngFor="let report of allOutletReports" class="mb-4 mx-3">
         <h5 class="text-center">{{ report.outlet }} - Stock Report</h5>
-        <table mat-table [dataSource]="report.rows" class="mat-elevation-z1 w-100 custom-bordered">
+        <table mat-table [dataSource]="report.rows" class="mat-cell advance-table responsive_table">
+
+          <!-- Product Column -->
           <ng-container matColumnDef="product">
-            <th mat-header-cell *matHeaderCellDef> Products Name </th>
-            <td mat-cell *matCellDef="let row"> {{ row.product }} </td>
+            <th mat-header-cell *matHeaderCellDef class="product-col"> Products Name </th>
+            <td mat-cell *matCellDef="let row" class="product-col">
+              <span class="cell-color">{{ row.product }}</span>
+            </td>
           </ng-container>
 
+          <!-- Day Column -->
           <ng-container matColumnDef="Day">
-            <th mat-header-cell *matHeaderCellDef> Stock for the Day </th>
-            <td mat-cell *matCellDef="let row"> {{ row.Day }} </td>
+            <th mat-header-cell *matHeaderCellDef class="number-col"> Stocks for the Day </th>
+            <td mat-cell *matCellDef="let row" class="number-col">
+              <span class="cell-color">{{ row.Day }}</span>
+            </td>
           </ng-container>
 
+          <!-- Month Column -->
           <ng-container matColumnDef="Month">
-            <th mat-header-cell *matHeaderCellDef> Cumulative for the Month </th>
-            <td mat-cell *matCellDef="let row"> {{ row.Month }} </td>
+            <th mat-header-cell *matHeaderCellDef class="number-col"> Cumulative for the Month </th>
+            <td mat-cell *matCellDef="let row" class="number-col">
+              <span class="cell-color">{{ row.Month }}</span>
+            </td>
           </ng-container>
 
+          <!-- YTD Column -->
           <ng-container matColumnDef="YTD">
-            <th mat-header-cell *matHeaderCellDef> YTD </th>
-            <td mat-cell *matCellDef="let row"> {{ row.YTD }} </td>
+            <th mat-header-cell *matHeaderCellDef class="number-col"> YTD </th>
+            <td mat-cell *matCellDef="let row" class="number-col">
+              <span class="cell-color">{{ row.YTD }}</span>
+            </td>
           </ng-container>
 
           <tr mat-header-row *matHeaderRowDef="['product','Day','Month','YTD']"></tr>
