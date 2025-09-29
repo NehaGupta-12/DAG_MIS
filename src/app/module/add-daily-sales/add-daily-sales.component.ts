@@ -38,6 +38,7 @@ import {AngularFireDatabase} from "@angular/fire/compat/database";
 import {BehaviorSubject, Observable} from "rxjs";
 import {MatDatepicker, MatDatepickerInput, MatDatepickerToggle} from "@angular/material/datepicker";
 import {CountryService} from "../../Services/country.service";
+import {MatProgressSpinner} from "@angular/material/progress-spinner";
 
 @Component({
   selector: 'app-add-daily-sales',
@@ -60,7 +61,7 @@ import {CountryService} from "../../Services/country.service";
     MatDatepicker,
     MatDatepickerInput,
     SlicePipe,
-
+    MatProgressSpinner,
   ],
   providers: [
     { provide: MAT_DIALOG_DATA, useValue: {} }
@@ -87,6 +88,7 @@ export class AddDailySalesComponent implements OnInit {
 
   // Search controller for towns
   townFilterCtrl: FormControl = new FormControl();
+  isSubmitting: boolean = false;
 
 
 // Full list of towns (before search, after cascading)
@@ -529,6 +531,11 @@ export class AddDailySalesComponent implements OnInit {
 
 
   isSubmitEnabled(): boolean {
+    // ✅ Disable if currently submitting
+    if (this.isSubmitting) {
+      return false;
+    }
+
     const formValid =
       this.dailySalesForm.get('dealerOutlet')?.valid &&
       this.dailySalesForm.get('division')?.valid &&
@@ -536,9 +543,7 @@ export class AddDailySalesComponent implements OnInit {
       this.dailySalesForm.get('town')?.valid &&
       this.dailySalesForm.get('salesDate')?.valid;
 
-
     const hasProducts = this.addedProducts.length > 0;
-    // const allQuantitiesValid = this.addedProducts.every(p => p.quantity && p.quantity > 0);
 
     return !!formValid && hasProducts;
   }
@@ -692,10 +697,8 @@ export class AddDailySalesComponent implements OnInit {
         return;
       }
 
-      // Filter out products with a quantity of 0 or less
       const productsToSubmit = this.addedProducts.filter(p => p.quantity > 0);
 
-      // If no products have a quantity > 0, show an error and stop.
       if (productsToSubmit.length === 0) {
         Swal.fire('Error', 'Please enter a quantity greater than 0 for at least one product.', 'error');
         return;
@@ -711,6 +714,10 @@ export class AddDailySalesComponent implements OnInit {
       }).then((result: any) => {
         if (result.isConfirmed) {
           try {
+            // ✅ Set loading flags
+            this.isSubmitting = true;
+            this.loadingService.setLoading(true);
+
             const userData = JSON.parse(localStorage.getItem('userData') || '{}');
             const username = userData.userName || 'Unknown User';
             const timestamp = Date.now();
@@ -735,8 +742,6 @@ export class AddDailySalesComponent implements OnInit {
               updatedBy: username,
               updatedAt: timestamp
             };
-
-            this.loadingService.setLoading(true);
 
             if (this.isEditMode) {
               const productToUpdate = this.addedProducts[0];
@@ -763,9 +768,12 @@ export class AddDailySalesComponent implements OnInit {
                   console.error('Error updating daily sales:', err);
                   Swal.fire('Error', 'Something went wrong while updating.', 'error');
                 })
-                .finally(() => this.loadingService.setLoading(false));
+                .finally(() => {
+                  // ✅ Reset loading flags
+                  this.isSubmitting = false;
+                  this.loadingService.setLoading(false);
+                });
             } else {
-              // ✅ NEW LOGIC: Use productsToSubmit instead of addedProducts
               const createPromises = productsToSubmit.map(p => {
                 const productDoc = {
                   ...baseInfo,
@@ -795,11 +803,17 @@ export class AddDailySalesComponent implements OnInit {
                   console.error('Error adding daily sales:', err);
                   Swal.fire('Error', 'Something went wrong while adding.', 'error');
                 })
-                .finally(() => this.loadingService.setLoading(false));
+                .finally(() => {
+                  // ✅ Reset loading flags
+                  this.isSubmitting = false;
+                  this.loadingService.setLoading(false);
+                });
             }
           } catch (innerErr) {
             console.error('Unexpected error during submission:', innerErr);
             Swal.fire('Error', 'Unexpected issue occurred.', 'error');
+            // ✅ Reset loading flags
+            this.isSubmitting = false;
             this.loadingService.setLoading(false);
           }
         }
@@ -807,6 +821,8 @@ export class AddDailySalesComponent implements OnInit {
     } catch (err) {
       console.error('Global submit error:', err);
       Swal.fire('Error', 'Something went wrong while submitting.', 'error');
+      // ✅ Reset loading flags (in case of early errors)
+      this.isSubmitting = false;
       this.loadingService.setLoading(false);
     }
   }

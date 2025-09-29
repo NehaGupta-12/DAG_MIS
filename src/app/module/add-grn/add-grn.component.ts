@@ -48,6 +48,7 @@ import {map} from "rxjs/operators";
 import {AngularFireDatabase} from "@angular/fire/compat/database";
 import {BehaviorSubject, Observable} from "rxjs";
 import {MatDatepicker, MatDatepickerInput, MatDatepickerToggle} from "@angular/material/datepicker";
+import {MatProgressSpinner} from "@angular/material/progress-spinner";
 
 @Component({
   selector: 'app-add-grn',
@@ -75,7 +76,8 @@ import {MatDatepicker, MatDatepickerInput, MatDatepickerToggle} from "@angular/m
     MatTableModule,
     MatDatepickerToggle,
     MatDatepicker,
-    MatDatepickerInput
+    MatDatepickerInput,
+    MatProgressSpinner
   ],
   providers: [
     {provide: MAT_DIALOG_DATA, useValue: {}} // ✅ Fallback
@@ -86,6 +88,7 @@ import {MatDatepicker, MatDatepickerInput, MatDatepickerToggle} from "@angular/m
 })
 export class AddGRNComponent implements OnInit{
   isEditMode: boolean = false;
+  isSubmitting: boolean = false;
   grnForm: FormGroup;
   displayedColumns: string[] = ['sku', 'name', 'brand', 'model', 'variant', 'unit', 'quantity', 'action'];
   dealerdataSource = new MatTableDataSource<any>();
@@ -505,12 +508,16 @@ export class AddGRNComponent implements OnInit{
 
 
   isSubmitEnabled(): boolean {
+    // Disable if currently submitting
+    if (this.isSubmitting) {
+      return false;
+    }
+
     const formValid =
       this.grnForm.get('dealerOutlet')?.valid &&
       this.grnForm.get('date')?.valid;
 
     const hasProducts = this.addedProducts.length > 0;
-    // const allQuantitiesValid = this.addedProducts.every(p => p.quantity && p.quantity > 0);
 
     return !!formValid && hasProducts;
   }
@@ -597,16 +604,13 @@ export class AddGRNComponent implements OnInit{
     try {
       const formValues = this.grnForm.getRawValue();
 
-      // Check if there are any products at all
       if (this.addedProducts.length === 0) {
         Swal.fire('Error', 'Please add at least one product.', 'error');
         return;
       }
 
-      // Filter out products with a quantity of 0 or less
       const productsToSubmit = this.addedProducts.filter(p => p.quantity > 0);
 
-      // If no products have a quantity > 0, show an error and stop.
       if (productsToSubmit.length === 0) {
         Swal.fire('Error', 'Please enter a quantity greater than 0 for at least one product.', 'error');
         return;
@@ -621,104 +625,121 @@ export class AddGRNComponent implements OnInit{
         cancelButtonText: 'No'
       }).then((result: any) => {
         if (result.isConfirmed) {
-          const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-          const username = userData.userName || 'Unknown User';
-          const timestamp = Date.now();
+          try {
+            // ✅ Set loading flags immediately after confirmation
+            this.isSubmitting = true;
+            this.loadingService.setLoading(true);
 
-          const selectedDate = formValues.date ? new Date(formValues.date) : null;
-          let dateTime: string | null = null;
+            const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+            const username = userData.userName || 'Unknown User';
+            const timestamp = Date.now();
 
-          if (selectedDate) {
-            const now = new Date();
-            selectedDate.setHours(
-              now.getHours(),
-              now.getMinutes(),
-              now.getSeconds(),
-              now.getMilliseconds()
-            );
-            dateTime = selectedDate.toISOString();
-          }
+            const selectedDate = formValues.date ? new Date(formValues.date) : null;
+            let dateTime: string | null = null;
 
-          const baseInfo = {
-            dealerOutlet: formValues.dealerOutlet,
-            country: formValues.country,
-            division: formValues.division,
-            town: formValues.town,
-            stockDate: dateTime,
-            status: 'Active',
-            updatedBy: username,
-            updatedAt: timestamp
-          };
+            if (selectedDate) {
+              const now = new Date();
+              selectedDate.setHours(
+                now.getHours(),
+                now.getMinutes(),
+                now.getSeconds(),
+                now.getMilliseconds()
+              );
+              dateTime = selectedDate.toISOString();
+            }
 
-          this.loadingService.setLoading(true);
-
-          if (this.isEditMode) {
-            const productToUpdate = productsToSubmit[0]; // Use the filtered list
-            const productDoc = {
-              ...baseInfo,
-              sku: productToUpdate.sku,
-              name: productToUpdate.name,
-              brand: productToUpdate.brand,
-              model: productToUpdate.model,
-              variant: productToUpdate.variant,
-              unit: productToUpdate.unit,
-              quantity: productToUpdate.quantity
+            const baseInfo = {
+              dealerOutlet: formValues.dealerOutlet,
+              country: formValues.country,
+              division: formValues.division,
+              town: formValues.town,
+              stockDate: dateTime,
+              status: 'Active',
+              updatedBy: username,
+              updatedAt: timestamp
             };
 
-            runInInjectionContext(this.injector, () =>
-              this.grnService.updateGrn(productToUpdate.docId, productDoc)
-            )
-              .then(() => this.updateInventory(productDoc, 'increase'))
-              .then(() => {
-                this.loadingService.setLoading(false);
-                Swal.fire('Updated!', 'Daily Stock updated successfully.', 'success');
-                this.goBack();
-              })
-              .catch(err => {
-                this.loadingService.setLoading(false);
-                console.error('Error updating Daily Stock:', err);
-                Swal.fire('Error', 'Something went wrong while updating.', 'error');
-              });
-          } else {
-            // ✅ NEW LOGIC: Use productsToSubmit instead of addedProducts
-            const createPromises = productsToSubmit.map(p => {
+            if (this.isEditMode) {
+              const productToUpdate = productsToSubmit[0];
               const productDoc = {
                 ...baseInfo,
-                id: p.id ?? '',
-                sku: p.sku ?? '',
-                name: p.name ?? '',
-                brand: p.brand ?? '',
-                model: p.model ?? '',
-                variant: p.variant ?? p.varient ?? '',
-                unit: p.unit ?? '',
-                quantity: p.quantity ?? 0,
-                createdBy: username,
-                createdAt: timestamp
+                sku: productToUpdate.sku,
+                name: productToUpdate.name,
+                brand: productToUpdate.brand,
+                model: productToUpdate.model,
+                variant: productToUpdate.variant,
+                unit: productToUpdate.unit,
+                quantity: productToUpdate.quantity
               };
 
-              return runInInjectionContext(this.injector, () =>
-                this.grnService.addGrn(productDoc)
-              ).then(() => this.updateInventory(productDoc, 'increase'));
-            });
+              runInInjectionContext(this.injector, () =>
+                this.grnService.updateGrn(productToUpdate.docId, productDoc)
+              )
+                .then(() => this.updateInventory(productDoc, 'increase'))
+                .then(() => {
+                  Swal.fire('Updated!', 'Daily Stock updated successfully.', 'success');
+                  this.goBack();
+                })
+                .catch(err => {
+                  console.error('Error updating Daily Stock:', err);
+                  Swal.fire('Error', 'Something went wrong while updating.', 'error');
+                })
+                .finally(() => {
+                  // ✅ Reset loading flags
+                  this.isSubmitting = false;
+                  this.loadingService.setLoading(false);
+                });
+            } else {
+              const createPromises = productsToSubmit.map(p => {
+                const productDoc = {
+                  ...baseInfo,
+                  id: p.id ?? '',
+                  sku: p.sku ?? '',
+                  name: p.name ?? '',
+                  brand: p.brand ?? '',
+                  model: p.model ?? '',
+                  variant: p.variant ?? p.varient ?? '',
+                  unit: p.unit ?? '',
+                  quantity: p.quantity ?? 0,
+                  createdBy: username,
+                  createdAt: timestamp
+                };
 
-            Promise.all(createPromises)
-              .then(() => {
-                this.loadingService.setLoading(false);
-                Swal.fire('Added!', 'All valid products saved and inventory updated.', 'success');
-                this.router.navigate(['/module/grn-list']);
-              })
-              .catch(err => {
-                this.loadingService.setLoading(false);
-                console.error('Error adding Daily Stock:', err);
-                Swal.fire('Error', 'Something went wrong while adding.', 'error');
+                return runInInjectionContext(this.injector, () =>
+                  this.grnService.addGrn(productDoc)
+                ).then(() => this.updateInventory(productDoc, 'increase'));
               });
+
+              Promise.all(createPromises)
+                .then(() => {
+                  Swal.fire('Added!', 'All valid products saved and inventory updated.', 'success');
+                  this.router.navigate(['/module/grn-list']);
+                })
+                .catch(err => {
+                  console.error('Error adding Daily Stock:', err);
+                  Swal.fire('Error', 'Something went wrong while adding.', 'error');
+                })
+                .finally(() => {
+                  // ✅ Reset loading flags
+                  this.isSubmitting = false;
+                  this.loadingService.setLoading(false);
+                });
+            }
+          } catch (innerErr) {
+            console.error('Unexpected error during submission:', innerErr);
+            Swal.fire('Error', 'Unexpected issue occurred.', 'error');
+            // ✅ Reset loading flags on error
+            this.isSubmitting = false;
+            this.loadingService.setLoading(false);
           }
         }
       });
     } catch (err) {
-      this.loadingService.setLoading(false);
       console.error('Global submit error:', err);
       Swal.fire('Error', 'Something went wrong while submitting.', 'error');
+      // ✅ Reset loading flags on early error
+      this.isSubmitting = false;
+      this.loadingService.setLoading(false);
     }
   }
 
