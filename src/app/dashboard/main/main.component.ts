@@ -160,15 +160,49 @@ export class MainComponent implements OnInit {
     private monthlybudgetService: MonthlyBudgetService,
   ) {}
 
+  // ngOnInit() {
+  //   this.loadingService.setLoading(true);
+  //   this.chart1();
+  //   this.chart2();
+  //   this.areachart();
+  //   this.barchart();
+  //   this.DealerList();
+  //   this.loadbudget();
+  //   this.loadMonthlyBudget();
+  //
+  //   this.countryService.getCountries().subscribe(countries => {
+  //     this._countriesTypes = countries;
+  //     this.filteredCountries = [...this._countriesTypes];
+  //
+  //     // By default: show ALL data but dropdown has nothing checked (only "All" available)
+  //     this.countryControl.setValue(['All']);
+  //     this.loadSalesList(this._countriesTypes);
+  //   });
+  //
+  //   this.countryControl.valueChanges.subscribe((selected: string[] | null) => {
+  //     if (!selected) return;
+  //
+  //     if (selected.includes('All')) {
+  //       // If "All" is selected → show all data and replace selection with just "All"
+  //       this.countryControl.setValue(['All'], { emitEvent: false });
+  //       this.loadSalesList(this._countriesTypes);
+  //     } else if (selected.length === 0) {
+  //       // If nothing selected → show no data
+  //       this.loadSalesList([]);
+  //     } else {
+  //       // Otherwise show selected countries only
+  //       this.loadSalesList(selected);
+  //     }
+  //   });
+  // }
+
+
   ngOnInit() {
     this.loadingService.setLoading(true);
-    this.chart1();
-    this.chart2();
-    this.areachart();
-    this.barchart();
+    this.chart2(); // Keep the one that doesn't rely on sales data
     this.DealerList();
-    this.loadbudget();
-    this.loadMonthlyBudget();
+    this.loadbudget(); // Note: these are called before country data is loaded,
+    this.loadMonthlyBudget(); // but loadSalesList() will call them again *with* filter.
 
     this.countryService.getCountries().subscribe(countries => {
       this._countriesTypes = countries;
@@ -176,7 +210,7 @@ export class MainComponent implements OnInit {
 
       // By default: show ALL data but dropdown has nothing checked (only "All" available)
       this.countryControl.setValue(['All']);
-      this.loadSalesList(this._countriesTypes);
+      this.loadSalesList(this._countriesTypes); // This call will load data and update charts
     });
 
     this.countryControl.valueChanges.subscribe((selected: string[] | null) => {
