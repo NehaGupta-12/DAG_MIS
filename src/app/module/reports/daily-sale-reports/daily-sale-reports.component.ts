@@ -376,38 +376,54 @@ export class DailySaleReportsComponent implements OnInit{
   }
 
 
-  generateReport(filteredData: any[], reportDate: Date) {
-    const { monthStart, fyStart } = this.getDateRanges(reportDate);
+  generateReport(filteredData: any[], startDate: Date | null, endDate: Date) {
+    const { monthStart, fyStart } = this.getDateRanges(endDate);
     const report: any = {};
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
+    // ✅ First include ALL models from product master with 0 counts
+    this.vehicledataSource.forEach((p: any) => {
+      const model = (p.model || '').trim().toUpperCase();
+      if (model) {
+        report[model] = { YTD: 0, Month: 0, Day: 0 };
+      }
+    });
+
+    // ✅ Then add sales data
     filteredData.forEach(item => {
-      const model = (item.model || '').trim().toUpperCase(); // 🔹 use model
+      const model = (item.model || '').trim().toUpperCase();
       const qty = Number(item.quantity) || 0;
 
-      // Handle Firestore timestamp
       const itemDate = item.salesDate
         ? new Date(item.salesDate)
         : (item.createdAt?.seconds ? new Date(item.createdAt.seconds * 1000) : new Date(item.createdAt));
+      itemDate.setHours(0, 0, 0, 0);
+
+      // Skip if outside selected range
+      if ((startDate && itemDate < startDate) || (endDate && itemDate > endDate)) {
+        return;
+      }
 
       if (!report[model]) {
         report[model] = { YTD: 0, Month: 0, Day: 0 };
       }
 
       // YTD
-      if (itemDate >= fyStart && itemDate <= reportDate) {
+      if (itemDate >= fyStart && itemDate <= endDate) {
         report[model].YTD += qty;
       }
 
       // Month
-      if (itemDate >= monthStart && itemDate <= reportDate) {
+      if (itemDate >= monthStart && itemDate <= endDate) {
         report[model].Month += qty;
       }
 
-      // Day
+      // Day (today only, if inside range)
       if (
-        itemDate.getFullYear() === reportDate.getFullYear() &&
-        itemDate.getMonth() === reportDate.getMonth() &&
-        itemDate.getDate() === reportDate.getDate()
+        itemDate.getTime() === today.getTime() &&
+        today >= (startDate || today) &&
+        today <= endDate
       ) {
         report[model].Day += qty;
       }
@@ -415,6 +431,8 @@ export class DailySaleReportsComponent implements OnInit{
 
     return report;
   }
+
+
 
   onSubmit() {
 
@@ -472,11 +490,9 @@ export class DailySaleReportsComponent implements OnInit{
       // Case 1: No outlet selected → show merged report
       if (outlets.length === 0) {
         const filtered = this.salesdataSource.filter(item => filterFn(item));
-        const report = this.generateReport(filtered, endDate);
+        const report = this.generateReport(filtered, startDate, endDate);
 
         const tempRows = this.buildRows(report);
-
-        // Group + totals
         const grouped = this.groupAndColorRows(tempRows);
 
         this.allOutletReports.push({
@@ -488,7 +504,7 @@ export class DailySaleReportsComponent implements OnInit{
         // Case 2: One or more outlets selected
         outlets.forEach((outlet: string) => {
           const filtered = this.salesdataSource.filter(item => filterFn(item, outlet));
-          const report = this.generateReport(filtered, endDate);
+          const report = this.generateReport(filtered, startDate, endDate);
 
           const tempRows = this.buildRows(report);
           const grouped = this.groupAndColorRows(tempRows);
@@ -600,27 +616,113 @@ export class DailySaleReportsComponent implements OnInit{
 
     const workbook = new Workbook();
     const worksheet = workbook.addWorksheet("Sales Report");
-    let currentRow = 1;
 
+    // Get dynamic column count (products + TOTAL)
+    const firstReport = this.allOutletReports[0];
+    let columnCount = 1; // 1 for first blank cell
 
+    if (firstReport && firstReport.rows) {
+      columnCount += firstReport.rows.filter(r => r.product !== "TOTAL").length;
+    }
+    columnCount += 1; // for TOTAL column
+
+    // Calculate last column letter
+    const lastColumnLetter = worksheet.getColumn(columnCount).letter;
+
+    // === TITLE ROW ===
+    worksheet.mergeCells(`A1:${lastColumnLetter}1`);
+    worksheet.getCell("A1").value = `Cumulative for the month - All Outlets`;
+    worksheet.getCell("A1").alignment = { horizontal: "center", vertical: "middle" };
+    worksheet.getCell("A1").font = { bold: true, size: 14 };
+    worksheet.getCell("A1").fill = {
+      type: "pattern",
+      pattern: "solid",
+      fgColor: { argb: "FFFF00" },
+    };
+    worksheet.getRow(1).height = 20;
+
+    // === DATE ROW ===
+    worksheet.mergeCells(`A2:${lastColumnLetter}2`);
+    worksheet.getCell("A2").value = `Date: ${new Date().toLocaleDateString()}`;
+    worksheet.getCell("A2").alignment = { horizontal: "center", vertical: "middle" };
+    worksheet.getCell("A2").font = { bold: true, size: 12 };
+    worksheet.getCell("A2").fill = {
+      type: "pattern",
+      pattern: "solid",
+      fgColor: { argb: "FFFF00" },
+    };
+    worksheet.getRow(2).height = 20;
+
+    let currentRow = 4;
+
+    // === HEADER ROW ===
+    const headerRow = [""];
+    if (firstReport && firstReport.rows) {
+      firstReport.rows.forEach(r => {
+        if (r.product !== "TOTAL") {
+          headerRow.push(r.product.toUpperCase());
+        }
+      });
+      headerRow.push("TOTAL");
+    }
+
+    const headerExcelRow = worksheet.addRow(headerRow);
+    headerExcelRow.font = { bold: true };
+    headerExcelRow.height = 40;
+    headerExcelRow.eachCell(cell => {
+      cell.alignment = { horizontal: "center", vertical: "middle", wrapText: true };
+      cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "F4B083" } };
+    });
+    currentRow++;
+
+    // === DATA ROWS ===
+    const categories = ["Stock for the day", "Cumulative for the month", "YTD"];
+    categories.forEach((category, idx) => {
+      const rowData: any[] = [category];
+      let total = 0;
+
+      if (firstReport && firstReport.rows) {
+        firstReport.rows.forEach(r => {
+          if (r.product !== "TOTAL") {
+            const val = r[["Day", "Month", "YTD"][idx]] || 0;
+            rowData.push(val);
+            total += val;
+          }
+        });
+      }
+
+      rowData.push(total);
+      worksheet.addRow(rowData);
+      currentRow++;
+    });
+
+    // === Borders + alignment ===
+    worksheet.eachRow((row, rowNumber) => {
+      row.eachCell(cell => {
+        cell.border = {
+          top: { style: "thin" },
+          left: { style: "thin" },
+          bottom: { style: "thin" },
+          right: { style: "thin" },
+        };
+        if (rowNumber > 1) {
+          cell.alignment = { vertical: "middle", horizontal: "center" };
+        }
+      });
+    });
+
+    // === Column widths ===
+    worksheet.columns.forEach((col, index) => {
+      col.width = index === 0 ? 25 : 12;
+    });
+
+    // === Save Excel file ===
     workbook.xlsx.writeBuffer().then(data => {
-      const blob = new Blob([data], { type: 'application/octet-stream' });
+      const blob = new Blob([data], { type: "application/octet-stream" });
       FileSaver.saveAs(blob, `Sales_Report_${new Date().toLocaleDateString()}.xlsx`);
-
-      // ✅ Log activity after successful export
-      const activity: ActivityLog = {
-        action: 'Export',
-        section: 'Daily Sale Reports',
-        description: 'User exported sales report to Excel',
-        date: Date.now(),
-        user: '',        // will be set inside addLog
-        currentIp: '',   // will be set inside addLog
-      };
-
-      this.mService.addLog(activity).then(() => {
-        console.log('Export action logged.');
-      }).catch(err => console.error('Failed to log export:', err));
     });
   }
+
+
 
 }
