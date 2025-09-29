@@ -18,6 +18,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { AuthService } from '../auth.service';
 import {LoadingService} from "../../Services/loading.service";
 import {MatProgressSpinnerModule} from "@angular/material/progress-spinner";
+import {MatSnackBar} from "@angular/material/snack-bar";
 @Component({
   selector: 'app-signin',
   templateUrl: './signin.component.html',
@@ -52,7 +53,8 @@ export class SigninComponent
     private formBuilder: UntypedFormBuilder,
     private router: Router,
     private loadingService: LoadingService,
-    private authService: AuthService
+    private authService: AuthService,
+    private matSnackBar : MatSnackBar
   ) {
     super();
   }
@@ -82,26 +84,20 @@ export class SigninComponent
       return;
     }
 
-   this.isLoading = true;
+    this.isLoading = true;
 
     this.authService
-      .login(
-        this.loginForm.value['email'],
-        this.loginForm.value['password']
-      )
-      .then((res) => {
-        // ✅ stop loader on success
+      .login(this.loginForm.value['email'], this.loginForm.value['password'])
+      .then(() => {
         this.isLoading = false;
-        // Navigate after successful login
         this.router.navigate(['/dashboard/main']);
       })
-      .catch((err) => {
-        console.error('Login error:', err);
-        this.error = 'Login failed. Please check your credentials.';
-        // ✅ stop loader on error
+      .catch(() => {
+        // No need to handle here anymore, service already shows snackbar
         this.isLoading = false;
       });
   }
+
 
 
 

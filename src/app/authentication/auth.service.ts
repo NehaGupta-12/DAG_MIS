@@ -98,52 +98,90 @@ export class AuthService {
 
 
 
+  // async login(email: string, password: string) {
+  //   localStorage.clear();
+  //   try {
+  //     const userCredential = await this.mAuth.signInWithEmailAndPassword(email, password).catch(() => {
+  //       this._snackBar.open('Invalid Username Or Password', 'Close', {
+  //         duration: 3000,
+  //       });
+  //       return null;
+  //     });
+  //     if (userCredential && userCredential.user) {debugger
+  //       const user = userCredential.user;
+  //       console.log('Login successful:', JSON.stringify(user));
+  //
+  //       localStorage.setItem('user', JSON.stringify(user));
+  //       localStorage.setItem('uid', user.uid);
+  //       if (user.email) {
+  //         localStorage.setItem('userEmail', user.email);
+  //       }
+  //       runInInjectionContext(this.injector, async () => {
+  //         const currentIp = localStorage.getItem('currentip') || '';
+  //         let activity : ActivityLog = {
+  //           date: new Date().getTime(),
+  //           section: 'Login',
+  //           action: 'Login',
+  //           user: user.email || 'N/A',
+  //           description: 'Login by user ',
+  //           currentIp: currentIp,
+  //           changes: [], // empty array by default
+  //         };
+  //         await this.mLogService.addLog(activity);
+  //         await this.setUserData(user.uid);
+  //         console.log('Login activity logged and user data set.');
+  //       });
+  //     }
+  //   } catch (err: unknown) {
+  //     if (err instanceof Error) {
+  //       this._snackBar.open('Login failed: ' + err.message, 'Close', {
+  //         duration: 3000,
+  //       });
+  //     }
+  //   }
+  // }
   async login(email: string, password: string) {
     localStorage.clear();
     try {
-      const userCredential = await this.mAuth.signInWithEmailAndPassword(
-        email,
-        password
-      ).catch(() => {
-        this._snackBar.open('Invalid Username Or Password', 'Close', {
-          duration: 3000,
-        });
-        return null;
-      });
-
+      const userCredential = await this.mAuth.signInWithEmailAndPassword(email, password);
       if (userCredential && userCredential.user) {
         const user = userCredential.user;
-        console.log('Login successful:', JSON.stringify(user));
-
         localStorage.setItem('user', JSON.stringify(user));
         localStorage.setItem('uid', user.uid);
         if (user.email) {
           localStorage.setItem('userEmail', user.email);
         }
+
+        // Log activity
         runInInjectionContext(this.injector, async () => {
           const currentIp = localStorage.getItem('currentip') || '';
-          let activity : ActivityLog = {
+          let activity: ActivityLog = {
             date: new Date().getTime(),
             section: 'Login',
             action: 'Login',
             user: user.email || 'N/A',
             description: 'Login by user ',
             currentIp: currentIp,
-            changes: [], // empty array by default
+            changes: [],
           };
           await this.mLogService.addLog(activity);
           await this.setUserData(user.uid);
-          console.log('Login activity logged and user data set.');
         });
+        return user;
       }
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        this._snackBar.open('Login failed: ' + err.message, 'Close', {
-          duration: 3000,
-        });
+      throw new Error('Invalid user'); // fallback
+    } catch (err: any) {
+      let message = 'Username and Password not valid!';
+      if (err.code === 'auth/user-disabled') {
+        message = 'Your ID is deactivated. Please contact admin.';
+      } else if (err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found') {
+        message = 'Invalid Username or Password';
       }
+      this._snackBar.open(message, 'Close', { duration: 4000 });
+      throw err;
     }
   }
+
 
 
   async logout() {
