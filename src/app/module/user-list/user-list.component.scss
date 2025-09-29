@@ -33,11 +33,24 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0;         /* remove default padding */
+  padding: 0;
 }
 
 .btn-large-icon mat-icon {
-  font-size: 27px;    /* increase icon size */
+  font-size: 27px;
 }
 
+.col-email {
+  max-width: 240px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.col-mobile {
+  max-width: 140px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 

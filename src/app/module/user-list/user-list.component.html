@@ -62,14 +62,15 @@
                 </ng-container>
 
                 <ng-container matColumnDef="email">
-                  <th mat-header-cell *matHeaderCellDef> Email </th>
-                  <td mat-cell *matCellDef="let element"> {{element.email}} </td>
+                  <th mat-header-cell *matHeaderCellDef class="col-email"> Email </th>
+                  <td mat-cell *matCellDef="let element" class="col-email"> {{element.email}} </td>
                 </ng-container>
 
                 <ng-container matColumnDef="mobile">
-                  <th mat-header-cell *matHeaderCellDef> Mobile </th>
-                  <td mat-cell *matCellDef="let element"> {{element.mobile}} </td>
+                  <th mat-header-cell *matHeaderCellDef class="col-mobile"> Mobile </th>
+                  <td mat-cell *matCellDef="let element" class="col-mobile"> {{element.mobile}} </td>
                 </ng-container>
+
 
                 <ng-container matColumnDef="address">
                   <th mat-header-cell *matHeaderCellDef> Address </th>
