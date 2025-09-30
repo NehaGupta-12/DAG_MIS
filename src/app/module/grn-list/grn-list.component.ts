@@ -135,15 +135,7 @@ export class GRNListComponent implements OnInit {
   navigateToAddGrn(): void {
     this.router.navigate(['module/add-grn']);
 
-    // Log adding new GRN
-    runInInjectionContext(this.injector, async () => {
-      await this.mService.addLog({
-        date: Date.now(),
-        section: 'Daily Stock',
-        action: 'Add',
-        description: `Opened Add GRN form`
-      });
-    });
+
   }
 
 

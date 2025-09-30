@@ -138,13 +138,7 @@ export class BudgetListComponent implements OnInit {
       queryParams: { data: JSON.stringify(row) },
     });
 
-    // ✅ Add Activity Log
-    this.activityLogService.addLog({
-      date: Date.now(),
-      section: "Budget",
-      action: "Edit",
-      description: `Editing Budget: ${row.year}-${row.month} for ${row.country}`
-    });
+
   }
 
 
@@ -160,13 +154,7 @@ export class BudgetListComponent implements OnInit {
   navigateToAddloadOutletProduct() {
     this.router.navigate(['module/add-budget']);
 
-    // ✅ Add Activity Log
-    this.activityLogService.addLog({
-      date: Date.now(),
-      section: "Budget",
-      action: "Add",
-      description: `Opened Add Budget form`
-    });
+
   }
 
   ngAfterViewInit() {

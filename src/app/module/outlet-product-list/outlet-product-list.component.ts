@@ -220,13 +220,7 @@ export class OutletProductListComponent implements OnInit {
       queryParams: { data: JSON.stringify(row) }
     });
 
-    // 👉 Add log
-    this.activityLogService.addLog({
-      date: Date.now(),
-      section: "Outlet Product",
-      action: "Edit",
-      description: `Editing Outlet Product: ${row.name} (SKU: ${row.sku})`
-    });
+
   }
 
   openDialog() {
@@ -240,13 +234,7 @@ export class OutletProductListComponent implements OnInit {
   navigateToAddloadOutletProduct() {
     this.router.navigate(['module/add-outlet-product']);
 
-    // 👉 Add log
-    this.activityLogService.addLog({
-      date: Date.now(),
-      section: "Outlet Product",
-      action: "Add",
-      description: `Navigated to Add Outlet Product form`
-    });
+
   }
 
   ngAfterViewInit() {

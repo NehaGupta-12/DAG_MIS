@@ -149,12 +149,7 @@ export class DailySalesListComponent implements OnInit {
   navigateToAddDailySales() {
     this.router.navigate(['module/add-daily-sales']);
 
-    this.mService.addLog({
-      date: Date.now(),
-      section: 'DailySales',
-      action: 'Add',
-      description: `Navigated to add new Daily Sale`
-    });
+
   }
 
 

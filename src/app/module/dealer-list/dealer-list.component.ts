@@ -124,13 +124,7 @@ export class DealerListComponent implements OnInit{
       queryParams: { data: JSON.stringify(row) }
     });
 
-    // 👉 Log Activity
-    this.activityLogService.addLog({
-      date: Date.now(),
-      section: "Dealer",
-      action: "Edit",
-      description: `Edited Dealer: ${row.name} (${row.code})`
-    });
+
   }
 
   openDialog() {
@@ -147,13 +141,7 @@ export class DealerListComponent implements OnInit{
   navigateToAddDealer() {
     this.router.navigate(['module/add-dealer']);
 
-    // 👉 Log Activity
-    this.activityLogService.addLog({
-      date: Date.now(),
-      section: "Dealer",
-      action: "Add",
-      description: `Navigated to Add Dealer form`
-    });
+
   }
 
   ngAfterViewInit() {
