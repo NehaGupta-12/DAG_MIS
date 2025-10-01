@@ -113,14 +113,32 @@
               </div>
               <!-- Dealer & Vehicle -->
 
+<!--              <div class="row">-->
+<!--                <mat-form-field appearance="outline" class="col-md-6">-->
+<!--                  <mat-label>Select Date</mat-label>-->
+<!--                  <input #dateNameInput formControlName="salesDate" matInput [matDatepicker]="picker">-->
+<!--                  <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>-->
+<!--                  <mat-datepicker #picker></mat-datepicker>-->
+<!--                </mat-form-field>-->
+<!--              </div>-->
+
               <div class="row">
                 <mat-form-field appearance="outline" class="col-md-6">
                   <mat-label>Select Date</mat-label>
-                  <input #dateNameInput formControlName="salesDate" matInput [matDatepicker]="picker">
+                  <input #dateNameInput
+                         formControlName="salesDate"
+                         matInput
+                         [matDatepicker]="picker"
+                         readonly
+                         placeholder="Select a date">
                   <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
                   <mat-datepicker #picker></mat-datepicker>
+                  <mat-error *ngIf="dailySalesForm.get('salesDate')?.hasError('required')">
+                    Date is required
+                  </mat-error>
                 </mat-form-field>
               </div>
+
 
               <!-- Buttons -->
               <div class="row mt-3">

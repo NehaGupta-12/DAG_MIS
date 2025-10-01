@@ -95,7 +95,9 @@
                 <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 mb-2">
                   <mat-form-field class="example-full-width" appearance="outline">
                     <mat-label>Select Products</mat-label>
-                    <mat-select formControlName="products" multiple #productSelect (openedChange)="onProductSelectOpened($event)">
+                    <mat-select formControlName="products" multiple
+                                #outletSelect="matSelect"
+                                #productSelect (openedChange)="onProductSelectOpened($event)">
                       <div class="mat-select-search" (click)="$event.stopPropagation()">
                         <input matInput
                                #productSearchInput
@@ -106,6 +108,20 @@
                                placeholder="Search Products"
                                class="search-input" />
                       </div>
+
+                      <mat-select-trigger>
+                        <ng-container *ngIf="outletSelect.value?.length; else noSelection">
+                          {{ outletSelect.value[0]?.name || outletSelect.value[0] | slice:0:16 }}
+                          <span *ngIf="outletSelect.value.length > 1" class="textcol">
+      (+{{ outletSelect.value.length - 1 }} more)
+    </span>
+                        </ng-container>
+                        <ng-template #noSelection>
+                          Select...
+                        </ng-template>
+                      </mat-select-trigger>
+
+
                       <div class="select-all-container" (click)="$event.stopPropagation()">
                         <mat-checkbox [checked]="isAllProductsSelected()" (change)="toggleSelectAllProducts()">
                           Select All
