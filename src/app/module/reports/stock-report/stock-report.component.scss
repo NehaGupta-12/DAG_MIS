@@ -118,8 +118,10 @@
 /* Default table cell background is white */
 .responsive_table td,
 .responsive_table th {
-  background-color: white;
+  padding: 2px 6px;
+  line-height: 1;
 }
+
 
 /* Only product and numeric columns get borders */
 .responsive_table .product-col,
@@ -159,18 +161,19 @@
   text-align: center;
 }
 
-/* Conditional colors based on row data (only inner span) */
-.green-row .cell-color {
-  background-color: #c8e6c9;   /* light green */
+/* Full row background color for Daily Stock table */
+.responsive_table tr.green-row td {
+  background-color: #e8f5e9 !important;   /* light green */
 }
 
-.yellow-row .cell-color {
-  background-color: #fff9c4;   /* light yellow */
+.responsive_table tr.yellow-row td {
+  background-color: #fffde7 !important;   /* light yellow */
 }
 
-.red-row .cell-color {
-  background-color: #ffcdd2;   /* light red */
+.responsive_table tr.red-row td {
+  background-color: #fce4e4 !important;   /* light red */
 }
+
 
 
 
@@ -197,7 +200,7 @@
 
 /* Reduce row height */
 .responsive_table tr {
-  height: 30px;  /* adjust as needed */
+  height: 24px;  /* adjust as needed */
 }
 
 /* Only last row (TOTAL) bold */

@@ -675,28 +675,7 @@ export class DailySaleReportsComponent implements OnInit{
 
 
 
-  // onCancel() {
-  //   // Clear the selectedOutlets array
-  //   this.selectedOutlets = [];
-  //
-  //   // Reset the form
-  //   this.dealerForm.reset();
-  //
-  //   // Reset the form controls that are tied to the filters
-  //   this.nameFilter.reset();
-  //   this.divisionFilter.reset();
-  //   this.countryFilter.reset();
-  //   this.townFilter.reset();
-  //   this.productFilter.reset();
-  //
-  //   // Restore the filtered options to their original state
-  //   Object.keys(this.options).forEach(key => {
-  //     this.filteredOptions[key] = [...this.options[key]];
-  //   });
-  //
-  //   // Clear the displayed reports
-  //   this.allOutletReports = [];
-  // }
+
 
   exportToExcel() {
     if (!this.allOutletReports || this.allOutletReports.length === 0) {
