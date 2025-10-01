@@ -376,23 +376,87 @@ export class DailySaleReportsComponent implements OnInit{
   }
 
 
-  generateReport(filteredData: any[], startDate: Date | null, endDate: Date) {
+  // generateReport(filteredData: any[], startDate: Date | null, endDate: Date, productsToShow: any[]) {
+  //   const { monthStart, fyStart } = this.getDateRanges(endDate);
+  //   const report: any = {};
+  //   const today = new Date();
+  //   today.setHours(0, 0, 0, 0);
+  //
+  //   // ✅ First include only models from filtered products with 0 counts
+  //   productsToShow.forEach((p: any) => {
+  //     const model = (p.model || '').trim().toUpperCase();
+  //     if (model) {
+  //       report[model] = { YTD: 0, Month: 0, Day: 0 };
+  //     }
+  //   });
+  //
+  //   // ✅ Then add sales data (only for models that exist in filtered products)
+  //   filteredData.forEach(item => {
+  //     const model = (item.model || '').trim().toUpperCase();
+  //
+  //     // Skip if this model is not in the filtered products list
+  //     if (!report.hasOwnProperty(model)) {
+  //       return;
+  //     }
+  //
+  //     const qty = Number(item.quantity) || 0;
+  //
+  //     const itemDate = item.salesDate
+  //       ? new Date(item.salesDate)
+  //       : (item.createdAt?.seconds ? new Date(item.createdAt.seconds * 1000) : new Date(item.createdAt));
+  //     itemDate.setHours(0, 0, 0, 0);
+  //
+  //     // Skip if outside selected range
+  //     if ((startDate && itemDate < startDate) || (endDate && itemDate > endDate)) {
+  //       return;
+  //     }
+  //
+  //     // YTD
+  //     if (itemDate >= fyStart && itemDate <= endDate) {
+  //       report[model].YTD += qty;
+  //     }
+  //
+  //     // Month
+  //     if (itemDate >= monthStart && itemDate <= endDate) {
+  //       report[model].Month += qty;
+  //     }
+  //
+  //     // Day (today only, if inside range)
+  //     if (
+  //       itemDate.getTime() === today.getTime() &&
+  //       today >= (startDate || today) &&
+  //       today <= endDate
+  //     ) {
+  //       report[model].Day += qty;
+  //     }
+  //   });
+  //
+  //   return report;
+  // }
+
+  generateReport(filteredData: any[], startDate: Date | null, endDate: Date, productsToShow: any[]) {
     const { monthStart, fyStart } = this.getDateRanges(endDate);
     const report: any = {};
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    // ✅ First include ALL models from product master with 0 counts
-    this.vehicledataSource.forEach((p: any) => {
+    // ✅ First include only models from filtered products with 0 counts
+    productsToShow.forEach((p: any) => {
       const model = (p.model || '').trim().toUpperCase();
       if (model) {
         report[model] = { YTD: 0, Month: 0, Day: 0 };
       }
     });
 
-    // ✅ Then add sales data
+    // ✅ Then add sales data - includes ALL models from sales data
     filteredData.forEach(item => {
       const model = (item.model || '').trim().toUpperCase();
+
+      // Initialize if not already present (handles models in sales but not in product master)
+      if (!report[model]) {
+        report[model] = { YTD: 0, Month: 0, Day: 0 };
+      }
+
       const qty = Number(item.quantity) || 0;
 
       const itemDate = item.salesDate
@@ -403,10 +467,6 @@ export class DailySaleReportsComponent implements OnInit{
       // Skip if outside selected range
       if ((startDate && itemDate < startDate) || (endDate && itemDate > endDate)) {
         return;
-      }
-
-      if (!report[model]) {
-        report[model] = { YTD: 0, Month: 0, Day: 0 };
       }
 
       // YTD
@@ -433,17 +493,40 @@ export class DailySaleReportsComponent implements OnInit{
   }
 
 
+  getProductsByCountry(countryName: string): any[] {
+    if (!countryName) {
+      return [];
+    }
+
+    return this.vehicledataSource.filter(product =>
+      product.availableIn &&
+      Array.isArray(product.availableIn) &&
+      product.availableIn.includes(countryName)
+    );
+  }
+
+  /**
+   * Filter products by multiple countries (user's assigned countries)
+   * Returns products that are available in ANY of the specified countries
+   */
+  getProductsByCountries(countries: string[]): any[] {
+    if (!countries || countries.length === 0) {
+      return [];
+    }
+
+    return this.vehicledataSource.filter(product =>
+      product.availableIn &&
+      Array.isArray(product.availableIn) &&
+      product.availableIn.some(country => countries.includes(country))
+    );
+  }
 
   onSubmit() {
-
-    // If the user clicks too early, stop here and inform them (optional).
     if (!this.countryOptionsLoaded) {
-      // You can add a Swal.fire or similar notification here
-      this.loadingService.setLoading(false); // Ensure loader stops if running
+      this.loadingService.setLoading(false);
       return;
     }
 
-    // Start loader
     this.loadingService.setLoading(true);
 
     try {
@@ -458,26 +541,32 @@ export class DailySaleReportsComponent implements OnInit{
 
       this.allOutletReports = [];
 
-      // Determine the list of countries to include in the filter
+      // Determine which countries to include in the filter
       const countriesToInclude: string[] = [];
       if (filters.country) {
-        // Case 1: A specific country is selected
+        // Specific country selected
         countriesToInclude.push(filters.country);
       } else {
-        // Case 2: No country selected, so include all countries returned by the service.
-        // This is safe because countryOptionsLoaded is true.
+        // No country selected - use all user's assigned countries
         countriesToInclude.push(...this.options.country);
       }
 
+      // ✅ CRITICAL: Filter products based on user's assigned countries or selected country
+      const productsToShow = filters.country
+        ? this.getProductsByCountry(filters.country)  // Single country
+        : this.getProductsByCountries(this.options.country); // User's assigned countries
 
-      // Always fetch data (no disable)
+      console.log('Countries to include:', countriesToInclude);
+      console.log('User assigned countries:', this.options.country);
+      console.log('Products to show:', productsToShow.length);
+      console.log('Product models:', productsToShow.map(p => p.model));
+
       const filterFn = (item: any, outlet: string | null = null) => {
         const itemDate = item.salesDate
           ? new Date(item.salesDate)
           : (item.createdAt?.seconds ? new Date(item.createdAt.seconds * 1000) : new Date(item.createdAt));
 
         return (
-          // Check if the item's country is in the calculated list
           (countriesToInclude.length === 0 || countriesToInclude.includes(item.country)) &&
           (!filters.town || item.town === filters.town) &&
           (!filters.division || item.division === filters.division) &&
@@ -490,7 +579,9 @@ export class DailySaleReportsComponent implements OnInit{
       // Case 1: No outlet selected → show merged report
       if (outlets.length === 0) {
         const filtered = this.salesdataSource.filter(item => filterFn(item));
-        const report = this.generateReport(filtered, startDate, endDate);
+        console.log('Filtered sales data:', filtered.length);
+
+        const report = this.generateReport(filtered, startDate, endDate, productsToShow);
 
         const tempRows = this.buildRows(report);
         const grouped = this.groupAndColorRows(tempRows);
@@ -504,7 +595,7 @@ export class DailySaleReportsComponent implements OnInit{
         // Case 2: One or more outlets selected
         outlets.forEach((outlet: string) => {
           const filtered = this.salesdataSource.filter(item => filterFn(item, outlet));
-          const report = this.generateReport(filtered, startDate, endDate);
+          const report = this.generateReport(filtered, startDate, endDate, productsToShow);
 
           const tempRows = this.buildRows(report);
           const grouped = this.groupAndColorRows(tempRows);
@@ -518,7 +609,6 @@ export class DailySaleReportsComponent implements OnInit{
         this.selectedCountry = filters.country || '';
       }
     } finally {
-      // Stop loader
       this.loadingService.setLoading(false);
     }
   }
