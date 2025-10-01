@@ -143,9 +143,39 @@ export class AddMonthlyBudgetComponent implements OnInit {
     this.loadBudgets();
     this.loadbudget();
 
+    // runInInjectionContext(this.injector, () => {
+    //   this.budgetForm.get('month')?.valueChanges.subscribe(() => this.updatePeriod());
+    //   this.budgetForm.get('year')?.valueChanges.subscribe(() => this.budgetForm.get('period')?.reset());
+    // });
+
+
     runInInjectionContext(this.injector, () => {
+      // Subscribe to country changes to filter products
+      this.budgetForm.get('country')?.valueChanges.subscribe((selectedCountry: string) => {
+        this.filterProductsByCountry(selectedCountry);
+
+        // Reset products selection when country changes
+        this.budgetForm.get('products')?.setValue([]);
+
+        // Update disabled months
+        const selectedYear = this.budgetForm.get('year')?.value;
+        if (selectedYear && selectedCountry) {
+          this.updateDisabledMonths(selectedYear, selectedCountry);
+        } else {
+          this.disabledMonths = [];
+        }
+      });
+
+      this.budgetForm.get('year')?.valueChanges.subscribe((selectedYear: string) => {
+        const selectedCountry = this.budgetForm.get('country')?.value;
+        if (selectedYear && selectedCountry) {
+          this.updateDisabledMonths(selectedYear, selectedCountry);
+        } else {
+          this.disabledMonths = [];
+        }
+      });
+
       this.budgetForm.get('month')?.valueChanges.subscribe(() => this.updatePeriod());
-      this.budgetForm.get('year')?.valueChanges.subscribe(() => this.budgetForm.get('period')?.reset());
     });
 
     this.route.queryParams.subscribe(params => {
@@ -207,6 +237,34 @@ export class AddMonthlyBudgetComponent implements OnInit {
         this.disabledMonths = [];
       }
     });
+  }
+
+
+  filterProductsByCountry(selectedCountry: string) {
+    if (!selectedCountry) {
+      this._allProducts = [];
+      this.filteredProducts = [];
+      return;
+    }
+
+    const countryFilteredProducts = this.vehicledataSource.data.filter((prod: any) =>
+      prod.availableIn && prod.availableIn.includes(selectedCountry)
+    );
+
+    // Deduplicate based on simplified model
+    const uniqueModelsMap = new Map<string, any>();
+    countryFilteredProducts.forEach((prod: any) => {
+      const simpleName = this.simplifyModelName(prod.model);
+      if (!uniqueModelsMap.has(simpleName)) {
+        uniqueModelsMap.set(simpleName, {
+          ...prod,
+          name: simpleName
+        });
+      }
+    });
+
+    this._allProducts = Array.from(uniqueModelsMap.values());
+    this.filteredProducts = [...this._allProducts];
   }
 
 // Updated method to include country
@@ -444,29 +502,49 @@ export class AddMonthlyBudgetComponent implements OnInit {
 
 
 
+  // loadProducts() {
+  //   this.loadingService.setLoading(true);
+  //   runInInjectionContext(this.injector, () => {
+  //     this.productService.getProductList().subscribe({
+  //       next: (data) => {
+  //         console.log("raw data", data);
+  //
+  //         // ✅ Deduplicate based on simplified model
+  //         const uniqueModelsMap = new Map<string, any>();
+  //         data.forEach((prod) => {
+  //           const simpleName = this.simplifyModelName(prod.model);
+  //           if (!uniqueModelsMap.has(simpleName)) {
+  //             uniqueModelsMap.set(simpleName, {
+  //               ...prod,
+  //               name: simpleName // override name for dropdown
+  //             });
+  //           }
+  //         });
+  //
+  //         this._allProducts = Array.from(uniqueModelsMap.values());
+  //         this.filteredProducts = [...this._allProducts];
+  //         this.vehicledataSource.data = data; // keep raw data if needed for details
+  //         this.loadingService.setLoading(false);
+  //       },
+  //       error: () => this.loadingService.setLoading(false)
+  //     });
+  //   });
+  // }
+
   loadProducts() {
     this.loadingService.setLoading(true);
     runInInjectionContext(this.injector, () => {
       this.productService.getProductList().subscribe({
         next: (data) => {
           console.log("raw data", data);
-
-          // ✅ Deduplicate based on simplified model
-          const uniqueModelsMap = new Map<string, any>();
-          data.forEach((prod) => {
-            const simpleName = this.simplifyModelName(prod.model);
-            if (!uniqueModelsMap.has(simpleName)) {
-              uniqueModelsMap.set(simpleName, {
-                ...prod,
-                name: simpleName // override name for dropdown
-              });
-            }
-          });
-
-          this._allProducts = Array.from(uniqueModelsMap.values());
-          this.filteredProducts = [...this._allProducts];
-          this.vehicledataSource.data = data; // keep raw data if needed for details
+          this.vehicledataSource.data = data; // Store all raw data
           this.loadingService.setLoading(false);
+
+          // If country is already selected (edit mode), filter products
+          const selectedCountry = this.budgetForm.get('country')?.value;
+          if (selectedCountry) {
+            this.filterProductsByCountry(selectedCountry);
+          }
         },
         error: () => this.loadingService.setLoading(false)
       });
