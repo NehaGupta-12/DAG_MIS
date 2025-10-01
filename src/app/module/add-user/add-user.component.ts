@@ -302,8 +302,8 @@ export class AddUserComponent implements OnInit{
 
   initForm() {
     this.register = this.fb.group({
-      first: ['', [Validators.required, Validators.pattern('[a-zA-Z]+')]],
-      last: ['', [Validators.required, Validators.pattern('[a-zA-Z]+')]],
+      first: ['', [Validators.required]],
+      last: ['', [Validators.required]],
       mobile: ['', [Validators.required, Validators.pattern('^[0-9]*$')]],
       email: ['', [Validators.required, Validators.email, Validators.minLength(5)]],
       address: [''],
