@@ -32,14 +32,16 @@ export class OutletProductService {
       );
   }
 
-  getOutletProductListByDealerId(dealerId: string): Observable<any[]> {
+// /updatedProductOutlet/A.And.UBarrieEnterprises
+  getOutletProductListByDealerId(dealerId: string): Observable<any[]> {debugger
     return this.mFirestore
-      .collection(`outlets/${dealerId}/products`)
+      .collection(`${this.collectionName}/${dealerId}/products`)
       .snapshotChanges()
       .pipe(
         map(actions =>
           actions.map(a => {
             const data = a.payload.doc.data();
+            console.log(data)
             const id = a.payload.doc.id;
             return { id, ...(data as any) };
           })

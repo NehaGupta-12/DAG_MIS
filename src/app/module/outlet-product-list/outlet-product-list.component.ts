@@ -108,20 +108,19 @@ export class OutletProductListComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    this.loadOutletProduct();
     this.DealerList();
     this.userData = JSON.parse(localStorage.getItem('userData')!) as UserDataModel;
     console.log(this.userData)
   }
 
-// ✅ Load Outlet Product with loader
-  loadOutletProduct() {
+  loadOutletProduct(id:any) {
+    console.log(id)
     this.loadingService.setLoading(true);
     runInInjectionContext(this.injector, () => {
-      this.outletProductService.getOutletProductList().subscribe({
+      this.outletProductService.getOutletProductListByDealerId(id).subscribe({
         next: (data: any) => {
-          this.allOutletProducts = data;     // only store, don’t assign to table
-          this.dataSource.data = [];         // keep table empty by default
+          this.allOutletProducts = data;       // store all products
+          this.dataSource.data = data;
           this.loadingService.setLoading(false);
         },
         error: (err) => {
@@ -181,46 +180,16 @@ export class OutletProductListComponent implements OnInit {
     );
   }
 
-
-
-// Triggered when user clicks Search
-  onSearchClick(selectedDealerName: string) {
-    if (!selectedDealerName) {
-      Swal.fire('Warning', 'Please select an outlet first.', 'warning');
-      return;
-    }
-
-    const filtered = this.allOutletProducts.filter(prod =>
-      prod.dealerOutlet?.toLowerCase().includes(selectedDealerName.toLowerCase())
-    );
-
-    console.log("Filtered Products:", filtered);
-
-    this.dataSource.data = filtered;
-    this.dataSource.paginator = this.paginator;
-    this.dataSource.sort = this.sort;
-  }
-
-// Triggered when user clicks Clear
   onClearClick(dealerSelect: MatSelect) {
     dealerSelect.value = null; // clear the dropdown
     this.dataSource.data = []; // clear the table
   }
-
-  //
-  // editloadOutletProduct(row: any) {
-  //   this.router.navigate(['module/add-outlet-product'], {
-  //     queryParams: {data: JSON.stringify(row)}
-  //   });
-  // }
 
   // 🔹 Edit Outlet Product
   editloadOutletProduct(row: any) {
     this.router.navigate(['module/add-outlet-product'], {
       queryParams: { data: JSON.stringify(row) }
     });
-
-
   }
 
   openDialog() {
@@ -419,6 +388,10 @@ export class OutletProductListComponent implements OnInit {
   }
 
   onSelectDealerChange(e:any) {
-
+    console.log(e.value)
+    console.log(e.value)
+    runInInjectionContext(this.injector, () => {
+      this.loadOutletProduct(e.value)
+    });
   }
 }
