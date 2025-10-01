@@ -711,7 +711,8 @@ export class DailySaleReportsComponent implements OnInit{
       if (!outletReport || !outletReport.rows) return;
 
       // === OUTLET TITLE ROW ===
-      worksheet.mergeCells(`A${currentRow}:E${currentRow}`);
+      // FIXED: Merging A to D to match the 4 data columns (Product, Day, Month, YTD)
+      worksheet.mergeCells(`A${currentRow}:D${currentRow}`);
       worksheet.getCell(`A${currentRow}`).value = `Cumulative for the month - ${outletReport.outlet}`;
       worksheet.getCell(`A${currentRow}`).alignment = { horizontal: "center", vertical: "middle" };
       worksheet.getCell(`A${currentRow}`).font = { bold: true, size: 14 };
@@ -724,7 +725,8 @@ export class DailySaleReportsComponent implements OnInit{
       currentRow++;
 
       // === DATE ROW ===
-      worksheet.mergeCells(`A${currentRow}:E${currentRow}`);
+      // FIXED: Merging A to D to match the 4 data columns
+      worksheet.mergeCells(`A${currentRow}:D${currentRow}`);
       worksheet.getCell(`A${currentRow}`).value = `Date: ${new Date().toLocaleDateString()}`;
       worksheet.getCell(`A${currentRow}`).alignment = { horizontal: "center", vertical: "middle" };
       worksheet.getCell(`A${currentRow}`).font = { bold: true, size: 12 };
@@ -766,12 +768,14 @@ export class DailySaleReportsComponent implements OnInit{
           right: { style: "thin" },
         };
         if (rowNumber > 1) {
+          // This alignment applies to all data/header cells, including the merged title/date cells
           cell.alignment = { vertical: "middle", horizontal: "center" };
         }
       });
     });
 
     // === Column widths ===
+    // Only 4 columns are relevant now (0 to 3)
     worksheet.columns.forEach((col, index) => {
       col.width = index === 0 ? 25 : 12;
     });
@@ -782,8 +786,5 @@ export class DailySaleReportsComponent implements OnInit{
       FileSaver.saveAs(blob, `Sales_Report_${new Date().toLocaleDateString()}.xlsx`);
     });
   }
-
-
-
 
 }
