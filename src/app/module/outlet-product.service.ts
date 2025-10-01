@@ -42,6 +42,7 @@ export class OutletProductService {
           actions.map(a => {
             const data = a.payload.doc.data();
             console.log(data)
+            console.log(data)
             const id = a.payload.doc.id;
             return { id, ...(data as any) };
           })

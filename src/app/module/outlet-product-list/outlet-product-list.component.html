@@ -22,7 +22,7 @@
               class="search-input"
             />
           </div>
-          <mat-option *ngFor="let dealer of filteredDealers" [value]="dealer.outletId">
+          <mat-option *ngFor="let dealer of filteredDealers" [value]="dealer">
             {{ dealer.name }}
           </mat-option>
         </mat-select>

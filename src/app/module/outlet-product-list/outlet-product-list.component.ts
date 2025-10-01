@@ -388,10 +388,10 @@ export class OutletProductListComponent implements OnInit {
   }
 
   onSelectDealerChange(e:any) {
-    console.log(e.value)
+    console.log(e.value.id)
     console.log(e.value)
     runInInjectionContext(this.injector, () => {
-      this.loadOutletProduct(e.value)
+      this.loadOutletProduct(e.value.id)
     });
   }
 }
