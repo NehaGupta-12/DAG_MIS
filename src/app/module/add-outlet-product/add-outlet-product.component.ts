@@ -179,7 +179,6 @@ export class AddOutletProductComponent implements OnInit {
   }
 
     loadOutletProduct(id:any) {
-      console.log("Loading outlet products for dealer ID:", id);
         this.loadingService.setLoading(true);
         runInInjectionContext(this.injector, () => {
             this.outletProductService.getOutletProductById(id).subscribe({
@@ -209,7 +208,7 @@ export class AddOutletProductComponent implements OnInit {
           // Handle edit mode after dealers are loaded
           if (this.isEditMode && this.data?.dealerOutlet) {
             const matchedDealer = this.allDealers.find(dealer =>
-              dealer.name === this.data.dealerOutlet || dealer.outletId === this.data.dealerId
+              dealer.name === this.data.dealerOutlet || dealer.id === this.data.dealerId
             );
 
             if (matchedDealer) {
@@ -286,39 +285,42 @@ export class AddOutletProductComponent implements OnInit {
         }
     }
 
-    filterProductsForOutlet(selectedOutlet: string) {
-        const dealer = this.allDealers.find(
-            d => (d.name || '').trim() === (selectedOutlet || '').trim()
-        );
-        const outletId = dealer?.outletId;
+  filterProductsForOutlet(selectedOutlet: string) {
+    const dealer = this.allDealers.find(
+      d => (d.name || '').trim() === (selectedOutlet || '').trim()
+    );
+    const outletId = dealer?.outletId;
+    console.log("Outlet ID:", outletId);
 
-        if (!outletId) {
-            this.vehicledataSource.data = [];
-            return;
-        }
-
-        const existingSkus = this.outletProducts
-            .filter(p => p.outletId === outletId)
-            .map(p => p.sku);
-
-        let processedProducts = (this.productService as any).cachedProducts.map((p: any) => ({
-            ...p,
-            disabled: existingSkus.includes(p.sku)
-        }));
-
-        if (this.isEditMode && this.data?.sku) {
-            processedProducts = processedProducts.map((p: any) => ({
-                ...p,
-                disabled: p.sku === this.data.sku ? false : p.disabled
-            }));
-        }
-
-        this.vehicledataSource.data = processedProducts;
-        console.log("Products with disabled flag:", processedProducts);
+    if (!outletId) {
+      this.vehicledataSource.data = [];
+      return;
     }
 
+    const existingSkus = this.outletProducts
+      .filter(p => p.outletId === outletId)
+      .map(p => p.sku);
 
-    // ----------------- PRODUCTS -----------------
+    const cachedProducts = (this.productService as any).cachedProducts || [];
+    let processedProducts = cachedProducts.map((p: any) => ({
+      ...p,
+      disabled: existingSkus.includes(p.sku)
+    }));
+
+    if (this.isEditMode && this.data?.sku) {
+      processedProducts = processedProducts.map((p: any) => ({
+        ...p,
+        disabled: p.sku === this.data.sku ? false : p.disabled
+      }));
+    }
+
+    this.vehicledataSource.data = processedProducts;
+    console.log("Products with disabled flag:", processedProducts);
+  }
+
+
+
+  // ----------------- PRODUCTS -----------------
 
 
   toggleSelectAllProducts() {
@@ -601,10 +603,11 @@ export class AddOutletProductComponent implements OnInit {
 
   onChangeDealer() {
     const selectedDealer = this.dealerControl.value;
+    console.log(selectedDealer)
 
-    if (selectedDealer && selectedDealer.name) {
+    if (selectedDealer) {
       // 1. Store the selected object (as you use it later in productList/submitForm)
-      this.selectedDealer = selectedDealer.dealerId;
+      this.selectedDealer = selectedDealer;
 
       // 2. CRITICAL FIX: Set the 'dealerOutlet' form control value to the dealer's NAME.
       // This is what satisfies the '!!formValues.dealerOutlet' check in submitForm.
@@ -612,7 +615,7 @@ export class AddOutletProductComponent implements OnInit {
 
       // 3. Call productList() as per your original logic
       this.productList();
-      this.loadOutletProduct(selectedDealer.outletId)
+      // this.loadOutletProduct(selectedDealer.outletId)
     } else {
       this.selectedDealer = {};
       this.grnForm.get('dealerOutlet')?.setValue(null);
