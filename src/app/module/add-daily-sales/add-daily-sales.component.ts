@@ -190,7 +190,7 @@ export class AddDailySalesComponent implements OnInit {
       town: [''],
       vehicle: [[], Validators.required],
       salesDate: ['', Validators.required],
-      salesType: ['', Validators.required]
+      salesType: ['']
     });
   }
 
