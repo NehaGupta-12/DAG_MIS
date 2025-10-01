@@ -379,8 +379,8 @@ export class AddUserComponent implements OnInit{
 
   initThirdForm() {
     this.thirdForm = this.fb.group({
-      first: ['', [Validators.required, Validators.pattern('[a-zA-Z]+')]],
-      last: ['', [Validators.required, Validators.pattern('[a-zA-Z]+')]],
+      first: ['', [Validators.required]],
+      last: ['', [Validators.required]],
       password: ['', [Validators.required]],
       email: ['', [Validators.required, Validators.email, Validators.minLength(5)]],
       address: [''],
