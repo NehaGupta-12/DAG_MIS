@@ -33,7 +33,7 @@ export class OutletProductService {
   }
 
 // /updatedProductOutlet/A.And.UBarrieEnterprises
-  getOutletProductListByDealerId(dealerId: string): Observable<any[]> {debugger
+  getOutletProductListByDealerId(dealerId: string): Observable<any[]> {
     return this.mFirestore
       .collection(`${this.collectionName}/${dealerId}/products`)
       .snapshotChanges()

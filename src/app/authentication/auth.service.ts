@@ -107,7 +107,7 @@ export class AuthService {
   //       });
   //       return null;
   //     });
-  //     if (userCredential && userCredential.user) {debugger
+  //     if (userCredential && userCredential.user) {
   //       const user = userCredential.user;
   //       console.log('Login successful:', JSON.stringify(user));
   //

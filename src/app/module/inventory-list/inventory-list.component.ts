@@ -220,7 +220,7 @@ export class InventoryListComponent implements OnInit {
   }
 
 
-  onOutletChange(selectedOutlet: any) {debugger
+  onOutletChange(selectedOutlet: any) {
     if (!selectedOutlet) {
       this.dataSource.data = [];
       return;

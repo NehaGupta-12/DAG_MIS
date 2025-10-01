@@ -273,12 +273,12 @@ export class OutletProductComponent implements OnInit {
                       Swal.fire('Error', 'Something went wrong.', 'error');
                     });
                 });
-              } else {debugger
+              } else {
                 transformedData.status = 'Active';
                 transformedData.createBy = username;
                 transformedData.createdAt = timestamp;
 
-                runInInjectionContext(this.injector, () => {debugger
+                runInInjectionContext(this.injector, () => {
                   this.outletService.addOutletProduct(transformedData)
                     .then(() => {
                       Swal.fire('Added!', 'GRN Details added successfully.', 'success');

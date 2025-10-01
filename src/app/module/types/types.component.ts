@@ -462,8 +462,7 @@ export class TypesComponent implements OnInit {
   isEditSub = false;
   subToEditIndex: number | null = null;
   showSubModal = false;
-
-  editSubCategory(sub: any, i: number) {debugger
+  editSubCategory(sub: any, i: number) {
     this.isEditSub = true;
     this.showSubModal = true;
     this.subToEditIndex = i;
