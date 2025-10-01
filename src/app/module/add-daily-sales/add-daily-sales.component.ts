@@ -82,6 +82,7 @@ export class AddDailySalesComponent implements OnInit {
   _countriesTypes$!: Observable<string[]>;
   _divisionTypes$!: Observable<string[]>;
   _townTypes$!: Observable<string[]>;
+  _salesTypes$!: Observable<string[]>;
   filteredDivisions$: BehaviorSubject<string[]> = new BehaviorSubject<string[]>([]);
   filteredTowns$: BehaviorSubject<string[]> = new BehaviorSubject<string[]>([]);
   filteredDealers$: BehaviorSubject<any[]> = new BehaviorSubject<any[]>([]);
@@ -97,6 +98,7 @@ export class AddDailySalesComponent implements OnInit {
   @ViewChild('divisionSearchInput') divisionSearchInput!: ElementRef;
   @ViewChild('countrySearchInput') countrySearchInput!: ElementRef;
   @ViewChild('townSearchInput') townSearchInput!: ElementRef;
+  @ViewChild('salesSearchInput') salesSearchInput!: ElementRef;
 
   _divisionTypes: string[] = [];
   filteredDivisionTypes: string[] = [];
@@ -109,6 +111,10 @@ export class AddDailySalesComponent implements OnInit {
   _townTypes: string[] = [];
   filteredTownTypes: string[] = [];
   townSearchText: string = '';
+
+  _salesTypes: string[] = [];
+  filteredSalesTypes: string[] = [];
+  salesSearchText: string = '';
 
   debounceTimer: any;
 
@@ -154,6 +160,11 @@ export class AddDailySalesComponent implements OnInit {
       .valueChanges()
       .pipe(map(data => data?.subcategories || []));
 
+    this._salesTypes$ = this.mDatabase
+      .object<{ subcategories: string[] }>('typelist/SalesType')
+      .valueChanges()
+      .pipe(map(data => data?.subcategories || []));
+
     // Subscribe to all observables and populate local arrays
     this._divisionTypes$.subscribe(data => {
       this._divisionTypes = data;
@@ -169,6 +180,11 @@ export class AddDailySalesComponent implements OnInit {
       this._townTypes = data;
       this.filterTownTypes();
     });
+
+    this._salesTypes$.subscribe(data => {
+      this._salesTypes = data;
+      this.filterSalesTypes();
+    });
     this.isEditMode = !!data?.id;
     this.dailySalesForm = this.fb.group({
       dealerOutlet: ['', Validators.required],
@@ -176,7 +192,8 @@ export class AddDailySalesComponent implements OnInit {
       country: [''],
       town: [''],
       vehicle: [[], Validators.required],
-      salesDate: ['', Validators.required]
+      salesDate: ['', Validators.required],
+      salesType: ['']
     });
   }
 
@@ -241,6 +258,28 @@ export class AddDailySalesComponent implements OnInit {
   //     this.filterTownTypes();
   //   }, 300);
   // }
+
+  // --- Town Methods ---
+  filterSalesTypes() {
+    const searchText = this.salesSearchText.toLowerCase();
+    this.filteredSalesTypes = this._salesTypes.filter(sale => sale.toLowerCase().includes(searchText));
+  }
+  onSalesSearchChange(event: any) {
+    clearTimeout(this.debounceTimer);
+    this.debounceTimer = setTimeout(() => {
+      this.salesSearchText = event.target.value;
+      this.filterTownTypes();
+    }, 300);
+  }
+  onSalesSelectOpened(isOpened: boolean) {
+    if (isOpened) {
+      this.salesSearchText = '';
+      this.filterTownTypes();
+      setTimeout(() => this.salesSearchInput.nativeElement.focus(), 0);
+    }
+  }
+
+
   selectionOpen(isOpened: boolean, type: 'dealer' | 'vehicle' | 'country' | 'division' | 'town') {
     // Common reset function when dropdown closes
     if (!isOpened) {
@@ -730,6 +769,7 @@ export class AddDailySalesComponent implements OnInit {
               division: formValues.division,
               country: formValues.country,
               town: formValues.town,
+              salesType: formValues.salesType,
               salesDate: salesDateTime,
               status: 'Active',
               updatedBy: username,

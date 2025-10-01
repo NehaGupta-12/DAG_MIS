@@ -38,6 +38,7 @@ import {MenuListComponent} from "./Menu list/menu-list/menu-list.component";
 import {AddEditMenuListComponent} from "./Menu list/add-edit-menu-list/add-edit-menu-list.component";
 import {AuthGuard} from "../authentication/auth.guard";
 import {ActivityLogComponent} from "./activity-log/activity-log.component";
+import {AutoFunctionUploadComponent} from "../auto-function-upload/auto-function-upload.component";
 
 
 export const MODULES_ROUTE: Route[] = [
@@ -236,6 +237,11 @@ export const MODULES_ROUTE: Route[] = [
   {
     path:'product-master-list',
     component: ProductMasterListComponent,
+    canActivate:[AuthGuard]
+  },
+  {
+    path:'auto-function-upload',
+    component: AutoFunctionUploadComponent,
     canActivate:[AuthGuard]
   },
   {

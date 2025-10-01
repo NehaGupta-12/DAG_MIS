@@ -199,9 +199,38 @@ export class AddBudgetComponent implements OnInit {
       }
     });
 
+    // runInInjectionContext(this.injector, () => {
+    //   // ✅ Combine subscriptions for country and year
+    //   this.targetForm.get('country')?.valueChanges.subscribe((selectedCountry: string) => {
+    //     const selectedYear = this.targetForm.get('year')?.value;
+    //     if (selectedYear && selectedCountry) {
+    //       this.updateDisabledMonths(selectedYear, selectedCountry);
+    //     } else {
+    //       this.disabledMonths = [];
+    //     }
+    //   });
+    //
+    //   this.targetForm.get('year')?.valueChanges.subscribe((selectedYear: string) => {
+    //     const selectedCountry = this.targetForm.get('country')?.value;
+    //     if (selectedYear && selectedCountry) {
+    //       this.updateDisabledMonths(selectedYear, selectedCountry);
+    //     } else {
+    //       this.disabledMonths = [];
+    //     }
+    //   });
+    //
+    //   this.targetForm.get('month')?.valueChanges.subscribe(() => this.updatePeriod());
+    // });
+
     runInInjectionContext(this.injector, () => {
-      // ✅ Combine subscriptions for country and year
+      // Subscribe to country changes to filter products
       this.targetForm.get('country')?.valueChanges.subscribe((selectedCountry: string) => {
+        this.filterProductsByCountry(selectedCountry);
+
+        // Reset products selection when country changes
+        this.targetForm.get('products')?.setValue([]);
+
+        // Update disabled months
         const selectedYear = this.targetForm.get('year')?.value;
         if (selectedYear && selectedCountry) {
           this.updateDisabledMonths(selectedYear, selectedCountry);
@@ -227,6 +256,34 @@ export class AddBudgetComponent implements OnInit {
 
       this.targetForm.get('month')?.valueChanges.subscribe(() => this.updatePeriod());
     });
+  }
+
+
+  filterProductsByCountry(selectedCountry: string) {
+    if (!selectedCountry) {
+      this._allProducts = [];
+      this.filteredProducts = [];
+      return;
+    }
+
+    const countryFilteredProducts = this.vehicledataSource.data.filter((prod: any) =>
+      prod.availableIn && prod.availableIn.includes(selectedCountry)
+    );
+
+    // Deduplicate based on simplified model
+    const uniqueModelsMap = new Map<string, any>();
+    countryFilteredProducts.forEach((prod: any) => {
+      const simpleName = this.simplifyModelName(prod.model);
+      if (!uniqueModelsMap.has(simpleName)) {
+        uniqueModelsMap.set(simpleName, {
+          ...prod,
+          name: simpleName
+        });
+      }
+    });
+
+    this._allProducts = Array.from(uniqueModelsMap.values());
+    this.filteredProducts = [...this._allProducts];
   }
 
   updateDisabledMonths(year: string, country: string) {
@@ -444,29 +501,50 @@ export class AddBudgetComponent implements OnInit {
     return match ? match[0].toUpperCase() : model;
   }
 
+  // loadProducts() {
+  //   this.loadingService.setLoading(true);
+  //   runInInjectionContext(this.injector, () => {
+  //     this.productService.getProductList().subscribe({
+  //       next: (data) => {
+  //         console.log("raw data", data);
+  //
+  //         // ✅ Deduplicate based on simplified model
+  //         const uniqueModelsMap = new Map<string, any>();
+  //         data.forEach((prod) => {
+  //           const simpleName = this.simplifyModelName(prod.model);
+  //           if (!uniqueModelsMap.has(simpleName)) {
+  //             uniqueModelsMap.set(simpleName, {
+  //               ...prod,
+  //               name: simpleName // override name for dropdown
+  //             });
+  //           }
+  //         });
+  //
+  //         this._allProducts = Array.from(uniqueModelsMap.values());
+  //         this.filteredProducts = [...this._allProducts];
+  //         this.vehicledataSource.data = data; // keep raw data if needed for details
+  //         this.loadingService.setLoading(false);
+  //       },
+  //       error: () => this.loadingService.setLoading(false)
+  //     });
+  //   });
+  // }
+
+
   loadProducts() {
     this.loadingService.setLoading(true);
     runInInjectionContext(this.injector, () => {
       this.productService.getProductList().subscribe({
         next: (data) => {
           console.log("raw data", data);
-
-          // ✅ Deduplicate based on simplified model
-          const uniqueModelsMap = new Map<string, any>();
-          data.forEach((prod) => {
-            const simpleName = this.simplifyModelName(prod.model);
-            if (!uniqueModelsMap.has(simpleName)) {
-              uniqueModelsMap.set(simpleName, {
-                ...prod,
-                name: simpleName // override name for dropdown
-              });
-            }
-          });
-
-          this._allProducts = Array.from(uniqueModelsMap.values());
-          this.filteredProducts = [...this._allProducts];
-          this.vehicledataSource.data = data; // keep raw data if needed for details
+          this.vehicledataSource.data = data; // Store all raw data
           this.loadingService.setLoading(false);
+
+          // If country is already selected (edit mode), filter products
+          const selectedCountry = this.targetForm.get('country')?.value;
+          if (selectedCountry) {
+            this.filterProductsByCountry(selectedCountry);
+          }
         },
         error: () => this.loadingService.setLoading(false)
       });

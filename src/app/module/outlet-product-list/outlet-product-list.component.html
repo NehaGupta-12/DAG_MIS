@@ -22,23 +22,23 @@
               class="search-input"
             />
           </div>
-          <mat-option *ngFor="let dealer of filteredDealers" [value]="dealer.name">
+          <mat-option *ngFor="let dealer of filteredDealers" [value]="dealer">
             {{ dealer.name }}
           </mat-option>
         </mat-select>
       </mat-form-field>
 
-      <div>
-        <button
-          class="mx-2"
-          mat-mini-fab
-          color="primary"
-          matTooltip="Search"
-          (click)="onSearchClick(dealerSelect.value)">
-          <mat-icon>search</mat-icon>
-        </button>
+      <div class="d-flex gap-2">
+<!--        <button-->
+<!--          class="mx-2"-->
+<!--          mat-mini-fab-->
+<!--          color="primary"-->
+<!--          matTooltip="Search"-->
+<!--          (click)="onSearchClick()">-->
+<!--          <mat-icon>search</mat-icon>-->
+<!--        </button>-->
 
-        <button
+        <button class="mx-3"
           mat-mini-fab
           color="warn"
           matTooltip="Clear"

@@ -32,14 +32,17 @@ export class OutletProductService {
       );
   }
 
+// /updatedProductOutlet/A.And.UBarrieEnterprises
   getOutletProductListByDealerId(dealerId: string): Observable<any[]> {
     return this.mFirestore
-      .collection(`outlets/${dealerId}/products`)
+      .collection(`${this.collectionName}/${dealerId}/products`)
       .snapshotChanges()
       .pipe(
         map(actions =>
           actions.map(a => {
             const data = a.payload.doc.data();
+            console.log(data)
+            console.log(data)
             const id = a.payload.doc.id;
             return { id, ...(data as any) };
           })
@@ -47,26 +50,6 @@ export class OutletProductService {
       );
   }
 
-
-
-  // // 📌 Add new GRN
-  // addOutletProduct(grnData: any): Promise<any> {
-  //   const payload = {
-  //     ...grnData,
-  //     createdAt: new Date()
-  //   };
-  //   return this.firestore
-  //     .collection(this.collectionName)
-  //     .add(payload)
-  //     .then((result) => {
-  //       console.log('✅ Outlet Product added successfully:', result);
-  //       return result;
-  //     })
-  //     .catch((error) => {
-  //       console.error('❌ Error adding GRN:', error);
-  //       throw error;
-  //     });
-  // }
 
   addOutletProduct(grnData: any): Promise<any> {
     const payload = {
@@ -158,7 +141,6 @@ export class OutletProductService {
       .delete();
   }
 
-
   async deleteOutletProductAndInventory(outletId: string, productId: string, dealerOutlet: string): Promise<void> {
     const batch = this.mFirestore.firestore.batch();
 
@@ -181,7 +163,6 @@ export class OutletProductService {
     return batch.commit();
   }
 
-
   // 📌 Get GRN by ID
   getOutletProductById(id: string): Observable<any> {
     return this.mFirestore
@@ -196,7 +177,4 @@ export class OutletProductService {
       );
   }
 
-
-  //collection >document > sub-collection > document > sub-collection > document > data
-  //
 }

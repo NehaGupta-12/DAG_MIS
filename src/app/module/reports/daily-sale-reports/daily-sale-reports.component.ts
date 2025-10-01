@@ -119,12 +119,16 @@ export class DailySaleReportsComponent implements OnInit{
   filteredDivisionsByCountry: string[] = [];
   filteredTownsByDivision: string[] = [];
   filteredOutletsByTown: string[] = [];
+  filteredSalesByDivision: string[] = [];
+  salesList: any[] = [];   // raw data from Firestore
+  filteredSalesList: any[] = [];
 
   search: any = {
     name: '',
     division: '',
     country: '',
     town: '',
+    sale: '',
     product: '',
   };
 
@@ -133,6 +137,7 @@ export class DailySaleReportsComponent implements OnInit{
     division: [],
     country: [],
     town: [],
+    sale: [],
     product: [],
   };
 
@@ -141,6 +146,7 @@ export class DailySaleReportsComponent implements OnInit{
     division: [],
     country: [],
     town: [],
+    sale: [],
     product: [],
   };
 
@@ -163,6 +169,7 @@ export class DailySaleReportsComponent implements OnInit{
       country: [''],
       division: [''],
       town: [''],
+      sale: [''],
       product: [''],
       period: this.fb.group({
         start: [''],
@@ -193,6 +200,10 @@ export class DailySaleReportsComponent implements OnInit{
     this.mDatabase.object<{ subcategories: string[] }>('typelist/Town').valueChanges()
       .pipe(map(d => d?.subcategories || []))
       .subscribe(data => { this.options.town = data; this.filteredOptions.town = [...data]; });
+
+    this.mDatabase.object<{ subcategories: string[] }>('typelist/SalesType').valueChanges()
+      .pipe(map(d => d?.subcategories || []))
+      .subscribe(data => { this.options.sale = data; this.filteredOptions.sale = [...data]; });
   }
 
   ngOnInit() {
@@ -275,6 +286,12 @@ export class DailySaleReportsComponent implements OnInit{
       .filter(t => t.toLowerCase().includes(searchText));
   }
 
+  filterSales(value: string) {
+    const searchText = (value || '').toLowerCase();
+    this.filteredOptions.sale = this.options.sale
+      .filter((s: string) => s.toLowerCase().includes(searchText));
+  }
+
   filterOutlet(value: string) {
     const searchText = (value || '').toLowerCase();
     this.filteredOptions.name = this.filteredOutletsByTown
@@ -319,9 +336,6 @@ export class DailySaleReportsComponent implements OnInit{
       this.selectedOutlets = [...all];
     }
   }
-
-
-
 
 
   loadSalesList() {
@@ -521,6 +535,10 @@ export class DailySaleReportsComponent implements OnInit{
     );
   }
 
+// ... inside DailySaleReportsComponent class
+
+// ... (other methods)
+
   onSubmit() {
     if (!this.countryOptionsLoaded) {
       this.loadingService.setLoading(false);
@@ -561,6 +579,7 @@ export class DailySaleReportsComponent implements OnInit{
       console.log('Products to show:', productsToShow.length);
       console.log('Product models:', productsToShow.map(p => p.model));
 
+      // 🎯 MODIFIED: Include check for filters.sale
       const filterFn = (item: any, outlet: string | null = null) => {
         const itemDate = item.salesDate
           ? new Date(item.salesDate)
@@ -571,6 +590,9 @@ export class DailySaleReportsComponent implements OnInit{
           (!filters.town || item.town === filters.town) &&
           (!filters.division || item.division === filters.division) &&
           (!outlet || item.dealerOutlet === outlet) &&
+          // --- New Sales Type Filter ---
+          (!filters.sale || item.salesType === filters.sale) &&
+          // -----------------------------
           (!startDate || itemDate >= startDate) &&
           (!endDate || itemDate <= endDate)
         );
@@ -612,6 +634,8 @@ export class DailySaleReportsComponent implements OnInit{
       this.loadingService.setLoading(false);
     }
   }
+
+// ... (other methods)
 
 // ✅ Helper to build rows
   private buildRows(report: any) {
@@ -672,11 +696,6 @@ export class DailySaleReportsComponent implements OnInit{
     return rows;
   }
 
-
-
-
-
-
   exportToExcel() {
     if (!this.allOutletReports || this.allOutletReports.length === 0) {
       Swal.fire('Info', 'No data available to export', 'info');
@@ -686,83 +705,55 @@ export class DailySaleReportsComponent implements OnInit{
     const workbook = new Workbook();
     const worksheet = workbook.addWorksheet("Sales Report");
 
-    // Get dynamic column count (products + TOTAL)
-    const firstReport = this.allOutletReports[0];
-    let columnCount = 1; // 1 for first blank cell
+    let currentRow = 1;
 
-    if (firstReport && firstReport.rows) {
-      columnCount += firstReport.rows.filter(r => r.product !== "TOTAL").length;
-    }
-    columnCount += 1; // for TOTAL column
+    this.allOutletReports.forEach((outletReport, outletIndex) => {
+      if (!outletReport || !outletReport.rows) return;
 
-    // Calculate last column letter
-    const lastColumnLetter = worksheet.getColumn(columnCount).letter;
-
-    // === TITLE ROW ===
-    worksheet.mergeCells(`A1:${lastColumnLetter}1`);
-    worksheet.getCell("A1").value = `Cumulative for the month - All Outlets`;
-    worksheet.getCell("A1").alignment = { horizontal: "center", vertical: "middle" };
-    worksheet.getCell("A1").font = { bold: true, size: 14 };
-    worksheet.getCell("A1").fill = {
-      type: "pattern",
-      pattern: "solid",
-      fgColor: { argb: "FFFF00" },
-    };
-    worksheet.getRow(1).height = 20;
-
-    // === DATE ROW ===
-    worksheet.mergeCells(`A2:${lastColumnLetter}2`);
-    worksheet.getCell("A2").value = `Date: ${new Date().toLocaleDateString()}`;
-    worksheet.getCell("A2").alignment = { horizontal: "center", vertical: "middle" };
-    worksheet.getCell("A2").font = { bold: true, size: 12 };
-    worksheet.getCell("A2").fill = {
-      type: "pattern",
-      pattern: "solid",
-      fgColor: { argb: "FFFF00" },
-    };
-    worksheet.getRow(2).height = 20;
-
-    let currentRow = 4;
-
-    // === HEADER ROW ===
-    const headerRow = [""];
-    if (firstReport && firstReport.rows) {
-      firstReport.rows.forEach(r => {
-        if (r.product !== "TOTAL") {
-          headerRow.push(r.product.toUpperCase());
-        }
-      });
-      headerRow.push("TOTAL");
-    }
-
-    const headerExcelRow = worksheet.addRow(headerRow);
-    headerExcelRow.font = { bold: true };
-    headerExcelRow.height = 40;
-    headerExcelRow.eachCell(cell => {
-      cell.alignment = { horizontal: "center", vertical: "middle", wrapText: true };
-      cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "F4B083" } };
-    });
-    currentRow++;
-
-    // === DATA ROWS ===
-    const categories = ["Stock for the day", "Cumulative for the month", "YTD"];
-    categories.forEach((category, idx) => {
-      const rowData: any[] = [category];
-      let total = 0;
-
-      if (firstReport && firstReport.rows) {
-        firstReport.rows.forEach(r => {
-          if (r.product !== "TOTAL") {
-            const val = r[["Day", "Month", "YTD"][idx]] || 0;
-            rowData.push(val);
-            total += val;
-          }
-        });
-      }
-
-      rowData.push(total);
-      worksheet.addRow(rowData);
+      // === OUTLET TITLE ROW ===
+      worksheet.mergeCells(`A${currentRow}:E${currentRow}`);
+      worksheet.getCell(`A${currentRow}`).value = `Cumulative for the month - ${outletReport.outlet}`;
+      worksheet.getCell(`A${currentRow}`).alignment = { horizontal: "center", vertical: "middle" };
+      worksheet.getCell(`A${currentRow}`).font = { bold: true, size: 14 };
+      worksheet.getCell(`A${currentRow}`).fill = {
+        type: "pattern",
+        pattern: "solid",
+        fgColor: { argb: "FFFF00" },
+      };
+      worksheet.getRow(currentRow).height = 20;
       currentRow++;
+
+      // === DATE ROW ===
+      worksheet.mergeCells(`A${currentRow}:E${currentRow}`);
+      worksheet.getCell(`A${currentRow}`).value = `Date: ${new Date().toLocaleDateString()}`;
+      worksheet.getCell(`A${currentRow}`).alignment = { horizontal: "center", vertical: "middle" };
+      worksheet.getCell(`A${currentRow}`).font = { bold: true, size: 12 };
+      worksheet.getCell(`A${currentRow}`).fill = {
+        type: "pattern",
+        pattern: "solid",
+        fgColor: { argb: "FFFF00" },
+      };
+      worksheet.getRow(currentRow).height = 20;
+      currentRow += 2;
+
+      // === HEADER ROW ===
+      const headerRow = ["Product", "Day", "Month", "YTD"];
+      const headerExcelRow = worksheet.addRow(headerRow);
+      headerExcelRow.font = { bold: true };
+      headerExcelRow.height = 20;
+      headerExcelRow.eachCell(cell => {
+        cell.alignment = { horizontal: "center", vertical: "middle", wrapText: true };
+        cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "F4B083" } };
+      });
+      currentRow++;
+
+      // === DATA ROWS ===
+      outletReport.rows.forEach((row: any) => {
+        worksheet.addRow([row.product, row.Day, row.Month, row.YTD]);
+        currentRow++;
+      });
+
+      currentRow += 2; // add spacing before next outlet
     });
 
     // === Borders + alignment ===
@@ -791,6 +782,7 @@ export class DailySaleReportsComponent implements OnInit{
       FileSaver.saveAs(blob, `Sales_Report_${new Date().toLocaleDateString()}.xlsx`);
     });
   }
+
 
 
 

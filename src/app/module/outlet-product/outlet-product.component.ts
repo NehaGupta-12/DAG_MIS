@@ -172,16 +172,6 @@ export class OutletProductComponent implements OnInit {
     });
   }
 
-  // isSubmitEnabled(): boolean {
-  //   const formValid = !!this.outletForm.get('dealerOutlet')?.valid &&
-  //     // !!this.grnForm.get('openingStock')?.valid &&
-  //
-  //   const hasProducts = this.addedProducts.length > 0;
-  //   const allQuantitiesValid = this.addedProducts.every(p => p.quantity && p.quantity > 0);
-  //
-  //   return formValid && hasProducts && allQuantitiesValid;
-  // }
-
 
   addProduct() {
     const selectedProductName = this.outletForm.get('products')?.value;
@@ -263,7 +253,7 @@ export class OutletProductComponent implements OnInit {
                 transformedData.updatedAt = timestamp;
 
                 runInInjectionContext(this.injector, () => {
-                  this.outletService.updateOutletProduct(this.data.id, transformedData)
+                  this.outletService.updateOutletProduct(this.data.id,this.data.productId, transformedData)
                     .then(() => {
                       Swal.fire('Updated!', 'GRN Details updated successfully.', 'success');
                       this.goBack();
@@ -273,12 +263,12 @@ export class OutletProductComponent implements OnInit {
                       Swal.fire('Error', 'Something went wrong.', 'error');
                     });
                 });
-              } else {debugger
+              } else {
                 transformedData.status = 'Active';
                 transformedData.createBy = username;
                 transformedData.createdAt = timestamp;
 
-                runInInjectionContext(this.injector, () => {debugger
+                runInInjectionContext(this.injector, () => {
                   this.outletService.addOutletProduct(transformedData)
                     .then(() => {
                       Swal.fire('Added!', 'GRN Details added successfully.', 'success');

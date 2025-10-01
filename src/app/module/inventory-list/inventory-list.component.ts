@@ -79,6 +79,7 @@ import {InventoryService} from "../add-inventory/inventory.service";
     MatTableModule
   ],
   templateUrl: './inventory-list.component.html',
+  standalone: true,
   styleUrl: './inventory-list.component.scss'
 })
 export class InventoryListComponent implements OnInit {
@@ -141,7 +142,7 @@ export class InventoryListComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.productList();
+    // this.productList();
     this. DealerList();
   this.loadInventoryDaata()
   }
@@ -206,9 +207,9 @@ export class InventoryListComponent implements OnInit {
     });
   }
 
-  productList() {
+  productList(id:any) {
     runInInjectionContext(this.injector, () => {
-      this.outletProductService.getOutletProductList().subscribe((data) => {
+      this.outletProductService.getOutletProductById(id).subscribe((data) => {
         console.log("All outlet products:", data);
         this.allOutletProducts = data;   // keep all
         this.dataSource.data = [];       // empty table by default
@@ -219,11 +220,12 @@ export class InventoryListComponent implements OnInit {
   }
 
 
-  onOutletChange(selectedOutlet: string) {debugger
+  onOutletChange(selectedOutlet: any) {
     if (!selectedOutlet) {
       this.dataSource.data = [];
       return;
     }
+    this.productList(selectedOutlet.outletId)
 
     // Find the dealer ID from the allDealers array
     const selectedDealer = this.allDealers.find((d: any) => d.name === selectedOutlet);
@@ -287,7 +289,7 @@ export class InventoryListComponent implements OnInit {
         // Proceed with deletion
         runInInjectionContext(this.injector, () => {
           this.productService.deleteProduct(id).then(() => {
-            this.productList();
+            // this.productList();
 
             // // Log activity
             // const activity = {

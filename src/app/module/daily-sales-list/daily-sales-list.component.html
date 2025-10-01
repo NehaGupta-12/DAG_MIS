@@ -76,6 +76,11 @@
                   <td mat-cell *matCellDef="let row">{{ row.quantity }}</td>
                 </ng-container>
 
+                <ng-container matColumnDef="salesType">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Sales Type</th>
+                  <td mat-cell *matCellDef="let row">{{ row.salesType }}</td>
+                </ng-container>
+
                 <ng-container matColumnDef="salesDate">
                   <th mat-header-cell *matHeaderCellDef>Sales Date/Time</th>
                   <td mat-cell *matCellDef="let row">

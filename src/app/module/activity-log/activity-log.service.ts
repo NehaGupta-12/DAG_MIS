@@ -20,7 +20,7 @@
   //
   //   }
   //
-  //   async addLog (activity:ActivityLog)  {debugger
+  //   async addLog (activity:ActivityLog)  {
   //     let email = await localStorage.getItem('userEmail')
   //     runInInjectionContext(this.injector, () => {
   //     activity.user = email!

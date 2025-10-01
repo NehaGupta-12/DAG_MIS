@@ -127,20 +127,24 @@ export class AddDealerService {
   }
 
 
-
-
   addDealer(callSheet: any): Promise<any> {
-    console.log('Calling Firestore addCallSheet with data:', callSheet);
-    return this.firestore.collection(this.collectionName).add(callSheet)
-      .then((result) => {
-        console.log('Firestore successfully added Call Sheet Log:', result);
-        return result;
+    const dealerId = callSheet.name.replace(/\s+/g, "");
+    const payload = { ...callSheet, dealerId: dealerId };
+    return this.firestore
+      .collection(this.collectionName)   // e.g. "dealers"
+      .doc(dealerId)                     // docId = dealer name without spaces
+      .set(payload)
+      .then(() => {
+        console.log("Firestore successfully added Dealer:", dealerId);
+        return dealerId;
       })
       .catch((error) => {
-        console.error('Firestore failed to add Call Sheet Log:', error);
+        console.error("Firestore failed to add Dealer:", error);
         throw error;
       });
   }
+
+
 
   updateDealer(id: string, callSheet: any): Promise<any> {
     console.log('Calling Firestore updateCallSheet with ID:', id, ' and data:', callSheet);
@@ -158,5 +162,7 @@ export class AddDealerService {
   deleteDealer(id: string) {
     return this.firestore.doc(`${this.collectionName}/${id}`).delete();
   }
+
+
 
 }
