@@ -172,16 +172,6 @@ export class OutletProductComponent implements OnInit {
     });
   }
 
-  // isSubmitEnabled(): boolean {
-  //   const formValid = !!this.outletForm.get('dealerOutlet')?.valid &&
-  //     // !!this.grnForm.get('openingStock')?.valid &&
-  //
-  //   const hasProducts = this.addedProducts.length > 0;
-  //   const allQuantitiesValid = this.addedProducts.every(p => p.quantity && p.quantity > 0);
-  //
-  //   return formValid && hasProducts && allQuantitiesValid;
-  // }
-
 
   addProduct() {
     const selectedProductName = this.outletForm.get('products')?.value;

@@ -51,26 +51,6 @@ export class OutletProductService {
   }
 
 
-
-  // // 📌 Add new GRN
-  // addOutletProduct(grnData: any): Promise<any> {
-  //   const payload = {
-  //     ...grnData,
-  //     createdAt: new Date()
-  //   };
-  //   return this.firestore
-  //     .collection(this.collectionName)
-  //     .add(payload)
-  //     .then((result) => {
-  //       console.log('✅ Outlet Product added successfully:', result);
-  //       return result;
-  //     })
-  //     .catch((error) => {
-  //       console.error('❌ Error adding GRN:', error);
-  //       throw error;
-  //     });
-  // }
-
   addOutletProduct(grnData: any): Promise<any> {
     const payload = {
       ...grnData,
@@ -161,7 +141,6 @@ export class OutletProductService {
       .delete();
   }
 
-
   async deleteOutletProductAndInventory(outletId: string, productId: string, dealerOutlet: string): Promise<void> {
     const batch = this.mFirestore.firestore.batch();
 
@@ -184,7 +163,6 @@ export class OutletProductService {
     return batch.commit();
   }
 
-
   // 📌 Get GRN by ID
   getOutletProductById(id: string): Observable<any> {
     return this.mFirestore
@@ -199,7 +177,4 @@ export class OutletProductService {
       );
   }
 
-
-  //collection >document > sub-collection > document > sub-collection > document > data
-  //
 }
