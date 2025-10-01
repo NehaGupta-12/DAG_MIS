@@ -123,13 +123,18 @@
               <!-- Date -->
               <div class="col-md-6">
                 <mat-form-field class="example-full-width w-100" appearance="outline">
-                  <mat-label>Select Date</mat-label>
-                  <input matInput [matDatepicker]="picker" formControlName="date" required>
+<!--                  <mat-label>Select Date</mat-label>-->
+<!--                  <input matInput [matDatepicker]="picker" formControlName="date" required>-->
+<!--                  <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>-->
+<!--                  <mat-datepicker #picker></mat-datepicker>-->
+<!--                  <mat-error *ngIf="grnForm.get('date')?.hasError('required')">-->
+<!--                    Date is required-->
+<!--                  </mat-error>-->
+
+                  <mat-label>Sales Date</mat-label>
+                  <input matInput [matDatepicker]="picker" formControlName="date" [min]="minDate">
                   <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
                   <mat-datepicker #picker></mat-datepicker>
-                  <mat-error *ngIf="grnForm.get('date')?.hasError('required')">
-                    Date is required
-                  </mat-error>
                 </mat-form-field>
               </div>
 

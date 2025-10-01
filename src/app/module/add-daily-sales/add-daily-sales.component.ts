@@ -119,6 +119,9 @@ export class AddDailySalesComponent implements OnInit {
   // --- Dealer Search ---
   dealerSearchText: string = '';
   filteredDealersList: any[] = [];
+  today = new Date();
+
+  minDate = new Date(new Date().setDate(this.today.getDate() - 3));
 
 
   constructor(
@@ -181,6 +184,9 @@ export class AddDailySalesComponent implements OnInit {
     this.setupCascadingDropdowns();
     this.loadInventoryDaata();
     this.DealerList();
+
+// Sirf 3 din pehle tak ka past allow hoga
+
   }
 
 // --- Division Methods ---
@@ -697,13 +703,27 @@ export class AddDailySalesComponent implements OnInit {
 
             const formValues = this.dailySalesForm.getRawValue();
 
+            // let salesDateTime: number | null = null;
+            // if (formValues.salesDate) {
+            //   const selectedDate = new Date(formValues.salesDate);
+            //   const now = new Date();
+            //   selectedDate.setHours(now.getHours(), now.getMinutes(), now.getSeconds(), now.getMilliseconds());
+            //   salesDateTime = selectedDate.getTime();
+            // }
             let salesDateTime: number | null = null;
             if (formValues.salesDate) {
-              const selectedDate = new Date(formValues.salesDate);
+              const rawDate = formValues.salesDate;
+
+              // Ensure always Date object
+              const selectedDate = rawDate instanceof Date ? rawDate : new Date(rawDate);
+
+              // Preserve today's time
               const now = new Date();
               selectedDate.setHours(now.getHours(), now.getMinutes(), now.getSeconds(), now.getMilliseconds());
+
               salesDateTime = selectedDate.getTime();
             }
+
 
             const baseInfo = {
               dealerOutlet: formValues.dealerOutlet,

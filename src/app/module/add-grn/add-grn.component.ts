@@ -13,7 +13,7 @@ import {
   ReactiveFormsModule,
   UntypedFormBuilder,
   UntypedFormGroup,
-  Validators
+  Validators,
 } from "@angular/forms";
 import {MatButton, MatButtonModule} from "@angular/material/button";
 import {MatCheckbox, MatCheckboxModule} from "@angular/material/checkbox";
@@ -22,7 +22,7 @@ import {MatFormFieldModule} from "@angular/material/form-field";
 import {MatIconModule} from "@angular/material/icon";
 import {MatSelectModule} from "@angular/material/select";
 import {MatOptionModule} from "@angular/material/core";
-import {CommonModule, Location, NgForOf} from "@angular/common";
+import {CommonModule, Location, NgForOf, NgIf} from "@angular/common";
 import {GrnService} from "../grn.service";
 import {ActivatedRoute, Router} from "@angular/router";
 import {MAT_DIALOG_DATA} from "@angular/material/dialog";
@@ -49,6 +49,7 @@ import {AngularFireDatabase} from "@angular/fire/compat/database";
 import {BehaviorSubject, Observable} from "rxjs";
 import {MatDatepicker, MatDatepickerInput, MatDatepickerToggle} from "@angular/material/datepicker";
 import {MatProgressSpinner} from "@angular/material/progress-spinner";
+import {PrettyJsonModule} from "angular2-prettyjson";
 
 @Component({
   selector: 'app-add-grn',
@@ -77,7 +78,8 @@ import {MatProgressSpinner} from "@angular/material/progress-spinner";
     MatDatepickerToggle,
     MatDatepicker,
     MatDatepickerInput,
-    MatProgressSpinner
+    MatProgressSpinner,
+    NgIf
   ],
   providers: [
     {provide: MAT_DIALOG_DATA, useValue: {}} // ✅ Fallback
@@ -115,6 +117,9 @@ export class AddGRNComponent implements OnInit{
   filteredCountries: string[] = [];
   filteredDivisionTypes: string[] = [];
   filteredVehicles: any[] = [];
+  today = new Date();
+
+  minDate = new Date(new Date().setDate(this.today.getDate() - 3));
 
   constructor(
     private fb: UntypedFormBuilder,
@@ -154,7 +159,7 @@ export class AddGRNComponent implements OnInit{
       country: ['', Validators.required],
       division: ['', Validators.required],
       town: ['', Validators.required],
-      date: [null, Validators.required]   // 🔥 initially blank
+      date: ['', Validators.required]   // 🔥 initially blank
     });
   }
 
