@@ -66,6 +66,7 @@ export class DailySalesListComponent implements OnInit {
     { def: 'dealerOutlet', label: 'Dealer Outlet' },
     { def: 'salesDate', label: 'SalesDate' },
     { def: 'quantity', label: 'Quantity' },
+    { def: 'salesType', label: 'SalesType' },
   ];
 
   displayedColumns: string[] = [
@@ -75,6 +76,7 @@ export class DailySalesListComponent implements OnInit {
     'variant',
     'dealerOutlet',
     'quantity',
+    'salesType',
     'salesDate',
     'action'
   ];
