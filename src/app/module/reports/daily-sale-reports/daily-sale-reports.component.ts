@@ -119,12 +119,16 @@ export class DailySaleReportsComponent implements OnInit{
   filteredDivisionsByCountry: string[] = [];
   filteredTownsByDivision: string[] = [];
   filteredOutletsByTown: string[] = [];
+  filteredSalesByDivision: string[] = [];
+  salesList: any[] = [];   // raw data from Firestore
+  filteredSalesList: any[] = [];
 
   search: any = {
     name: '',
     division: '',
     country: '',
     town: '',
+    sale: '',
     product: '',
   };
 
@@ -133,6 +137,7 @@ export class DailySaleReportsComponent implements OnInit{
     division: [],
     country: [],
     town: [],
+    sale: [],
     product: [],
   };
 
@@ -141,6 +146,7 @@ export class DailySaleReportsComponent implements OnInit{
     division: [],
     country: [],
     town: [],
+    sale: [],
     product: [],
   };
 
@@ -163,6 +169,7 @@ export class DailySaleReportsComponent implements OnInit{
       country: [''],
       division: [''],
       town: [''],
+      sale: [''],
       product: [''],
       period: this.fb.group({
         start: [''],
@@ -193,6 +200,10 @@ export class DailySaleReportsComponent implements OnInit{
     this.mDatabase.object<{ subcategories: string[] }>('typelist/Town').valueChanges()
       .pipe(map(d => d?.subcategories || []))
       .subscribe(data => { this.options.town = data; this.filteredOptions.town = [...data]; });
+
+    this.mDatabase.object<{ subcategories: string[] }>('typelist/SalesType').valueChanges()
+      .pipe(map(d => d?.subcategories || []))
+      .subscribe(data => { this.options.sale = data; this.filteredOptions.sale = [...data]; });
   }
 
   ngOnInit() {
@@ -275,6 +286,12 @@ export class DailySaleReportsComponent implements OnInit{
       .filter(t => t.toLowerCase().includes(searchText));
   }
 
+  filterSales(value: string) {
+    const searchText = (value || '').toLowerCase();
+    this.filteredOptions.sale = this.options.sale
+      .filter((s: string) => s.toLowerCase().includes(searchText));
+  }
+
   filterOutlet(value: string) {
     const searchText = (value || '').toLowerCase();
     this.filteredOptions.name = this.filteredOutletsByTown
@@ -319,9 +336,6 @@ export class DailySaleReportsComponent implements OnInit{
       this.selectedOutlets = [...all];
     }
   }
-
-
-
 
 
   loadSalesList() {
@@ -521,6 +535,10 @@ export class DailySaleReportsComponent implements OnInit{
     );
   }
 
+// ... inside DailySaleReportsComponent class
+
+// ... (other methods)
+
   onSubmit() {
     if (!this.countryOptionsLoaded) {
       this.loadingService.setLoading(false);
@@ -561,6 +579,7 @@ export class DailySaleReportsComponent implements OnInit{
       console.log('Products to show:', productsToShow.length);
       console.log('Product models:', productsToShow.map(p => p.model));
 
+      // 🎯 MODIFIED: Include check for filters.sale
       const filterFn = (item: any, outlet: string | null = null) => {
         const itemDate = item.salesDate
           ? new Date(item.salesDate)
@@ -571,6 +590,9 @@ export class DailySaleReportsComponent implements OnInit{
           (!filters.town || item.town === filters.town) &&
           (!filters.division || item.division === filters.division) &&
           (!outlet || item.dealerOutlet === outlet) &&
+          // --- New Sales Type Filter ---
+          (!filters.sale || item.salesType === filters.sale) &&
+          // -----------------------------
           (!startDate || itemDate >= startDate) &&
           (!endDate || itemDate <= endDate)
         );
@@ -612,6 +634,8 @@ export class DailySaleReportsComponent implements OnInit{
       this.loadingService.setLoading(false);
     }
   }
+
+// ... (other methods)
 
 // ✅ Helper to build rows
   private buildRows(report: any) {

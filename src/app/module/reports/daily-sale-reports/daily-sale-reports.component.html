@@ -102,6 +102,23 @@
 
 
         <div class="col-md-3">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Select Sales Type</mat-label>
+            <mat-select formControlName="sale">
+              <div class="mat-select-search">
+                <input matInput placeholder="Search Sales Type"
+                       #salesSearchInput
+                       (input)="filterSales(salesSearchInput.value)" />
+              </div>
+              <mat-option *ngFor="let sale of filteredOptions.sale" [value]="sale">
+                {{ sale }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+
+        <div class="col-md-3">
           <mat-form-field class="example-full-width w-100" appearance="outline">
             <mat-label>Select Date</mat-label>
 
