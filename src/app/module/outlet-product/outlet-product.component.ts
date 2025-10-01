@@ -263,7 +263,7 @@ export class OutletProductComponent implements OnInit {
                 transformedData.updatedAt = timestamp;
 
                 runInInjectionContext(this.injector, () => {
-                  this.outletService.updateOutletProduct(this.data.id, transformedData)
+                  this.outletService.updateOutletProduct(this.data.id,this.data.productId, transformedData)
                     .then(() => {
                       Swal.fire('Updated!', 'GRN Details updated successfully.', 'success');
                       this.goBack();
