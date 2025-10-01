@@ -295,8 +295,57 @@ export class OutletProductListComponent implements OnInit {
 //   }
 
   // 🔹 Delete Outlet Product
+  // deleteOutletProduct(row: any) {
+  //   console.log(row);
+  //   const outletId = row.outletId || row.dealerId;
+  //   const productId = row.id;
+  //   const dealerOutlet = row.dealerOutlet;
+  //
+  //   if (!outletId || !productId || !dealerOutlet) {
+  //     Swal.fire('Error', 'Missing outletId, dealerOutlet or productId on this row.', 'error');
+  //     return;
+  //   }
+  //
+  //   Swal.fire({
+  //     title: 'Are you sure?',
+  //     text: 'You will not be able to recover this Dealer/Outlet Product!',
+  //     icon: 'warning',
+  //     showCancelButton: true,
+  //     confirmButtonText: 'Yes, delete it!',
+  //     cancelButtonText: 'No, cancel',
+  //   }).then((result) => {
+  //     if (!result.isConfirmed) return;
+  //
+  //     this.loadingService.setLoading(true);
+  //
+  //     runInInjectionContext(this.injector, () => {
+  //       this.outletProductService.deleteOutletProductAndInventory(outletId, productId, dealerOutlet)
+  //         .then(() => {
+  //           this.dataSource.data = this.dataSource.data.filter((p: any) => p.id !== productId);
+  //           Swal.fire('Deleted!', 'Dealer/Outlet Product has been deleted.', 'success');
+  //
+  //           // 👉 Add log
+  //           this.activityLogService.addLog({
+  //             date: Date.now(),
+  //             section: "Outlet Product",
+  //             action: "Delete",
+  //             description: `Deleted Product "${row.name}" (SKU: ${row.sku}) from Outlet "${dealerOutlet}"`
+  //           });
+  //         })
+  //         .catch((err) => {
+  //           console.error('Delete failed:', err);
+  //           Swal.fire('Error', 'Failed to delete the product. Please try again.', 'error');
+  //         })
+  //         .finally(() => {
+  //           this.loadingService.setLoading(false);
+  //         });
+  //     });
+  //   });
+  // }
+
+
+  // 🔹 Delete Outlet Product
   deleteOutletProduct(row: any) {
-    console.log(row);
     const outletId = row.outletId || row.dealerId;
     const productId = row.id;
     const dealerOutlet = row.dealerOutlet;
@@ -316,32 +365,50 @@ export class OutletProductListComponent implements OnInit {
     }).then((result) => {
       if (!result.isConfirmed) return;
 
+      // 🔹 Start loader
       this.loadingService.setLoading(true);
 
       runInInjectionContext(this.injector, () => {
         this.outletProductService.deleteOutletProductAndInventory(outletId, productId, dealerOutlet)
           .then(() => {
-            this.dataSource.data = this.dataSource.data.filter((p: any) => p.id !== productId);
+            // 🔹 Remove deleted product from allOutletProducts & dataSource
+            this.allOutletProducts = this.allOutletProducts.filter(p => p.id !== productId);
+            this.dataSource.data = this.dataSource.data.filter(p => p.id !== productId);
+
             Swal.fire('Deleted!', 'Dealer/Outlet Product has been deleted.', 'success');
 
-            // 👉 Add log
+            // 🔹 Log activity
             this.activityLogService.addLog({
               date: Date.now(),
               section: "Outlet Product",
               action: "Delete",
               description: `Deleted Product "${row.name}" (SKU: ${row.sku}) from Outlet "${dealerOutlet}"`
             });
+
+            // 🔹 Reapply current dealer filter automatically
+            if (dealerOutlet) {
+              const filtered = this.allOutletProducts.filter(prod =>
+                prod.dealerOutlet?.toLowerCase().includes(dealerOutlet.toLowerCase())
+              );
+              this.dataSource.data = filtered;
+              this.dataSource.paginator = this.paginator;
+              this.dataSource.sort = this.sort;
+            }
           })
           .catch((err) => {
             console.error('Delete failed:', err);
             Swal.fire('Error', 'Failed to delete the product. Please try again.', 'error');
           })
           .finally(() => {
+            // 🔹 Stop loader
             this.loadingService.setLoading(false);
           });
       });
     });
   }
+
+
+
 
 
   getTotalQuantity(row: any): number {

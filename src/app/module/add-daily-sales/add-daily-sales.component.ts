@@ -548,38 +548,10 @@ export class AddDailySalesComponent implements OnInit {
     return !!formValid && hasProducts;
   }
 
+
+
   // addProduct() {
-  //   const selectedProductId = this.dailySalesForm.get('vehicle')?.value;
-  //   if (!selectedProductId) {
-  //     Swal.fire('Error', 'Please select a product before adding.', 'error');
-  //     return;
-  //   }
-  //
-  //   const product = this.vehicledataSource.data.find(p => p.name === selectedProductId);
-  //   if (product) {
-  //     const exists = this.addedProducts.some(p => p.productId === product.id);
-  //     if (exists) {
-  //       Swal.fire('Info', 'This product is already added.', 'info');
-  //       return;
-  //     }
-  //
-  //     this.addedProducts = [...this.addedProducts, {
-  //       productId: product.id,
-  //       sku: product.sku,
-  //       name: product.name,
-  //       brand: product.brand,
-  //       model: product.model,
-  //       variant: product.variant,
-  //       unit: product.unit,
-  //       avlQuantity: product.avlQuantity,
-  //       quantity: 1
-  //     }];
-  //     console.log(this.addedProducts);
-  //   }
-  //   this.dailySalesForm.get('vehicle')?.reset();
-  // }
-  // addProduct() {
-  //   const selectedProducts = this.dailySalesForm.get('vehicle')?.value; // this will be an array
+  //   const selectedProducts = this.dailySalesForm.get('vehicle')?.value; // array of selected names
   //   if (!selectedProducts || selectedProducts.length === 0) {
   //     Swal.fire('Error', 'Please select at least one product before adding.', 'error');
   //     return;
@@ -625,38 +597,39 @@ export class AddDailySalesComponent implements OnInit {
       return;
     }
 
-    let newProducts: any[] = [];
+    let newProductsAdded = false;
 
     selectedProducts.forEach((selectedName: string) => {
       const product = this.vehicledataSource.data.find(p => p.name === selectedName);
-      if (product) {
-        const exists = this.addedProducts.some(p => p.productId === product.id);
-        if (!exists) {
-          newProducts.push({
-            productId: product.id,
-            sku: product.sku,
-            name: product.name,
-            brand: product.brand,
-            model: product.model,
-            variant: product.variant,
-            unit: product.unit,
-            avlQuantity: product.avlQuantity,
-            quantity: 0
-          });
-        } else {
-          Swal.fire('Info', `${product.name} is already added.`, 'info');
-        }
+      if (product && !this.addedProducts.some(p => p.productId === product.id)) {
+        this.addedProducts.push({
+          productId: product.id,
+          sku: product.sku,
+          name: product.name,
+          brand: product.brand,
+          model: product.model,
+          variant: product.variant,
+          unit: product.unit,
+          avlQuantity: product.avlQuantity,
+          quantity: 0
+        });
+        newProductsAdded = true;
       }
     });
 
-    if (newProducts.length > 0) {
-      this.addedProducts = [...this.addedProducts, ...newProducts];
-      console.log(this.addedProducts);
+    // ✅ Show generic duplicate message if no new product added
+    if (!newProductsAdded) {
+      Swal.fire('Info', 'These products are already added', 'info');
     }
 
-    // Reset selection after adding
+    // ✅ Force table refresh
+    this.addedProducts = [...this.addedProducts];
+
+    // Reset selection
     this.dailySalesForm.get('vehicle')?.reset();
   }
+
+
 
   // Toggle select/unselect all vehicles
   toggleSelectAllVehicles() {
@@ -796,7 +769,7 @@ export class AddDailySalesComponent implements OnInit {
 
               Promise.all(createPromises)
                 .then(() => {
-                  Swal.fire('Added!', 'All valid products saved as separate documents.', 'success');
+                  Swal.fire('Added!', 'All valid products saved and inventory updated.', 'success');
                   this.router.navigate(['/module/daily-sales-list']);
                 })
                 .catch(err => {

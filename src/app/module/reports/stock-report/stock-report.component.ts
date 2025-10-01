@@ -283,13 +283,6 @@ export class StockReportComponent implements OnInit{
       .filter(o => o.toLowerCase().includes(searchText));
   }
 
-  // filterOptions(field: string, value: string) {
-  //   const searchTerm = (value || '').toLowerCase();
-  //   this.filteredOptions[field] = this.options[field].filter((item: string) =>
-  //     item.toLowerCase().includes(searchTerm)
-  //   );
-  // }
-
   // // --- Reset / cancel ---
   onCancel() {
     this.selectedOutlets = [];
@@ -360,9 +353,6 @@ export class StockReportComponent implements OnInit{
       });
     });
   }
-
-
-
 
   getDateRanges(selectedStart?: Date, selectedEnd?: Date) {
     const startDate = selectedStart ? new Date(selectedStart) : new Date();
@@ -491,9 +481,6 @@ export class StockReportComponent implements OnInit{
   }
 
 
-
-
-
   // Filter options logic
   filterOptions(field: string, value: string) {
     const searchTerm = value?.toLowerCase() || '';
@@ -562,43 +549,6 @@ export class StockReportComponent implements OnInit{
   }
 
 
-
-
-  // onCancel() {
-  //   // clear outlets
-  //   this.selectedOutlets = [];
-  //
-  //   // reset form with proper defaults (empty strings / arrays, not null)
-  //   this.dealerForm.reset({
-  //     name: [],
-  //     country: '',
-  //     division: '',
-  //     town: '',
-  //     product: '',
-  //     period: {
-  //       start: '',
-  //       end: ''
-  //     }
-  //   });
-  //
-  //   // reset filters
-  //   this.nameFilter.setValue('', { emitEvent: false });
-  //   this.divisionFilter.setValue('', { emitEvent: false });
-  //   this.countryFilter.setValue('', { emitEvent: false });
-  //   this.townFilter.setValue('', { emitEvent: false });
-  //   this.productFilter.setValue('', { emitEvent: false });
-  //
-  //   // restore filteredOptions
-  //   Object.keys(this.options).forEach(key => {
-  //     this.filteredOptions[key] = [...this.options[key]];
-  //   });
-  //
-  //   // clear reports + headers
-  //   this.allOutletReports = [];
-  //   this.reportTitle = '';
-  //   this.reportDate = '';
-  //   this.selectedCountry = '';
-  // }
 
 
   exportToExcel() {
@@ -712,118 +662,5 @@ export class StockReportComponent implements OnInit{
       }).catch(err => console.error('Failed to log export:', err));
     });
   }
-
-
-//   toggleOutletSelection(outlet: string, isChecked: boolean) {
-//     if (isChecked) {
-//       if (!this.selectedOutlets.includes(outlet)) {
-//         this.selectedOutlets.push(outlet);
-//       }
-//     } else {
-//       this.selectedOutlets = this.selectedOutlets.filter(d => d !== outlet);
-//     }
-//
-//     // Patch the form with the array of selected outlets
-//     this.dealerForm.patchValue({ name: this.selectedOutlets });
-//
-//     // Update the input field to display the selected outlets as a comma-separated string
-//     this.nameFilter.setValue(this.selectedOutlets.join(', '), { emitEvent: false });
-//   }
-//   displayFn = (): string => {
-//     if (!this.dealerForm) return '';
-//     const selectedValues = this.dealerForm.get('name')?.value;
-//     return Array.isArray(selectedValues) ? selectedValues.join(', ') : '';
-//   }
-//
-//
-//   displayCountry = (value: string): string => value ? value : '';
-//   displayTown = (value: string): string => value ? value : '';
-//   displayDivision = (value: string): string => value ? value : '';
-//
-// // --- COUNTRY ---
-//   onCountrySelectOpened(isOpened: boolean) {
-//     if (isOpened) {
-//       if (this.countrySearchInput) this.countrySearchInput.nativeElement.value = '';
-//       this.filteredOptions.country = [...this.options.country];
-//       setTimeout(() => this.countrySearchInput?.nativeElement.focus(), 0);
-//     } else {
-//       if (this.countrySearchInput) this.countrySearchInput.nativeElement.value = '';
-//       this.filteredOptions.country = [...this.options.country];
-//     }
-//   }
-//   filterCountry(value: string) {
-//     const search = (value || '').toLowerCase();
-//     this.filteredOptions.country = this.options.country.filter(c => c.toLowerCase().includes(search));
-//   }
-//
-// // --- DIVISION ---
-//   onDivisionSelectOpened(isOpened: boolean) {
-//     if (isOpened) {
-//       if (this.divisionSearchInput) this.divisionSearchInput.nativeElement.value = '';
-//       this.filteredOptions.division = [...this.options.division];
-//       setTimeout(() => this.divisionSearchInput?.nativeElement.focus(), 0);
-//     } else {
-//       if (this.divisionSearchInput) this.divisionSearchInput.nativeElement.value = '';
-//       this.filteredOptions.division = [...this.options.division];
-//     }
-//   }
-//   filterDivision(value: string) {
-//     const search = (value || '').toLowerCase();
-//     this.filteredOptions.division = this.options.division.filter(d => d.toLowerCase().includes(search));
-//   }
-//
-// // --- TOWN ---
-//   onTownSelectOpened(isOpened: boolean) {
-//     if (isOpened) {
-//       if (this.townSearchInput) this.townSearchInput.nativeElement.value = '';
-//       this.filteredOptions.town = [...this.options.town];
-//       setTimeout(() => this.townSearchInput?.nativeElement.focus(), 0);
-//     } else {
-//       if (this.townSearchInput) this.townSearchInput.nativeElement.value = '';
-//       this.filteredOptions.town = [...this.options.town];
-//     }
-//   }
-//   filterTown(value: string) {
-//     const search = (value || '').toLowerCase();
-//     this.filteredOptions.town = this.options.town.filter(t => t.toLowerCase().includes(search));
-//   }
-//
-// // --- OUTLETS ---
-//   onOutletSelectOpened(isOpened: boolean) {
-//     if (isOpened) {
-//       if (this.outletSearchInput) this.outletSearchInput.nativeElement.value = '';
-//       this.filteredOptions.name = [...this.options.name];
-//       setTimeout(() => this.outletSearchInput?.nativeElement.focus(), 0);
-//     } else {
-//       if (this.outletSearchInput) this.outletSearchInput.nativeElement.value = '';
-//       this.filteredOptions.name = [...this.options.name];
-//     }
-//   }
-//   filterOutlet(value: string) {
-//     const search = (value || '').toLowerCase();
-//     this.filteredOptions.name = this.options.name.filter(o => o.toLowerCase().includes(search));
-//   }
-// // Check if all outlets are selected
-//   isAllOutletsSelected(): boolean {
-//     const selectedOutlets: string[] = this.dealerForm.get('name')?.value || [];
-//     const allOutlets: string[] = this.filteredOptions.name || [];
-//     return allOutlets.length > 0 && allOutlets.every(o => selectedOutlets.includes(o));
-//   }
-//
-// // Toggle all outlets selection
-//   toggleSelectAllOutlets() {
-//     const allOutlets: string[] = this.filteredOptions.name || [];
-//     if (this.isAllOutletsSelected()) {
-//       // If all are selected, unselect all
-//       this.dealerForm.patchValue({ name: [] });
-//       this.selectedOutlets = [];
-//     } else {
-//       // Select all
-//       this.dealerForm.patchValue({ name: [...allOutlets] });
-//       this.selectedOutlets = [...allOutlets];
-//     }
-//   }
-
-
 
 }

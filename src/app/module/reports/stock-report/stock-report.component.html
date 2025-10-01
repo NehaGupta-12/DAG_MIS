@@ -149,7 +149,7 @@
 
       <div *ngFor="let report of allOutletReports" class="mb-4 mx-3">
         <h5 class="text-center">{{ report.outlet }} - Stock Report</h5>
-        <table mat-table [dataSource]="report.rows" class="mat-cell advance-table responsive_table">
+        <table mat-table [dataSource]="report.rows" class="mat-cell  advance-table responsive_table">
 
           <!-- Product Column -->
           <ng-container matColumnDef="product">
