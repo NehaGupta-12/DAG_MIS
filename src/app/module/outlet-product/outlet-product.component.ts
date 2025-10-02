@@ -108,7 +108,7 @@ export class OutletProductComponent implements OnInit {
   ngOnInit() {
     this.DealerList();
     this.productList();
-    this.OutletProductList();
+    // this.OutletProductList();
 
     this.route.queryParams.subscribe(params => {
       if (params['data']) {
@@ -152,14 +152,14 @@ export class OutletProductComponent implements OnInit {
     });
   }
 
-  OutletProductList() {
-    runInInjectionContext(this.injector, () => {
-      this.outletService.getOutletProductList().subscribe((data) => {
-        this.dealerdataSource.data = data;
-        console.log(this.dealerdataSource.data)
-      });
-    });
-  }
+  // OutletProductList() {
+  //   runInInjectionContext(this.injector, () => {
+  //     this.outletService.getOutletProductList().subscribe((data) => {
+  //       this.dealerdataSource.data = data;
+  //       console.log(this.dealerdataSource.data)
+  //     });
+  //   });
+  // }
 
 
   //product

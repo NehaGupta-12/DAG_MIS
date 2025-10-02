@@ -16,20 +16,7 @@ export class OutletProductService {
               private injector : EnvironmentInjector) {}
 
 
-  getOutletProductList(): Observable<any[]> {
-    return this.mFirestore
-      .collectionGroup('products') // fetches all products under all outlet docs
-      .snapshotChanges()
-      .pipe(
-        map((actions) =>
-          actions.map((a) => {
-            const data = a.payload.doc.data();
-            const id = a.payload.doc.id;
-            return { id, ...(data as any) };
-          })
-        )
-      );
-  }
+
 
 // /updatedProductOutlet/A.And.UBarrieEnterprises
   getOutletProductListByDealerId(dealerId: string): Observable<any[]> {

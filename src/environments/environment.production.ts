@@ -19,7 +19,7 @@ export const environment = {
     roles: 'dev-roles',
     outletProduct: 'dev-outletProduct',
     monthlyBudget: 'dev-monthlyBudget',
-    menuList: 'dev-menuList',
+    menuList: 'menuList',
     inventory: 'dev-inventory',
     grn: 'dev-grn',
     location: 'dev-location',

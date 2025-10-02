@@ -20,6 +20,27 @@ export class AutoFunctionUploadComponent {
     // Use injector to run subscription in injection context
     // this.getDealer2Length();
     // this.updateOulteCollection();
+    // this.copyRolesToRoles2()
+  }
+  copyRolesToRoles2() {
+    const sourceCollection = 'menuList';
+    const targetCollection = 'dev-menuList';
+    runInInjectionContext(this.injector, async () => {
+    this.firestore.collection(sourceCollection).get().subscribe(snapshot => {
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        const id = doc.id; // optional: keep the same doc ID
+        runInInjectionContext(this.injector, async () => {
+        this.firestore.collection(targetCollection).doc(id).set(data)
+          .then(() => console.log(`Copied document ${id}`))
+          .catch(err => console.error('Error copying document', id, err));
+      });
+      });
+    }, error => {
+      console.error('Error fetching source collection', error);
+    });
+
+    });
   }
 
   updateDealerData() {
