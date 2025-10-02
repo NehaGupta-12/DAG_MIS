@@ -1,5 +1,13 @@
 {
   "projects": {
     "default": "dag-new"
+  },
+  "targets": {
+    "dag-new": {
+      "hosting": {
+        "prod": ["dag-new"],
+        "dev": ["dag-new-dev"]
+      }
+    }
   }
 }

@@ -23,7 +23,7 @@ import { FeatherModule } from 'angular-feather';
 import { allIcons } from 'angular-feather/icons';
 import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
-import { environment } from '../environments/environment';
+import { environmentProduction } from '../environments/environment.production';
 
 // 🔥 COMPAT IMPORTS
 import { AngularFireModule } from '@angular/fire/compat';
@@ -45,7 +45,7 @@ export const appConfig: ApplicationConfig = {
 
     // ✅ AngularFire COMPAT Setup
     importProvidersFrom(
-      AngularFireModule.initializeApp(environment.firebaseConfig),
+      AngularFireModule.initializeApp(environmentProduction.firebaseConfig),
       AngularFireAuthModule,
       AngularFireDatabaseModule,
       AngularFireFunctionsModule,

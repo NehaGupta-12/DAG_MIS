@@ -2,7 +2,7 @@ import {Injectable, isDevMode} from '@angular/core';
 import {AngularFireDatabase} from "@angular/fire/compat/database";
 import {AngularFirestore} from "@angular/fire/compat/firestore";
 import {where} from "@angular/fire/firestore";
-import {environment} from "../../environments/environment";
+import {environmentProduction} from "../../environments/environment.production";
 
 export interface ActivityLog {
   date: number,
