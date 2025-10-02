@@ -94,7 +94,6 @@ export class DealerListComponent implements OnInit {
 
   ngOnInit() {
     this.DealerList();
-    this.findDealerWithNullOutletId()
   }
 
   DealerList() {
@@ -108,11 +107,6 @@ export class DealerListComponent implements OnInit {
           this.dataSource.sort = this.sort;
           console.log(this.dataSource.data);
           this.loadingService.setLoading(false); // ✅ stop loader on success
-          data.forEach(it => {
-            if (it.outletId == null) {
-              console.log(`outletId not found in ${it.name}`)
-            }
-          })
         },
         error: (err) => {
           console.error('Error fetching Dealer list:', err);
@@ -203,7 +197,7 @@ export class DealerListComponent implements OnInit {
 
   deleteDealer(data: any) {
     console.log(data)
-    alert(JSON.stringify(data))
+    // alert(JSON.stringify(data))
     Swal.fire({
       title: 'Are you sure?',
       text: 'You will not be able to recover this Dealer/Outlet!',
@@ -215,7 +209,7 @@ export class DealerListComponent implements OnInit {
       if (result.isConfirmed) {
         this.loadingService.setLoading(true);
         runInInjectionContext(this.injector, () => {
-          this.addDealerService.deleteDealer(data.outletId)
+          this.addDealerService.deleteDealer(data.outlateId)
             .then(() => {
               this.DealerList();
               Swal.fire('Deleted!', 'Dealer/Outlet has been deleted.', 'success');
@@ -225,7 +219,7 @@ export class DealerListComponent implements OnInit {
                 date: Date.now(),
                 section: "Dealer",
                 action: "Delete",
-                description: `Deleted Dealer with ID: ${data.outletId}`
+                description: `Deleted Dealer with ID: ${data.outlateId}`
               });
             })
             .catch((err) => {
@@ -239,31 +233,6 @@ export class DealerListComponent implements OnInit {
       } else if (result.dismiss === Swal.DismissReason.cancel) {
         Swal.fire('Cancelled', 'Dealer/Outlet data is safe.', 'info');
       }
-    });
-  }
-
-
-  private findDealerWithNullOutletId() {
-    runInInjectionContext(this.injector, () => {
-      this.mFirestore.collection('dealer', ref => ref.where('outletId', '==', null))
-        .get()
-        .subscribe(snapshot => {
-          snapshot.forEach(doc => {
-            const data:any = doc.data();
-            const dealerId = doc.id; // document ID
-
-            console.log(`outletId is null in ${data['name']} -> updating with id: ${dealerId}`);
-
-            // 👉 Update the outletId field with document id
-            this.mFirestore.collection('dealer').doc(dealerId).update({
-              outletId: dealerId
-            }).then(() => {
-              console.log(`Updated dealer ${dealerId} with outletId`);
-            }).catch(err => {
-              console.error(`Failed to update dealer ${dealerId}:`, err);
-            });
-          });
-        });
     });
   }
 }

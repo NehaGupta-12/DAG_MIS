@@ -114,7 +114,7 @@ export class AddDealerService {
 
   addDealer(callSheet: any): Promise<any> {
     const dealerId = callSheet.name.replace(/\s+/g, "");
-    const payload = { ...callSheet, dealerId: dealerId };
+    const payload = { ...callSheet, dealerId: dealerId,outletId:dealerId};
     return this.firestore
       .collection(this.env.dealers)   // e.g. "dealers"
       .doc(dealerId)                     // docId = dealer name without spaces
