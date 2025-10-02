@@ -1,16 +1,17 @@
-import {EnvironmentInjector, Injectable, runInInjectionContext} from '@angular/core';
+import {EnvironmentInjector, Injectable, isDevMode, runInInjectionContext} from '@angular/core';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 import {combineLatest, Observable, of, switchMap} from 'rxjs';
 import { map } from 'rxjs/operators';
 import firebase from "firebase/compat/app";
 import {UserDataModel} from "./add-user/UserData.model";
 import {UserService} from "./add-user/user.service";
+import {environment} from "../../environments/environment";
 
 @Injectable({
   providedIn: 'root'
 })
 export class GrnService {
-  private collectionName = 'grn';   // Firestore collection name
+ env = isDevMode() ? environment.testCollections : environment.collections;
   userData :any
   filterUser :any
   users:any[] = [];
@@ -57,7 +58,7 @@ export class GrnService {
         const queries = chunks.map(chunk =>
           runInInjectionContext(this.injector, () =>
             this.firestore
-              .collection(this.collectionName, ref => {
+              .collection(this.env.grn, ref => {
                 let query: firebase.firestore.Query = ref
                   .where('country', 'in', chunk)
                   .orderBy('createdAt', 'desc');
@@ -99,7 +100,7 @@ export class GrnService {
       createdAt: new Date()
     };
     return this.firestore
-      .collection(this.collectionName)
+      .collection(this.env.grn)
       .add(payload)
       .then((result) => {
         console.log('✅ GRN added successfully:', result);
@@ -114,7 +115,7 @@ export class GrnService {
   // 📌 Update GRN
   updateGrn(id: string, grnData: any): Promise<any> {
     return this.firestore
-      .collection(this.collectionName)
+      .collection(this.env.grn)
       .doc(id)
       .update(grnData)
       .then((result) => {
@@ -129,13 +130,13 @@ export class GrnService {
 
   // 📌 Delete GRN
   deleteGrn(id: string): Promise<void> {
-    return this.firestore.doc(`${this.collectionName}/${id}`).delete();
+    return this.firestore.doc(`${this.env.grn}/${id}`).delete();
   }
 
   // 📌 Get GRN by ID
   getGrnById(id: string): Observable<any> {
     return this.firestore
-      .collection(this.collectionName)
+      .collection(this.env.grn)
       .doc(id)
       .snapshotChanges()
       .pipe(

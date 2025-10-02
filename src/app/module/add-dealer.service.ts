@@ -1,4 +1,4 @@
-import {EnvironmentInjector, Injectable, runInInjectionContext} from '@angular/core';
+import {EnvironmentInjector, Injectable, isDevMode, runInInjectionContext} from '@angular/core';
 import {AngularFirestore} from "@angular/fire/compat/firestore";
 import {combineLatest, firstValueFrom, Observable, of, switchMap} from "rxjs";
 import {map} from "rxjs/operators";
@@ -7,6 +7,9 @@ import {UserDataModel} from "./add-user/UserData.model";
 import {AngularFireDatabase} from "@angular/fire/compat/database";
 import {UserService} from "./add-user/user.service";
 import {MatTableDataSource} from "@angular/material/table";
+import {environment} from "../../environments/environment";
+
+
 
 @Injectable({
   providedIn: 'root'
@@ -19,25 +22,7 @@ export class AddDealerService {
               private userService : UserService,
               private injector: EnvironmentInjector) {
   }
-  private collectionName = "dealer";
-
-  // // Fetch all callSheet with pagination
-  // getDealerList(startAfter?: any): Observable<any> {
-  //   return this.firestore
-  //     .collection(this.collectionName, (ref) => {
-  //       let query = ref.orderBy('createdAt','desc');
-  //       if (startAfter) query = query.startAfter(startAfter);
-  //       return query;
-  //     })
-  //     .snapshotChanges()
-  //     .pipe(map((actions) => actions.map((a) => {
-  //       const data = a.payload.doc.data();
-  //       const id = a.payload.doc.id;
-  //       return { id, ...(data as any) };
-  //     })));
-  // }
-
-
+  env = isDevMode() ? environment.testCollections : environment.collections;
 
   getDealerList(startAfter?: any): Observable<any[]> {
     this.userData = JSON.parse(localStorage.getItem('userData')!) as UserDataModel;
@@ -72,7 +57,7 @@ export class AddDealerService {
         const queries = chunks.map(chunk =>
           runInInjectionContext(this.injector, () =>
             this.firestore
-              .collection(this.collectionName, ref => {
+              .collection(this.env.dealers, ref => {
                 let query: firebase.firestore.Query = ref
                   .where('country', 'in', chunk)
                   .orderBy('createdAt', 'asc');
@@ -107,7 +92,7 @@ export class AddDealerService {
 
   getAllDealerList(startAfter?: any): Observable<any[]> {
     return this.firestore
-      .collection(this.collectionName, ref => {
+      .collection(this.env.dealers, ref => {
         let query: firebase.firestore.Query = ref.orderBy('createdAt', 'asc');
         if (startAfter) {
           query = query.startAfter(startAfter);
@@ -131,7 +116,7 @@ export class AddDealerService {
     const dealerId = callSheet.name.replace(/\s+/g, "");
     const payload = { ...callSheet, dealerId: dealerId };
     return this.firestore
-      .collection(this.collectionName)   // e.g. "dealers"
+      .collection(this.env.dealers)   // e.g. "dealers"
       .doc(dealerId)                     // docId = dealer name without spaces
       .set(payload)
       .then(() => {
@@ -148,7 +133,7 @@ export class AddDealerService {
 
   updateDealer(id: string, callSheet: any): Promise<any> {
     console.log('Calling Firestore updateCallSheet with ID:', id, ' and data:', callSheet);
-    return this.firestore.collection(this.collectionName).doc(id).update(callSheet)
+    return this.firestore.collection(this.env.dealers).doc(id).update(callSheet)
       .then((result) => {
         console.log('Firestore successfully updated Call Sheet Log:', result);
         return result;
@@ -160,7 +145,7 @@ export class AddDealerService {
   }
 
   deleteDealer(id: string) {
-    return this.firestore.doc(`${this.collectionName}/${id}`).delete();
+    return this.firestore.doc(`${this.env.dealers}/${id}`).delete();
   }
 
 

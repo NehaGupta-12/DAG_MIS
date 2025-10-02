@@ -1,21 +1,21 @@
-import {Injectable, runInInjectionContext} from '@angular/core';
+import {Injectable, isDevMode, runInInjectionContext} from '@angular/core';
 import {AngularFirestore} from "@angular/fire/compat/firestore";
 import {Observable} from "rxjs";
 import {map} from "rxjs/operators";
 import firebase from "firebase/compat/app";
+import {environment} from "../../../environments/environment";
 
 @Injectable({
   providedIn: 'root'
 })
 export class InventoryService {
-  private collectionName = 'inventory';
-
+  env = isDevMode() ? environment.testCollections : environment.collections;
   constructor(private firestore: AngularFirestore) {
   }
 
   getInventoryData(dealerId: string): Observable<any[]> {
     return this.firestore
-      .collection(this.collectionName)
+      .collection(this.env.inventory)
       .doc(dealerId) // Use .doc() to get the specific document
       .valueChanges()
       .pipe(
@@ -34,7 +34,7 @@ export class InventoryService {
     sku: string,
     quantityChange: number
   ): Promise<void> {
-    const docRef = this.firestore.collection('inventory').doc(outletId);
+    const docRef = this.firestore.collection(this.env.inventory).doc(outletId);
     return docRef.get().toPromise().then((doc: any) => {
       if (!doc.exists) {
         return docRef.set({
@@ -51,13 +51,8 @@ export class InventoryService {
     });
   }
 
-
-  // getInventoryAllData() {
-  //   return this.firestore.collection(this.collectionName).valueChanges();
-  // }
-
   getInventoryAllData() {
-    return this.firestore.collection(this.collectionName).valueChanges().pipe(
+    return this.firestore.collection(this.env.inventory).valueChanges().pipe(
       map((docs: any[]) => {
         const products: any[] = [];
         docs.forEach(doc => {

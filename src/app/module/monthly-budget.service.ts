@@ -1,16 +1,17 @@
-import {EnvironmentInjector, Injectable, runInInjectionContext} from '@angular/core';
+import {EnvironmentInjector, Injectable, isDevMode, runInInjectionContext} from '@angular/core';
 import {AngularFirestore} from "@angular/fire/compat/firestore";
 import {combineLatest, Observable, of, switchMap} from "rxjs";
 import {map} from "rxjs/operators";
 import firebase from "firebase/compat/app";
 import {UserDataModel} from "./add-user/UserData.model";
 import {UserService} from "./add-user/user.service";
+import {environment} from "../../environments/environment";
 
 @Injectable({
   providedIn: 'root'
 })
 export class MonthlyBudgetService {
-  private collectionName = "monthlyBudget";
+  env = isDevMode() ? environment.testCollections : environment.collections
   userData :any
   filterUser :any
   users:any[] = [];
@@ -56,7 +57,7 @@ export class MonthlyBudgetService {
         const queries = chunks.map(chunk =>
           runInInjectionContext(this.injector, () =>
             this.firestore
-              .collection(this.collectionName, ref => {
+              .collection(this.env.monthlyBudget, ref => {
                 let query: firebase.firestore.Query = ref
                   .where('country', 'in', chunk);
                   // .orderBy('createdAt', 'desc');
@@ -99,7 +100,7 @@ export class MonthlyBudgetService {
     };
     console.log("📌 Saving to Firestore:", payload);  // 👈 Debug
     return this.firestore
-      .collection(this.collectionName)
+      .collection(this.env.monthlyBudget)
       .add(payload)
       .then((result) => {
         console.log('✅ Budget added successfully:', result);
@@ -115,7 +116,7 @@ export class MonthlyBudgetService {
   // 📌 Update GRN
   updateBudget(id: string, grnData: any): Promise<any> {
     return this.firestore
-      .collection(this.collectionName)
+      .collection(this.env.monthlyBudget)
       .doc(id)
       .update(grnData)
       .then((result) => {
@@ -130,13 +131,13 @@ export class MonthlyBudgetService {
 
   // 📌 Delete GRN
   deleteBudget(id: string): Promise<void> {
-    return this.firestore.doc(`${this.collectionName}/${id}`).delete();
+    return this.firestore.doc(`${this.env.monthlyBudget}/${id}`).delete();
   }
 
   // 📌 Get GRN by ID
   getBudgetById(id: string): Observable<any> {
     return this.firestore
-      .collection(this.collectionName)
+      .collection(this.env.monthlyBudget)
       .doc(id)
       .snapshotChanges()
       .pipe(

@@ -1,16 +1,16 @@
 // menu.service.ts
-import { Injectable } from '@angular/core';
+import {Injectable, isDevMode} from '@angular/core';
 import { AngularFirestore } from "@angular/fire/compat/firestore";
 import {Observable, take} from "rxjs";
 import { map } from "rxjs/operators";
 import { Menus } from "../interfaces/menu.interface";
+import {environment} from "../../environments/environment";
 
 @Injectable({
   providedIn: 'root'
 })
 export class MenuService {
-  private collectionName = 'menuList';
-
+  env = isDevMode() ? environment.testCollections : environment.collections
   constructor(private firestore: AngularFirestore) {}
 
   /**
@@ -19,7 +19,7 @@ export class MenuService {
    * @returns An Observable of the menu list.
    */
   getMenuList(startAfter?: any): Observable<any> {
-    return this.firestore.collection(this.collectionName, ref => {
+    return this.firestore.collection(this.env.menuList, ref => {
       let query = ref.orderBy('createdAt', 'desc');
       if (startAfter) query = query.startAfter(startAfter);
       return query;
@@ -37,7 +37,7 @@ export class MenuService {
    * @returns An Observable of the menu list with document IDs.
    */
   fetchMenus(): Observable<any[]> {
-    return this.firestore.collection(this.collectionName).valueChanges({ idField: 'id' });
+    return this.firestore.collection(this.env.menuList).valueChanges({ idField: 'id' });
   }
 
   /**
@@ -46,7 +46,7 @@ export class MenuService {
    * @returns A Promise that resolves when the document has been added.
    */
   addMenu(menu: Menus): Promise<any> {
-    return this.firestore.collection(this.collectionName).add(menu);
+    return this.firestore.collection(this.env.menuList).add(menu);
   }
 
   /**
@@ -56,7 +56,7 @@ export class MenuService {
    * @returns A Promise that resolves when the document has been updated.
    */
   updateMenu(id: string, menu: Partial<Menus>): Promise<any> {
-    return this.firestore.collection(this.collectionName).doc(id).update(menu);
+    return this.firestore.collection(this.env.menuList).doc(id).update(menu);
   }
 
   /**
@@ -65,7 +65,7 @@ export class MenuService {
    * @returns A Promise that resolves when the document has been deleted.
    */
   deleteMenu(id: string): Promise<void> {
-    return this.firestore.doc(`${this.collectionName}/${id}`).delete();
+    return this.firestore.doc(`${this.env.menuList}/${id}`).delete();
   }
 
   /**
@@ -74,7 +74,7 @@ export class MenuService {
    * @returns An Observable that emits true if a duplicate exists, otherwise false.
    */
   checkDuplicateMenuName(menu_name: string): Observable<boolean> {
-    return this.firestore.collection<Menus>(this.collectionName, ref =>
+    return this.firestore.collection<Menus>(this.env.menuList, ref =>
       ref.where('menu_name', '==', menu_name)
     ).valueChanges()
       .pipe(

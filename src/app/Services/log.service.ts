@@ -2,7 +2,7 @@ import {Injectable, isDevMode} from '@angular/core';
 import {AngularFireDatabase} from "@angular/fire/compat/database";
 import {AngularFirestore} from "@angular/fire/compat/firestore";
 import {where} from "@angular/fire/firestore";
-import {environmentProduction} from "../../environments/environment.production";
+import {environment} from "../../environments/environment";
 
 export interface ActivityLog {
   date: number,
@@ -18,7 +18,7 @@ export interface ActivityLog {
 })
 export class LogService {
   currentIp = localStorage.getItem('currentip')!
-  collectionName='activityLog'
+  env = isDevMode() ? environment.testCollections : environment.collections
 
   constructor(
     private readonly mDatabase: AngularFireDatabase,
@@ -39,10 +39,10 @@ export class LogService {
     console.log('Log Added ',JSON.stringify(activity))
   }
   getLogs(){
-    return this.mDatabase.list<ActivityLog>(this.collectionName).valueChanges()
+    return this.mDatabase.list<ActivityLog>(this.env.activityLog).valueChanges()
   }
   getLogsByCount(i:number){
-    return this.mDatabase.list<ActivityLog>(this.collectionName,ref => ref.limitToLast(i)).snapshotChanges()
+    return this.mDatabase.list<ActivityLog>(this.env.activityLog,ref => ref.limitToLast(i)).snapshotChanges()
     // return this.mDatabase.list<ActivityLog>('activityLog').snapshotChanges()
   }
 

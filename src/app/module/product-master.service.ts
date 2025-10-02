@@ -1,17 +1,18 @@
-import { Injectable } from '@angular/core';
+import {Injectable, isDevMode} from '@angular/core';
 import {AngularFirestore} from "@angular/fire/compat/firestore";
 import {Observable} from "rxjs";
 import {map} from "rxjs/operators";
+import {environment} from "../../environments/environment";
 
 @Injectable({
   providedIn: 'root'
 })
 export class ProductMasterService {
   constructor(private firestore: AngularFirestore) {}
-  private collectionName = "product";
+  env = isDevMode() ? environment.testCollections : environment.collections
   getProductList() {
     return this.firestore
-      .collection(this.collectionName)
+      .collection(this.env.products)
       .snapshotChanges()
       .pipe(
         map(actions =>
@@ -25,7 +26,7 @@ export class ProductMasterService {
   }
     getProductListByCountry(country: string) {
         return this.firestore
-            .collection(this.collectionName,ref => ref.where('availableIn','array-contains',country))
+            .collection(this.env.products,ref => ref.where('availableIn','array-contains',country))
 
             .snapshotChanges()
             .pipe(
@@ -44,7 +45,7 @@ export class ProductMasterService {
 
     const sku = this.generateUniqueSku();
     callSheet.sku = sku;
-    return this.firestore.collection(this.collectionName).doc(sku).set(callSheet)
+    return this.firestore.collection(this.env.products).doc(sku).set(callSheet)
       .then((result) => {
         console.log('Firestore successfully added Call Sheet Log:', result);
         return result;
@@ -62,7 +63,7 @@ export class ProductMasterService {
 
   updateProduct(id: string, callSheet: any): Promise<any> {
     console.log('Calling Firestore updateCallSheet with ID:', id, ' and data:', callSheet);
-    return this.firestore.collection(this.collectionName).doc(id).update(callSheet)
+    return this.firestore.collection(this.env.products).doc(id).update(callSheet)
       .then((result) => {
         console.log('Firestore successfully updated Call Sheet Log:', result);
         return result;
@@ -76,7 +77,7 @@ export class ProductMasterService {
 
 
   deleteProduct(id: string) {
-    return this.firestore.doc(`${this.collectionName}/${id}`).delete();
+    return this.firestore.doc(`${this.env.products}/${id}`).delete();
   }
 
 }

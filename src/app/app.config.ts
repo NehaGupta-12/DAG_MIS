@@ -23,7 +23,6 @@ import { FeatherModule } from 'angular-feather';
 import { allIcons } from 'angular-feather/icons';
 import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
-import { environmentProduction } from '../environments/environment.production';
 
 // 🔥 COMPAT IMPORTS
 import { AngularFireModule } from '@angular/fire/compat';
@@ -32,6 +31,7 @@ import { AngularFireDatabaseModule } from '@angular/fire/compat/database';
 import { AngularFireFunctionsModule } from '@angular/fire/compat/functions';
 
 import { HttpClient as NgHttpClient } from '@angular/common/http';
+import {environment} from "../environments/environment.production";
 
 export function createTranslateLoader(http: NgHttpClient): TranslateHttpLoader {
   return new TranslateHttpLoader(http, './assets/i18n/', '.json');
@@ -45,7 +45,7 @@ export const appConfig: ApplicationConfig = {
 
     // ✅ AngularFire COMPAT Setup
     importProvidersFrom(
-      AngularFireModule.initializeApp(environmentProduction.firebaseConfig),
+      AngularFireModule.initializeApp(environment.firebaseConfig),
       AngularFireAuthModule,
       AngularFireDatabaseModule,
       AngularFireFunctionsModule,

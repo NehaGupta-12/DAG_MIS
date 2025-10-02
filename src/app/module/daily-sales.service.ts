@@ -1,14 +1,16 @@
-import {EnvironmentInjector, Injectable, runInInjectionContext} from "@angular/core";
+import {EnvironmentInjector, Injectable, isDevMode, runInInjectionContext} from "@angular/core";
 import { AngularFirestore } from "@angular/fire/compat/firestore";
 import {combineLatest, Observable, of, switchMap} from "rxjs";
 import { map } from "rxjs/operators";
 import firebase from "firebase/compat/app";
 import {UserDataModel} from "./add-user/UserData.model";
 import {UserService} from "./add-user/user.service";
+import {environment} from "../../environments/environment";
 
 @Injectable({ providedIn: "root" })
 export class DailySalesService {
-  private collectionName = "daily-sales";  // same as GRN
+  collectionNameDailySales = isDevMode() ? environment.testCollections.dailySales : environment.collections.dailySales
+  env = isDevMode() ? environment.testCollections : environment.collections
   userData :any
   filterUser :any
   users:any[] = [];
@@ -55,7 +57,7 @@ export class DailySalesService {
         const queries = chunks.map(chunk =>
           runInInjectionContext(this.injector, () =>
             this.firestore
-              .collection(this.collectionName, ref => {
+              .collection(this.env.dailySales, ref => {
                 let query: firebase.firestore.Query = ref
                   .where('country', 'in', chunk)
                   .orderBy('createdAt', 'desc');
@@ -98,7 +100,7 @@ export class DailySalesService {
       createdAt: new Date(),
     };
     return this.firestore
-      .collection(this.collectionName)
+      .collection(this.env.dailySales)
       .add(payload)
       .then((result) => {
         console.log("✅ Daily Sale added successfully:", result);
@@ -113,7 +115,7 @@ export class DailySalesService {
   // 📌 Update daily sale
   updateDailySales(id: string, salesData: any): Promise<any> {
     return this.firestore
-      .collection(this.collectionName)
+      .collection(this.env.dailySales)
       .doc(id)
       .update(salesData)
       .then((result) => {
@@ -128,13 +130,13 @@ export class DailySalesService {
 
   // 📌 Delete daily sale
   deleteDailySales(id: string): Promise<void> {
-    return this.firestore.doc(`${this.collectionName}/${id}`).delete();
+    return this.firestore.doc(`${this.env.dailySales}/${id}`).delete();
   }
 
   // 📌 Get daily sale by ID
   getDailySalesById(id: string): Observable<any> {
     return this.firestore
-      .collection(this.collectionName)
+      .collection(this.env.dailySales)
       .doc(id)
       .snapshotChanges()
       .pipe(
@@ -148,7 +150,7 @@ export class DailySalesService {
   // 📌 Get all dealers
   getDealers(): Observable<any[]> {
     return this.firestore
-      .collection("dealers", (ref) => ref.orderBy("name"))
+      .collection(this.env.dealers, (ref) => ref.orderBy("name"))
       .snapshotChanges()
       .pipe(
         map((actions) =>

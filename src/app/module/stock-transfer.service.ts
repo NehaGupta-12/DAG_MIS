@@ -1,19 +1,19 @@
-import { Injectable } from '@angular/core';
+import {Injectable, isDevMode} from '@angular/core';
 import {AngularFirestore} from "@angular/fire/compat/firestore";
 import {Observable} from "rxjs";
 import {map} from "rxjs/operators";
+import {environment} from "../../environments/environment";
 
 @Injectable({
   providedIn: 'root'
 })
-export class StockTransferService {
-  private collectionName = 'stockTransfer';   // Firestore collection name
-
+export class StockTransferService {  // Firestore collection name
+  env = isDevMode() ? environment.testCollections : environment.collections
   constructor(private firestore: AngularFirestore) {}
 
   getStockTransferList(startAfter?: any): Observable<any[]> {
     return this.firestore
-      .collection(this.collectionName, (ref) => {
+      .collection(this.env.stockTransfer, (ref) => {
         let query = ref.orderBy('createdAt', 'desc');
         if (startAfter) query = query.startAfter(startAfter);
         return query;
@@ -37,7 +37,7 @@ export class StockTransferService {
       createdAt: new Date()
     };
     return this.firestore
-      .collection(this.collectionName)
+      .collection(this.env.stockTransfer)
       .add(payload)
       .then((result) => {
         console.log('✅ GRN added successfully:', result);
@@ -52,7 +52,7 @@ export class StockTransferService {
   // 📌 Update GRN
   updateStockTransfer(id: string, grnData: any): Promise<any> {
     return this.firestore
-      .collection(this.collectionName)
+      .collection(this.env.stockTransfer)
       .doc(id)
       .update(grnData)
       .then((result) => {
@@ -67,13 +67,13 @@ export class StockTransferService {
 
   // 📌 Delete GRN
   deleteStockTransfer(id: string): Promise<void> {
-    return this.firestore.doc(`${this.collectionName}/${id}`).delete();
+    return this.firestore.doc(`${this.env.stockTransfer}/${id}`).delete();
   }
 
   // 📌 Get GRN by ID
   getStockTransferById(id: string): Observable<any> {
     return this.firestore
-      .collection(this.collectionName)
+      .collection(this.env.stockTransfer)
       .doc(id)
       .snapshotChanges()
       .pipe(

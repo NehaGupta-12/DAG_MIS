@@ -1,19 +1,20 @@
-import {Injectable} from '@angular/core';
+import {Injectable, isDevMode} from '@angular/core';
 import {AngularFirestore} from "@angular/fire/compat/firestore";
 import {Observable} from "rxjs";
 import {map} from "rxjs/operators";
+import {environment} from "../../environments/environment";
 
 @Injectable({
   providedIn: 'root'
 })
 export class LocationService {
+  env  = isDevMode() ? environment.testCollections : environment.collections
   constructor(private firestore: AngularFirestore) {}
-  private collectionName = "location";
 
   // Fetch all callSheet with pagination
   getLocationList(startAfter?: any): Observable<any> {
     return this.firestore
-      .collection(this.collectionName, (ref) => {
+      .collection(this.env.location, (ref) => {
         let query = ref.orderBy('createdAt','desc');
         if (startAfter) query = query.startAfter(startAfter);
         return query;
@@ -28,7 +29,7 @@ export class LocationService {
 
   addLocation(callSheet: any): Promise<any> {
     console.log('Calling Firestore addCallSheet with data:', callSheet);
-    return this.firestore.collection(this.collectionName).add(callSheet)
+    return this.firestore.collection(this.env.location).add(callSheet)
       .then((result) => {
         console.log('Firestore successfully added Call Sheet Log:', result);
         return result;
@@ -41,7 +42,7 @@ export class LocationService {
 
   updateLocation(id: string, callSheet: any): Promise<any> {
     console.log('Calling Firestore updateCallSheet with ID:', id, ' and data:', callSheet);
-    return this.firestore.collection(this.collectionName).doc(id).update(callSheet)
+    return this.firestore.collection(this.env.location).doc(id).update(callSheet)
       .then((result) => {
         console.log('Firestore successfully updated Call Sheet Log:', result);
         return result;
@@ -53,7 +54,7 @@ export class LocationService {
   }
 
   deleteLocation(id: string) {
-    return this.firestore.doc(`${this.collectionName}/${id}`).delete();
+    return this.firestore.doc(`${this.env.location}/${id}`).delete();
   }
 
 }

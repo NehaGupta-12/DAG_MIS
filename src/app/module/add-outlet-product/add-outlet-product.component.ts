@@ -1,4 +1,12 @@
-import {Component, ElementRef, EnvironmentInjector, OnInit, runInInjectionContext, ViewChild} from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  EnvironmentInjector,
+  isDevMode,
+  OnInit,
+  runInInjectionContext,
+  ViewChild
+} from '@angular/core';
 import {
   FormArray,
   FormControl,
@@ -33,6 +41,7 @@ import {MatCheckboxModule} from "@angular/material/checkbox";
 import {OutletProductService} from "../outlet-product.service";
 import {AngularFirestore} from "@angular/fire/compat/firestore";
 import {LoadingService} from "../../Services/loading.service";
+import {environment} from "../../../environments/environment";
 
 @Component({
     selector: 'app-add-outlet-product',
@@ -69,6 +78,7 @@ import {LoadingService} from "../../Services/loading.service";
 
 
 export class AddOutletProductComponent implements OnInit {
+    env = isDevMode() ? environment.testCollections : environment.collections;
     isEditMode: boolean = false;
     grnForm: FormGroup;
     displayedColumns: string[] = ['name', 'brand', 'model', 'variant', 'unit', 'openingStock', 'action'];
@@ -579,11 +589,11 @@ export class AddOutletProductComponent implements OnInit {
     private changeVariant() {
         this.loadingService.setLoading(true);
         runInInjectionContext(this.injector, async () => {
-            this.mFirestore.collection('product').get().subscribe({
+            this.mFirestore.collection(this.env.products).get().subscribe({
                 next: (res) => {
                     res.forEach(doc => {
                         const data = doc.data();
-                        this.mFirestore.collection('product').doc(doc.id)
+                        this.mFirestore.collection(this.env.products).doc(doc.id)
                             .update({variant: (data as any)?.varient})
                             .then(r => console.log('product updated'));
                     });

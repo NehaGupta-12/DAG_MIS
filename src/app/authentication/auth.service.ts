@@ -1,4 +1,4 @@
-import {EnvironmentInjector, Injectable, runInInjectionContext} from '@angular/core';
+import {EnvironmentInjector, Injectable, isDevMode, runInInjectionContext} from '@angular/core';
 import {Router} from '@angular/router';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {AngularFireDatabase} from '@angular/fire/compat/database';
@@ -11,12 +11,14 @@ import {RoleService} from "../Services/role.service";
 import {User} from "@core";
 import {AngularFirestore} from "@angular/fire/compat/firestore";
 import { ActivityLogService } from "../module/activity-log/activity-log.service";
-import {ActivityLog} from "../module/activity-log/activity-log.component"; // adjust path
+import {ActivityLog} from "../module/activity-log/activity-log.component";
+import {environment} from "../../environments/environment"; // adjust path
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
+  env = isDevMode() ? environment.testCollections : environment.collections
   private userRolePermissions: Permission[] = [];
   private currentUserSubject: BehaviorSubject<User> | undefined;
   private permissionsLoadedSubject = new BehaviorSubject<boolean>(false);
@@ -55,7 +57,7 @@ export class AuthService {
       const snapshot = await runInInjectionContext(this.injector, async () => {
         return await firstValueFrom(
           this.firestore
-            .collection('roles', ref => ref.where('roleName', '==', roleName))
+            .collection(this.env.roles, ref => ref.where('roleName', '==', roleName))
             .get()
         );
       });

@@ -1,4 +1,12 @@
-import {Component, ElementRef, EnvironmentInjector, OnInit, runInInjectionContext, ViewChild} from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  EnvironmentInjector,
+  isDevMode,
+  OnInit,
+  runInInjectionContext,
+  ViewChild
+} from '@angular/core';
 import {
   AbstractControl,
   FormArray,
@@ -21,6 +29,7 @@ import {RoleService} from "../../Services/role.service";
 import {map} from "rxjs/operators";
 import {AngularFireDatabase} from "@angular/fire/compat/database";
 import {MatOption, MatSelect} from "@angular/material/select";
+import {environment} from "../../../environments/environment";
 
 @Component({
   selector: 'app-add-role',
@@ -45,6 +54,8 @@ import {MatOption, MatSelect} from "@angular/material/select";
   styleUrls: ['./add-role.component.scss']
 })
 export class AddRoleComponent implements OnInit {
+  collectionNameMenuList = isDevMode() ? environment.testCollections.menuList : environment.collections.menuList;
+  env = isDevMode() ? environment.testCollections : environment.collections;
   role_form!: FormGroup;
   isLoading = false;
   userId: string | null = null;
@@ -100,7 +111,7 @@ export class AddRoleComponent implements OnInit {
 
     // Load menu list first
     runInInjectionContext(this.injector, () => {
-      this.afs.collection('menuList', ref => ref.orderBy('createdAt', 'asc'))
+      this.afs.collection(this.env.menuList, ref => ref.orderBy('createdAt', 'asc'))
         .valueChanges({ idField: 'menuId' })
         .subscribe((menus: any[]) => {
           const control = this.permissionsArray;
@@ -200,7 +211,7 @@ export class AddRoleComponent implements OnInit {
   loadRoleData(): void {
     runInInjectionContext(this.injector, () => {
     if (!this.roleId) return;
-      this.afs.collection('roles').doc(this.roleId).get().subscribe(doc => {
+      this.afs.collection(this.env.roles).doc(this.roleId).get().subscribe(doc => {
         const role: any = doc.data();
         if (!role) return;
 
@@ -219,52 +230,7 @@ export class AddRoleComponent implements OnInit {
     });
   }
 
-  // save(): void {
-  //   if (!this.role_form.valid) {
-  //     this.markFormGroupTouched(this.role_form);
-  //     this.mSnackBar.open('Form is Invalid', 'Close', { duration: 3000 });
-  //     return;
-  //   }
-  //
-  //   this.isLoading = true;
-  //   const roleData = this.role_form.value;
-  //   runInInjectionContext(this.injector, () => {
-  //   if (this.isEditMode && this.roleId) {
-  //     // 🔹 Update role inside injection context
-  //       this.afs.collection('roles').doc(this.roleId).update({
-  //         roleName: roleData.roleName,
-  //         permissions: roleData.permissions,
-  //         updatedBy: this.userId,
-  //         updatedAt: new Date(),
-  //       }).then(() => {
-  //         this.isLoading = false;
-  //         this.mSnackBar.open('Role updated successfully', 'Close', { duration: 3000 });
-  //         this.router.navigate(['/module/role-list']);
-  //       }).catch(error => {
-  //         this.isLoading = false;
-  //         console.error('Error updating role:', error);
-  //         this.mSnackBar.open('Error while updating role', 'Close', { duration: 3000 });
-  //       });
-  //   } else {
-  //       this.afs.collection('roles').add({
-  //         roleName: roleData.roleName,
-  //         permissions: roleData.permissions,
-  //         createdBy: this.userId,
-  //         createdAt: new Date(),
-  //       }).then(() => {
-  //         this.isLoading = false;
-  //         this.role_form.reset();
-  //         this.permissionsArray.clear();
-  //         this.router.navigate(['/module/role-list']);
-  //         this.mSnackBar.open('New Role Successfully Added', 'Close', { duration: 3000 });
-  //       }).catch(error => {
-  //         this.isLoading = false;
-  //         console.error('Error adding role:', error);
-  //         this.mSnackBar.open('Error while saving role', 'Close', { duration: 3000 });
-  //       });
-  //   }
-  //   });
-  // }
+
   save(): void {
     if (!this.role_form.valid) {
       this.markFormGroupTouched(this.role_form);
@@ -286,7 +252,7 @@ export class AddRoleComponent implements OnInit {
             } else {
               // Add new role
               runInInjectionContext(this.injector, () => {
-              this.afs.collection('roles').add({
+              this.afs.collection(this.env.roles).add({
                 roleName: roleData.roleName,
                 permissions: roleData.permissions,
                 createdBy: this.userId,
@@ -308,7 +274,7 @@ export class AddRoleComponent implements OnInit {
         });
       } else if (this.isEditMode && this.roleId) {
         // 🔹 Update role
-        this.afs.collection('roles').doc(this.roleId).update({
+        this.afs.collection(this.env.roles).doc(this.roleId).update({
           roleName: roleData.roleName,
           permissions: roleData.permissions,
           updatedBy: this.userId,

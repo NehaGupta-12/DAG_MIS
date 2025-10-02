@@ -1,21 +1,20 @@
-import {EnvironmentInjector, Injectable, runInInjectionContext} from '@angular/core';
+import {EnvironmentInjector, Injectable, isDevMode, runInInjectionContext} from '@angular/core';
 import {AngularFirestore} from "@angular/fire/compat/firestore";
 import {Observable} from "rxjs";
 import {map} from "rxjs/operators";
 import 'firebase/compat/firestore';
 import {deleteField} from "@angular/fire/firestore";
+import {environment} from "../../environments/environment";
 @Injectable({
   providedIn: 'root'
 })
 export class OutletProductService {
-  private collectionName = 'outletProduct';   // Firestore collection name
+  collectionNameOutletProduct = isDevMode() ? environment.testCollections.outletProduct : environment.collections.outletProduct;// Firestore collection name
+  env = isDevMode() ? environment.testCollections : environment.collections;// Firestore collection name
 
   constructor(private mFirestore: AngularFirestore,
               private injector : EnvironmentInjector) {}
 
-  getInventoryData(){
-    return this.mFirestore.collection('inventory').valueChanges({idField: 'id'});
-  }
 
   getOutletProductList(): Observable<any[]> {
     return this.mFirestore
@@ -35,7 +34,7 @@ export class OutletProductService {
 // /updatedProductOutlet/A.And.UBarrieEnterprises
   getOutletProductListByDealerId(dealerId: string): Observable<any[]> {
     return this.mFirestore
-      .collection(`${this.collectionName}/${dealerId}/products`)
+      .collection(`${this.env.outletProduct}/${dealerId}/products`)
       .snapshotChanges()
       .pipe(
         map(actions =>
@@ -58,7 +57,7 @@ export class OutletProductService {
       // Add any additional fields as needed
     };
     return this.mFirestore
-      .collection(this.collectionName)  // main collection
+      .collection(this.env.outletProduct)  // main collection
       .doc(grnData.outletId)        // outletID (document ID)
       .collection('products')// sub-collection for products
       .doc(grnData.sku)
@@ -71,7 +70,7 @@ export class OutletProductService {
       createdAt: new Date(),
     };
     return this.mFirestore
-      .collection('inventory')
+      .collection(this.env.inventory)
       .doc(inventoryData.dealerOutlet)
       .set(
         {products: {[inventoryData.sku]: payload}},
@@ -87,7 +86,7 @@ export class OutletProductService {
   ): Promise<any> {
     return runInInjectionContext(this.injector, () => {
       return this.mFirestore
-        .collection(this.collectionName) // outletProduct
+        .collection(this.env.outletProduct) // outletProduct
         .doc(outletId)                   // specific outlet
         .collection('products')          // products sub-collection
         .doc(productId)                  // specific product
@@ -117,7 +116,7 @@ export class OutletProductService {
     return runInInjectionContext(this.injector, () => {
       console.log(dealerOutlet)
       return this.mFirestore
-        .collection('inventory')
+        .collection(this.env.inventory)
         .doc(dealerOutlet)
         .set(
           { products: { [sku]: payload } },
@@ -134,7 +133,7 @@ export class OutletProductService {
 // outlet-product.service.ts
   deleteOutletProduct(outletId: string, productId: string): Promise<void> {
     return this.mFirestore
-      .collection(this.collectionName)    // 'outletProduct'
+      .collection(this.env.outletProduct)    // 'outletProduct'
       .doc(outletId)                      // outlet doc (e.g. VWC014)
       .collection('products')             // subcollection
       .doc(productId)                     // product doc id (e.g. EKPsTW9N...)
@@ -146,14 +145,14 @@ export class OutletProductService {
 
     // Delete product from outlet sub-collection
     const outletRef = this.mFirestore
-      .collection(this.collectionName)
+      .collection(this.env.outletProduct)
       .doc(outletId)
       .collection('products')
       .doc(productId).ref;
     batch.delete(outletRef);
 
     // Delete product from inventory nested field
-    const inventoryRef = this.mFirestore.collection('inventory').doc(dealerOutlet).ref;
+    const inventoryRef = this.mFirestore.collection(this.env.inventory).doc(dealerOutlet).ref;
 
     // Use Firestore FieldValue.delete() to remove the specific SKU
     batch.update(inventoryRef, {
@@ -166,7 +165,7 @@ export class OutletProductService {
   // 📌 Get GRN by ID
   getOutletProductById(id: string): Observable<any> {
     return this.mFirestore
-      .collection(this.collectionName)
+      .collection(this.env.outletProduct)
       .doc(id)
       .snapshotChanges()
       .pipe(

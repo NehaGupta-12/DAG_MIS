@@ -1,8 +1,6 @@
-
-export const environmentProduction = {
+export const environment = {
   production: true,
-  mode: 'prod',
-  firebaseConfig : {
+  firebaseConfig: {
     apiKey: "AIzaSyApibewYFhNYYvxl0xqr8jsGW4bi75LiFU",
     authDomain: "dag-new.firebaseapp.com",
     databaseURL: "https://dag-new-default-rtdb.firebaseio.com",
@@ -12,18 +10,36 @@ export const environmentProduction = {
     appId: "1:808094841189:web:bf4f03edb567a4be6fc98c",
     measurementId: "G-XY17JZZ6ST"
   },
-    collections: {
-      dealers: 'dealer',
-      products: 'product',
-      budget: 'budget',
-      dailySales: 'daily-sales',
-      stockTransfer: 'stockTransfer',
-      roles: 'roles',
-      outletProduct: 'outletProduct',
-      monthlyBudget: 'monthlyBudget',
-      menuList: 'menuList',
-      inventory: 'inventory',
-      grn: 'grn',
-    }
+  testCollections: {
+    dealers: 'dev-dealer',
+    products: 'dev-product',
+    budget: 'dev-budget',
+    dailySales: 'dev-daily-sales',
+    stockTransfer: 'dev-stockTransfer',
+    roles: 'dev-roles',
+    outletProduct: 'dev-outletProduct',
+    monthlyBudget: 'dev-monthlyBudget',
+    menuList: 'dev-menuList',
+    inventory: 'dev-inventory',
+    grn: 'dev-grn',
+    location: 'dev-location',
+    activityLog: 'dev-activity-log'
+  },
+  collections: {
+    dealers: 'dealer',
+    products: 'product',
+    budget: 'budget',
+    dailySales: 'daily-sales',
+    stockTransfer: 'stockTransfer',
+    roles: 'roles',
+    outletProduct: 'outletProduct',
+    monthlyBudget: 'monthlyBudget',
+    menuList: 'menuList',
+    inventory: 'inventory',
+    grn: 'grn',
+    location: 'location',
+    activityLog: 'activity-log'
+  }
 
 };
+
