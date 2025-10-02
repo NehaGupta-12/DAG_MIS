@@ -35,7 +35,7 @@ export class LogService {
     activity.user=   email!
     activity.description=activity.description + ' '+ email
     activity.currentIp = this.currentIp
-    this.mDatabase.list('activityLog').push(activity)
+    this.mDatabase.list(this.env.activityLog).push(activity)
     console.log('Log Added ',JSON.stringify(activity))
   }
   getLogs(){
@@ -43,7 +43,6 @@ export class LogService {
   }
   getLogsByCount(i:number){
     return this.mDatabase.list<ActivityLog>(this.env.activityLog,ref => ref.limitToLast(i)).snapshotChanges()
-    // return this.mDatabase.list<ActivityLog>('activityLog').snapshotChanges()
   }
 
 

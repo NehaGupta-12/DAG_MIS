@@ -25,7 +25,7 @@ export const environment = {
     inventory: 'dev-inventory',
     grn: 'dev-grn',
     location: 'dev-location',
-    activityLog: 'dev-activity-log'
+    activityLog: 'dev-activityLog'
   },
   collections: {
     dealers: 'dealer',
@@ -40,7 +40,7 @@ export const environment = {
     inventory: 'inventory',
     grn: 'grn',
     location: 'location',
-    activityLog: 'activity-log'
+    activityLog: 'activityLog'
   }
 };
 
