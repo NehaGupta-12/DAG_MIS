@@ -24,6 +24,7 @@ import Swal from "sweetalert2";
 import {LoadingService} from "../../Services/loading.service";
 import {AuthService} from "../../authentication/auth.service";
 import {ActivityLogService} from "../activity-log/activity-log.service";
+import {AngularFirestore} from "@angular/fire/compat/firestore";
 
 @Component({
   selector: 'app-dealer-list',
@@ -48,7 +49,7 @@ import {ActivityLogService} from "../activity-log/activity-log.service";
   standalone: true,
   styleUrls: ['./dealer-list.component.scss']
 })
-export class DealerListComponent implements OnInit{
+export class DealerListComponent implements OnInit {
   dataSource = new MatTableDataSource<any>();
 
 // Define columns
@@ -85,18 +86,21 @@ export class DealerListComponent implements OnInit{
     private addDealerService: AddDealerService,
     private injector: EnvironmentInjector,
     private loadingService: LoadingService,
-    public authService : AuthService,
-
+    private mFirestore:AngularFirestore,
+    public authService: AuthService,
     private activityLogService: ActivityLogService,
-  ) {}
+  ) {
+  }
 
   ngOnInit() {
     this.DealerList();
+    this.findDealerWithNullOutletId()
   }
 
   DealerList() {
     this.loadingService.setLoading(true); // ✅ start loader
     runInInjectionContext(this.injector, () => {
+
       this.addDealerService.getDealerList().subscribe({
         next: (data) => {
           this.dataSource.data = data;
@@ -104,6 +108,11 @@ export class DealerListComponent implements OnInit{
           this.dataSource.sort = this.sort;
           console.log(this.dataSource.data);
           this.loadingService.setLoading(false); // ✅ stop loader on success
+          data.forEach(it => {
+            if (it.outletId == null) {
+              console.log(`outletId not found in ${it.name}`)
+            }
+          })
         },
         error: (err) => {
           console.error('Error fetching Dealer list:', err);
@@ -121,7 +130,7 @@ export class DealerListComponent implements OnInit{
 
   editDealer(row: any) {
     this.router.navigate(['module/add-dealer'], {
-      queryParams: { data: JSON.stringify(row) }
+      queryParams: {data: JSON.stringify(row)}
     });
 
 
@@ -192,7 +201,9 @@ export class DealerListComponent implements OnInit{
   //   });
   // }
 
-  deleteDealer(id: string) {
+  deleteDealer(data: any) {
+    console.log(data)
+    alert(JSON.stringify(data))
     Swal.fire({
       title: 'Are you sure?',
       text: 'You will not be able to recover this Dealer/Outlet!',
@@ -204,7 +215,7 @@ export class DealerListComponent implements OnInit{
       if (result.isConfirmed) {
         this.loadingService.setLoading(true);
         runInInjectionContext(this.injector, () => {
-          this.addDealerService.deleteDealer(id)
+          this.addDealerService.deleteDealer(data.outletId)
             .then(() => {
               this.DealerList();
               Swal.fire('Deleted!', 'Dealer/Outlet has been deleted.', 'success');
@@ -214,7 +225,7 @@ export class DealerListComponent implements OnInit{
                 date: Date.now(),
                 section: "Dealer",
                 action: "Delete",
-                description: `Deleted Dealer with ID: ${id}`
+                description: `Deleted Dealer with ID: ${data.outletId}`
               });
             })
             .catch((err) => {
@@ -232,4 +243,27 @@ export class DealerListComponent implements OnInit{
   }
 
 
+  private findDealerWithNullOutletId() {
+    runInInjectionContext(this.injector, () => {
+      this.mFirestore.collection('dealer', ref => ref.where('outletId', '==', null))
+        .get()
+        .subscribe(snapshot => {
+          snapshot.forEach(doc => {
+            const data:any = doc.data();
+            const dealerId = doc.id; // document ID
+
+            console.log(`outletId is null in ${data['name']} -> updating with id: ${dealerId}`);
+
+            // 👉 Update the outletId field with document id
+            this.mFirestore.collection('dealer').doc(dealerId).update({
+              outletId: dealerId
+            }).then(() => {
+              console.log(`Updated dealer ${dealerId} with outletId`);
+            }).catch(err => {
+              console.error(`Failed to update dealer ${dealerId}:`, err);
+            });
+          });
+        });
+    });
+  }
 }

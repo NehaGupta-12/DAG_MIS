@@ -23,8 +23,8 @@ export class AutoFunctionUploadComponent {
     // this.copyRolesToRoles2()
   }
   copyRolesToRoles2() {
-    const sourceCollection = 'menuList';
-    const targetCollection = 'dev-menuList';
+    const sourceCollection = 'dealer';
+    const targetCollection = 'dealerCopyData';
     runInInjectionContext(this.injector, async () => {
     this.firestore.collection(sourceCollection).get().subscribe(snapshot => {
       snapshot.forEach(doc => {

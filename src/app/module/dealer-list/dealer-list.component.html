@@ -55,7 +55,7 @@
                 </ng-container>
                 <ng-container matColumnDef="code">
                   <th mat-header-cell *matHeaderCellDef mat-sort-header>Showroom Code</th>
-                  <td mat-cell *matCellDef="let row">{{ row?.outletCode || 'NA' }}</td>
+                  <td mat-cell *matCellDef="let row"  [matTooltip]="row.id">{{ row?.outletCode || 'NA' }}</td>
                 </ng-container>
                 <!-- Name -->
                 <ng-container matColumnDef="name">
@@ -111,7 +111,7 @@
                     </span>
                     <span [matTooltip]="!authService.hasPermission('Outlet/Dealer','delete') ? 'No permission' : 'Delete Outlet/Dealer'" matTooltipPosition="above">
 
-                    <button mat-icon-button color="accent" (click)="deleteDealer(row.id)" [disabled]="!authService.hasPermission('Outlet/Dealer','delete')">
+                    <button mat-icon-button color="accent" [matTooltip]="row.outletId" (click)="deleteDealer(row)" [disabled]="!authService.hasPermission('Outlet/Dealer','delete')">
                       <app-feather-icons icon="trash-2" class="tbl-fav-delete"></app-feather-icons>
                     </button>
                     </span>
