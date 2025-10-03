@@ -30,6 +30,7 @@ import {map} from "rxjs/operators";
 import {AngularFireDatabase} from "@angular/fire/compat/database";
 import {MatOption, MatSelect} from "@angular/material/select";
 import {environment} from "../../../environments/environment";
+import {ActivityLogService} from "../activity-log/activity-log.service";
 
 @Component({
   selector: 'app-add-role',
@@ -81,6 +82,7 @@ export class AddRoleComponent implements OnInit {
     private injector: EnvironmentInjector,
     private mSnackBar: MatSnackBar,
     private roleService : RoleService,
+    private mService:ActivityLogService,
     public userService: UserService,
   ) {
     this.userSubscription = this.userService.getUserId().subscribe((id: any) => {
@@ -231,6 +233,68 @@ export class AddRoleComponent implements OnInit {
   }
 
 
+  // save(): void {
+  //   if (!this.role_form.valid) {
+  //     this.markFormGroupTouched(this.role_form);
+  //     this.mSnackBar.open('Form is Invalid', 'Close', { duration: 3000 });
+  //     return;
+  //   }
+  //
+  //   this.isLoading = true;
+  //   const roleData = this.role_form.value;
+  //
+  //   runInInjectionContext(this.injector, () => {
+  //     if (!this.isEditMode) {
+  //       this.userService.getUserId().subscribe(userId => {
+  //         this.userId = userId;
+  //         this.roleService.checkDuplicateRoleName(roleData.roleName).subscribe(isDuplicate => {
+  //           if (isDuplicate) {
+  //             this.isLoading = false;
+  //             this.mSnackBar.open('Role name already exists. Please choose another.', 'Close', { duration: 4000 });
+  //           } else {
+  //             // Add new role
+  //             runInInjectionContext(this.injector, () => {
+  //             this.afs.collection(this.env.roles).add({
+  //               roleName: roleData.roleName,
+  //               permissions: roleData.permissions,
+  //               createdBy: this.userId,
+  //               createdAt: new Date(),
+  //             }).then(() => {
+  //               this.isLoading = false;
+  //               this.role_form.reset();
+  //               this.permissionsArray.clear();
+  //               this.router.navigate(['/module/role-list']);
+  //               this.mSnackBar.open('New Role Successfully Added', 'Close', { duration: 3000 });
+  //             }).catch(error => {
+  //               this.isLoading = false;
+  //               console.error('Error adding role:', error);
+  //               this.mSnackBar.open('Error while saving role', 'Close', { duration: 3000 });
+  //             });
+  //             });
+  //           }
+  //         });
+  //       });
+  //     } else if (this.isEditMode && this.roleId) {
+  //       // 🔹 Update role
+  //       this.afs.collection(this.env.roles).doc(this.roleId).update({
+  //         roleName: roleData.roleName,
+  //         permissions: roleData.permissions,
+  //         updatedBy: this.userId,
+  //         updatedAt: new Date(),
+  //       }).then(() => {
+  //         this.isLoading = false;
+  //         this.mSnackBar.open('Role updated successfully', 'Close', { duration: 3000 });
+  //         this.router.navigate(['/module/role-list']);
+  //       }).catch(error => {
+  //         this.isLoading = false;
+  //         console.error('Error updating role:', error);
+  //         this.mSnackBar.open('Error while updating role', 'Close', { duration: 3000 });
+  //       });
+  //     }
+  //   });
+  // }
+
+
   save(): void {
     if (!this.role_form.valid) {
       this.markFormGroupTouched(this.role_form);
@@ -240,6 +304,9 @@ export class AddRoleComponent implements OnInit {
 
     this.isLoading = true;
     const roleData = this.role_form.value;
+    const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+    const username = userData.userName || `${userData.first || ''} ${userData.last || ''}`.trim() || 'Unknown User';
+    const timestamp = Date.now();
 
     runInInjectionContext(this.injector, () => {
       if (!this.isEditMode) {
@@ -252,22 +319,31 @@ export class AddRoleComponent implements OnInit {
             } else {
               // Add new role
               runInInjectionContext(this.injector, () => {
-              this.afs.collection(this.env.roles).add({
-                roleName: roleData.roleName,
-                permissions: roleData.permissions,
-                createdBy: this.userId,
-                createdAt: new Date(),
-              }).then(() => {
-                this.isLoading = false;
-                this.role_form.reset();
-                this.permissionsArray.clear();
-                this.router.navigate(['/module/role-list']);
-                this.mSnackBar.open('New Role Successfully Added', 'Close', { duration: 3000 });
-              }).catch(error => {
-                this.isLoading = false;
-                console.error('Error adding role:', error);
-                this.mSnackBar.open('Error while saving role', 'Close', { duration: 3000 });
-              });
+                this.afs.collection(this.env.roles).add({
+                  roleName: roleData.roleName,
+                  permissions: roleData.permissions,
+                  createdBy: this.userId,
+                  createdAt: new Date(),
+                }).then(() => {
+                  this.isLoading = false;
+                  this.role_form.reset();
+                  this.permissionsArray.clear();
+                  this.router.navigate(['/module/role-list']);
+                  this.mSnackBar.open('New Role Successfully Added', 'Close', { duration: 3000 });
+
+                  // ✅ Activity log for add
+                  this.mService.addLog({
+                    date: timestamp,
+                    section: "Role & Permission",
+                    action: "Submit",
+                    user: username,
+                    description: `New role "${roleData.roleName}" added by ${username}`
+                  });
+                }).catch(error => {
+                  this.isLoading = false;
+                  console.error('Error adding role:', error);
+                  this.mSnackBar.open('Error while saving role', 'Close', { duration: 3000 });
+                });
               });
             }
           });
@@ -283,6 +359,15 @@ export class AddRoleComponent implements OnInit {
           this.isLoading = false;
           this.mSnackBar.open('Role updated successfully', 'Close', { duration: 3000 });
           this.router.navigate(['/module/role-list']);
+
+          // ✅ Activity log for update
+          this.mService.addLog({
+            date: timestamp,
+            section: "Role & Permission",
+            action: "Update",
+            user: username,
+            description: `Role "${roleData.roleName}" updated by ${username}`
+          });
         }).catch(error => {
           this.isLoading = false;
           console.error('Error updating role:', error);
@@ -291,6 +376,8 @@ export class AddRoleComponent implements OnInit {
       }
     });
   }
+
+
 
   markFormGroupTouched(formGroup: FormGroup) {
     Object.values(formGroup.controls).forEach(control => {

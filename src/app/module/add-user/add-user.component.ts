@@ -24,6 +24,7 @@ import {AngularFireDatabase} from "@angular/fire/compat/database";
 import {map} from "rxjs/operators";
 import {Observable} from "rxjs";
 import {LoadingService} from "../../Services/loading.service";
+import {ActivityLogService} from "../activity-log/activity-log.service";
 
 @Component({
   selector: 'app-add-user',
@@ -98,6 +99,7 @@ export class AddUserComponent implements OnInit{
               private mDatabase : AngularFireDatabase,
               private userService : UserService,
               public loaderService : LoadingService,
+              private mService: ActivityLogService,
               private authService: AuthService) {
     this.initForm();
     this.initSecondForm();
@@ -392,12 +394,84 @@ export class AddUserComponent implements OnInit{
   }
 
 
+  // async onRegister(): Promise<void> {
+  //   this.submitted = true;
+  //
+  //   if (this.register?.valid) {
+  //     const formValue = { ...this.register.getRawValue() };
+  //     const timestamp = new Date().toISOString();
+  //
+  //     try {
+  //       this.loaderService.setLoading(true); // ✅ start loader globally
+  //
+  //       if (this.isEditMode && this.userId) {
+  //         // ✅ Add updatedAt field when updating
+  //         const updatedValue = { ...formValue, updatedAt: timestamp };
+  //         await this.userService.updateUser(this.userId, updatedValue);
+  //
+  //         Swal.fire({
+  //           title: 'Updated!',
+  //           text: 'User details have been updated successfully.',
+  //           icon: 'success',
+  //           timer: 2000,
+  //           showConfirmButton: false
+  //         }).then(() => this.router.navigate(['/module/user-list']));
+  //
+  //       } else {
+  //         const email = formValue.email;
+  //         const password = 'password@123';
+  //         const response = await this.userService.createUser(email, password);
+  //
+  //         if (response.success) {
+  //           this.register.addControl('uid', this.fb.control(response.uid));
+  //
+  //           // ✅ Add createdAt & updatedAt
+  //           const newUserData = {
+  //             ...formValue,
+  //             uid: response.uid,
+  //             createdAt: timestamp,
+  //             updatedAt: timestamp
+  //           };
+  //
+  //           await this.userService.addEmployee(response.uid, newUserData);
+  //
+  //           Swal.fire({
+  //             title: 'Added!',
+  //             text: 'User details have been saved successfully.',
+  //             icon: 'success',
+  //             timer: 2000,
+  //             showConfirmButton: false
+  //           }).then(() => this.router.navigate(['/module/user-list']));
+  //         } else {
+  //           alert(`Error: ${response.error}`);
+  //         }
+  //       }
+  //     } catch (error) {
+  //       console.error('Error saving user:', error);
+  //     } finally {
+  //       this.loaderService.setLoading(false); // ✅ always stop loader
+  //     }
+  //
+  //   } else {
+  //     this.submitted = false;
+  //     alert('Form is Invalid. Please complete all required fields.');
+  //     console.log('INVALID CONTROLS', this.findInvalidControls());
+  //   }
+  // }
+
+
   async onRegister(): Promise<void> {
     this.submitted = true;
 
     if (this.register?.valid) {
       const formValue = { ...this.register.getRawValue() };
       const timestamp = new Date().toISOString();
+
+      // Get logged-in username for activity log
+      const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+      const username = userData.userName || `${userData.first || ''} ${userData.last || ''}`.trim() || 'Unknown User';
+      const gender = userData.gender || 'Male';
+      const pronoun = gender.toLowerCase() === 'female' ? 'her' : 'his';
 
       try {
         this.loaderService.setLoading(true); // ✅ start loader globally
@@ -406,6 +480,15 @@ export class AddUserComponent implements OnInit{
           // ✅ Add updatedAt field when updating
           const updatedValue = { ...formValue, updatedAt: timestamp };
           await this.userService.updateUser(this.userId, updatedValue);
+
+          // ✅ Activity log for update
+          this.mService.addLog({
+            date: Date.now(),
+            section: "User",
+            action: "Update",
+            user: username,
+            description: `${username} updated user "${formValue.first} ${formValue.last}" and ${pronoun} mail is `
+          });
 
           Swal.fire({
             title: 'Updated!',
@@ -433,6 +516,15 @@ export class AddUserComponent implements OnInit{
 
             await this.userService.addEmployee(response.uid, newUserData);
 
+            // ✅ Activity log for add
+            this.mService.addLog({
+              date: Date.now(),
+              section: "User",
+              action: "Add",
+              user: username,
+              description: `${username} added new user "${formValue.first} ${formValue.last}" and ${pronoun} mail is `
+            });
+
             Swal.fire({
               title: 'Added!',
               text: 'User details have been saved successfully.',
@@ -456,6 +548,7 @@ export class AddUserComponent implements OnInit{
       console.log('INVALID CONTROLS', this.findInvalidControls());
     }
   }
+
 
   changePassword() {
     // if password control valid first

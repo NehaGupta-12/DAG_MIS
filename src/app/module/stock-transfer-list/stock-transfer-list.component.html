@@ -98,7 +98,7 @@
                     <button mat-icon-button style="color: #6c757d;" (click)="openAssignDialog(row)" [disabled]="!authService.hasPermission('Stock Transfer','list')">
                       <mat-icon>visibility</mat-icon>
                     </button>
-                    <button mat-icon-button color="accent" (click)="deleteGrn(row.id)" [disabled]="!authService.hasPermission('Stock Transfer','delete')">
+                    <button mat-icon-button color="accent" (click)="deleteGrn(row.id, row)" [disabled]="!authService.hasPermission('Stock Transfer','delete')">
                       <app-feather-icons [icon]="'trash-2'" [class]="'tbl-fav-delete'"></app-feather-icons>
                     </button>
                   </td>

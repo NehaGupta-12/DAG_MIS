@@ -19,6 +19,7 @@ import { MonthlyBudgetService } from "../monthly-budget.service";
 import {LoadingService} from "../../Services/loading.service";
 import {MatCheckbox} from "@angular/material/checkbox";
 import {CountryService} from "../../Services/country.service";
+import {ActivityLogService} from "../activity-log/activity-log.service";
 
 @Component({
   selector: 'app-add-monthly-budget',
@@ -91,6 +92,7 @@ export class AddMonthlyBudgetComponent implements OnInit {
     private monthlybudgetService: MonthlyBudgetService,
     private injector: EnvironmentInjector,
     private loadingService: LoadingService,
+    private mService: ActivityLogService,
     private countryService: CountryService,
   ) {
     // Dropdowns
@@ -687,6 +689,66 @@ export class AddMonthlyBudgetComponent implements OnInit {
     this.addedProducts = [...this.addedProducts];
   }
 
+  // submitForm() {
+  //   if (this.budgetForm.invalid) {
+  //     Swal.fire('Error', 'Please fill all required fields.', 'error');
+  //     return;
+  //   }
+  //
+  //   if (this.addedProducts.length === 0) {
+  //     Swal.fire('Error', 'Please add at least one product.', 'error');
+  //     return;
+  //   }
+  //
+  //   Swal.fire({
+  //     title: this.isEditMode ? 'Update Monthly Target?' : 'Add Monthly Target?',
+  //     icon: 'question',
+  //     showCancelButton: true,
+  //     confirmButtonText: 'Yes'
+  //   }).then((result) => {
+  //     if (!result.isConfirmed) return;
+  //
+  //     const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+  //     const username = userData.userName || 'Unknown User';
+  //     const timestamp = Date.now();
+  //
+  //     const formValues = this.budgetForm.getRawValue();
+  //
+  //     // ✅ Build document with products array
+  //     const productDoc = {
+  //       country: formValues.country,
+  //       year: formValues.year,
+  //       month: formValues.month,
+  //       period: formValues.period,
+  //       products: this.addedProducts.map(p => ({
+  //         model: p.name,               // from table
+  //         targetQuantity: p.target     // from input in table
+  //       })),
+  //       status: 'Active',
+  //       updatedBy: username,
+  //       updatedAt: timestamp
+  //     };
+  //
+  //     runInInjectionContext(this.injector, () => {
+  //       if (this.isEditMode && this.editingDocId) {
+  //         this.loadingService.setLoading(true);
+  //         this.monthlybudgetService.updateBudget(this.editingDocId, productDoc)
+  //           .then(() => Swal.fire('Updated!', 'Monthly Target updated successfully.', 'success'))
+  //           .then(() => this.goBack())
+  //           .catch(() => Swal.fire('Error', 'Something went wrong while updating.', 'error'))
+  //           .finally(() => this.loadingService.setLoading(false));
+  //       } else {
+  //         this.loadingService.setLoading(true);
+  //         this.monthlybudgetService.addBudget(productDoc)
+  //           .then(() => Swal.fire('Added!', 'Monthly Target saved successfully.', 'success'))
+  //           .then(() => this.goBack())
+  //           .catch(() => Swal.fire('Error', 'Something went wrong.', 'error'))
+  //           .finally(() => this.loadingService.setLoading(false));
+  //       }
+  //     });
+  //   });
+  // }
+
   submitForm() {
     if (this.budgetForm.invalid) {
       Swal.fire('Error', 'Please fill all required fields.', 'error');
@@ -707,10 +769,16 @@ export class AddMonthlyBudgetComponent implements OnInit {
       if (!result.isConfirmed) return;
 
       const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-      const username = userData.userName || 'Unknown User';
+      const username = `${userData.first || ''} ${userData.last || ''}`.trim() || 'Unknown User';
+      const userEmail = userData.email || 'Unknown Email';
+      const gender = userData.gender || 'Male'; // default Male
+      const pronoun = gender.toLowerCase() === 'female' ? 'her' : 'his';
       const timestamp = Date.now();
 
       const formValues = this.budgetForm.getRawValue();
+
+      // Get product names for activity log
+      const productNames = this.addedProducts.map(p => p.name).join(', ');
 
       // ✅ Build document with products array
       const productDoc = {
@@ -719,8 +787,8 @@ export class AddMonthlyBudgetComponent implements OnInit {
         month: formValues.month,
         period: formValues.period,
         products: this.addedProducts.map(p => ({
-          model: p.name,               // from table
-          targetQuantity: p.target     // from input in table
+          model: p.name,
+          targetQuantity: p.target
         })),
         status: 'Active',
         updatedBy: username,
@@ -731,14 +799,36 @@ export class AddMonthlyBudgetComponent implements OnInit {
         if (this.isEditMode && this.editingDocId) {
           this.loadingService.setLoading(true);
           this.monthlybudgetService.updateBudget(this.editingDocId, productDoc)
-            .then(() => Swal.fire('Updated!', 'Monthly Target updated successfully.', 'success'))
+            .then(() => {
+              // ✅ Activity log for update with pronoun + email
+              this.mService.addLog({
+                date: timestamp,
+                section: "Monthly Target",
+                action: "Update",
+                user: username,
+                description: `${username} updated monthly target for products: ${productNames} and ${pronoun} mail is `
+              });
+
+              Swal.fire('Updated!', 'Monthly Target updated successfully.', 'success');
+            })
             .then(() => this.goBack())
             .catch(() => Swal.fire('Error', 'Something went wrong while updating.', 'error'))
             .finally(() => this.loadingService.setLoading(false));
         } else {
           this.loadingService.setLoading(true);
           this.monthlybudgetService.addBudget(productDoc)
-            .then(() => Swal.fire('Added!', 'Monthly Target saved successfully.', 'success'))
+            .then(() => {
+              // ✅ Activity log for add with pronoun + email
+              this.mService.addLog({
+                date: timestamp,
+                section: "Monthly Target",
+                action: "Submit",
+                user: username,
+                description: `${username} added new monthly target for products: ${productNames} and ${pronoun} mail is `
+              });
+
+              Swal.fire('Added!', 'Monthly Target saved successfully.', 'success');
+            })
             .then(() => this.goBack())
             .catch(() => Swal.fire('Error', 'Something went wrong.', 'error'))
             .finally(() => this.loadingService.setLoading(false));

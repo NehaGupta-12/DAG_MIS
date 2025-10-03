@@ -104,7 +104,7 @@ export class OutletProductListComponent implements OnInit {
     private loadingService: LoadingService,
     public authService : AuthService,
     private addDealerService: AddDealerService,
-    private activityLogService: ActivityLogService,
+    private mService: ActivityLogService,
   ) {}
 
   ngOnInit() {
@@ -347,9 +347,9 @@ export class OutletProductListComponent implements OnInit {
             Swal.fire('Deleted!', 'Dealer/Outlet Product has been deleted.', 'success');
 
             // 🔹 Log activity
-            this.activityLogService.addLog({
+            this.mService.addLog({
               date: Date.now(),
-              section: "Outlet Product",
+              section: "Outlet/Dealer Product List",
               action: "Delete",
               description: `Deleted Product "${row.name}" (SKU: ${row.sku}) from Outlet "${dealerOutlet}"`
             });

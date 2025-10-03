@@ -31,6 +31,7 @@ import {AngularFireDatabase} from "@angular/fire/compat/database";
 import {map} from "rxjs/operators";
 import {LoadingService} from "../../Services/loading.service";
 import {CountryService} from "../../Services/country.service";
+import {ActivityLogService} from "../activity-log/activity-log.service";
 export interface ListType {
   name: string
   id?: string
@@ -107,6 +108,7 @@ export class AddDealerComponent implements OnInit{
     private mDatabase: AngularFireDatabase,
     private loadingService: LoadingService,
     private countryService: CountryService,
+    private mService: ActivityLogService,
     private router: Router,
     @Inject(MAT_DIALOG_DATA) public data: any,
   ) {
@@ -150,10 +152,6 @@ export class AddDealerComponent implements OnInit{
       this._countriesTypes = data;
       this.filterCountries();
     });
-    // this._countriesTypes$.subscribe(data => {
-    //   this._countriesTypes = data;
-    //   this.filterCountries();
-    // });
 
     this._townTypes$.subscribe(data => {
       this._townTypes = data;
@@ -264,6 +262,76 @@ export class AddDealerComponent implements OnInit{
     }
   }
 
+  // submitForm() {
+  //   if (this.dealerForm.valid) {
+  //     Swal.fire({
+  //       title: this.isEditMode
+  //         ? 'Update Dealer/Outlet Details?'
+  //         : 'Add Dealer/Outlet Details?',
+  //       text: 'Are you sure you want to proceed?',
+  //       icon: 'question',
+  //       showCancelButton: true,
+  //       confirmButtonText: 'Yes',
+  //       cancelButtonText: 'No',
+  //     }).then((result: any) => {
+  //       if (result.isConfirmed) {
+  //         const { ...locationData } = this.dealerForm.getRawValue();
+  //
+  //         const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+  //         const username = userData.userName || 'Unknown User';
+  //         const timestamp = Date.now();
+  //
+  //         const transformedData: any = {
+  //           ...locationData,
+  //         };
+  //
+  //         if (this.isEditMode && this.data.id) {
+  //           transformedData.updateBy = username;
+  //           transformedData.updatedAt = timestamp;
+  //
+  //           this.loadingService.setLoading(true);
+  //           runInInjectionContext(this.injector, () => {
+  //             this.addDealerService.updateDealer(this.data.id, transformedData)
+  //               .then(() => {
+  //                 this.loadingService.setLoading(false);
+  //                 Swal.fire('Updated!', 'Dealer/Outlet Details updated successfully.', 'success');
+  //                 this.goBack();
+  //               })
+  //               .catch(error => {
+  //                 this.loadingService.setLoading(false);
+  //                 console.error('Error updating Dealer/Outlet Details:', error);
+  //                 Swal.fire('Error', 'Something went wrong.', 'error');
+  //               });
+  //           });
+  //         } else {
+  //           // ➕ Add logic
+  //           transformedData.status = 'Active';
+  //           transformedData.createBy = username;
+  //           transformedData.createdAt = timestamp;
+  //
+  //           this.loadingService.setLoading(true);
+  //           runInInjectionContext(this.injector, () => {
+  //             this.addDealerService.addDealer(transformedData)
+  //               .then(() => {
+  //                 this.loadingService.setLoading(false);
+  //                 Swal.fire('Added!', 'Dealer/Outlet Details added successfully.', 'success');
+  //                 this.goBack();
+  //               })
+  //               .catch(error => {
+  //                 this.loadingService.setLoading(false);
+  //                 console.error('Error adding Dealer/Outlet Details:', error);
+  //                 Swal.fire('Error', 'Something went wrong.', 'error');
+  //               });
+  //           });
+  //         }
+  //       }
+  //     });
+  //   } else {
+  //     console.log('Form is invalid:', this.dealerForm.errors);
+  //   }
+  // }
+
+
   submitForm() {
     if (this.dealerForm.valid) {
       Swal.fire({
@@ -279,8 +347,10 @@ export class AddDealerComponent implements OnInit{
         if (result.isConfirmed) {
           const { ...locationData } = this.dealerForm.getRawValue();
 
+          // ✅ Fix: Build username properly from first + last
           const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-          const username = userData.userName || 'Unknown User';
+          const username = `${userData.first || ''} ${userData.last || ''}`.trim() || 'Unknown User';
+          const userEmail = userData.email || 'Unknown Email';
           const timestamp = Date.now();
 
           const transformedData: any = {
@@ -288,6 +358,7 @@ export class AddDealerComponent implements OnInit{
           };
 
           if (this.isEditMode && this.data.id) {
+            // --- UPDATE CASE ---
             transformedData.updateBy = username;
             transformedData.updatedAt = timestamp;
 
@@ -295,6 +366,15 @@ export class AddDealerComponent implements OnInit{
             runInInjectionContext(this.injector, () => {
               this.addDealerService.updateDealer(this.data.id, transformedData)
                 .then(() => {
+                  // ✅ Activity log with proper name + email
+                  this.mService.addLog({
+                    date: timestamp,
+                    section: "Outlet/Dealer",
+                    action: "Update",
+                    user: username,
+                    description: `${username}  has updated showroom ${locationData.name}`
+                  });
+
                   this.loadingService.setLoading(false);
                   Swal.fire('Updated!', 'Dealer/Outlet Details updated successfully.', 'success');
                   this.goBack();
@@ -306,7 +386,7 @@ export class AddDealerComponent implements OnInit{
                 });
             });
           } else {
-            // ➕ Add logic
+            // --- ADD CASE ---
             transformedData.status = 'Active';
             transformedData.createBy = username;
             transformedData.createdAt = timestamp;
@@ -315,6 +395,15 @@ export class AddDealerComponent implements OnInit{
             runInInjectionContext(this.injector, () => {
               this.addDealerService.addDealer(transformedData)
                 .then(() => {
+                  // ✅ Activity log with proper name + email
+                  this.mService.addLog({
+                    date: timestamp,
+                    section: "Outlet/Dealer",
+                    action: "Submit",
+                    user: username,
+                    description: `${username} has added new ${locationData.name} showroom and his`
+                  });
+
                   this.loadingService.setLoading(false);
                   Swal.fire('Added!', 'Dealer/Outlet Details added successfully.', 'success');
                   this.goBack();
@@ -332,6 +421,8 @@ export class AddDealerComponent implements OnInit{
       console.log('Form is invalid:', this.dealerForm.errors);
     }
   }
+
+
 
   goBack() {
     // this.dealer.back();

@@ -39,6 +39,7 @@ import {BehaviorSubject, Observable} from "rxjs";
 import {MatDatepicker, MatDatepickerInput, MatDatepickerToggle} from "@angular/material/datepicker";
 import {CountryService} from "../../Services/country.service";
 import {MatProgressSpinner} from "@angular/material/progress-spinner";
+import {ActivityLogService} from "../activity-log/activity-log.service";
 
 @Component({
   selector: 'app-add-daily-sales',
@@ -144,6 +145,7 @@ export class AddDailySalesComponent implements OnInit {
     private loadingService: LoadingService,
     private mDatabase: AngularFireDatabase,
     private countryService: CountryService,
+    private mService: ActivityLogService,
     @Inject(MAT_DIALOG_DATA) public data: any,
   ) {
     this._divisionTypes$ = this.mDatabase
@@ -708,6 +710,158 @@ export class AddDailySalesComponent implements OnInit {
   }
 
 
+  // submitForm() {
+  //   try {
+  //     if (this.addedProducts.length === 0) {
+  //       Swal.fire('Error', 'Please add at least one product.', 'error');
+  //       return;
+  //     }
+  //
+  //     const productsToSubmit = this.addedProducts.filter(p => p.quantity > 0);
+  //
+  //     if (productsToSubmit.length === 0) {
+  //       Swal.fire('Error', 'Please enter a quantity greater than 0 for at least one product.', 'error');
+  //       return;
+  //     }
+  //
+  //     Swal.fire({
+  //       title: this.isEditMode ? 'Update Daily Sales?' : 'Add Daily Sales?',
+  //       text: 'Are you sure you want to proceed?',
+  //       icon: 'question',
+  //       showCancelButton: true,
+  //       confirmButtonText: 'Yes',
+  //       cancelButtonText: 'No'
+  //     }).then((result: any) => {
+  //       if (result.isConfirmed) {
+  //         try {
+  //           // ✅ Set loading flags
+  //           this.isSubmitting = true;
+  //           this.loadingService.setLoading(true);
+  //
+  //           const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+  //           const username = userData.userName || 'Unknown User';
+  //           const timestamp = Date.now();
+  //
+  //           const formValues = this.dailySalesForm.getRawValue();
+  //
+  //           // let salesDateTime: number | null = null;
+  //           // if (formValues.salesDate) {
+  //           //   const selectedDate = new Date(formValues.salesDate);
+  //           //   const now = new Date();
+  //           //   selectedDate.setHours(now.getHours(), now.getMinutes(), now.getSeconds(), now.getMilliseconds());
+  //           //   salesDateTime = selectedDate.getTime();
+  //           // }
+  //           let salesDateTime: number | null = null;
+  //           if (formValues.salesDate) {
+  //             const rawDate = formValues.salesDate;
+  //
+  //             // Ensure always Date object
+  //             const selectedDate = rawDate instanceof Date ? rawDate : new Date(rawDate);
+  //
+  //             // Preserve today's time
+  //             const now = new Date();
+  //             selectedDate.setHours(now.getHours(), now.getMinutes(), now.getSeconds(), now.getMilliseconds());
+  //
+  //             salesDateTime = selectedDate.getTime();
+  //           }
+  //
+  //
+  //           const baseInfo = {
+  //             dealerOutlet: formValues.dealerOutlet,
+  //             division: formValues.division,
+  //             country: formValues.country,
+  //             town: formValues.town,
+  //             salesType: formValues.salesType,
+  //             salesDate: salesDateTime,
+  //             status: 'Active',
+  //             updatedBy: username,
+  //             updatedAt: timestamp
+  //           };
+  //
+  //           if (this.isEditMode) {
+  //             const productToUpdate = this.addedProducts[0];
+  //             const productDoc = {
+  //               ...baseInfo,
+  //               sku: productToUpdate.sku,
+  //               name: productToUpdate.name,
+  //               brand: productToUpdate.brand,
+  //               model: productToUpdate.model,
+  //               variant: productToUpdate.variant,
+  //               unit: productToUpdate.unit,
+  //               quantity: productToUpdate.quantity
+  //             };
+  //
+  //             runInInjectionContext(this.injector, () =>
+  //               this.dailySalesService.updateDailySales(productToUpdate.docId, productDoc)
+  //             )
+  //               .then(() => this.updateInventory(productDoc, 'decrease'))
+  //               .then(() => {
+  //                 Swal.fire('Updated!', 'Daily Sales updated successfully.', 'success');
+  //                 this.goBack();
+  //               })
+  //               .catch(err => {
+  //                 console.error('Error updating daily sales:', err);
+  //                 Swal.fire('Error', 'Something went wrong while updating.', 'error');
+  //               })
+  //               .finally(() => {
+  //                 // ✅ Reset loading flags
+  //                 this.isSubmitting = false;
+  //                 this.loadingService.setLoading(false);
+  //               });
+  //           } else {
+  //             const createPromises = productsToSubmit.map(p => {
+  //               const productDoc = {
+  //                 ...baseInfo,
+  //                 id: p.id ?? '',
+  //                 sku: p.sku ?? '',
+  //                 name: p.name ?? '',
+  //                 brand: p.brand ?? '',
+  //                 model: p.model ?? '',
+  //                 variant: p.variant ?? p.varient ?? '',
+  //                 unit: p.unit ?? '',
+  //                 quantity: p.quantity ?? 0,
+  //                 createdBy: username,
+  //                 createdAt: timestamp
+  //               };
+  //
+  //               return runInInjectionContext(this.injector, () =>
+  //                 this.dailySalesService.addDailySales(productDoc)
+  //               ).then(() => this.updateInventory(productDoc, 'decrease'));
+  //             });
+  //
+  //             Promise.all(createPromises)
+  //               .then(() => {
+  //                 Swal.fire('Added!', 'All valid products saved and inventory updated.', 'success');
+  //                 this.router.navigate(['/module/daily-sales-list']);
+  //               })
+  //               .catch(err => {
+  //                 console.error('Error adding daily sales:', err);
+  //                 Swal.fire('Error', 'Something went wrong while adding.', 'error');
+  //               })
+  //               .finally(() => {
+  //                 // ✅ Reset loading flags
+  //                 this.isSubmitting = false;
+  //                 this.loadingService.setLoading(false);
+  //               });
+  //           }
+  //         } catch (innerErr) {
+  //           console.error('Unexpected error during submission:', innerErr);
+  //           Swal.fire('Error', 'Unexpected issue occurred.', 'error');
+  //           // ✅ Reset loading flags
+  //           this.isSubmitting = false;
+  //           this.loadingService.setLoading(false);
+  //         }
+  //       }
+  //     });
+  //   } catch (err) {
+  //     console.error('Global submit error:', err);
+  //     Swal.fire('Error', 'Something went wrong while submitting.', 'error');
+  //     // ✅ Reset loading flags (in case of early errors)
+  //     this.isSubmitting = false;
+  //     this.loadingService.setLoading(false);
+  //   }
+  // }
+
   submitForm() {
     try {
       if (this.addedProducts.length === 0) {
@@ -732,37 +886,22 @@ export class AddDailySalesComponent implements OnInit {
       }).then((result: any) => {
         if (result.isConfirmed) {
           try {
-            // ✅ Set loading flags
             this.isSubmitting = true;
             this.loadingService.setLoading(true);
 
             const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-            const username = userData.userName || 'Unknown User';
+            const username = `${userData.first || ''} ${userData.last || ''}`.trim() || 'Unknown User';
             const timestamp = Date.now();
-
             const formValues = this.dailySalesForm.getRawValue();
 
-            // let salesDateTime: number | null = null;
-            // if (formValues.salesDate) {
-            //   const selectedDate = new Date(formValues.salesDate);
-            //   const now = new Date();
-            //   selectedDate.setHours(now.getHours(), now.getMinutes(), now.getSeconds(), now.getMilliseconds());
-            //   salesDateTime = selectedDate.getTime();
-            // }
             let salesDateTime: number | null = null;
             if (formValues.salesDate) {
               const rawDate = formValues.salesDate;
-
-              // Ensure always Date object
               const selectedDate = rawDate instanceof Date ? rawDate : new Date(rawDate);
-
-              // Preserve today's time
               const now = new Date();
               selectedDate.setHours(now.getHours(), now.getMinutes(), now.getSeconds(), now.getMilliseconds());
-
               salesDateTime = selectedDate.getTime();
             }
-
 
             const baseInfo = {
               dealerOutlet: formValues.dealerOutlet,
@@ -789,23 +928,31 @@ export class AddDailySalesComponent implements OnInit {
                 quantity: productToUpdate.quantity
               };
 
-              runInInjectionContext(this.injector, () =>
-                this.dailySalesService.updateDailySales(productToUpdate.docId, productDoc)
-              )
-                .then(() => this.updateInventory(productDoc, 'decrease'))
-                .then(() => {
+              runInInjectionContext(this.injector, async () => {
+                try {
+                  await this.dailySalesService.updateDailySales(productToUpdate.docId, productDoc);
+                  await this.updateInventory(productDoc, 'decrease');
+
+                  // ✅ Activity log for update
+                  await this.mService.addLog({
+                    date: timestamp,
+                    section: 'DailySales',
+                    action: 'Update',
+                    user: username,
+                    description: `${username} updated daily sales for vehicle: ${productToUpdate.name} and mail is`
+                  });
+
                   Swal.fire('Updated!', 'Daily Sales updated successfully.', 'success');
                   this.goBack();
-                })
-                .catch(err => {
+                } catch (err) {
                   console.error('Error updating daily sales:', err);
                   Swal.fire('Error', 'Something went wrong while updating.', 'error');
-                })
-                .finally(() => {
-                  // ✅ Reset loading flags
+                } finally {
                   this.isSubmitting = false;
                   this.loadingService.setLoading(false);
-                });
+                }
+              });
+
             } else {
               const createPromises = productsToSubmit.map(p => {
                 const productDoc = {
@@ -822,14 +969,24 @@ export class AddDailySalesComponent implements OnInit {
                   createdAt: timestamp
                 };
 
-                return runInInjectionContext(this.injector, () =>
-                  this.dailySalesService.addDailySales(productDoc)
-                ).then(() => this.updateInventory(productDoc, 'decrease'));
+                return runInInjectionContext(this.injector, async () => {
+                  await this.dailySalesService.addDailySales(productDoc);
+                  await this.updateInventory(productDoc, 'decrease');
+
+                  // ✅ Activity log for each product added
+                  await this.mService.addLog({
+                    date: timestamp,
+                    section: 'DailySales',
+                    action: 'Add',
+                    user: username,
+                    description: `${username} added daily sales for vehicle: ${productDoc.name}`
+                  });
+                });
               });
 
               Promise.all(createPromises)
                 .then(() => {
-                  Swal.fire('Added!', 'All valid products saved and inventory updated.', 'success');
+                  Swal.fire('Added!', 'All valid products saved, inventory updated, and activity logged.', 'success');
                   this.router.navigate(['/module/daily-sales-list']);
                 })
                 .catch(err => {
@@ -837,7 +994,6 @@ export class AddDailySalesComponent implements OnInit {
                   Swal.fire('Error', 'Something went wrong while adding.', 'error');
                 })
                 .finally(() => {
-                  // ✅ Reset loading flags
                   this.isSubmitting = false;
                   this.loadingService.setLoading(false);
                 });
@@ -845,7 +1001,6 @@ export class AddDailySalesComponent implements OnInit {
           } catch (innerErr) {
             console.error('Unexpected error during submission:', innerErr);
             Swal.fire('Error', 'Unexpected issue occurred.', 'error');
-            // ✅ Reset loading flags
             this.isSubmitting = false;
             this.loadingService.setLoading(false);
           }
@@ -854,11 +1009,14 @@ export class AddDailySalesComponent implements OnInit {
     } catch (err) {
       console.error('Global submit error:', err);
       Swal.fire('Error', 'Something went wrong while submitting.', 'error');
-      // ✅ Reset loading flags (in case of early errors)
       this.isSubmitting = false;
       this.loadingService.setLoading(false);
     }
   }
+
+
+
+
 
   updateInventory(product: any, action: 'increase' | 'decrease'): Promise<void> {
     const quantityChange = action === 'increase' ? product.quantity : -product.quantity;

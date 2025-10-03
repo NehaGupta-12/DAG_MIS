@@ -90,7 +90,7 @@ export class BudgetListComponent implements OnInit {
     private injector: EnvironmentInjector,
     private loadingService: LoadingService,
     public authService : AuthService,
-    private activityLogService: ActivityLogService,
+    private mService: ActivityLogService,
   ) {}
 
   ngOnInit() {
@@ -171,42 +171,6 @@ export class BudgetListComponent implements OnInit {
     this.dataSource.filter = filterValue.trim().toLowerCase();
   }
 
-// ✅ Delete budget with loader
-//   deleteBudget(row: any) {
-//     const docId = row.docId;
-//     if (!docId) {
-//       Swal.fire('Error', 'Missing document ID for this Yearly Budget.', 'error');
-//       return;
-//     }
-//
-//     Swal.fire({
-//       title: 'Are you sure?',
-//       text: 'You will not be able to recover this Yearly Budget Product!',
-//       icon: 'warning',
-//       showCancelButton: true,
-//       confirmButtonText: 'Yes, delete it!',
-//       cancelButtonText: 'No, cancel',
-//     }).then((result) => {
-//       if (!result.isConfirmed) return;
-//
-//       this.loadingService.setLoading(true);
-//
-//       runInInjectionContext(this.injector, () => {
-//         this.budgetService.deleteBudget(docId)
-//           .then(() => {
-//             this.dataSource.data = this.dataSource.data.filter((p: any) => p.docId !== docId);
-//             Swal.fire('Deleted!', 'Yearly Budget Product has been deleted.', 'success');
-//             this.loadingService.setLoading(false);
-//           })
-//           .catch((err) => {
-//             console.error('Delete failed:', err);
-//             Swal.fire('Error', 'Failed to delete the Yearly Budget product. Please try again.', 'error');
-//             this.loadingService.setLoading(false);
-//           });
-//       });
-//     });
-//   }
-
 
   // inside deleteBudget
   deleteBudget(row: any) {
@@ -234,9 +198,9 @@ export class BudgetListComponent implements OnInit {
             this.dataSource.data = this.dataSource.data.filter((p: any) => p.docId !== docId);
 
             // ✅ Add Activity Log
-            this.activityLogService.addLog({
+            this.mService.addLog({
               date: Date.now(),
-              section: "Budget",
+              section: "Yearly Budget",
               action: "Delete",
               description: `Deleted Budget: ${row.year}-${row.month} for ${row.country}`
             });

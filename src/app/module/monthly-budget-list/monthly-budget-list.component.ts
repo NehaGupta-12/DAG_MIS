@@ -136,13 +136,6 @@ export class MonthlyBudgetListComponent implements OnInit {
       queryParams: { data: JSON.stringify(row) },
     });
 
-    // 👉 Log Activity
-    this.mService.addLog({
-      date: Date.now(),
-      section: "Monthly Budget",
-      action: "Edit",
-      description: `Edited Monthly Budget for ${row.country} - ${row.year}/${row.month}`
-    });
   }
 
   openDialog() {
@@ -158,13 +151,6 @@ export class MonthlyBudgetListComponent implements OnInit {
   navigateToAddloadOutletProduct() {
     this.router.navigate(['module/add-monthly-budget']);
 
-    // 👉 Log Activity
-    this.mService.addLog({
-      date: Date.now(),
-      section: "Monthly Budget",
-      action: "Add",
-      description: `Created a new Monthly Budget`
-    });
   }
   ngAfterViewInit() {
     this.dataSource.paginator = this.paginator;

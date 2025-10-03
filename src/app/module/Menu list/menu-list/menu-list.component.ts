@@ -109,13 +109,7 @@ export class MenuListComponent implements OnInit{
         // reload after add
         this.loadMenuList();
 
-        // 👉 log activity
-        this.mService.addLog({
-          date: Date.now(),
-          section: "Menu",
-          action: "Add",
-          description: `Added menu: ${result.menu_name}`,
-        });
+
       }
     });
   }
@@ -134,9 +128,9 @@ export class MenuListComponent implements OnInit{
         // 👉 log activity
         this.mService.addLog({
           date: Date.now(),
-          section: "Menu",
-          action: "Edit",
-          description: `Edited menu: ${row.menu_name}`,
+          section: "Menu List",
+          action: "Update",
+          description: `Updated menu: ${row.menu_name}`,
         });
       }
     });
@@ -163,7 +157,7 @@ export class MenuListComponent implements OnInit{
             // 👉 log activity
             this.mService.addLog({
               date: Date.now(),
-              section: "Menu",
+              section: "Menu List",
               action: "Delete",
               description: `Deleted menu: ${row.menu_name}`,
             });

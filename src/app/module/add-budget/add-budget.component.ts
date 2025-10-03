@@ -29,6 +29,7 @@ import {LoadingService} from "../../Services/loading.service";
 import {MonthlyBudgetService} from "../monthly-budget.service";
 import {MatCheckbox} from "@angular/material/checkbox";
 import {CountryService} from "../../Services/country.service";
+import {ActivityLogService} from "../activity-log/activity-log.service";
 
 @Component({
   selector: 'app-add-budget',
@@ -100,6 +101,7 @@ export class AddBudgetComponent implements OnInit {
     private mDatabase: AngularFireDatabase,
     private budgetService: BudgetService,
     private injector: EnvironmentInjector,
+    private mService: ActivityLogService,
     private loadingService: LoadingService,
     private countryService: CountryService,
   ) {
@@ -694,6 +696,66 @@ export class AddBudgetComponent implements OnInit {
     this.addedProducts = [...this.addedProducts];
   }
 
+  // submitForm() {
+  //   if (this.targetForm.invalid) {
+  //     Swal.fire('Error', 'Please fill all required fields.', 'error');
+  //     return;
+  //   }
+  //
+  //   if (this.addedProducts.length === 0) {
+  //     Swal.fire('Error', 'Please add at least one product.', 'error');
+  //     return;
+  //   }
+  //
+  //   Swal.fire({
+  //     title: this.isEditMode ? 'Update Yearly Budget?' : 'Add Yearly Budget?',
+  //     icon: 'question',
+  //     showCancelButton: true,
+  //     confirmButtonText: 'Yes'
+  //   }).then((result) => {
+  //     if (!result.isConfirmed) return;
+  //
+  //     const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+  //     const username = userData.userName || 'Unknown User';
+  //     const timestamp = Date.now();
+  //
+  //     const formValues = this.targetForm.getRawValue();
+  //
+  //     // ✅ Build document with products array
+  //     const productDoc = {
+  //       country: formValues.country,
+  //       year: formValues.year,
+  //       month: formValues.month,
+  //       period: formValues.period,
+  //       products: this.addedProducts.map(p => ({
+  //         model: p.name,               // from table
+  //         targetQuantity: p.target     // from input in table
+  //       })),
+  //       status: 'Active',
+  //       updatedBy: username,
+  //       updatedAt: timestamp
+  //     };
+  //
+  //     runInInjectionContext(this.injector, () => {
+  //       if (this.isEditMode && this.editingDocId) {
+  //         this.loadingService.setLoading(true);
+  //         this.budgetService.updateBudget(this.editingDocId, productDoc)
+  //           .then(() => Swal.fire('Updated!', 'Yearly Budget updated successfully.', 'success'))
+  //           .then(() => this.goBack())
+  //           .catch(() => Swal.fire('Error', 'Something went wrong while updating.', 'error'))
+  //           .finally(() => this.loadingService.setLoading(false));
+  //       } else {
+  //         this.loadingService.setLoading(true);
+  //         this.budgetService.addBudget(productDoc)
+  //           .then(() => Swal.fire('Added!', 'Yearly Budget saved successfully.', 'success'))
+  //           .then(() => this.goBack())
+  //           .catch(() => Swal.fire('Error', 'Something went wrong.', 'error'))
+  //           .finally(() => this.loadingService.setLoading(false));
+  //       }
+  //     });
+  //   });
+  // }
+
   submitForm() {
     if (this.targetForm.invalid) {
       Swal.fire('Error', 'Please fill all required fields.', 'error');
@@ -714,10 +776,13 @@ export class AddBudgetComponent implements OnInit {
       if (!result.isConfirmed) return;
 
       const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-      const username = userData.userName || 'Unknown User';
+      const username = `${userData.first || ''} ${userData.last || ''}`.trim() || 'Unknown User';
       const timestamp = Date.now();
 
       const formValues = this.targetForm.getRawValue();
+
+      // Get product names for activity log
+      const productNames = this.addedProducts.map(p => p.name).join(', ');
 
       // ✅ Build document with products array
       const productDoc = {
@@ -726,8 +791,8 @@ export class AddBudgetComponent implements OnInit {
         month: formValues.month,
         period: formValues.period,
         products: this.addedProducts.map(p => ({
-          model: p.name,               // from table
-          targetQuantity: p.target     // from input in table
+          model: p.name,
+          targetQuantity: p.target
         })),
         status: 'Active',
         updatedBy: username,
@@ -738,14 +803,36 @@ export class AddBudgetComponent implements OnInit {
         if (this.isEditMode && this.editingDocId) {
           this.loadingService.setLoading(true);
           this.budgetService.updateBudget(this.editingDocId, productDoc)
-            .then(() => Swal.fire('Updated!', 'Yearly Budget updated successfully.', 'success'))
+            .then(() => {
+              // ✅ Activity log for update
+              this.mService.addLog({
+                date: timestamp,
+                section: "Yearly Budget",
+                action: "Update",
+                user: username,
+                description: `${username} updated yearly budget for products: ${productNames} and his mail is`
+              });
+
+              Swal.fire('Updated!', 'Yearly Budget updated successfully.', 'success');
+            })
             .then(() => this.goBack())
             .catch(() => Swal.fire('Error', 'Something went wrong while updating.', 'error'))
             .finally(() => this.loadingService.setLoading(false));
         } else {
           this.loadingService.setLoading(true);
           this.budgetService.addBudget(productDoc)
-            .then(() => Swal.fire('Added!', 'Yearly Budget saved successfully.', 'success'))
+            .then(() => {
+              // ✅ Activity log for add
+              this.mService.addLog({
+                date: timestamp,
+                section: "Yearly Budget",
+                action: "Submit",
+                user: username,
+                description: `${username} added new yearly budget for products: ${productNames} and his mail is`
+              });
+
+              Swal.fire('Added!', 'Yearly Budget saved successfully.', 'success');
+            })
             .then(() => this.goBack())
             .catch(() => Swal.fire('Error', 'Something went wrong.', 'error'))
             .finally(() => this.loadingService.setLoading(false));

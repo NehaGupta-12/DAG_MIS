@@ -136,8 +136,8 @@ export class ProductMasterListComponent implements OnInit {
     // 👉 log edit
     this.mService.addLog({
       date: Date.now(),
-      section: "Product",
-      action: "Edit",
+      section: "Product Master",
+      action: "Update",
       description: `Edited product: ${row.name || row.sku}`
     });
   }
@@ -156,13 +156,6 @@ export class ProductMasterListComponent implements OnInit {
   navigateToAddProductMaster() {
     this.router.navigate(['module/add-products-master']);
 
-    // 👉 log add
-    this.mService.addLog({
-      date: Date.now(),
-      section: "Product",
-      action: "Add",
-      description: `Navigated to add new product`
-    });
   }
 
   ngAfterViewInit() {
@@ -213,6 +206,44 @@ export class ProductMasterListComponent implements OnInit {
 
 
   // ✅ DELETE product
+  // delete(id: string) {
+  //   Swal.fire({
+  //     title: 'Are you sure?',
+  //     text: 'You will not be able to recover this Product!',
+  //     icon: 'warning',
+  //     showCancelButton: true,
+  //     confirmButtonText: 'Yes, delete it!',
+  //     cancelButtonText: 'No, cancel',
+  //   }).then((result) => {
+  //     if (!result.isConfirmed) return;
+  //
+  //     this.loadingService.setLoading(true);
+  //
+  //     runInInjectionContext(this.injector, () => {
+  //       this.productService.deleteProduct(id)
+  //         .then(() => {
+  //           this.productList();
+  //           Swal.fire('Deleted!', 'Product has been deleted.', 'success');
+  //
+  //           // 👉 log delete
+  //           this.mService.addLog({
+  //             date: Date.now(),
+  //             section: "Product Master",
+  //             action: "Delete",
+  //             description: `Deleted product with ID: ${id}`
+  //           });
+  //         })
+  //         .catch((err) => {
+  //           console.error('Delete failed:', err);
+  //           Swal.fire('Error', 'Failed to delete the product. Please try again.', 'error');
+  //         })
+  //         .finally(() => {
+  //           this.loadingService.setLoading(false);
+  //         });
+  //     });
+  //   });
+  // }
+
   delete(id: string) {
     Swal.fire({
       title: 'Are you sure?',
@@ -224,6 +255,13 @@ export class ProductMasterListComponent implements OnInit {
     }).then((result) => {
       if (!result.isConfirmed) return;
 
+      // ✅ Get product name before deleting
+      const product = this.dataSource.data.find((p: any) => p.id === id);
+      const productName = product ? product.name : 'Unknown Product';
+
+      const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+      const username = `${userData.first || ''} ${userData.last || ''}`.trim() || 'Unknown User';
+
       this.loadingService.setLoading(true);
 
       runInInjectionContext(this.injector, () => {
@@ -232,12 +270,12 @@ export class ProductMasterListComponent implements OnInit {
             this.productList();
             Swal.fire('Deleted!', 'Product has been deleted.', 'success');
 
-            // 👉 log delete
+            // 👉 log delete with product name
             this.mService.addLog({
               date: Date.now(),
-              section: "Product",
+              section: "Product Master",
               action: "Delete",
-              description: `Deleted product with ID: ${id}`
+              description: `Deleted product "${productName}" by ${username}`
             });
           })
           .catch((err) => {
@@ -250,6 +288,11 @@ export class ProductMasterListComponent implements OnInit {
       });
     });
   }
+
+
+
+
+
   openAssignDialog(): void {
     const dialogRef = this.dialog.open(AddShowroomComponent, {
       width: '400px',

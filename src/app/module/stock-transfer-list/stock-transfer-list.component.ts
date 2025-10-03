@@ -120,26 +120,13 @@ export class StockTransferListComponent implements OnInit {
       queryParams: { data: JSON.stringify(row) }
     });
 
-    // 👉 log edit
-    this.mService.addLog({
-      date: Date.now(),
-      section: 'StockTransfer',
-      action: 'Edit',
-      description: `Edited Stock Transfer from ${row.fromOutletDealer} to ${row.toOutletDealer}`
-    });
+
   }
 
   // ✅ ADD Stock Transfer
   navigateToAddStockTransfer() {
     this.router.navigate(['module/add-stock-transfer']);
 
-    // 👉 log add
-    this.mService.addLog({
-      date: Date.now(),
-      section: 'StockTransfer',
-      action: 'Add',
-      description: `Navigated to add new Stock Transfer`
-    });
   }
 
 // Filtering
@@ -180,6 +167,44 @@ export class StockTransferListComponent implements OnInit {
 //   }
 
   // ✅ DELETE Stock Transfer
+  // deleteGrn(id: string, row?: any) {
+  //   Swal.fire({
+  //     title: 'Are you sure?',
+  //     text: 'You will not be able to recover this Stock Transfer!',
+  //     icon: 'warning',
+  //     showCancelButton: true,
+  //     confirmButtonText: 'Yes, delete it!',
+  //     cancelButtonText: 'No, cancel',
+  //   }).then((result) => {
+  //     if (!result.isConfirmed) return;
+  //
+  //     this.loadingService.setLoading(true);
+  //
+  //     runInInjectionContext(this.injector, () => {
+  //       this.stockTransferService.deleteStockTransfer(id)
+  //         .then(() => {
+  //           this.loadLocationList();
+  //           Swal.fire('Deleted!', 'Stock Transfer has been deleted.', 'success');
+  //
+  //           // 👉 log delete
+  //           this.mService.addLog({
+  //             date: Date.now(),
+  //             section: 'StockTransfer',
+  //             action: 'Delete',
+  //             description: `Deleted Stock Transfer from ${row?.fromOutletDealer} to ${row?.toOutletDealer} (ID: ${id})`
+  //           });
+  //         })
+  //         .catch((err) => {
+  //           console.error('Delete failed:', err);
+  //           Swal.fire('Error', 'Failed to delete the Stock Transfer. Please try again.', 'error');
+  //         })
+  //         .finally(() => {
+  //           this.loadingService.setLoading(false);
+  //         });
+  //     });
+  //   });
+  // }
+
   deleteGrn(id: string, row?: any) {
     Swal.fire({
       title: 'Are you sure?',
@@ -199,12 +224,23 @@ export class StockTransferListComponent implements OnInit {
             this.loadLocationList();
             Swal.fire('Deleted!', 'Stock Transfer has been deleted.', 'success');
 
-            // 👉 log delete
+            // ✅ get username from localStorage
+            const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+            const username = `${userData.first || ''} ${userData.last || ''}`.trim() || 'Unknown User';
+
+            // ✅ collect product names from row.items
+            const productNames = (row?.items || [])
+              .map((p: any) => p.name || p.model || 'Unknown Product')
+              .filter(Boolean)
+              .join(', ');
+
+
+            // 👉 log delete with username + product names
             this.mService.addLog({
               date: Date.now(),
               section: 'StockTransfer',
               action: 'Delete',
-              description: `Deleted Stock Transfer from ${row?.fromOutletDealer} to ${row?.toOutletDealer} (ID: ${id})`
+              description: `Deleted Stock Transfer by ${username} | Products: ${productNames} and mail is `
             });
           })
           .catch((err) => {
@@ -217,6 +253,7 @@ export class StockTransferListComponent implements OnInit {
       });
     });
   }
+
 
 
   getTotalQuantity(row: any): number {

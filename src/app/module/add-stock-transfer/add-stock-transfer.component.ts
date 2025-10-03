@@ -34,6 +34,7 @@ import {StockTransferService} from "../stock-transfer.service";
 import {OutletProductService} from "../outlet-product.service";
 import {InventoryService} from "../add-inventory/inventory.service";
 import {LoadingService} from "../../Services/loading.service";
+import {ActivityLogService} from "../activity-log/activity-log.service";
 
 @Component({
   selector: 'app-add-stock-transfer',
@@ -112,6 +113,7 @@ export class AddStockTransferComponent implements OnInit {
     private outletProductService: OutletProductService,
     private inventoryService: InventoryService,
     private loadingService: LoadingService,
+    private mService: ActivityLogService,
     @Inject(MAT_DIALOG_DATA) public data: any,
   ) {
     this.isEditMode = !!data?.id;
@@ -409,6 +411,98 @@ export class AddStockTransferComponent implements OnInit {
     }
   }
 
+  // submitForm() {
+  //   try {
+  //     const formValues = this.stockTransferForm.getRawValue();
+  //     delete formValues.products;
+  //
+  //     const isMainFormValid =
+  //       this.stockTransferForm.get('fromDealerOutlet')?.valid &&
+  //       this.stockTransferForm.get('toDealerOutlet')?.valid;
+  //
+  //     if (isMainFormValid && this.addedProducts.length > 0) {
+  //       Swal.fire({
+  //         title: this.isEditMode ? 'Update Stock Transfer?' : 'Add Stock Transfer?',
+  //         text: 'Are you sure you want to proceed?',
+  //         icon: 'question',
+  //         showCancelButton: true,
+  //         confirmButtonText: 'Yes',
+  //         cancelButtonText: 'No'
+  //       }).then((result: any) => {
+  //         if (result.isConfirmed) {
+  //           try {
+  //             const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+  //             const username = userData.userName || 'Unknown User';
+  //             const timestamp = Date.now();
+  //
+  //             const transformedData: any = {
+  //               ...formValues,
+  //               items: this.addedProducts.map(p => ({
+  //                 id: p.id ?? '',
+  //                 sku: p.sku ?? '',
+  //                 name: p.name ?? '',
+  //                 brand: p.brand ?? '',
+  //                 model: p.model ?? '',
+  //                 variant: p.variant ?? p.varient ?? '',
+  //                 unit: p.unit ?? '',
+  //                 quantity: p.quantity ?? 0
+  //               }))
+  //             };
+  //
+  //             runInInjectionContext(this.injector, async () => {
+  //               try {
+  //                 this.loadingService.setLoading(true);
+  //
+  //                 if (this.isEditMode && this.data.id) {
+  //                   transformedData.updateBy = username;
+  //                   transformedData.updatedAt = timestamp;
+  //
+  //                   await this.stockTransferService.updateStockTransfer(this.data.id, transformedData);
+  //
+  //                   for (const item of transformedData.items) {
+  //                     await this.updateInventory(item, formValues.fromDealerOutlet, 'decrease');
+  //                     await this.updateInventory(item, formValues.toDealerOutlet, 'increase');
+  //                   }
+  //
+  //                   Swal.fire('Updated!', 'Stock Transfer updated successfully.', 'success');
+  //                   this.goBack();
+  //                 } else {
+  //                   transformedData.status = 'Active';
+  //                   transformedData.createBy = username;
+  //                   transformedData.createdAt = timestamp;
+  //
+  //                   await this.stockTransferService.addStockTransfer(transformedData);
+  //
+  //                   for (const item of transformedData.items) {
+  //                     await this.updateInventory(item, formValues.fromDealerOutlet, 'decrease');
+  //                     await this.updateInventory(item, formValues.toDealerOutlet, 'increase');
+  //                   }
+  //
+  //                   Swal.fire('Added!', 'Stock Transfer added successfully.', 'success');
+  //                   this.goBack();
+  //                 }
+  //               } catch (innerErr) {
+  //                 console.error('Unexpected error during submission:', innerErr);
+  //                 Swal.fire('Error', 'Unexpected issue occurred.', 'error');
+  //               } finally {
+  //                 this.loadingService.setLoading(false); // ✅ Always stop loader
+  //               }
+  //             });
+  //           } catch (innerErr) {
+  //             console.error('Unexpected error during submission:', innerErr);
+  //             Swal.fire('Error', 'Unexpected issue occurred.', 'error');
+  //           }
+  //         }
+  //       });
+  //     } else {
+  //       Swal.fire('Error', 'Please fill in From/To dealers and add at least one product.', 'error');
+  //     }
+  //   } catch (err) {
+  //     console.error('Global submit error:', err);
+  //     Swal.fire('Error', 'Something went wrong while submitting.', 'error');
+  //   }
+  // }
+
   submitForm() {
     try {
       const formValues = this.stockTransferForm.getRawValue();
@@ -430,8 +524,11 @@ export class AddStockTransferComponent implements OnInit {
           if (result.isConfirmed) {
             try {
               const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-              const username = userData.userName || 'Unknown User';
+              const username = `${userData.first || ''} ${userData.last || ''}`.trim() || 'Unknown User';
               const timestamp = Date.now();
+
+              // ✅ get product names for log
+              const productNames = this.addedProducts.map(p => p.name).join(', ');
 
               const transformedData: any = {
                 ...formValues,
@@ -462,6 +559,15 @@ export class AddStockTransferComponent implements OnInit {
                       await this.updateInventory(item, formValues.toDealerOutlet, 'increase');
                     }
 
+                    // ✅ Activity log (update)
+                    this.mService.addLog({
+                      date: timestamp,
+                      section: "Stock Transfer",
+                      action: "Update",
+                      user: username,
+                      description: `${username} updated stock transfer for products: ${productNames}`
+                    });
+
                     Swal.fire('Updated!', 'Stock Transfer updated successfully.', 'success');
                     this.goBack();
                   } else {
@@ -475,6 +581,15 @@ export class AddStockTransferComponent implements OnInit {
                       await this.updateInventory(item, formValues.fromDealerOutlet, 'decrease');
                       await this.updateInventory(item, formValues.toDealerOutlet, 'increase');
                     }
+
+                    // ✅ Activity log (add)
+                    this.mService.addLog({
+                      date: timestamp,
+                      section: "Stock Transfer",
+                      action: "Add",
+                      user: username,
+                      description: `${username} added new stock transfer for products: ${productNames}`
+                    });
 
                     Swal.fire('Added!', 'Stock Transfer added successfully.', 'success');
                     this.goBack();
@@ -500,6 +615,8 @@ export class AddStockTransferComponent implements OnInit {
       Swal.fire('Error', 'Something went wrong while submitting.', 'error');
     }
   }
+
+
 
   updateInventory(product: any, outletId: string, action: 'increase' | 'decrease'): Promise<void> {
     const quantityChange = action === 'increase' ? product.quantity : -product.quantity;

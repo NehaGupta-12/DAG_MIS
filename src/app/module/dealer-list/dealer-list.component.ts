@@ -88,7 +88,7 @@ export class DealerListComponent implements OnInit {
     private loadingService: LoadingService,
     private mFirestore:AngularFirestore,
     public authService: AuthService,
-    private activityLogService: ActivityLogService,
+    private mService: ActivityLogService,
   ) {
   }
 
@@ -195,9 +195,12 @@ export class DealerListComponent implements OnInit {
   //   });
   // }
 
+
+
   deleteDealer(data: any) {
-    console.log(data)
-    // alert(JSON.stringify(data))
+    const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+    const username = `${userData.first || ''} ${userData.last || ''}`.trim() || 'Unknown User';
+
     Swal.fire({
       title: 'Are you sure?',
       text: 'You will not be able to recover this Dealer/Outlet!',
@@ -209,17 +212,22 @@ export class DealerListComponent implements OnInit {
       if (result.isConfirmed) {
         this.loadingService.setLoading(true);
         runInInjectionContext(this.injector, () => {
-          this.addDealerService.deleteDealer(data.outlateId)
+          // Use correct id field for deletion
+          const dealerId = data.id || data.outlateId; // fallback
+          const showroomName = data.name || 'Unknown Showroom';
+
+          this.addDealerService.deleteDealer(dealerId)
             .then(() => {
               this.DealerList();
               Swal.fire('Deleted!', 'Dealer/Outlet has been deleted.', 'success');
 
-              // 👉 Log Activity
-              this.activityLogService.addLog({
+              // ✅ Activity log with proper username
+              this.mService.addLog({
                 date: Date.now(),
-                section: "Dealer",
+                section: "Outlet/Dealer",
                 action: "Delete",
-                description: `Deleted Dealer with ID: ${data.outlateId}`
+                user: username,
+                description: `${username} has deleted showroom ${showroomName}`
               });
             })
             .catch((err) => {
@@ -235,4 +243,5 @@ export class DealerListComponent implements OnInit {
       }
     });
   }
+
 }

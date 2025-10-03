@@ -13,6 +13,7 @@ import {DatePipe, NgIf} from "@angular/common";
 import {MatFormFieldModule} from "@angular/material/form-field";
 import {MatTooltip} from "@angular/material/tooltip";
 import { serverTimestamp } from 'firebase/firestore';
+import {ActivityLogService} from "../../activity-log/activity-log.service";
 @Component({
   selector: 'app-add-edit-menu-list',
   imports: [
@@ -25,6 +26,7 @@ import { serverTimestamp } from 'firebase/firestore';
     NgIf,
   ],
   templateUrl: './add-edit-menu-list.component.html',
+  standalone: true,
   styleUrl: './add-edit-menu-list.component.scss'
 })
 export class AddEditMenuListComponent  {
@@ -41,6 +43,7 @@ export class AddEditMenuListComponent  {
     private dialogRef: MatDialogRef<AddEditMenuListComponent>,
     private mSnackBar: MatSnackBar,
     private userService: UserService,
+    private mService: ActivityLogService,
     @Inject(MAT_DIALOG_DATA) public data: any
   ) {
     this.isEditMode = !!data?.id;
@@ -59,6 +62,35 @@ export class AddEditMenuListComponent  {
   ngOnDestroy(): void {
     this.userSubscription?.unsubscribe();
   }
+
+  // async submitForm(): Promise<void> {
+  //   if (!this.menuForm.valid || !this.userId) {
+  //     this.mSnackBar.open('Please enter all required fields', undefined, { duration: 2000 });
+  //     return;
+  //   }
+  //
+  //   this.isLoading = true;
+  //   this.menuForm.get('menu_name')?.enable();
+  //
+  //   const menuData = this.menuForm.getRawValue();
+  //   const transformedData: Menus = {
+  //     menu_name: this.toUcFirst(menuData.menu_name.trim()),
+  //     menu_url: menuData.menu_url.trim(),
+  //     createdAt: new Date(),     // ✅ normal JS Date
+  //     createdBy: this.userId!,   // ✅ userId
+  //   } as Menus;
+  //
+  //   try {
+  //     await runInInjectionContext(this.injector, () =>
+  //       this.menusService.addMenu(transformedData)
+  //     );
+  //     this.handleSuccess('Menu details added successfully', 'Add');
+  //   } catch (error) {
+  //     this.handleError(error);
+  //   } finally {
+  //     this.isLoading = false;
+  //   }
+  // }
 
   async submitForm(): Promise<void> {
     if (!this.menuForm.valid || !this.userId) {
@@ -81,13 +113,32 @@ export class AddEditMenuListComponent  {
       await runInInjectionContext(this.injector, () =>
         this.menusService.addMenu(transformedData)
       );
+
+      // ✅ Activity log
+      const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+      const username = userData.userName || `${userData.first || ''} ${userData.last || ''}`.trim() || 'Unknown User';
+      const gender = userData.gender || 'Male';
+      const pronoun = gender.toLowerCase() === 'female' ? 'her' : 'his';
+      const timestamp = Date.now();
+
+      this.mService.addLog({
+        date: timestamp,
+        section: "Menu List",
+        action: "Add",
+        user: username,
+        description: `${username} added new menu "${transformedData.menu_name}" and ${pronoun} mail is `
+      });
+
       this.handleSuccess('Menu details added successfully', 'Add');
+
     } catch (error) {
       this.handleError(error);
     } finally {
       this.isLoading = false;
     }
   }
+
+
 
   handleSuccess(message: string, action: string) {
 

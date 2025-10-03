@@ -174,13 +174,6 @@ ngOnInit() {
   navigateToAddRole() {
     this.router.navigate(['module/add-role']);
 
-    // 👉 Log Activity
-    this.mService.addLog({
-      date: Date.now(),
-      section: "Role",
-      action: "Add",
-      description: `Created a new Role`
-    });
   }
 
   ngAfterViewInit() {
@@ -246,7 +239,41 @@ ngOnInit() {
   //   });
   // }
   // ✅ DELETE
-  deleteRole(roleId: string): void {
+  // deleteRole(roleId: string): void {
+  //   Swal.fire({
+  //     title: 'Are you sure?',
+  //     text: 'This action will permanently delete the role.',
+  //     icon: 'warning',
+  //     showCancelButton: true,
+  //     confirmButtonText: 'Yes, delete it!',
+  //     cancelButtonText: 'Cancel',
+  //     confirmButtonColor: '#d33',
+  //     cancelButtonColor: '#3085d6'
+  //   }).then((result) => {
+  //     if (result.isConfirmed) {
+  //       runInInjectionContext(this.injector, () => {
+  //         this.loaderService.setLoading(true);
+  //         this.roleService.deleteRole(roleId).then(() => {
+  //           Swal.fire('Deleted!', 'Role has been deleted successfully.', 'success');
+  //           this.loaderService.setLoading(false);
+  //
+  //           // 👉 Log Activity
+  //           this.mService.addLog({
+  //             date: Date.now(),
+  //             section: "Role",
+  //             action: "Delete",
+  //             description: `Deleted Role with ID: ${roleId}`
+  //           });
+  //
+  //         }).catch((error) => {
+  //           Swal.fire('Error!', 'Something went wrong: ' + error.message, 'error');
+  //         });
+  //       });
+  //     }
+  //   });
+  // }
+
+  deleteRole(roleId: string, roleName: string): void {
     Swal.fire({
       title: 'Are you sure?',
       text: 'This action will permanently delete the role.',
@@ -260,19 +287,25 @@ ngOnInit() {
       if (result.isConfirmed) {
         runInInjectionContext(this.injector, () => {
           this.loaderService.setLoading(true);
+
+          const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+          const username = userData.userName || `${userData.first || ''} ${userData.last || ''}`.trim() || 'Unknown User';
+
           this.roleService.deleteRole(roleId).then(() => {
             Swal.fire('Deleted!', 'Role has been deleted successfully.', 'success');
             this.loaderService.setLoading(false);
 
-            // 👉 Log Activity
+            // 👉 Log Activity with username and role name
             this.mService.addLog({
               date: Date.now(),
-              section: "Role",
+              section: "Role & Permission",
               action: "Delete",
-              description: `Deleted Role with ID: ${roleId}`
+              user: username,
+              description: `Role "${roleName}" deleted by ${username}`
             });
 
           }).catch((error) => {
+            this.loaderService.setLoading(false);
             Swal.fire('Error!', 'Something went wrong: ' + error.message, 'error');
           });
         });

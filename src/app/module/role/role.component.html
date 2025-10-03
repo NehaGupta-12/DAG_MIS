@@ -80,7 +80,7 @@
                     </button>
                     </span>
                     <span [matTooltip]="!authService.hasPermission('Role & Permission','delete') ? 'No permission' : 'Delete Role'" matTooltipPosition="above">
-                    <button mat-icon-button color="accent" (click)="deleteRole(row.id)"
+                    <button mat-icon-button color="accent" (click)="deleteRole(row.id, row.roleName)"
                             [disabled]="!authService.hasPermission('Role & Permission','delete')">
                       <app-feather-icons [icon]="'trash-2'" [class]="'tbl-fav-delete'"></app-feather-icons>
                     </button>
