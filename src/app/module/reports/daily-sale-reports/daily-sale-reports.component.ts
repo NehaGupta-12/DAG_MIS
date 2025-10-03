@@ -784,6 +784,23 @@ export class DailySaleReportsComponent implements OnInit{
     workbook.xlsx.writeBuffer().then(data => {
       const blob = new Blob([data], { type: "application/octet-stream" });
       FileSaver.saveAs(blob, `Sales_Report_${new Date().toLocaleDateString()}.xlsx`);
+
+      // ✅ Get username from localStorage
+      const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+      const username = `${userData.first || ''} ${userData.last || ''}`.trim() || 'Unknown User';
+      // 🔹 Log activity after successful export
+      const activity: ActivityLog = {
+        action: 'Export',
+        section: 'Sales Report',
+        description: `${username} downloaded the sales report and mail is`,
+        date: Date.now(),
+        user: username,  // optional field if your model supports
+        currentIp: '',   // fill with IP if needed
+      };
+
+      this.mService.addLog(activity)
+        .then(() => console.log('Export action logged.'))
+        .catch(err => console.error('Failed to log export:', err));
     });
   }
 

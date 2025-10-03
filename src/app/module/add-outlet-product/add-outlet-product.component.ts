@@ -631,220 +631,257 @@ export class AddOutletProductComponent implements OnInit {
     }
 
 
-    async submitForm() {
-        try {
-          this.grnForm.value.dealer = this.selectedDealer.name
-            const formValues = this.grnForm.getRawValue();
+    // async submitForm() {
+    //     try {
+    //       this.grnForm.value.dealer = this.selectedDealer.name
+    //         const formValues = this.grnForm.getRawValue();
+    //
+    //         delete formValues.products;
+    //
+    //         const isMainFormValid =
+    //             !!formValues.dealerOutlet &&
+    //             this.grnForm.get('remark')?.valid;
+    //
+    //         if (!isMainFormValid || this.addedProducts.length === 0) {
+    //             Swal.fire('Error', 'Please fill all required fields and add at least one product.', 'error');
+    //             return;
+    //         }
+    //
+    //         const result = await Swal.fire({
+    //             title: this.isEditMode ? 'Update Outlet Product Details?' : 'Add Outlet Product Details?',
+    //             text: 'Are you sure you want to proceed?',
+    //             icon: 'question',
+    //             showCancelButton: true,
+    //             confirmButtonText: 'Yes',
+    //             cancelButtonText: 'No'
+    //         });
+    //
+    //         if (!result.isConfirmed) return;
+    //
+    //         const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+    //         const username = userData.userName || 'Unknown User';
+    //         const timestamp = Date.now();
+    //
+    //         const selectedName = (formValues.dealerOutlet || '').trim();
+    //         const selectedDealer =
+    //             this.allDealers.find((d: any) => (d.name || '').trim() === selectedName) ||
+    //             this.dealers.find((d: any) => (d.name || '').trim() === selectedName);
+    //         const dealerId = selectedDealer?.id ?? '';
+    //
+    //         const basePayload = {
+    //             ...formValues,
+    //             dealerId,
+    //             createdAt: timestamp,
+    //             createdBy: username,
+    //         };
+    //         console.log(basePayload)
+    //         runInInjectionContext(this.injector, async () => {
+    //             this.loadingService.setLoading(true);
+    //             const productsData: any = [];
+    //             for (const product of this.addedProducts) {
+    //                 const mProduct = {
+    //                     ...basePayload,
+    //                     sku: product.sku ?? '',
+    //                     name: product.name ?? '',
+    //                     brand: product.brand ?? '',
+    //                     model: product.model ?? '',
+    //                     variant: product.variant ?? product.varient ?? '',
+    //                     unit: product.unit ?? '',
+    //                     openingStock: product.openingStock ?? 0,
+    //                     quantity: product.openingStock ?? 0,
+    //                 };
+    //                 productsData.push(mProduct);
+    //             }
+    //
+    //             try {
+    //                 if (this.isEditMode && this.editProductId) {
+    //                     // Update outlet product
+    //                     await this.outletProductService.updateOutletProduct(
+    //                         dealerId,
+    //                         this.editProductId,
+    //                         productsData[0]
+    //                     );
+    //
+    //                     // ✅ Update only openingStock in inventory
+    //                     await this.outletProductService.updateInventoryProduct(
+    //                         basePayload?.dealerOutlet,
+    //                         productsData[0].sku,
+    //                         {openingStock: productsData[0].openingStock}
+    //                     );
+    //
+    //                 } else {
+    //                     if (!this.isEditMode) {
+    //                         productsData.forEach((product: any) => {
+    //                             this.outletProductService.addOutletProduct({
+    //                                 ...product,
+    //                                 outletId: dealerId
+    //                             });
+    //                             this.outletProductService.addInventoryProduct({
+    //                                 ...product,
+    //                                 outletId: dealerId
+    //                             });
+    //                         });
+    //                     }
+    //                 }
+    //
+    //                 Swal.fire(
+    //                     this.isEditMode ? 'Updated!' : 'Added!',
+    //                     `Outlet Product Details ${this.isEditMode ? 'updated' : 'added'} successfully.`,
+    //                     'success'
+    //                 );
+    //                 this.goBack();
+    //             } catch (err) {
+    //                 console.error('Error in submit:', err);
+    //                 Swal.fire('Error', 'Something went wrong while submitting.', 'error');
+    //             } finally {
+    //                 this.loadingService.setLoading(false);
+    //             }
+    //         });
+    //     } catch (err) {
+    //         console.error('Global submit error:', err);
+    //         Swal.fire('Error', 'Something went wrong while submitting.', 'error');
+    //     }
+    // }
 
-            delete formValues.products;
+  async submitForm() {
+    try {
+      this.grnForm.value.dealer = this.selectedDealer.name;
+      const formValues = this.grnForm.getRawValue();
 
-            const isMainFormValid =
-                !!formValues.dealerOutlet &&
-                this.grnForm.get('remark')?.valid;
+      delete formValues.products;
 
-            if (!isMainFormValid || this.addedProducts.length === 0) {
-                Swal.fire('Error', 'Please fill all required fields and add at least one product.', 'error');
-                return;
-            }
+      const isMainFormValid =
+        !!formValues.dealerOutlet && this.grnForm.get('remark')?.valid;
 
-            const result = await Swal.fire({
-                title: this.isEditMode ? 'Update Outlet Product Details?' : 'Add Outlet Product Details?',
-                text: 'Are you sure you want to proceed?',
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonText: 'Yes',
-                cancelButtonText: 'No'
-            });
+      if (!isMainFormValid || this.addedProducts.length === 0) {
+        Swal.fire(
+          'Error',
+          'Please fill all required fields and add at least one product.',
+          'error'
+        );
+        return;
+      }
 
-            if (!result.isConfirmed) return;
+      const result = await Swal.fire({
+        title: this.isEditMode
+          ? 'Update Outlet Product Details?'
+          : 'Add Outlet Product Details?',
+        text: 'Are you sure you want to proceed?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Yes',
+        cancelButtonText: 'No',
+      });
 
-            const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-            const username = userData.userName || 'Unknown User';
-            const timestamp = Date.now();
+      if (!result.isConfirmed) return;
 
-            const selectedName = (formValues.dealerOutlet || '').trim();
-            const selectedDealer =
-                this.allDealers.find((d: any) => (d.name || '').trim() === selectedName) ||
-                this.dealers.find((d: any) => (d.name || '').trim() === selectedName);
-            const dealerId = selectedDealer?.id ?? '';
+      const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+      const username = `${userData.first || ''} ${userData.last || ''}`.trim() || 'Unknown User';
+      const timestamp = Date.now();
 
-            const basePayload = {
-                ...formValues,
-                dealerId,
-                createdAt: timestamp,
-                createdBy: username,
-            };
-            console.log(basePayload)
-            runInInjectionContext(this.injector, async () => {
-                this.loadingService.setLoading(true);
-                const productsData: any = [];
-                for (const product of this.addedProducts) {
-                    const mProduct = {
-                        ...basePayload,
-                        sku: product.sku ?? '',
-                        name: product.name ?? '',
-                        brand: product.brand ?? '',
-                        model: product.model ?? '',
-                        variant: product.variant ?? product.varient ?? '',
-                        unit: product.unit ?? '',
-                        openingStock: product.openingStock ?? 0,
-                        quantity: product.openingStock ?? 0,
-                    };
-                    productsData.push(mProduct);
-                }
+      const selectedName = (formValues.dealerOutlet || '').trim();
+      const selectedDealer =
+        this.allDealers.find(
+          (d: any) => (d.name || '').trim() === selectedName
+        ) || this.dealers.find((d: any) => (d.name || '').trim() === selectedName);
+      const dealerId = selectedDealer?.id ?? '';
 
-                try {
-                    if (this.isEditMode && this.editProductId) {
-                        // Update outlet product
-                        await this.outletProductService.updateOutletProduct(
-                            dealerId,
-                            this.editProductId,
-                            productsData[0]
-                        );
+      const basePayload = {
+        ...formValues,
+        dealerId,
+        createdAt: timestamp,
+        createdBy: username,
+      };
 
-                        // ✅ Update only openingStock in inventory
-                        await this.outletProductService.updateInventoryProduct(
-                            basePayload?.dealerOutlet,
-                            productsData[0].sku,
-                            {openingStock: productsData[0].openingStock}
-                        );
-
-                    } else {
-                        if (!this.isEditMode) {
-                            productsData.forEach((product: any) => {
-                                this.outletProductService.addOutletProduct({
-                                    ...product,
-                                    outletId: dealerId
-                                });
-                                this.outletProductService.addInventoryProduct({
-                                    ...product,
-                                    outletId: dealerId
-                                });
-                            });
-                        }
-                    }
-
-                    Swal.fire(
-                        this.isEditMode ? 'Updated!' : 'Added!',
-                        `Outlet Product Details ${this.isEditMode ? 'updated' : 'added'} successfully.`,
-                        'success'
-                    );
-                    this.goBack();
-                } catch (err) {
-                    console.error('Error in submit:', err);
-                    Swal.fire('Error', 'Something went wrong while submitting.', 'error');
-                } finally {
-                    this.loadingService.setLoading(false);
-                }
-            });
-        } catch (err) {
-            console.error('Global submit error:', err);
-            Swal.fire('Error', 'Something went wrong while submitting.', 'error');
+      runInInjectionContext(this.injector, async () => {
+        this.loadingService.setLoading(true);
+        const productsData: any = [];
+        for (const product of this.addedProducts) {
+          const mProduct = {
+            ...basePayload,
+            sku: product.sku ?? '',
+            name: product.name ?? '',
+            brand: product.brand ?? '',
+            model: product.model ?? '',
+            variant: product.variant ?? product.varient ?? '',
+            unit: product.unit ?? '',
+            openingStock: product.openingStock ?? 0,
+            quantity: product.openingStock ?? 0,
+          };
+          productsData.push(mProduct);
         }
-    }
 
-  // async submitForm() {
-  //   if (!this.isSubmitEnabled()) {
-  //     Swal.fire('Error', 'Please fill all required fields and add at least one product.', 'error');
-  //     return;
-  //   }
-  //
-  //   Swal.fire({
-  //     title: this.isEditMode ? 'Update Outlet Product Details?' : 'Add Outlet Product Details?',
-  //     text: 'Are you sure you want to proceed?',
-  //     icon: 'question',
-  //     showCancelButton: true,
-  //     confirmButtonText: 'Yes',
-  //     cancelButtonText: 'No',
-  //   }).then((result: any) => {
-  //     if (!result.isConfirmed) return;
-  //
-  //     const formValues = this.grnForm.getRawValue();
-  //     delete formValues.products;
-  //
-  //     const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-  //     const username = `${userData.first || ''} ${userData.last || ''}`.trim() || 'Unknown User';
-  //     const userEmail = userData.email || 'Unknown Email';
-  //     const timestamp = Date.now();
-  //
-  //     const selectedName = (formValues.dealerOutlet || '').trim();
-  //     const selectedDealer =
-  //       this.allDealers.find((d: any) => (d.name || '').trim() === selectedName) ||
-  //       this.dealers.find((d: any) => (d.name || '').trim() === selectedName);
-  //     const dealerId = selectedDealer?.id ?? '';
-  //
-  //     const basePayload = {
-  //       ...formValues,
-  //       dealerId,
-  //       createdAt: timestamp,
-  //       createdBy: username,
-  //     };
-  //
-  //     runInInjectionContext(this.injector, async () => {
-  //       this.loadingService.setLoading(true);
-  //
-  //       const productsData: any = this.addedProducts.map(product => ({
-  //         ...basePayload,
-  //         sku: product.sku ?? '',
-  //         name: product.name ?? '',
-  //         brand: product.brand ?? '',
-  //         model: product.model ?? '',
-  //         variant: product.variant ?? product.varient ?? '',
-  //         unit: product.unit ?? '',
-  //         openingStock: product.openingStock ?? 0,
-  //         quantity: product.openingStock ?? 0,
-  //       }));
-  //
-  //       try {
-  //         if (this.isEditMode && this.editProductId) {
-  //           // --- UPDATE CASE ---
-  //           await this.outletProductService.updateOutletProduct(dealerId, this.editProductId, productsData[0]);
-  //           await this.outletProductService.updateInventoryProduct(
-  //             basePayload?.dealerOutlet,
-  //             productsData[0].sku,
-  //             { openingStock: productsData[0].openingStock }
-  //           );
-  //
-  //           // ✅ Activity log
-  //           this.mService.addLog({
-  //             date: timestamp,
-  //             section: 'Outlet/Dealer Product List',
-  //             action: 'Update',
-  //             user: username,
-  //             description: `${username} has updated outlet product ${productsData[0].name} for dealer ${formValues.dealerOutlet}`,
-  //           });
-  //
-  //           Swal.fire('Updated!', 'Outlet Product Details updated successfully.', 'success');
-  //
-  //         } else {
-  //           // --- ADD CASE ---
-  //           for (const product of productsData) {
-  //             await this.outletProductService.addOutletProduct({ ...product, outletId: dealerId });
-  //             await this.outletProductService.addInventoryProduct({ ...product, outletId: dealerId });
-  //           }
-  //
-  //           // ✅ Activity log
-  //           this.mService.addLog({
-  //             date: timestamp,
-  //             section: 'Outlet/Dealer Product List',
-  //             action: 'Submit',
-  //             user: username,
-  //             description: `${username} has added ${productsData.length} new product(s) for dealer ${formValues.dealerOutlet}`,
-  //           });
-  //
-  //           Swal.fire('Added!', 'Outlet Product Details added successfully.', 'success');
-  //         }
-  //
-  //         this.goBack();
-  //       } catch (err) {
-  //         console.error('Error in submit:', err);
-  //         Swal.fire('Error', 'Something went wrong while submitting.', 'error');
-  //       } finally {
-  //         this.loadingService.setLoading(false);
-  //       }
-  //     });
-  //   });
-  // }
+        try {
+          if (this.isEditMode && this.editProductId) {
+            // Update outlet product
+            await this.outletProductService.updateOutletProduct(
+              dealerId,
+              this.editProductId,
+              productsData[0]
+            );
+
+            // ✅ Update only openingStock in inventory
+            await this.outletProductService.updateInventoryProduct(
+              basePayload?.dealerOutlet,
+              productsData[0].sku,
+              { openingStock: productsData[0].openingStock }
+            );
+
+            // ✅ Activity log for update
+            this.mService.addLog({
+              date: timestamp,
+              section: 'Outlet/Dealer Product List',
+              action: 'Update',
+              description: `Updated Outlet Product by ${username} | Dealer: ${formValues.dealerOutlet} | Products: ${productsData
+                .map((p: any) => p.name)
+                .join(', ')} and mail is`,
+            });
+          } else {
+            if (!this.isEditMode) {
+              productsData.forEach((product: any) => {
+                this.outletProductService.addOutletProduct({
+                  ...product,
+                  outletId: dealerId,
+                });
+                this.outletProductService.addInventoryProduct({
+                  ...product,
+                  outletId: dealerId,
+                });
+              });
+
+              // ✅ Activity log for add
+              this.mService.addLog({
+                date: timestamp,
+                section: 'Outlet/Dealer Product List',
+                action: 'Add',
+                description: `Added Outlet Product by ${username} | Dealer: ${formValues.dealerOutlet} | Products: ${productsData
+                  .map((p: any) => p.name)
+                  .join(', ')} and mail is`,
+              });
+            }
+          }
+
+          Swal.fire(
+            this.isEditMode ? 'Updated!' : 'Added!',
+            `Outlet Product Details ${
+              this.isEditMode ? 'updated' : 'added'
+            } successfully.`,
+            'success'
+          );
+          this.goBack();
+        } catch (err) {
+          console.error('Error in submit:', err);
+          Swal.fire('Error', 'Something went wrong while submitting.', 'error');
+        } finally {
+          this.loadingService.setLoading(false);
+        }
+      });
+    } catch (err) {
+      console.error('Global submit error:', err);
+      Swal.fire('Error', 'Something went wrong while submitting.', 'error');
+    }
+  }
+
 
 
 
