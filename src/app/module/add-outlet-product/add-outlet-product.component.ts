@@ -177,9 +177,14 @@ export class AddOutletProductComponent implements OnInit {
                     }];
 
                     console.log('Product restored for edit:', this.addedProducts);
+
+                  // if (rowData.dealerOutlet) {
+                  //   this.loadOutletProduct(rowData.dealerOutlet);
+                  // }
                 }
             }
         });
+
     }
 
   private ensureProductsIsArray() {
@@ -190,21 +195,107 @@ export class AddOutletProductComponent implements OnInit {
     }
   }
 
-    loadOutletProduct(id:any) {
-        this.loadingService.setLoading(true);
-        runInInjectionContext(this.injector, () => {
-            this.outletProductService.getOutletProductById(id).subscribe({
-                next: (data) => {
-                    this.outletProducts = data;
-                    this.dataSource.data = data;
-                    console.log("Outlet Products:", this.outletProducts);
-                    this.loadingService.setLoading(false);
-                    this.DealerList(); // load dealers after outlet products
-                },
-                error: () => this.loadingService.setLoading(false)
-            });
-        });
-    }
+  // loadOutletProduct(id:any) {
+  //   console.log(id)
+  //   this.loadingService.setLoading(true);
+  //   runInInjectionContext(this.injector, () => {
+  //     this.outletProductService.getOutletProductListByDealerId(id).subscribe({
+  //       next: (data: any) => {
+  //         console.log('Fetched outlet products:', data);
+  //         this.outletProducts = data;
+  //         this.dataSource.data = data;
+  //         this.loadingService.setLoading(false);
+  //       },
+  //       error: (err) => {
+  //         console.error('Failed to fetch outlet products', err);
+  //         this.loadingService.setLoading(false);
+  //       }
+  //     });
+  //   });
+  // }
+
+  loadOutletProduct(id: any) {
+    console.log('Loading outlet products for ID:', id);
+    this.loadingService.setLoading(true);
+    runInInjectionContext(this.injector, () => {
+      this.outletProductService.getOutletProductListByDealerId(id).subscribe({
+        next: (data: any) => {
+          console.log('Fetched outlet products:', data);
+          this.outletProducts = data;
+          this.dataSource.data = data;
+
+          // ✅ After loading, apply disabled flags to products
+          this.applyDisabledFlags();
+
+          this.loadingService.setLoading(false);
+        },
+        error: (err) => {
+          console.error('Failed to fetch outlet products', err);
+          this.outletProducts = [];
+          this.loadingService.setLoading(false);
+        }
+      });
+    });
+  }
+
+  applyDisabledFlags() {
+    if (!this.selectedDealer?.id) return;
+
+    const outletId = this.selectedDealer.id;
+
+    // Get SKUs that already exist in this outlet
+    const existingSkus = this.outletProducts
+      .filter(p => p.outletId === outletId || p.dealerId === outletId)
+      .map(p => p.sku);
+
+    console.log('Existing SKUs in outlet:', existingSkus);
+
+    // Mark products as disabled if they exist in outlet
+    const cachedProducts = (this.productService as any).cachedProducts || [];
+    const processedProducts = cachedProducts.map((p: any) => ({
+      ...p,
+      disabled: existingSkus.includes(p.sku) && !(this.isEditMode && p.sku === this.data?.sku)
+    }));
+
+    // Update all product arrays
+    this.vehicledataSource.data = processedProducts;
+    this._allProducts = processedProducts;
+    this.filteredProducts = [...processedProducts];
+
+    console.log('Products with disabled flags:', processedProducts);
+  }
+
+  // DealerList() {
+  //   this.loadingService.setLoading(true);
+  //   runInInjectionContext(this.injector, () => {
+  //     this.addDealerService.getDealerList().subscribe({
+  //       next: (data) => {
+  //         this.allDealers = data;
+  //         this.dealers = data;
+  //         this.dealerdataSource.data = this.dealers;
+  //         this.filteredDealers = [...this.dealers];
+  //         console.log("All Dealers:", this.dealerdataSource.data);
+  //
+  //         // Handle edit mode after dealers are loaded
+  //         if (this.isEditMode && this.data?.dealerOutlet) {
+  //           const matchedDealer = this.allDealers.find(dealer =>
+  //             dealer.name === this.data.dealerOutlet || dealer.id === this.data.dealerId
+  //           );
+  //
+  //           if (matchedDealer) {
+  //             this.dealerControl.setValue(matchedDealer);
+  //             this.selectedDealer = matchedDealer;
+  //             this.grnForm.get('dealerOutlet')?.setValue(matchedDealer.name);
+  //             this.productList(); // Load products for the selected dealer
+  //           }
+  //         }
+  //
+  //         this.loadingService.setLoading(false);
+  //       },
+  //       error: () => this.loadingService.setLoading(false)
+  //     });
+  //   });
+  // }
 
   DealerList() {
     this.loadingService.setLoading(true);
@@ -215,7 +306,7 @@ export class AddOutletProductComponent implements OnInit {
           this.dealers = data;
           this.dealerdataSource.data = this.dealers;
           this.filteredDealers = [...this.dealers];
-          console.log("All Dealers:", this.dealerdataSource.data);
+          console.log("All Dealers loaded:", this.dealerdataSource.data.length);
 
           // Handle edit mode after dealers are loaded
           if (this.isEditMode && this.data?.dealerOutlet) {
@@ -227,11 +318,31 @@ export class AddOutletProductComponent implements OnInit {
               this.dealerControl.setValue(matchedDealer);
               this.selectedDealer = matchedDealer;
               this.grnForm.get('dealerOutlet')?.setValue(matchedDealer.name);
-              this.productList(); // Load products for the selected dealer
-            }
-          }
 
-          this.loadingService.setLoading(false);
+              // Load products then outlet products for edit mode
+              this.productService.getProductListByCountry(matchedDealer.country).subscribe({
+                next: (productData) => {
+                  (this.productService as any).cachedProducts = productData;
+                  this.vehicledataSource.data = productData;
+                  this._allProducts = productData;
+                  this.filteredProducts = [...productData];
+
+                  // Load outlet products to apply disabled flags
+                  const outletId = matchedDealer.id || matchedDealer.outletId;
+                  if (outletId) {
+                    this.loadOutletProduct(outletId);
+                  }
+
+                  this.loadingService.setLoading(false);
+                },
+                error: () => this.loadingService.setLoading(false)
+              });
+            } else {
+              this.loadingService.setLoading(false);
+            }
+          } else {
+            this.loadingService.setLoading(false);
+          }
         },
         error: () => this.loadingService.setLoading(false)
       });
@@ -297,37 +408,103 @@ export class AddOutletProductComponent implements OnInit {
         }
     }
 
+  // filterProductsForOutlet(selectedOutlet: string) {
+  //   const dealer = this.allDealers.find(
+  //     d => (d.name || '').trim() === (selectedOutlet || '').trim()
+  //   );
+  //   const outletId = dealer?.outletId;
+  //   console.log("Outlet ID:", outletId);
+  //   this.loadOutletProduct(outletId);
+  //
+  //   if (!outletId) {
+  //     this.vehicledataSource.data = [];
+  //     return;
+  //   }
+  //
+  //   const existingSkus = this.outletProducts
+  //     .filter(p => p.outletId === outletId)
+  //     .map(p => p.sku);
+  //
+  //   const cachedProducts = (this.productService as any).cachedProducts || [];
+  //   let processedProducts = cachedProducts.map((p: any) => ({
+  //     ...p,
+  //     disabled: existingSkus.includes(p.sku)
+  //   }));
+  //
+  //   if (this.isEditMode && this.data?.sku) {
+  //     processedProducts = processedProducts.map((p: any) => ({
+  //       ...p,
+  //       disabled: p.sku === this.data.sku ? false : p.disabled
+  //     }));
+  //   }
+  //
+  //   this.vehicledataSource.data = processedProducts;
+  //   console.log("Products with disabled flag:", processedProducts);
+  // }
+
+
+  // filterProductsForOutlet(selectedOutlet: string) {
+  //   // 1️⃣ Get the selected dealer object
+  //   const dealer = this.allDealers.find(
+  //     d => (d.name || '').trim() === (selectedOutlet || '').trim()
+  //   );
+  //   const outletId = dealer?.outletId;
+  //   console.log("Selected Outlet ID:", outletId);
+  //
+  //   if (!outletId) {
+  //     this.vehicledataSource.data = [];
+  //     return;
+  //   }
+  //
+  //   // 2️⃣ Load outlet products
+  //   this.loadOutletProduct(outletId);
+  //
+  //   // 3️⃣ Get cached products (all products for the dealer)
+  //   const cachedProducts = (this.productService as any).cachedProducts || [];
+  //
+  //   // 4️⃣ Disable products already in this outlet
+  //   const existingSkus = this.outletProducts
+  //     .filter(p => p.outletId === outletId)
+  //     .map(p => p.sku);
+  //
+  //   let processedProducts = cachedProducts.map((p: any) => ({
+  //     ...p,
+  //     disabled: existingSkus.includes(p.sku)
+  //   }));
+  //
+  //   // 5️⃣ Keep the product editable if we are in edit mode and it's the current product
+  //   if (this.isEditMode && this.data?.sku) {
+  //     processedProducts = processedProducts.map((p: any) => ({
+  //       ...p,
+  //       disabled: p.sku === this.data.sku ? false : p.disabled
+  //     }));
+  //   }
+  //
+  //   // 6️⃣ Update the dropdown
+  //   this.vehicledataSource.data = processedProducts;
+  //   this.filteredProducts = [...processedProducts];
+  //   console.log("Dropdown products with disabled flag:", processedProducts);
+  // }
+
+
   filterProductsForOutlet(selectedOutlet: string) {
     const dealer = this.allDealers.find(
       d => (d.name || '').trim() === (selectedOutlet || '').trim()
     );
-    const outletId = dealer?.outletId;
-    console.log("Outlet ID:", outletId);
 
-    if (!outletId) {
+    if (!dealer) {
+      console.warn('No dealer found for outlet:', selectedOutlet);
       this.vehicledataSource.data = [];
+      this._allProducts = [];
+      this.filteredProducts = [];
       return;
     }
 
-    const existingSkus = this.outletProducts
-      .filter(p => p.outletId === outletId)
-      .map(p => p.sku);
+    const outletId = dealer.id || dealer.outletId;
+    console.log("Selected Outlet ID:", outletId);
 
-    const cachedProducts = (this.productService as any).cachedProducts || [];
-    let processedProducts = cachedProducts.map((p: any) => ({
-      ...p,
-      disabled: existingSkus.includes(p.sku)
-    }));
-
-    if (this.isEditMode && this.data?.sku) {
-      processedProducts = processedProducts.map((p: any) => ({
-        ...p,
-        disabled: p.sku === this.data.sku ? false : p.disabled
-      }));
-    }
-
-    this.vehicledataSource.data = processedProducts;
-    console.log("Products with disabled flag:", processedProducts);
+    // Load outlet products - disabled flags will be applied in the callback
+    this.loadOutletProduct(outletId);
   }
 
 
@@ -698,31 +875,72 @@ export class AddOutletProductComponent implements OnInit {
         });
     }
 
-    // onChangeDealer() {
-    //     this.selectedDealer = this.dealerControl.value
-    //   this.productList();
-    // }
 
-  // Add this new method to your existing TypeScript class
+  // onChangeDealer() {
+  //   const selectedDealer = this.dealerControl.value;
+  //   console.log(selectedDealer)
+  //
+  //   if (selectedDealer) {
+  //     // 1. Store the selected object (as you use it later in productList/submitForm)
+  //     this.selectedDealer = selectedDealer;
+  //
+  //     // 2. CRITICAL FIX: Set the 'dealerOutlet' form control value to the dealer's NAME.
+  //     // This is what satisfies the '!!formValues.dealerOutlet' check in submitForm.
+  //     this.grnForm.get('dealerOutlet')?.setValue(selectedDealer.name);
+  //
+  //     // 3. Call productList() as per your original logic
+  //     this.productList();
+  //     // this.loadOutletProduct(selectedDealer.outletId)
+  //   } else {
+  //     this.selectedDealer = {};
+  //     this.grnForm.get('dealerOutlet')?.setValue(null);
+  //   }
+  // }
 
   onChangeDealer() {
     const selectedDealer = this.dealerControl.value;
-    console.log(selectedDealer)
+    console.log('Selected dealer:', selectedDealer);
 
     if (selectedDealer) {
-      // 1. Store the selected object (as you use it later in productList/submitForm)
+      // Store the selected dealer
       this.selectedDealer = selectedDealer;
 
-      // 2. CRITICAL FIX: Set the 'dealerOutlet' form control value to the dealer's NAME.
-      // This is what satisfies the '!!formValues.dealerOutlet' check in submitForm.
+      // Set form value
       this.grnForm.get('dealerOutlet')?.setValue(selectedDealer.name);
 
-      // 3. Call productList() as per your original logic
-      this.productList();
-      // this.loadOutletProduct(selectedDealer.outletId)
+      // Load products first, then outlet products
+      this.loadingService.setLoading(true);
+      runInInjectionContext(this.injector, () => {
+        this.productService.getProductListByCountry(this.selectedDealer.country).subscribe({
+          next: (data) => {
+            // Cache products
+            (this.productService as any).cachedProducts = data;
+            this.vehicledataSource.data = data;
+            this._allProducts = data;
+            this.filteredProducts = [...data];
+            console.log("All Products loaded:", data.length);
+
+            // Now load outlet products and apply disabled flags
+            const outletId = selectedDealer.id || selectedDealer.outletId;
+            if (outletId) {
+              this.loadOutletProduct(outletId);
+            } else {
+              this.loadingService.setLoading(false);
+            }
+          },
+          error: () => {
+            this.loadingService.setLoading(false);
+          }
+        });
+      });
     } else {
+      // Reset everything
       this.selectedDealer = {};
       this.grnForm.get('dealerOutlet')?.setValue(null);
+      this.vehicledataSource.data = [];
+      this._allProducts = [];
+      this.filteredProducts = [];
+      this.outletProducts = [];
     }
   }
 
