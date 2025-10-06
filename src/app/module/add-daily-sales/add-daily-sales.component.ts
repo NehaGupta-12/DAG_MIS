@@ -986,7 +986,7 @@ export class AddDailySalesComponent implements OnInit {
 
               Promise.all(createPromises)
                 .then(() => {
-                  Swal.fire('Added!', 'All valid products saved, inventory updated, and activity logged.', 'success');
+                  Swal.fire('Added!', 'All valid products saved, inventory updated.', 'success');
                   this.router.navigate(['/module/daily-sales-list']);
                 })
                 .catch(err => {

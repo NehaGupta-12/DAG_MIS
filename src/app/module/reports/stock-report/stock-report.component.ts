@@ -104,6 +104,7 @@ export class StockReportComponent implements OnInit{
     selectedCountry: string = '';
     selectedOutlets: string[] = [];
     allOutletReports: { outlet: string; rows: any[] }[] = [];
+    maxDate: Date=new Date();
     @ViewChild('countrySearchInput') countrySearchInput!: ElementRef;
     @ViewChild('divisionSearchInput') divisionSearchInput!: ElementRef;
     @ViewChild('townSearchInput') townSearchInput!: ElementRef;
@@ -197,68 +198,154 @@ export class StockReportComponent implements OnInit{
         .pipe(map(d => d?.subcategories || [])).subscribe(data => { this.options.town = data; this.filteredOptions.town = [...data]; });
     }
 
-    ngOnInit() {
-      this.route.queryParams.subscribe(params => {
-        if (params['data']) {
-          const rowData = JSON.parse(params['data']);
-          this.dealerForm.patchValue(rowData);
-          if (rowData.id) {
-            this.isEditMode = true;
-            this.data = rowData;
-          }
+    // ngOnInit() {
+    //   this.route.queryParams.subscribe(params => {
+    //     if (params['data']) {
+    //       const rowData = JSON.parse(params['data']);
+    //       this.dealerForm.patchValue(rowData);
+    //       if (rowData.id) {
+    //         this.isEditMode = true;
+    //         this.data = rowData;
+    //       }
+    //     }
+    //   });
+    //
+    //   this.loadGrnList();
+    //   this.DealerList();
+    //   this.productList();
+    //
+    //   // --- Cascading dropdowns (ignore NA, search ready) ---
+    //   this.dealerForm.get('country')?.valueChanges.subscribe(selectedCountry => {
+    //     this.filteredDivisionsByCountry = Array.from(new Set(
+    //       this.dataSource
+    //         .filter(d => (!selectedCountry || d.country === selectedCountry) && d.division && d.division !== 'NA')
+    //         .map(d => d.division)
+    //     ));
+    //     this.filteredOptions.division = [...this.filteredDivisionsByCountry];
+    //
+    //     this.dealerForm.patchValue({ division: '', town: '', name: [] });
+    //     this.filteredOptions.town = [];
+    //     this.filteredOptions.name = [];
+    //   });
+    //
+    //   this.dealerForm.get('division')?.valueChanges.subscribe(selectedDivision => {
+    //     this.filteredTownsByDivision = Array.from(new Set(
+    //       this.dataSource
+    //         .filter(d => (!selectedDivision || d.division === selectedDivision) && d.town && d.town !== 'NA')
+    //         .map(d => d.town)
+    //     ));
+    //     this.filteredOptions.town = [...this.filteredTownsByDivision];
+    //
+    //     this.dealerForm.patchValue({ town: '', name: [] });
+    //     this.filteredOptions.name = [];
+    //   });
+    //
+    //   this.dealerForm.get('town')?.valueChanges.subscribe(selectedTown => {
+    //     this.filteredOutletsByTown = Array.from(new Set(
+    //       this.dataSource
+    //         .filter(d => (!selectedTown || d.town === selectedTown) && d.name && d.name !== 'NA')
+    //         .map(d => d.name)
+    //     ));
+    //     this.filteredOptions.name = [...this.filteredOutletsByTown];
+    //
+    //     this.dealerForm.patchValue({ name: [] });
+    //   });
+    //
+    //   // --- Search filters ---
+    //   this.nameFilter.valueChanges.subscribe(val => this.filterOutlet(val || ''));
+    //   this.divisionFilter.valueChanges.subscribe(val => this.filterDivision(val || ''));
+    //   this.countryFilter.valueChanges.subscribe(val => this.filterCountry(val || ''));
+    //   this.townFilter.valueChanges.subscribe(val => this.filterTown(val || ''));
+    //   this.productFilter.valueChanges.subscribe(val => this.filterOptions('product', val || ''));
+    // }
+
+  ngOnInit() {
+    this.route.queryParams.subscribe(params => {
+      if (params['data']) {
+        const rowData = JSON.parse(params['data']);
+        this.dealerForm.patchValue(rowData);
+        if (rowData.id) {
+          this.isEditMode = true;
+          this.data = rowData;
         }
-      });
+      }
+    });
 
-      this.loadGrnList();
-      this.DealerList();
-      this.productList();
+    this.loadGrnList();
+    this.DealerList();
+    this.productList();
 
-      // --- Cascading dropdowns (ignore NA, search ready) ---
-      this.dealerForm.get('country')?.valueChanges.subscribe(selectedCountry => {
-        this.filteredDivisionsByCountry = Array.from(new Set(
-          this.dataSource
-            .filter(d => (!selectedCountry || d.country === selectedCountry) && d.division && d.division !== 'NA')
-            .map(d => d.division)
-        ));
-        this.filteredOptions.division = [...this.filteredDivisionsByCountry];
+    // 🔹 COUNTRY → mandatory, controls everything
+    this.dealerForm.get('country')?.valueChanges.subscribe(selectedCountry => {
+      if (!selectedCountry) {
+        // Clear all fields if no country selected
+        this.dealerForm.patchValue({
+          division: '',
+          town: '',
+          name: '',
+          sale: '',
+          product: '',
+          period: { start: '', end: '' }
+        });
 
-        this.dealerForm.patchValue({ division: '', town: '', name: [] });
+        this.filteredOptions.division = [];
         this.filteredOptions.town = [];
         this.filteredOptions.name = [];
-      });
+        return;
+      }
 
-      this.dealerForm.get('division')?.valueChanges.subscribe(selectedDivision => {
-        this.filteredTownsByDivision = Array.from(new Set(
-          this.dataSource
-            .filter(d => (!selectedDivision || d.division === selectedDivision) && d.town && d.town !== 'NA')
-            .map(d => d.town)
-        ));
-        this.filteredOptions.town = [...this.filteredTownsByDivision];
+      // ✅ Once country selected → independently load all dropdowns
+      const filteredByCountry = this.dataSource.filter(
+        d => d.country === selectedCountry
+      );
 
-        this.dealerForm.patchValue({ town: '', name: [] });
-        this.filteredOptions.name = [];
-      });
+      // Get unique division, town, and outlet lists for that country
+      this.filteredOptions.division = Array.from(new Set(
+        filteredByCountry
+          .filter(d => d.division && d.division !== 'NA')
+          .map(d => d.division)
+      ));
 
-      this.dealerForm.get('town')?.valueChanges.subscribe(selectedTown => {
-        this.filteredOutletsByTown = Array.from(new Set(
-          this.dataSource
-            .filter(d => (!selectedTown || d.town === selectedTown) && d.name && d.name !== 'NA')
-            .map(d => d.name)
-        ));
-        this.filteredOptions.name = [...this.filteredOutletsByTown];
+      this.filteredOptions.town = Array.from(new Set(
+        filteredByCountry
+          .filter(d => d.town && d.town !== 'NA')
+          .map(d => d.town)
+      ));
 
-        this.dealerForm.patchValue({ name: [] });
-      });
+      this.filteredOptions.name = Array.from(new Set(
+        filteredByCountry
+          .filter(d => d.name && d.name !== 'NA')
+          .map(d => d.name)
+      ));
+    });
 
-      // --- Search filters ---
-      this.nameFilter.valueChanges.subscribe(val => this.filterOutlet(val || ''));
-      this.divisionFilter.valueChanges.subscribe(val => this.filterDivision(val || ''));
-      this.countryFilter.valueChanges.subscribe(val => this.filterCountry(val || ''));
-      this.townFilter.valueChanges.subscribe(val => this.filterTown(val || ''));
-      this.productFilter.valueChanges.subscribe(val => this.filterOptions('product', val || ''));
-    }
+    // 🔹 Division change → no longer cascades, just updates internal form
+    this.dealerForm.get('division')?.valueChanges.subscribe(() => {
+      // no dependent filtering now — keep other dropdowns independent
+    });
 
-    // --- Filter methods for cascading + search ---
+    // 🔹 Town change → independent now
+    this.dealerForm.get('town')?.valueChanges.subscribe(() => {
+      // independent now, no changes to other fields
+    });
+
+    // 🔹 Outlet name change → independent as well
+    this.dealerForm.get('name')?.valueChanges.subscribe(() => {
+      // independent now
+    });
+
+    // 🔹 Search filters (unchanged)
+    this.nameFilter.valueChanges.subscribe(val => this.filterOutlet(val || ''));
+    this.divisionFilter.valueChanges.subscribe(val => this.filterDivision(val || ''));
+    this.countryFilter.valueChanges.subscribe(val => this.filterCountry(val || ''));
+    this.townFilter.valueChanges.subscribe(val => this.filterTown(val || ''));
+    this.productFilter.valueChanges.subscribe(val => this.filterOptions('product', val || ''));
+  }
+
+
+
+
+  // --- Filter methods for cascading + search ---
     filterCountry(value: string) {
       const searchText = (value || '').toLowerCase();
       this.filteredOptions.country = this.options.country

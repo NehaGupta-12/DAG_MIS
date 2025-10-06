@@ -26,6 +26,7 @@ import {AuthService} from "../../authentication/auth.service";
 import {GrnViewComponent} from "../grn-view/grn-view.component";
 import {DailySaleViewComponent} from "../daily-sale-view/daily-sale-view.component";
 import {ActivityLogService} from "../activity-log/activity-log.service";
+import {InventoryService} from "../add-inventory/inventory.service";
 
 
 
@@ -92,6 +93,7 @@ export class DailySalesListComponent implements OnInit {
     private loadingService: LoadingService,
     public authService : AuthService,
     private mService: ActivityLogService,
+    private inventoryService: InventoryService,
   ) {}
 
   ngOnInit() {
@@ -210,56 +212,113 @@ export class DailySalesListComponent implements OnInit {
   // }
 
   // ✅ DELETE
-  deleteDailySales(row: any): void { // explicitly void
-    const docId = row.docId;
-    if (!docId) {
-      Swal.fire('Error', 'Missing document ID for this Daily Sale.', 'error');
-      return;
-    }
 
+  // deleteDailySales(row: any): void { // explicitly void
+  //   const docId = row.docId;
+  //   if (!docId) {
+  //     Swal.fire('Error', 'Missing document ID for this Daily Sale.', 'error');
+  //     return;
+  //   }
+  //
+  //   Swal.fire({
+  //     title: 'Are you sure?',
+  //     text: 'You will not be able to recover this Daily Sale!',
+  //     icon: 'warning',
+  //     showCancelButton: true,
+  //     confirmButtonText: 'Yes, delete it!',
+  //     cancelButtonText: 'No, cancel',
+  //   }).then((result) => {
+  //     if (!result.isConfirmed) return;
+  //
+  //     this.loadingService.setLoading(true);
+  //
+  //     runInInjectionContext(this.injector, () => {
+  //       this.dailySlaes.deleteDailySales(docId)
+  //         .then(() => {
+  //           this.dataSource.data = this.dataSource.data.filter((p: any) => p.docId !== docId);
+  //           Swal.fire('Deleted!', 'Daily Sale has been deleted.', 'success');
+  //
+  //           // Log deletion
+  //           this.mService.addLog({
+  //             date: Date.now(),
+  //             section: 'Daily Sales',
+  //             action: 'Delete',
+  //             description: `Deleted Daily Sale for ${row.name} (SKU: ${row.sku})`
+  //           });
+  //
+  //           return; // ✅ explicit return
+  //         })
+  //         .catch((err) => {
+  //           console.error('Delete failed:', err);
+  //           Swal.fire('Error', 'Failed to delete the Daily Sale. Please try again.', 'error');
+  //           return; // ✅ explicit return
+  //         })
+  //         .finally(() => {
+  //           this.loadingService.setLoading(false);
+  //           return; // ✅ explicit return
+  //         });
+  //     });
+  //
+  //     return; // ✅ explicit return after Swal
+  //   });
+  //
+  //   return; // ✅ explicit return for the outer function
+  // }
+
+  deleteDailySales(sale: any) {
     Swal.fire({
-      title: 'Are you sure?',
-      text: 'You will not be able to recover this Daily Sale!',
+      title: 'Delete Daily Sale?',
+      text: `Are you sure you want to delete the sale for ${sale.name}?`,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonText: 'Yes, delete it!',
-      cancelButtonText: 'No, cancel',
-    }).then((result) => {
+      cancelButtonText: 'No'
+    }).then((result: any) => {
       if (!result.isConfirmed) return;
+        this.loadingService.setLoading(true);
 
-      this.loadingService.setLoading(true);
+        const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+        const username = `${userData.first || ''} ${userData.last || ''}`.trim() || 'Unknown User';
+        const timestamp = Date.now();
 
-      runInInjectionContext(this.injector, () => {
-        this.dailySlaes.deleteDailySales(docId)
-          .then(() => {
-            this.dataSource.data = this.dataSource.data.filter((p: any) => p.docId !== docId);
-            Swal.fire('Deleted!', 'Daily Sale has been deleted.', 'success');
+        runInInjectionContext(this.injector, async () => {
+          try {
+            // 1️⃣ Delete the daily sale
+            await this.dailySlaes.deleteDailySales(sale.docId);
 
-            // Log deletion
-            this.mService.addLog({
-              date: Date.now(),
-              section: 'Daily Sales',
+            // 2️⃣ Restore the inventory by increasing quantity
+            await this.updateInventory(sale, 'increase'); // note: 'increase' adds back the deleted quantity
+
+            // 3️⃣ Log the deletion activity
+            await this.mService.addLog({
+              date: timestamp,
+              section: 'DailySales',
               action: 'Delete',
-              description: `Deleted Daily Sale for ${row.name} (SKU: ${row.sku})`
+              user: username,
+              description: `${username} deleted daily sales for vehicle: ${sale.name}`
             });
 
-            return; // ✅ explicit return
-          })
-          .catch((err) => {
-            console.error('Delete failed:', err);
-            Swal.fire('Error', 'Failed to delete the Daily Sale. Please try again.', 'error');
-            return; // ✅ explicit return
-          })
-          .finally(() => {
+            Swal.fire('Deleted!', 'Daily sale removed and inventory updated.', 'success');
+
+            // Optionally refresh the list
+            // this.loadDailySalesList();
+
+          } catch (err) {
+            console.error('Error deleting daily sale:', err);
+            Swal.fire('Error', 'Something went wrong while deleting.', 'error');
+          } finally {
             this.loadingService.setLoading(false);
             return; // ✅ explicit return
-          });
-      });
+          }
+        });
 
-      return; // ✅ explicit return after Swal
     });
-
-    return; // ✅ explicit return for the outer function
+  }
+  updateInventory(product: any, action: 'increase' | 'decrease'): Promise<void> {
+    const quantityChange = action === 'increase' ? product.quantity : -product.quantity;
+    return runInInjectionContext(this.injector, () =>
+      this.inventoryService.updateInventoryQuantity(product.dealerOutlet, product.sku, quantityChange)
+    );
   }
 
 

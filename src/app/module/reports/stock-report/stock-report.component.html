@@ -106,7 +106,7 @@
         <div class="col-md-3">
           <mat-form-field class="example-full-width w-100" appearance="outline">
             <mat-label>Select Date</mat-label>
-            <mat-date-range-input [rangePicker]="picker" formGroupName="period">
+            <mat-date-range-input [rangePicker]="picker" [max]="maxDate" formGroupName="period">
               <input matStartDate formControlName="start" placeholder="Start date">
               <input matEndDate formControlName="end" placeholder="End date">
             </mat-date-range-input>

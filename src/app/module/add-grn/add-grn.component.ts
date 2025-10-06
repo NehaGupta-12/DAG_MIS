@@ -875,7 +875,7 @@ export class AddGRNComponent implements OnInit{
 
             await Promise.all(createPromises);
 
-            Swal.fire('Added!', 'All valid products saved, inventory updated, and activity logged.', 'success');
+            Swal.fire('Added!', 'All valid products saved, inventory updated.', 'success');
             this.router.navigate(['/module/grn-list']);
           }
         } catch (err) {

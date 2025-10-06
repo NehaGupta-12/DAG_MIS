@@ -100,6 +100,8 @@ export class DailySaleReportsComponent implements OnInit{
   selectedCountry: string = '';
   selectedOutlets: string[] = [];
   allOutletReports: { outlet: string; rows: any[] }[] = [];
+  maxDate: Date = new Date(); // today
+
 
   @ViewChild('countrySearchInput') countrySearchInput!: ElementRef;
   @ViewChild('divisionSearchInput') divisionSearchInput!: ElementRef;
@@ -206,7 +208,69 @@ export class DailySaleReportsComponent implements OnInit{
       .subscribe(data => { this.options.sale = data; this.filteredOptions.sale = [...data]; });
   }
 
+  // ngOnInit() {
+  //   this.route.queryParams.subscribe(params => {
+  //     if (params['data']) {
+  //       const rowData = JSON.parse(params['data']);
+  //       this.dealerForm.patchValue(rowData);
+  //       if (rowData.id) {
+  //         this.isEditMode = true;
+  //         this.data = rowData;
+  //       }
+  //     }
+  //   });
+  //
+  //   this.loadSalesList();
+  //   this.DealerList();
+  //   this.productList();
+  //
+  //   // --- Cascading dropdowns (ignore NA, search ready) ---
+  //   this.dealerForm.get('country')?.valueChanges.subscribe(selectedCountry => {
+  //     this.filteredDivisionsByCountry = Array.from(new Set(
+  //       this.dataSource
+  //         .filter(d => (!selectedCountry || d.country === selectedCountry) && d.division && d.division !== 'NA')
+  //         .map(d => d.division)
+  //     ));
+  //     this.filteredOptions.division = [...this.filteredDivisionsByCountry];
+  //
+  //     this.dealerForm.patchValue({ division: '', town: '', name: [] });
+  //     this.filteredOptions.town = [];
+  //     this.filteredOptions.name = [];
+  //   });
+  //
+  //   this.dealerForm.get('division')?.valueChanges.subscribe(selectedDivision => {
+  //     this.filteredTownsByDivision = Array.from(new Set(
+  //       this.dataSource
+  //         .filter(d => (!selectedDivision || d.division === selectedDivision) && d.town && d.town !== 'NA')
+  //         .map(d => d.town)
+  //     ));
+  //     this.filteredOptions.town = [...this.filteredTownsByDivision];
+  //
+  //     this.dealerForm.patchValue({ town: '', name: [] });
+  //     this.filteredOptions.name = [];
+  //   });
+  //
+  //   this.dealerForm.get('town')?.valueChanges.subscribe(selectedTown => {
+  //     this.filteredOutletsByTown = Array.from(new Set(
+  //       this.dataSource
+  //         .filter(d => (!selectedTown || d.town === selectedTown) && d.name && d.name !== 'NA')
+  //         .map(d => d.name)
+  //     ));
+  //     this.filteredOptions.name = [...this.filteredOutletsByTown];
+  //
+  //     this.dealerForm.patchValue({ name: [] });
+  //   });
+  //
+  //   // --- Search filters ---
+  //   this.nameFilter.valueChanges.subscribe(val => this.filterOutlet(val || ''));
+  //   this.divisionFilter.valueChanges.subscribe(val => this.filterDivision(val || ''));
+  //   this.countryFilter.valueChanges.subscribe(val => this.filterCountry(val || ''));
+  //   this.townFilter.valueChanges.subscribe(val => this.filterTown(val || ''));
+  //   this.productFilter.valueChanges.subscribe(val => this.filterOptions('product', val || ''));
+  // }
+
   ngOnInit() {
+
     this.route.queryParams.subscribe(params => {
       if (params['data']) {
         const rowData = JSON.parse(params['data']);
@@ -222,50 +286,110 @@ export class DailySaleReportsComponent implements OnInit{
     this.DealerList();
     this.productList();
 
-    // --- Cascading dropdowns (ignore NA, search ready) ---
+    // === ✅ Make COUNTRY mandatory and control visibility ===
     this.dealerForm.get('country')?.valueChanges.subscribe(selectedCountry => {
+      if (!selectedCountry) {
+        // If no country selected, clear and disable others
+        this.dealerForm.patchValue({ division: '', town: '', name: [] });
+        this.filteredOptions.division = [];
+        this.filteredOptions.town = [];
+        this.filteredOptions.name = [];
+        return;
+      }
+
+      // When country is selected, enable others and make them independent
       this.filteredDivisionsByCountry = Array.from(new Set(
         this.dataSource
-          .filter(d => (!selectedCountry || d.country === selectedCountry) && d.division && d.division !== 'NA')
+          .filter(d => d.country === selectedCountry && d.division && d.division !== 'NA')
           .map(d => d.division)
       ));
       this.filteredOptions.division = [...this.filteredDivisionsByCountry];
 
-      this.dealerForm.patchValue({ division: '', town: '', name: [] });
-      this.filteredOptions.town = [];
-      this.filteredOptions.name = [];
-    });
-
-    this.dealerForm.get('division')?.valueChanges.subscribe(selectedDivision => {
+      // For towns (independent of division now)
       this.filteredTownsByDivision = Array.from(new Set(
         this.dataSource
-          .filter(d => (!selectedDivision || d.division === selectedDivision) && d.town && d.town !== 'NA')
+          .filter(d => d.country === selectedCountry && d.town && d.town !== 'NA')
           .map(d => d.town)
       ));
       this.filteredOptions.town = [...this.filteredTownsByDivision];
 
-      this.dealerForm.patchValue({ town: '', name: [] });
-      this.filteredOptions.name = [];
-    });
-
-    this.dealerForm.get('town')?.valueChanges.subscribe(selectedTown => {
-      this.filteredOutletsByTown = Array.from(new Set(
+      // For outlets (independent of both division & town)
+      const allOutlets = Array.from(new Set(
         this.dataSource
-          .filter(d => (!selectedTown || d.town === selectedTown) && d.name && d.name !== 'NA')
+          .filter(d => d.country === selectedCountry && d.name && d.name !== 'NA')
           .map(d => d.name)
       ));
-      this.filteredOptions.name = [...this.filteredOutletsByTown];
-
-      this.dealerForm.patchValue({ name: [] });
+      this.filteredOptions.name = [...allOutlets];
     });
 
-    // --- Search filters ---
+    // === ✅ Division Independent Filtering ===
+    this.dealerForm.get('division')?.valueChanges.subscribe(selectedDivision => {
+      const selectedCountry = this.dealerForm.get('country')?.value;
+      if (!selectedCountry) return; // country mandatory
+
+      if (!selectedDivision) {
+        // Reset outlet list to all of the selected country
+        const allOutlets = Array.from(new Set(
+          this.dataSource
+            .filter(d => d.country === selectedCountry && d.name && d.name !== 'NA')
+            .map(d => d.name)
+        ));
+        this.filteredOptions.name = [...allOutlets];
+        return;
+      }
+
+      // Filter only those outlets which match selected division (still within country)
+      const outlets = Array.from(new Set(
+        this.dataSource
+          .filter(d =>
+            d.country === selectedCountry &&
+            d.division === selectedDivision &&
+            d.name &&
+            d.name !== 'NA'
+          )
+          .map(d => d.name)
+      ));
+      this.filteredOptions.name = [...outlets];
+    });
+
+    // === ✅ Town Independent Filtering ===
+    this.dealerForm.get('town')?.valueChanges.subscribe(selectedTown => {
+      const selectedCountry = this.dealerForm.get('country')?.value;
+      if (!selectedCountry) return; // country mandatory
+
+      if (!selectedTown) {
+        // Reset outlets for whole country if town cleared
+        const allOutlets = Array.from(new Set(
+          this.dataSource
+            .filter(d => d.country === selectedCountry && d.name && d.name !== 'NA')
+            .map(d => d.name)
+        ));
+        this.filteredOptions.name = [...allOutlets];
+        return;
+      }
+
+      // Filter outlets by town only (still within country)
+      const outlets = Array.from(new Set(
+        this.dataSource
+          .filter(d =>
+            d.country === selectedCountry &&
+            d.town === selectedTown &&
+            d.name &&
+            d.name !== 'NA'
+          )
+          .map(d => d.name)
+      ));
+      this.filteredOptions.name = [...outlets];
+    });
+
+    // === Search filters (unchanged) ===
     this.nameFilter.valueChanges.subscribe(val => this.filterOutlet(val || ''));
     this.divisionFilter.valueChanges.subscribe(val => this.filterDivision(val || ''));
     this.countryFilter.valueChanges.subscribe(val => this.filterCountry(val || ''));
     this.townFilter.valueChanges.subscribe(val => this.filterTown(val || ''));
     this.productFilter.valueChanges.subscribe(val => this.filterOptions('product', val || ''));
   }
+
 
   // --- Filter methods for cascading + search ---
   filterCountry(value: string) {
@@ -304,6 +428,7 @@ export class DailySaleReportsComponent implements OnInit{
       item.toLowerCase().includes(searchTerm)
     );
   }
+
 
   // // --- Reset / cancel ---
   onCancel() {
@@ -389,64 +514,6 @@ export class DailySaleReportsComponent implements OnInit{
     return { monthStart, fyStart };
   }
 
-
-  // generateReport(filteredData: any[], startDate: Date | null, endDate: Date, productsToShow: any[]) {
-  //   const { monthStart, fyStart } = this.getDateRanges(endDate);
-  //   const report: any = {};
-  //   const today = new Date();
-  //   today.setHours(0, 0, 0, 0);
-  //
-  //   // ✅ First include only models from filtered products with 0 counts
-  //   productsToShow.forEach((p: any) => {
-  //     const model = (p.model || '').trim().toUpperCase();
-  //     if (model) {
-  //       report[model] = { YTD: 0, Month: 0, Day: 0 };
-  //     }
-  //   });
-  //
-  //   // ✅ Then add sales data (only for models that exist in filtered products)
-  //   filteredData.forEach(item => {
-  //     const model = (item.model || '').trim().toUpperCase();
-  //
-  //     // Skip if this model is not in the filtered products list
-  //     if (!report.hasOwnProperty(model)) {
-  //       return;
-  //     }
-  //
-  //     const qty = Number(item.quantity) || 0;
-  //
-  //     const itemDate = item.salesDate
-  //       ? new Date(item.salesDate)
-  //       : (item.createdAt?.seconds ? new Date(item.createdAt.seconds * 1000) : new Date(item.createdAt));
-  //     itemDate.setHours(0, 0, 0, 0);
-  //
-  //     // Skip if outside selected range
-  //     if ((startDate && itemDate < startDate) || (endDate && itemDate > endDate)) {
-  //       return;
-  //     }
-  //
-  //     // YTD
-  //     if (itemDate >= fyStart && itemDate <= endDate) {
-  //       report[model].YTD += qty;
-  //     }
-  //
-  //     // Month
-  //     if (itemDate >= monthStart && itemDate <= endDate) {
-  //       report[model].Month += qty;
-  //     }
-  //
-  //     // Day (today only, if inside range)
-  //     if (
-  //       itemDate.getTime() === today.getTime() &&
-  //       today >= (startDate || today) &&
-  //       today <= endDate
-  //     ) {
-  //       report[model].Day += qty;
-  //     }
-  //   });
-  //
-  //   return report;
-  // }
 
   generateReport(filteredData: any[], startDate: Date | null, endDate: Date, productsToShow: any[]) {
     const { monthStart, fyStart } = this.getDateRanges(endDate);

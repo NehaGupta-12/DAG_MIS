@@ -27,6 +27,7 @@ import {LoadingService} from "../../Services/loading.service";
 import {AuthService} from "../../authentication/auth.service";
 import {GrnViewComponent} from "../grn-view/grn-view.component";
 import {ActivityLogService} from "../activity-log/activity-log.service";
+import {InventoryService} from "../add-inventory/inventory.service";
 
 @Component({
   selector: 'app-grn-list',
@@ -90,6 +91,7 @@ export class GRNListComponent implements OnInit {
     private loadingService: LoadingService,
     public authService : AuthService,
     private mService: ActivityLogService,
+    private inventoryService: InventoryService,
   ) {}
 
   ngOnInit() {
@@ -193,6 +195,8 @@ export class GRNListComponent implements OnInit {
   //   });
   // }
 
+
+
   deleteGrn(row: any): void {
     const docId = row.docId;
 
@@ -213,33 +217,46 @@ export class GRNListComponent implements OnInit {
 
       this.loadingService.setLoading(true);
 
-      runInInjectionContext(this.injector, () => {
-        this.grnService.deleteGrn(docId)
-          .then(async () => {
-            // Update UI
-            this.dataSource.data = this.dataSource.data.filter((p: any) => p.docId !== docId);
+      runInInjectionContext(this.injector, async () => {
+        try {
+          // 1️⃣ Delete GRN
+          await this.grnService.deleteGrn(docId);
 
-            // ✅ Log deletion
-            await this.mService.addLog({
-              date: Date.now(),
-              section: 'Daily Stock',
-              action: 'Delete',
-              description: `Deleted GRN for ${row.name} (SKU: ${row.sku})`
-            });
+          // 2️⃣ Restore inventory
+          await this.updateInventory(row, 'decrease'); // adds back deleted quantity
 
-            Swal.fire('Deleted!', 'Daily Stock has been deleted.', 'success');
-          })
-          .catch((err) => {
-            console.error('Delete failed:', err);
-            Swal.fire('Error', 'Failed to delete the Daily Stock. Please try again.', 'error');
-          })
-          .finally(() => {
-            this.loadingService.setLoading(false);
+          // 3️⃣ Update UI
+          this.dataSource.data = this.dataSource.data.filter((p: any) => p.docId !== docId);
+
+          // 4️⃣ Log deletion
+          const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+          const username = `${userData.first || ''} ${userData.last || ''}`.trim() || 'Unknown User';
+          await this.mService.addLog({
+            date: Date.now(),
+            section: 'Daily Stock',
+            action: 'Delete',
+            user: username,
+            description: `${username} deleted GRN for ${row.name} (SKU: ${row.sku})`
           });
+
+          Swal.fire('Deleted!', 'Daily Stock has been deleted and inventory restored.', 'success');
+        } catch (err) {
+          console.error('Delete failed:', err);
+          Swal.fire('Error', 'Failed to delete the Daily Stock. Please try again.', 'error');
+        } finally {
+          this.loadingService.setLoading(false);
+        }
       });
     });
   }
 
+
+  updateInventory(product: any, action: 'increase' | 'decrease'): Promise<void> {
+    const quantityChange = action === 'increase' ? product.quantity : -product.quantity;
+    return runInInjectionContext(this.injector, () =>
+      this.inventoryService.updateInventoryQuantity(product.dealerOutlet, product.sku, quantityChange)
+    );
+  }
 
   getTotalQuantity(row: any): number {
     if (!row?.items) return 0;

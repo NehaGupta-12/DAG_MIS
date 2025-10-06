@@ -124,12 +124,6 @@ export class InventoryListComponent implements OnInit {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
 
-
-  // ✅ Data source
-  // dataSource = new MatTableDataSource<AdvanceTable>([]);
-  // isLoading = false;
-
-
   constructor(private dialog: MatDialog,
               private router: Router,
               private productService: ProductMasterService,
@@ -142,9 +136,8 @@ export class InventoryListComponent implements OnInit {
   }
 
   ngOnInit() {
-    // this.productList();
     this. DealerList();
-  this.loadInventoryDaata()
+  // this.loadInventoryDaata()
   }
 
   // Add these methods to your component class
@@ -211,9 +204,8 @@ export class InventoryListComponent implements OnInit {
     runInInjectionContext(this.injector, () => {
       this.outletProductService.getOutletProductById(id).subscribe((data) => {
         console.log("All outlet products:", data);
-        this.allOutletProducts = data;   // keep all
-        this.dataSource.data = [];       // empty table by default
-        this.dataSource.paginator = this.paginator;
+        this.allOutletProducts = data; // keep all// empty table by default
+        this.dataSource.paginator =   this.paginator;
         this.dataSource.sort = this.sort;
       });
     });
@@ -246,6 +238,8 @@ export class InventoryListComponent implements OnInit {
     });
     });
   }
+
+
 
 
   openDialog() {
