@@ -110,6 +110,8 @@ export class DailySaleReportsComponent implements OnInit{
 
   debounceTimer: any;
   countryOptionsLoaded: boolean = false;
+  selectedSaleTypeLabel: string = ''; // Add at the class level
+
 
   // Filters
   nameFilter = new FormControl('');
@@ -616,6 +618,9 @@ export class DailySaleReportsComponent implements OnInit{
 
     try {
       const filters = this.dealerForm.value;
+
+      this.selectedSaleTypeLabel = filters.sale ? `(${filters.sale})` : '';
+
       const startDate = filters.period?.start ? new Date(filters.period.start) : null;
       const endDate = filters.period?.end ? new Date(filters.period.end) : new Date();
 
@@ -791,10 +796,8 @@ export class DailySaleReportsComponent implements OnInit{
       worksheet.getRow(currentRow).height = 20;
       currentRow++;
 
-      // === DATE ROW ===
-      // FIXED: Merging A to D to match the 4 data columns
       worksheet.mergeCells(`A${currentRow}:D${currentRow}`);
-      worksheet.getCell(`A${currentRow}`).value = `Date: ${new Date().toLocaleDateString()}`;
+      worksheet.getCell(`A${currentRow}`).value = `Date: ${new Date().toLocaleDateString()} ${this.selectedSaleTypeLabel}`;
       worksheet.getCell(`A${currentRow}`).alignment = { horizontal: "center", vertical: "middle" };
       worksheet.getCell(`A${currentRow}`).font = { bold: true, size: 12 };
       worksheet.getCell(`A${currentRow}`).fill = {
@@ -804,6 +807,7 @@ export class DailySaleReportsComponent implements OnInit{
       };
       worksheet.getRow(currentRow).height = 20;
       currentRow += 2;
+
 
       // === HEADER ROW ===
       const headerRow = ["Product", "Day", "Month", "YTD"];

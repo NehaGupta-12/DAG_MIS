@@ -43,3 +43,48 @@
     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
 [error] 
 [error] Error: Failed to get Firebase project dag-new. Please make sure the project exists and your account has permission to access it.
+[debug] [2025-10-03T18:20:57.877Z] ----------------------------------------------------------------------
+[debug] [2025-10-03T18:20:57.883Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\hp\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js deploy --only hosting:dev
+[debug] [2025-10-03T18:20:57.884Z] CLI Version:   13.27.0
+[debug] [2025-10-03T18:20:57.885Z] Platform:      win32
+[debug] [2025-10-03T18:20:57.885Z] Node Version:  v20.19.4
+[debug] [2025-10-03T18:20:57.885Z] Time:          Fri Oct 03 2025 23:50:57 GMT+0530 (India Standard Time)
+[debug] [2025-10-03T18:20:57.885Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2025-10-03T18:20:57.892Z] >>> [apiv2][query] GET https://firebase-public.firebaseio.com/cli.json [none]
+[debug] [2025-10-03T18:20:58.131Z] Object ".firestore" in "firebase.json" has unknown property: {"additionalProperty":"location"}
+[debug] [2025-10-03T18:20:58.132Z] Field ".firestore" in "firebase.json" is possibly invalid: should be array
+[debug] [2025-10-03T18:20:58.132Z] Field ".firestore" in "firebase.json" is possibly invalid: should match some schema in anyOf
+[debug] [2025-10-03T18:20:58.143Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-10-03T18:20:58.144Z] > authorizing via signed-in user (nglead123@gmail.com)
+[debug] [2025-10-03T18:20:58.144Z] [iam] checking project dag-new for permissions ["firebase.projects.get","firebasehosting.sites.update"]
+[debug] [2025-10-03T18:20:58.146Z] Checked if tokens are valid: false, expires at: 1759076556399
+[debug] [2025-10-03T18:20:58.146Z] Checked if tokens are valid: false, expires at: 1759076556399
+[debug] [2025-10-03T18:20:58.146Z] > refreshing access token with scopes: []
+[debug] [2025-10-03T18:20:58.148Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
+[debug] [2025-10-03T18:20:58.148Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-10-03T18:20:58.610Z] <<< [apiv2][status] POST https://www.googleapis.com/oauth2/v3/token 200
+[debug] [2025-10-03T18:20:58.610Z] <<< [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-10-03T18:20:58.678Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/dag-new:testIamPermissions [none]
+[debug] [2025-10-03T18:20:58.679Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/dag-new:testIamPermissions x-goog-quota-user=projects/dag-new
+[debug] [2025-10-03T18:20:58.679Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/dag-new:testIamPermissions {"permissions":["firebase.projects.get","firebasehosting.sites.update"]}
+[debug] [2025-10-03T18:20:58.972Z] <<< [apiv2][status] GET https://firebase-public.firebaseio.com/cli.json 200
+[debug] [2025-10-03T18:20:58.972Z] <<< [apiv2][body] GET https://firebase-public.firebaseio.com/cli.json {"cloudBuildErrorAfter":1594252800000,"cloudBuildWarnAfter":1590019200000,"defaultNode10After":1594252800000,"minVersion":"3.0.5","node8DeploysDisabledAfter":1613390400000,"node8RuntimeDisabledAfter":1615809600000,"node8WarnAfter":1600128000000}
+[debug] [2025-10-03T18:21:00.477Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/dag-new:testIamPermissions 200
+[debug] [2025-10-03T18:21:00.478Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/dag-new:testIamPermissions {}
+[debug] [2025-10-03T18:21:00.478Z] [iam] error while checking permissions, command may fail: Authorization failed. This account is missing the following required permissions on project dag-new:
+
+  firebase.projects.get
+  firebasehosting.sites.update
+[debug] [2025-10-03T18:21:00.481Z] Checked if tokens are valid: true, expires at: 1759519257611
+[debug] [2025-10-03T18:21:00.481Z] Checked if tokens are valid: true, expires at: 1759519257611
+[debug] [2025-10-03T18:21:00.482Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/dag-new [none]
+[debug] [2025-10-03T18:21:01.274Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/dag-new 403
+[debug] [2025-10-03T18:21:01.275Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/dag-new {"error":{"code":403,"message":"The caller does not have permission","status":"PERMISSION_DENIED"}}
+[debug] [2025-10-03T18:21:01.275Z] Request to https://firebase.googleapis.com/v1beta1/projects/dag-new had HTTP Error: 403, The caller does not have permission
+[debug] [2025-10-03T18:21:01.629Z] FirebaseError: Request to https://firebase.googleapis.com/v1beta1/projects/dag-new had HTTP Error: 403, The caller does not have permission
+    at responseToError (C:\Users\hp\AppData\Roaming\npm\node_modules\firebase-tools\lib\responseToError.js:52:12)
+    at RetryOperation._fn (C:\Users\hp\AppData\Roaming\npm\node_modules\firebase-tools\lib\apiv2.js:312:77)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+[error] 
+[error] Error: Failed to get Firebase project dag-new. Please make sure the project exists and your account has permission to access it.
