@@ -204,7 +204,7 @@ export class AddDailySalesComponent implements OnInit {
     this.loadInventoryDaata();
     this.DealerList();
 
-// Sirf 3 din pehle tak ka past allow hoga
+
 
   }
 
@@ -597,46 +597,6 @@ export class AddDailySalesComponent implements OnInit {
 
 
 
-  // addProduct() {
-  //   const selectedProducts = this.dailySalesForm.get('vehicle')?.value; // array of selected names
-  //   if (!selectedProducts || selectedProducts.length === 0) {
-  //     Swal.fire('Error', 'Please select at least one product before adding.', 'error');
-  //     return;
-  //   }
-  //
-  //   let newProducts: any[] = [];
-  //
-  //   selectedProducts.forEach((selectedName: string) => {
-  //     const product = this.vehicledataSource.data.find(p => p.name === selectedName);
-  //     if (product) {
-  //       const exists = this.addedProducts.some(p => p.productId === product.id);
-  //       if (!exists) {
-  //         newProducts.push({
-  //           productId: product.id,
-  //           sku: product.sku,
-  //           name: product.name,
-  //           brand: product.brand,
-  //           model: product.model,
-  //           variant: product.variant,
-  //           unit: product.unit,
-  //           avlQuantity: product.avlQuantity,
-  //           quantity: 0
-  //         });
-  //       } else {
-  //         Swal.fire('Info', `${product.name} is already added.`, 'info');
-  //       }
-  //     }
-  //   });
-  //
-  //   if (newProducts.length > 0) {
-  //     this.addedProducts = [...this.addedProducts, ...newProducts];
-  //     console.log(this.addedProducts);
-  //   }
-  //
-  //   // Reset selection after adding
-  //   this.dailySalesForm.get('vehicle')?.reset();
-  // }
-
   addProduct() {
     const selectedProducts = this.dailySalesForm.get('vehicle')?.value; // array of selected names
     if (!selectedProducts || selectedProducts.length === 0) {
@@ -709,158 +669,6 @@ export class AddDailySalesComponent implements OnInit {
     this.addedProducts = [...this.addedProducts];
   }
 
-
-  // submitForm() {
-  //   try {
-  //     if (this.addedProducts.length === 0) {
-  //       Swal.fire('Error', 'Please add at least one product.', 'error');
-  //       return;
-  //     }
-  //
-  //     const productsToSubmit = this.addedProducts.filter(p => p.quantity > 0);
-  //
-  //     if (productsToSubmit.length === 0) {
-  //       Swal.fire('Error', 'Please enter a quantity greater than 0 for at least one product.', 'error');
-  //       return;
-  //     }
-  //
-  //     Swal.fire({
-  //       title: this.isEditMode ? 'Update Daily Sales?' : 'Add Daily Sales?',
-  //       text: 'Are you sure you want to proceed?',
-  //       icon: 'question',
-  //       showCancelButton: true,
-  //       confirmButtonText: 'Yes',
-  //       cancelButtonText: 'No'
-  //     }).then((result: any) => {
-  //       if (result.isConfirmed) {
-  //         try {
-  //           // ✅ Set loading flags
-  //           this.isSubmitting = true;
-  //           this.loadingService.setLoading(true);
-  //
-  //           const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-  //           const username = userData.userName || 'Unknown User';
-  //           const timestamp = Date.now();
-  //
-  //           const formValues = this.dailySalesForm.getRawValue();
-  //
-  //           // let salesDateTime: number | null = null;
-  //           // if (formValues.salesDate) {
-  //           //   const selectedDate = new Date(formValues.salesDate);
-  //           //   const now = new Date();
-  //           //   selectedDate.setHours(now.getHours(), now.getMinutes(), now.getSeconds(), now.getMilliseconds());
-  //           //   salesDateTime = selectedDate.getTime();
-  //           // }
-  //           let salesDateTime: number | null = null;
-  //           if (formValues.salesDate) {
-  //             const rawDate = formValues.salesDate;
-  //
-  //             // Ensure always Date object
-  //             const selectedDate = rawDate instanceof Date ? rawDate : new Date(rawDate);
-  //
-  //             // Preserve today's time
-  //             const now = new Date();
-  //             selectedDate.setHours(now.getHours(), now.getMinutes(), now.getSeconds(), now.getMilliseconds());
-  //
-  //             salesDateTime = selectedDate.getTime();
-  //           }
-  //
-  //
-  //           const baseInfo = {
-  //             dealerOutlet: formValues.dealerOutlet,
-  //             division: formValues.division,
-  //             country: formValues.country,
-  //             town: formValues.town,
-  //             salesType: formValues.salesType,
-  //             salesDate: salesDateTime,
-  //             status: 'Active',
-  //             updatedBy: username,
-  //             updatedAt: timestamp
-  //           };
-  //
-  //           if (this.isEditMode) {
-  //             const productToUpdate = this.addedProducts[0];
-  //             const productDoc = {
-  //               ...baseInfo,
-  //               sku: productToUpdate.sku,
-  //               name: productToUpdate.name,
-  //               brand: productToUpdate.brand,
-  //               model: productToUpdate.model,
-  //               variant: productToUpdate.variant,
-  //               unit: productToUpdate.unit,
-  //               quantity: productToUpdate.quantity
-  //             };
-  //
-  //             runInInjectionContext(this.injector, () =>
-  //               this.dailySalesService.updateDailySales(productToUpdate.docId, productDoc)
-  //             )
-  //               .then(() => this.updateInventory(productDoc, 'decrease'))
-  //               .then(() => {
-  //                 Swal.fire('Updated!', 'Daily Sales updated successfully.', 'success');
-  //                 this.goBack();
-  //               })
-  //               .catch(err => {
-  //                 console.error('Error updating daily sales:', err);
-  //                 Swal.fire('Error', 'Something went wrong while updating.', 'error');
-  //               })
-  //               .finally(() => {
-  //                 // ✅ Reset loading flags
-  //                 this.isSubmitting = false;
-  //                 this.loadingService.setLoading(false);
-  //               });
-  //           } else {
-  //             const createPromises = productsToSubmit.map(p => {
-  //               const productDoc = {
-  //                 ...baseInfo,
-  //                 id: p.id ?? '',
-  //                 sku: p.sku ?? '',
-  //                 name: p.name ?? '',
-  //                 brand: p.brand ?? '',
-  //                 model: p.model ?? '',
-  //                 variant: p.variant ?? p.varient ?? '',
-  //                 unit: p.unit ?? '',
-  //                 quantity: p.quantity ?? 0,
-  //                 createdBy: username,
-  //                 createdAt: timestamp
-  //               };
-  //
-  //               return runInInjectionContext(this.injector, () =>
-  //                 this.dailySalesService.addDailySales(productDoc)
-  //               ).then(() => this.updateInventory(productDoc, 'decrease'));
-  //             });
-  //
-  //             Promise.all(createPromises)
-  //               .then(() => {
-  //                 Swal.fire('Added!', 'All valid products saved and inventory updated.', 'success');
-  //                 this.router.navigate(['/module/daily-sales-list']);
-  //               })
-  //               .catch(err => {
-  //                 console.error('Error adding daily sales:', err);
-  //                 Swal.fire('Error', 'Something went wrong while adding.', 'error');
-  //               })
-  //               .finally(() => {
-  //                 // ✅ Reset loading flags
-  //                 this.isSubmitting = false;
-  //                 this.loadingService.setLoading(false);
-  //               });
-  //           }
-  //         } catch (innerErr) {
-  //           console.error('Unexpected error during submission:', innerErr);
-  //           Swal.fire('Error', 'Unexpected issue occurred.', 'error');
-  //           // ✅ Reset loading flags
-  //           this.isSubmitting = false;
-  //           this.loadingService.setLoading(false);
-  //         }
-  //       }
-  //     });
-  //   } catch (err) {
-  //     console.error('Global submit error:', err);
-  //     Swal.fire('Error', 'Something went wrong while submitting.', 'error');
-  //     // ✅ Reset loading flags (in case of early errors)
-  //     this.isSubmitting = false;
-  //     this.loadingService.setLoading(false);
-  //   }
-  // }
 
   submitForm() {
     try {

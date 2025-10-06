@@ -430,7 +430,9 @@ export class DailySaleReportsComponent implements OnInit{
   }
 
 
-  // // --- Reset / cancel ---
+
+
+  // --- Reset / cancel ---
   onCancel() {
     this.selectedOutlets = [];
     this.dealerForm.reset();
