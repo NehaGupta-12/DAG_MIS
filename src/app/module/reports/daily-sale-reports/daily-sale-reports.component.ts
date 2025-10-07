@@ -110,6 +110,8 @@ export class DailySaleReportsComponent implements OnInit{
 
   debounceTimer: any;
   countryOptionsLoaded: boolean = false;
+  selectedSaleTypeLabel: string = ''; // Add at the class level
+
 
   // Filters
   nameFilter = new FormControl('');
@@ -208,66 +210,6 @@ export class DailySaleReportsComponent implements OnInit{
       .subscribe(data => { this.options.sale = data; this.filteredOptions.sale = [...data]; });
   }
 
-  // ngOnInit() {
-  //   this.route.queryParams.subscribe(params => {
-  //     if (params['data']) {
-  //       const rowData = JSON.parse(params['data']);
-  //       this.dealerForm.patchValue(rowData);
-  //       if (rowData.id) {
-  //         this.isEditMode = true;
-  //         this.data = rowData;
-  //       }
-  //     }
-  //   });
-  //
-  //   this.loadSalesList();
-  //   this.DealerList();
-  //   this.productList();
-  //
-  //   // --- Cascading dropdowns (ignore NA, search ready) ---
-  //   this.dealerForm.get('country')?.valueChanges.subscribe(selectedCountry => {
-  //     this.filteredDivisionsByCountry = Array.from(new Set(
-  //       this.dataSource
-  //         .filter(d => (!selectedCountry || d.country === selectedCountry) && d.division && d.division !== 'NA')
-  //         .map(d => d.division)
-  //     ));
-  //     this.filteredOptions.division = [...this.filteredDivisionsByCountry];
-  //
-  //     this.dealerForm.patchValue({ division: '', town: '', name: [] });
-  //     this.filteredOptions.town = [];
-  //     this.filteredOptions.name = [];
-  //   });
-  //
-  //   this.dealerForm.get('division')?.valueChanges.subscribe(selectedDivision => {
-  //     this.filteredTownsByDivision = Array.from(new Set(
-  //       this.dataSource
-  //         .filter(d => (!selectedDivision || d.division === selectedDivision) && d.town && d.town !== 'NA')
-  //         .map(d => d.town)
-  //     ));
-  //     this.filteredOptions.town = [...this.filteredTownsByDivision];
-  //
-  //     this.dealerForm.patchValue({ town: '', name: [] });
-  //     this.filteredOptions.name = [];
-  //   });
-  //
-  //   this.dealerForm.get('town')?.valueChanges.subscribe(selectedTown => {
-  //     this.filteredOutletsByTown = Array.from(new Set(
-  //       this.dataSource
-  //         .filter(d => (!selectedTown || d.town === selectedTown) && d.name && d.name !== 'NA')
-  //         .map(d => d.name)
-  //     ));
-  //     this.filteredOptions.name = [...this.filteredOutletsByTown];
-  //
-  //     this.dealerForm.patchValue({ name: [] });
-  //   });
-  //
-  //   // --- Search filters ---
-  //   this.nameFilter.valueChanges.subscribe(val => this.filterOutlet(val || ''));
-  //   this.divisionFilter.valueChanges.subscribe(val => this.filterDivision(val || ''));
-  //   this.countryFilter.valueChanges.subscribe(val => this.filterCountry(val || ''));
-  //   this.townFilter.valueChanges.subscribe(val => this.filterTown(val || ''));
-  //   this.productFilter.valueChanges.subscribe(val => this.filterOptions('product', val || ''));
-  // }
 
   ngOnInit() {
 
@@ -618,6 +560,9 @@ export class DailySaleReportsComponent implements OnInit{
 
     try {
       const filters = this.dealerForm.value;
+
+      this.selectedSaleTypeLabel = filters.sale ? `(${filters.sale})` : '';
+
       const startDate = filters.period?.start ? new Date(filters.period.start) : null;
       const endDate = filters.period?.end ? new Date(filters.period.end) : new Date();
 
@@ -793,10 +738,8 @@ export class DailySaleReportsComponent implements OnInit{
       worksheet.getRow(currentRow).height = 20;
       currentRow++;
 
-      // === DATE ROW ===
-      // FIXED: Merging A to D to match the 4 data columns
       worksheet.mergeCells(`A${currentRow}:D${currentRow}`);
-      worksheet.getCell(`A${currentRow}`).value = `Date: ${new Date().toLocaleDateString()}`;
+      worksheet.getCell(`A${currentRow}`).value = `Date: ${new Date().toLocaleDateString()} ${this.selectedSaleTypeLabel}`;
       worksheet.getCell(`A${currentRow}`).alignment = { horizontal: "center", vertical: "middle" };
       worksheet.getCell(`A${currentRow}`).font = { bold: true, size: 12 };
       worksheet.getCell(`A${currentRow}`).fill = {
@@ -806,6 +749,7 @@ export class DailySaleReportsComponent implements OnInit{
       };
       worksheet.getRow(currentRow).height = 20;
       currentRow += 2;
+
 
       // === HEADER ROW ===
       const headerRow = ["Product", "Day", "Month", "YTD"];

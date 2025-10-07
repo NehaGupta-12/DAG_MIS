@@ -204,7 +204,7 @@ export class AddDailySalesComponent implements OnInit {
     this.loadInventoryDaata();
     this.DealerList();
 
-
+// Sirf 3 din pehle tak ka past allow hoga
 
   }
 
@@ -597,6 +597,46 @@ export class AddDailySalesComponent implements OnInit {
 
 
 
+  // addProduct() {
+  //   const selectedProducts = this.dailySalesForm.get('vehicle')?.value; // array of selected names
+  //   if (!selectedProducts || selectedProducts.length === 0) {
+  //     Swal.fire('Error', 'Please select at least one product before adding.', 'error');
+  //     return;
+  //   }
+  //
+  //   let newProducts: any[] = [];
+  //
+  //   selectedProducts.forEach((selectedName: string) => {
+  //     const product = this.vehicledataSource.data.find(p => p.name === selectedName);
+  //     if (product) {
+  //       const exists = this.addedProducts.some(p => p.productId === product.id);
+  //       if (!exists) {
+  //         newProducts.push({
+  //           productId: product.id,
+  //           sku: product.sku,
+  //           name: product.name,
+  //           brand: product.brand,
+  //           model: product.model,
+  //           variant: product.variant,
+  //           unit: product.unit,
+  //           avlQuantity: product.avlQuantity,
+  //           quantity: 0
+  //         });
+  //       } else {
+  //         Swal.fire('Info', `${product.name} is already added.`, 'info');
+  //       }
+  //     }
+  //   });
+  //
+  //   if (newProducts.length > 0) {
+  //     this.addedProducts = [...this.addedProducts, ...newProducts];
+  //     console.log(this.addedProducts);
+  //   }
+  //
+  //   // Reset selection after adding
+  //   this.dailySalesForm.get('vehicle')?.reset();
+  // }
+
   addProduct() {
     const selectedProducts = this.dailySalesForm.get('vehicle')?.value; // array of selected names
     if (!selectedProducts || selectedProducts.length === 0) {
@@ -668,7 +708,6 @@ export class AddDailySalesComponent implements OnInit {
     // ✅ Force table refresh
     this.addedProducts = [...this.addedProducts];
   }
-
 
   submitForm() {
     try {
@@ -821,9 +860,6 @@ export class AddDailySalesComponent implements OnInit {
       this.loadingService.setLoading(false);
     }
   }
-
-
-
 
 
   updateInventory(product: any, action: 'increase' | 'decrease'): Promise<void> {
