@@ -25,6 +25,9 @@
                 <input matInput placeholder="Search Country" #countrySearchInput
                        (input)="filterCountry(countrySearchInput.value)" />
               </div>
+              <mat-option disabled *ngIf="filteredOptions.country.length === 0">
+                No matching country
+              </mat-option>
               <mat-option *ngFor="let country of filteredOptions.country" [value]="country">
                 {{ country }}
               </mat-option>
@@ -43,6 +46,9 @@
                 <input matInput placeholder="Search Division" #divisionSearchInput
                        (input)="filterDivision(divisionSearchInput.value)" />
               </div>
+              <mat-option disabled *ngIf="filteredOptions.division.length === 0">
+                No matching division
+              </mat-option>
               <mat-option *ngFor="let division of filteredOptions.division" [value]="division">
                 {{ division }}
               </mat-option>
@@ -59,6 +65,9 @@
                 <input matInput placeholder="Search Town" #townSearchInput
                        (input)="filterTown(townSearchInput.value)" />
               </div>
+              <mat-option disabled *ngIf="filteredOptions.town.length === 0">
+                No matching town
+              </mat-option>
               <mat-option *ngFor="let town of filteredOptions.town" [value]="town">
                 {{ town }}
               </mat-option>
@@ -94,7 +103,9 @@
                   Select All
                 </mat-checkbox>
               </div>
-
+              <mat-option disabled *ngIf="filteredOptions.name.length === 0">
+                No matching outlet
+              </mat-option>
               <mat-option *ngFor="let outlet of filteredOptions.name" [value]="outlet">
                 {{ outlet }}
               </mat-option>
@@ -112,6 +123,9 @@
                        #salesSearchInput
                        (input)="filterSales(salesSearchInput.value)" />
               </div>
+              <mat-option disabled *ngIf="filteredOptions.sale.length === 0">
+                No matching sale
+              </mat-option>
               <mat-option *ngFor="let sale of filteredOptions.sale" [value]="sale">
                 {{ sale }}
               </mat-option>
