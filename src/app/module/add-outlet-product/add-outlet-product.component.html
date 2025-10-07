@@ -25,6 +25,9 @@
                       <div class="mat-select-search">
                         <input matInput (input)="onDealerSearchChange($event)" #dealerSearchInput placeholder="Search Outlet/Dealer" />
                       </div>
+                      <mat-option disabled *ngIf="filteredDealers.length === 0">
+                        No matching dealer
+                      </mat-option>
                       <mat-option *ngFor="let dealer of filteredDealers" [value]="dealer">
                         {{ dealer.name }}
                       </mat-option>
@@ -78,7 +81,9 @@
                           Select All
                         </mat-checkbox>
                       </div>
-
+                      <mat-option disabled *ngIf="filteredProducts.length === 0">
+                        No matching product
+                      </mat-option>
                       <!-- Product list -->
                       <mat-option *ngFor="let product of filteredProducts"
                                   [value]="product"
