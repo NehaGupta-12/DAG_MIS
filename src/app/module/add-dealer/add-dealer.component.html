@@ -43,6 +43,9 @@
                       <div class="mat-select-search">
                         <input matInput (input)="onOutletTypeSearchChange($event)" #outletTypeSearchInput placeholder="Search Outlet Type" />
                       </div>
+                      <mat-option disabled *ngIf="filteredOutletTypes.length === 0">
+                        No matching outlet type
+                      </mat-option>
                       <mat-option *ngFor="let outlet of filteredOutletTypes" [value]="outlet">
                         {{ outlet }}
                       </mat-option>
@@ -59,6 +62,9 @@
                       <div class="mat-select-search">
                         <input matInput (input)="onDivisionSearchChange($event)" #divisionSearchInput placeholder="Search Division" />
                       </div>
+                      <mat-option disabled *ngIf="filteredDivisionTypes.length === 0">
+                        No matching division
+                      </mat-option>
                       <mat-option *ngFor="let division of filteredDivisionTypes" [value]="division">
                         {{ division }}
                       </mat-option>
@@ -77,6 +83,9 @@
                       <div class="mat-select-search">
                         <input matInput (input)="onCountrySearchChange($event)" #countrySearchInput placeholder="Search Country" />
                       </div>
+                      <mat-option disabled *ngIf="filteredCountries.length === 0">
+                        No matching country
+                      </mat-option>
                       <mat-option *ngFor="let country of filteredCountries" [value]="country">
                         {{ country }}
                       </mat-option>
@@ -93,6 +102,9 @@
                       <div class="mat-select-search">
                         <input matInput (input)="onTownSearchChange($event)" #townSearchInput placeholder="Search Town" />
                       </div>
+                      <mat-option disabled *ngIf="filteredTownTypes.length === 0">
+                        No matching town
+                      </mat-option>
                       <mat-option *ngFor="let town of filteredTownTypes" [value]="town">
                         {{ town }}
                       </mat-option>
