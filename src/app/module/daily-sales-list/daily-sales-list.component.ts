@@ -27,7 +27,7 @@ import {GrnViewComponent} from "../grn-view/grn-view.component";
 import {DailySaleViewComponent} from "../daily-sale-view/daily-sale-view.component";
 import {ActivityLogService} from "../activity-log/activity-log.service";
 import {InventoryService} from "../add-inventory/inventory.service";
-
+import {AngularFirestore} from "@angular/fire/compat/firestore";
 
 
 @Component({
@@ -60,14 +60,14 @@ export class DailySalesListComponent implements OnInit {
 
 // Define columns
   columnDefinitions = [
-    { def: 'id', label: 'ID' },
-    { def: 'name', label: 'Name' },
-    { def: 'sku', label: 'Sku' },
-    { def: 'variant', label: 'Variant' },
-    { def: 'dealerOutlet', label: 'Dealer Outlet' },
-    { def: 'salesDate', label: 'SalesDate' },
-    { def: 'quantity', label: 'Quantity' },
-    { def: 'salesType', label: 'SalesType' },
+    {def: 'id', label: 'ID'},
+    {def: 'name', label: 'Name'},
+    {def: 'sku', label: 'Sku'},
+    {def: 'variant', label: 'Variant'},
+    {def: 'dealerOutlet', label: 'Dealer Outlet'},
+    {def: 'salesDate', label: 'SalesDate'},
+    {def: 'quantity', label: 'Quantity'},
+    {def: 'salesType', label: 'SalesType'},
   ];
 
   displayedColumns: string[] = [
@@ -88,13 +88,15 @@ export class DailySalesListComponent implements OnInit {
   constructor(
     private dialog: MatDialog,
     private router: Router,
+    private mFirestore: AngularFirestore,
     private injector: EnvironmentInjector,
     private dailySlaes: DailySalesService,
     private loadingService: LoadingService,
-    public authService : AuthService,
+    public authService: AuthService,
     private mService: ActivityLogService,
     private inventoryService: InventoryService,
-  ) {}
+  ) {
+  }
 
   ngOnInit() {
     this.loadLocationList();
@@ -106,6 +108,11 @@ export class DailySalesListComponent implements OnInit {
       this.dailySlaes.getDailySalesList().subscribe({
         next: (data) => {
           console.log("data", data)
+          let sum = 0;
+          data.forEach(it =>{
+            sum += it.quantity
+          })
+          console.log(sum)
           this.dataSource.data = data.map((item, index) => ({
             id: index + 1, // Sr. No.
             ...item
@@ -125,9 +132,10 @@ export class DailySalesListComponent implements OnInit {
 
   goToEdit(row: any) {
     this.router.navigate(['module/add-daily-sales'], {
-      queryParams: { data: JSON.stringify(row) }
+      queryParams: {data: JSON.stringify(row)}
     });
   }
+
   viewStock(row: any) {
     this.dialog.open(DailySaleViewComponent, {
       width: '900px',
@@ -146,7 +154,6 @@ export class DailySalesListComponent implements OnInit {
   // navigateToAddDailySales() {
   //   this.router.navigate(['module/add-daily-sales']);
   // }
-
 
 
   // ✅ ADD
@@ -275,45 +282,46 @@ export class DailySalesListComponent implements OnInit {
       cancelButtonText: 'No'
     }).then((result: any) => {
       if (!result.isConfirmed) return;
-        this.loadingService.setLoading(true);
+      this.loadingService.setLoading(true);
 
-        const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-        const username = `${userData.first || ''} ${userData.last || ''}`.trim() || 'Unknown User';
-        const timestamp = Date.now();
+      const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+      const username = `${userData.first || ''} ${userData.last || ''}`.trim() || 'Unknown User';
+      const timestamp = Date.now();
 
-        runInInjectionContext(this.injector, async () => {
-          try {
-            // 1️⃣ Delete the daily sale
-            await this.dailySlaes.deleteDailySales(sale.docId);
+      runInInjectionContext(this.injector, async () => {
+        try {
+          // 1️⃣ Delete the daily sale
+          await this.dailySlaes.deleteDailySales(sale.docId);
 
-            // 2️⃣ Restore the inventory by increasing quantity
-            await this.updateInventory(sale, 'increase'); // note: 'increase' adds back the deleted quantity
+          // 2️⃣ Restore the inventory by increasing quantity
+          await this.updateInventory(sale, 'increase'); // note: 'increase' adds back the deleted quantity
 
-            // 3️⃣ Log the deletion activity
-            await this.mService.addLog({
-              date: timestamp,
-              section: 'DailySales',
-              action: 'Delete',
-              user: username,
-              description: `${username} deleted daily sales for vehicle: ${sale.name}`
-            });
+          // 3️⃣ Log the deletion activity
+          await this.mService.addLog({
+            date: timestamp,
+            section: 'DailySales',
+            action: 'Delete',
+            user: username,
+            description: `${username} deleted daily sales for vehicle: ${sale.name}`
+          });
 
-            Swal.fire('Deleted!', 'Daily sale removed and inventory updated.', 'success');
+          Swal.fire('Deleted!', 'Daily sale removed and inventory updated.', 'success');
 
-            // Optionally refresh the list
-            // this.loadDailySalesList();
+          // Optionally refresh the list
+          // this.loadDailySalesList();
 
-          } catch (err) {
-            console.error('Error deleting daily sale:', err);
-            Swal.fire('Error', 'Something went wrong while deleting.', 'error');
-          } finally {
-            this.loadingService.setLoading(false);
-            return; // ✅ explicit return
-          }
-        });
+        } catch (err) {
+          console.error('Error deleting daily sale:', err);
+          Swal.fire('Error', 'Something went wrong while deleting.', 'error');
+        } finally {
+          this.loadingService.setLoading(false);
+          return; // ✅ explicit return
+        }
+      });
 
     });
   }
+
   updateInventory(product: any, action: 'increase' | 'decrease'): Promise<void> {
     const quantityChange = action === 'increase' ? product.quantity : -product.quantity;
     return runInInjectionContext(this.injector, () =>
@@ -328,9 +336,6 @@ export class DailySalesListComponent implements OnInit {
       .map((p: any) => p.quantity || 0)
       .reduce((acc: number, val: number) => acc + val, 0);
   }
-
-
-
 
 
 }
