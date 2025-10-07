@@ -201,28 +201,7 @@ export class AddBudgetComponent implements OnInit {
       }
     });
 
-    // runInInjectionContext(this.injector, () => {
-    //   // ✅ Combine subscriptions for country and year
-    //   this.targetForm.get('country')?.valueChanges.subscribe((selectedCountry: string) => {
-    //     const selectedYear = this.targetForm.get('year')?.value;
-    //     if (selectedYear && selectedCountry) {
-    //       this.updateDisabledMonths(selectedYear, selectedCountry);
-    //     } else {
-    //       this.disabledMonths = [];
-    //     }
-    //   });
-    //
-    //   this.targetForm.get('year')?.valueChanges.subscribe((selectedYear: string) => {
-    //     const selectedCountry = this.targetForm.get('country')?.value;
-    //     if (selectedYear && selectedCountry) {
-    //       this.updateDisabledMonths(selectedYear, selectedCountry);
-    //     } else {
-    //       this.disabledMonths = [];
-    //     }
-    //   });
-    //
-    //   this.targetForm.get('month')?.valueChanges.subscribe(() => this.updatePeriod());
-    // });
+
 
     runInInjectionContext(this.injector, () => {
       // Subscribe to country changes to filter products
