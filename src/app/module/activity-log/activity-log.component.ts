@@ -34,6 +34,7 @@ import { MatTooltipModule } from "@angular/material/tooltip";
 import { MatTableModule } from "@angular/material/table";
 import { MatPaginatorModule } from "@angular/material/paginator";
 import { MatSortModule } from "@angular/material/sort";
+import {MatProgressSpinner} from "@angular/material/progress-spinner";
 
 export interface ActivityLog {
   id?: string;
@@ -68,7 +69,8 @@ export interface ActivityLog {
     MatTableModule,
     MatPaginatorModule,
     MatSortModule,
-    DatePipe
+    DatePipe,
+    MatProgressSpinner
   ],
   templateUrl: './activity-log.component.html',
   styleUrls: ['./activity-log.component.scss']
@@ -77,6 +79,7 @@ export class ActivityLogComponent implements OnInit, AfterViewInit, OnDestroy {
   startDateFilter: Date | null = null;
   endDateFilter: Date | null = null;
   private _destroyed$ = new Subject();
+  loading = true;
 
   @ViewChild(MatPaginator) paginator1!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
@@ -85,7 +88,7 @@ export class ActivityLogComponent implements OnInit, AfterViewInit, OnDestroy {
   data: ActivityLog[] = [];
   filterdata: ActivityLog[] = [];
 
-  displayedColumns: string[] = ['date', 'section', 'action', 'user', 'description', 'currentIp'];
+  displayedColumns: string[] = ['position','date', 'section', 'action', 'user', 'description', 'currentIp'];
 
   action: string[] = ['Delete','Add', 'Login', 'Logout', 'Submit', 'Update'].sort((a, b) => a.localeCompare(b));
   section: string[] = [
@@ -117,41 +120,42 @@ export class ActivityLogComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!hasAccess) {
       this.router.navigate(['/not-authorized']);
       return;
-
-
     }
+
+    this.filteredSection = [...this.section];
+    this.filteredAction = [...this.action];
 
     runInInjectionContext(this.injector, () => {
       this.mService.getLogsByCount(3000)
         .pipe(
           takeUntil(this._destroyed$),
-          map(changes =>
-            changes.map(c =>
-              ({ key: c.payload.key, ...c.payload.val() })
-            )
-          )
+          map(changes => changes.map(c => ({ key: c.payload.key, ...c.payload.val() })))
         ).subscribe(res => {
-        // 🔽 sort descending instead of just reverse()
+        // Sort descending by date
         this.data = res.sort((a, b) => {
           const dateA = typeof a.date === 'number' ? a.date : new Date(a.date).getTime();
           const dateB = typeof b.date === 'number' ? b.date : new Date(b.date).getTime();
-          return dateB - dateA;  // recent first
+          return dateB - dateA;
         });
 
-        this.dataSource.data = this.data;
+        // Limit to 100 initially
+        this.dataSource.data = this.data.slice(0, 100);
+        this.loading = false;
+
+        // Only show paginator for first 100 rows initially
+        setTimeout(() => {
+          this.dataSource.paginator = this.paginator1;
+          this.dataSource.sort = this.sort;
+        });
       });
     });
-
-    this.filteredSection = [...this.section];
-    this.filteredAction = [...this.action];
   }
+
 
   ngAfterViewInit(): void {
     this.dataSource.paginator = this.paginator1;
     this.dataSource.sort = this.sort;
   }
-
-
 
   filterAction() {
     const search = this.searchActionText.toLowerCase();
@@ -167,31 +171,13 @@ export class ActivityLogComponent implements OnInit, AfterViewInit, OnDestroy {
 
   onAction($event: MatSelectChange) {
     this.actionSelected = $event.value;
-    // this.searchActionText = '';
-    // this.filteredAction = [...this.action];
-    //
-    // this.filterdata = ($event.value === 'All')
-    //   ? this.data
-    //   : this.data.filter(x => x.action === this.actionSelected);
-    //
-    // this.dataSource.data = this.filterdata;
     this.applyFilters();
   }
 
   onSection($event: MatSelectChange) {
     this.sectionSelected = $event.value;
-
-    // this.filterdata = ($event.value === 'All')
-    //   ? this.data
-    //   : this.data.filter(x => x.section === this.sectionSelected);
-    //
-    // this.dataSource.data = this.filterdata;
-    // this.searchText = '';
-    // this.filteredSection = [...this.section];
     this.applyFilters();
   }
-
-
 
   clearAll() {
     this.sectionSelected = 'All';
@@ -200,18 +186,16 @@ export class ActivityLogComponent implements OnInit, AfterViewInit, OnDestroy {
     this.endDateFilter = null;
     this.searchText = '';
     this.searchActionText = '';
-    this.dataSource.data = this.data;
+    this.dataSource.data = this.data.slice(0, 100);
   }
-
 
   applyFilter(event: Event) {
     const filterValue = (event.target as HTMLInputElement).value;
     this.dataSource.filter = filterValue.trim().toLowerCase();
   }
 
-
   applyFilters() {
-    this.dataSource.data = this.data
+    let filtered = this.data
       .filter(item => {
         const sectionMatch = !this.sectionSelected || this.sectionSelected === 'All' || item.section === this.sectionSelected;
         const actionMatch = !this.actionSelected || this.actionSelected === 'All' || item.action === this.actionSelected;
@@ -223,20 +207,28 @@ export class ActivityLogComponent implements OnInit, AfterViewInit, OnDestroy {
 
         return sectionMatch && actionMatch && dateMatch;
       })
-      // ✅ sort results by date descending (recent first)
       .sort((a, b) => {
         const dateA = typeof a.date === 'number' ? a.date : new Date(a.date).getTime();
         const dateB = typeof b.date === 'number' ? b.date : new Date(b.date).getTime();
         return dateB - dateA;
       });
 
-    // this.dataSource.data = this.data;
+    // Only limit to 100 if no date filter is applied
+    if (!this.startDateFilter && !this.endDateFilter) {
+      filtered = filtered.slice(0, 100);
+    }
+
+    this.dataSource.data = filtered;
+
+    // Reset paginator
+    if (this.paginator1) {
+      this.paginator1.firstPage();
+    }
   }
 
 
   applyDateRangeFilter() {
     this.applyFilters();
   }
-
-
 }
+

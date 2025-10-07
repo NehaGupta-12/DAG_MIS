@@ -25,6 +25,7 @@ import {FeatherIconsComponent} from "@shared/components/feather-icons/feather-ic
 import Swal from "sweetalert2";
 import {AuthService} from "../../../authentication/auth.service";
 import {ActivityLogService} from "../../activity-log/activity-log.service";
+import {LoadingService} from "../../../Services/loading.service";
 
 @Component({
   selector: 'app-menu-list',
@@ -69,6 +70,7 @@ export class MenuListComponent implements OnInit{
     private menuService: MenuService,
     public authService : AuthService,
     private mService: ActivityLogService,
+    private loadingService: LoadingService,
   ) {}
 
   ngOnInit(): void {
@@ -109,7 +111,6 @@ export class MenuListComponent implements OnInit{
         // reload after add
         this.loadMenuList();
 
-
       }
     });
   }
@@ -147,10 +148,12 @@ export class MenuListComponent implements OnInit{
       cancelButtonText: 'No, cancel',
     }).then((result) => {
       if (!result.isConfirmed) return;
+      this.loadingService.setLoading(true);
 
       runInInjectionContext(this.injector, () => {
         this.menuService.deleteMenu(row.id!)
           .then(() => {
+            this.loadingService.setLoading(false);
             this.loadMenuList();
             Swal.fire('Deleted!', 'Menu has been deleted.', 'success');
 
@@ -163,6 +166,7 @@ export class MenuListComponent implements OnInit{
             });
           })
           .catch((err) => {
+            this.loadingService.setLoading(false);
             console.error('Delete menu failed:', err);
             Swal.fire('Error', 'Failed to delete the menu. Please try again.', 'error');
           });
@@ -171,3 +175,6 @@ export class MenuListComponent implements OnInit{
   }
 
 }
+
+
+

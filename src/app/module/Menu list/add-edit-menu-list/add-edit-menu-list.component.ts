@@ -14,6 +14,7 @@ import {MatFormFieldModule} from "@angular/material/form-field";
 import {MatTooltip} from "@angular/material/tooltip";
 import { serverTimestamp } from 'firebase/firestore';
 import {ActivityLogService} from "../../activity-log/activity-log.service";
+import {LoadingService} from "../../../Services/loading.service";
 @Component({
   selector: 'app-add-edit-menu-list',
   imports: [
@@ -44,6 +45,7 @@ export class AddEditMenuListComponent  {
     private mSnackBar: MatSnackBar,
     private userService: UserService,
     private mService: ActivityLogService,
+    private loadingService: LoadingService,
     @Inject(MAT_DIALOG_DATA) public data: any
   ) {
     this.isEditMode = !!data?.id;
@@ -98,7 +100,7 @@ export class AddEditMenuListComponent  {
       return;
     }
 
-    this.isLoading = true;
+    this.loadingService.setLoading(true);
     this.menuForm.get('menu_name')?.enable();
 
     const menuData = this.menuForm.getRawValue();
@@ -134,7 +136,7 @@ export class AddEditMenuListComponent  {
     } catch (error) {
       this.handleError(error);
     } finally {
-      this.isLoading = false;
+      this.loadingService.setLoading(false);
     }
   }
 
