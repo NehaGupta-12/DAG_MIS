@@ -237,7 +237,7 @@
 
           <!-- Sr Column -->
           <ng-container matColumnDef="position">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header>#</th>
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Sr.No</th>
             <td mat-cell *matCellDef="let i = index">
               {{this.paginator1.pageIndex == 0 ? i + 1 : 1 + i + this.paginator1.pageIndex * this.paginator1.pageSize}}
             </td>
