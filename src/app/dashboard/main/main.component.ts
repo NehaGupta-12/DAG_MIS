@@ -14,7 +14,7 @@ import {
   ApexPlotOptions,
   ApexTooltip,
   ApexLegend,
-  NgApexchartsModule,
+  NgApexchartsModule, ApexResponsive, ApexFill,
 } from 'ng-apexcharts';
 import { MatButtonModule } from '@angular/material/button';
 import { NgScrollbar } from 'ngx-scrollbar';
@@ -62,6 +62,8 @@ export type ChartOptions = {
   title: ApexTitleSubtitle;
   tooltip: ApexTooltip;
   plotOptions: ApexPlotOptions;
+  responsive: ApexResponsive[];
+  fill?: ApexFill;
 };
 
 @Component({
@@ -106,9 +108,17 @@ export class MainComponent implements OnInit {
   public chartOptions2!: Partial<ChartOptions>;
   public areaChartOptions!: Partial<ChartOptions>;
   public barChartOptions!: Partial<ChartOptions>;
+
+  // Stock Chart Options
+  public stockBarChartOptions!: Partial<ChartOptions>;
+  public stockMonthlyChartOptions!: Partial<ChartOptions>;
+  public stockYearlyChartOptions!: Partial<ChartOptions>;
+
   dataSource = new MatTableDataSource<any>();
   outletdataSource = new MatTableDataSource<any>([]);
-  // Component properties
+  stockDataSource = new MatTableDataSource<any>([]);
+
+  // Sales properties
   todaySales: number = 0;
   todayPercentage: string = '';
   monthlySales: number = 0;
@@ -125,17 +135,35 @@ export class MainComponent implements OnInit {
   yesterdaySales: number = 0;
   totalSalesQuantity: number = 0;
   last10DaysSales: number = 0;
+
+  // Stock properties
+  todayStock: number = 0;
+  todayStockPercentage: string = '';
+  monthlyStock: number = 0;
+  monthlyStockPercentage: string = '';
+  totalStockFY: number = 0;
+  totalStockPercentageFY: string = '';
+  stockFiscalYearTitle: string = '';
+  currentYearStock: number = 0;
+  lastYearStock: number = 0;
+  currentMonthStock: number = 0;
+  lastMonthStock: number = 0;
+  monthlyStockChartData: number[] = [];
+  monthlyStockChartLabels: string[] = [];
+  yesterdayStock: number = 0;
+  totalStockQuantity: number = 0;
+  last10DaysStock: number = 0;
+
   _countriesTypes$!: Observable<string[]>;
-  // countryControl = new FormControl('All');
   countryControl = new FormControl<string[] | null>([]);
   dailyZeroSalesDataSource = new MatTableDataSource<any>([]);
   monthlyZeroSalesDataSource = new MatTableDataSource<any>([]);
   @ViewChild('dailyPaginator') dailyPaginator!: MatPaginator;
   @ViewChild('monthlyPaginator') monthlyPaginator!: MatPaginator;
   @ViewChild('countrySearchInput') countrySearchInput: ElementRef | undefined;
-  _countriesTypes: string[] = []; // To hold the full list of countries
-  filteredCountries: string[] = []; // To hold the filtered list for the dropdown
-  countrySearchText: string = ''; // To store the search input text
+  _countriesTypes: string[] = [];
+  filteredCountries: string[] = [];
+  countrySearchText: string = '';
   debounceTimer: any;
   currentMonthBudget: number = 0;
   lastMonthBudget: number = 0;
@@ -155,88 +183,46 @@ export class MainComponent implements OnInit {
     private grnService: GrnService,
     private injector: EnvironmentInjector,
     private mDatabase: AngularFireDatabase,
-    private loadingService : LoadingService,
+    private loadingService: LoadingService,
     private addDealerService: AddDealerService,
     private budgetService: BudgetService,
-    private countryService : CountryService,
+    private countryService: CountryService,
     private monthlybudgetService: MonthlyBudgetService,
   ) {}
 
-  // ngOnInit() {
-  //   this.loadingService.setLoading(true);
-  //   this.chart1();
-  //   this.chart2();
-  //   this.areachart();
-  //   this.barchart();
-  //   this.DealerList();
-  //   this.loadbudget();
-  //   this.loadMonthlyBudget();
-  //
-  //   this.countryService.getCountries().subscribe(countries => {
-  //     this._countriesTypes = countries;
-  //     this.filteredCountries = [...this._countriesTypes];
-  //
-  //     // By default: show ALL data but dropdown has nothing checked (only "All" available)
-  //     this.countryControl.setValue(['All']);
-  //     this.loadSalesList(this._countriesTypes);
-  //   });
-  //
-  //   this.countryControl.valueChanges.subscribe((selected: string[] | null) => {
-  //     if (!selected) return;
-  //
-  //     if (selected.includes('All')) {
-  //       // If "All" is selected → show all data and replace selection with just "All"
-  //       this.countryControl.setValue(['All'], { emitEvent: false });
-  //       this.loadSalesList(this._countriesTypes);
-  //     } else if (selected.length === 0) {
-  //       // If nothing selected → show no data
-  //       this.loadSalesList([]);
-  //     } else {
-  //       // Otherwise show selected countries only
-  //       this.loadSalesList(selected);
-  //     }
-  //   });
-  // }
-
-
   ngOnInit() {
     this.loadingService.setLoading(true);
-    this.chart2(); // Keep the one that doesn't rely on sales data
+    this.chart2();
     this.DealerList();
-    this.loadbudget(); // Note: these are called before country data is loaded,
-    this.loadMonthlyBudget(); // but loadSalesList() will call them again *with* filter.
+    this.loadbudget();
+    this.loadMonthlyBudget();
 
     this.countryService.getCountries().subscribe(countries => {
       this._countriesTypes = countries;
       this.filteredCountries = [...this._countriesTypes];
-
-      // By default: show ALL data but dropdown has nothing checked (only "All" available)
       this.countryControl.setValue(['All']);
       this.loadSalesList(this._countriesTypes);
-      this.loadStockList(this._countriesTypes);// This call will load data and update charts
+      this.loadStockList(this._countriesTypes);
     });
 
     this.countryControl.valueChanges.subscribe((selected: string[] | null) => {
       if (!selected) return;
 
       if (selected.includes('All')) {
-        // If "All" is selected → show all data and replace selection with just "All"
         this.countryControl.setValue(['All'], { emitEvent: false });
         this.loadSalesList(this._countriesTypes);
         this.loadStockList(this._countriesTypes);
       } else if (selected.length === 0) {
-        // If nothing selected → show no data
         this.loadSalesList([]);
         this.loadStockList([]);
       } else {
-        // Otherwise show selected countries only
         this.loadSalesList(selected);
         this.loadStockList(selected);
       }
     });
   }
 
-    filterCountries() {
+  filterCountries() {
     const sortedCountries = [...this._countriesTypes].sort((a, b) =>
       a.trim().toLowerCase().localeCompare(b.trim().toLowerCase())
     );
@@ -250,20 +236,18 @@ export class MainComponent implements OnInit {
     }
   }
 
-// Handles the search input with debouncing
   onCountrySearchChange(event: any) {
     clearTimeout(this.debounceTimer);
     this.debounceTimer = setTimeout(() => {
       this.countrySearchText = event.target.value;
       this.filterCountries();
-    }, 300); // Adjust the delay as needed
+    }, 300);
   }
 
-// Resets the search when the dropdown is opened
   onCountrySelectOpened(isOpened: boolean) {
     if (isOpened && this.countrySearchInput) {
-      this.countrySearchText = ''; // Clear search text
-      this.filterCountries(); // Reset the filtered list
+      this.countrySearchText = '';
+      this.filterCountries();
       setTimeout(() => {
         this.countrySearchInput?.nativeElement.focus();
       }, 0);
@@ -275,61 +259,23 @@ export class MainComponent implements OnInit {
     this.monthlyZeroSalesDataSource.paginator = this.monthlyPaginator;
   }
 
-  // loadSalesList(selectedCountry: string) {
-  //   this.loadingService.setLoading(true);
-  //
-  //   runInInjectionContext(this.injector, () => {
-  //     this.dailySlaes.getDailySalesList().subscribe((data) => {
-  //       let filteredData = data;
-  //       let filteredOutlets = this.outletdataSource.data; // Store a mutable copy
-  //
-  //       if (selectedCountry && selectedCountry !== 'All') {
-  //         filteredData = data.filter(item => item.country === selectedCountry);
-  //         filteredOutlets = this.outletdataSource.data.filter(outlet => outlet.country === selectedCountry);
-  //       }
-  //
-  //       this.dataSource.data = filteredData;
-  //
-  //       // ... (your existing recalculation logic) ...
-  //
-  //       // 🔹 Recalculate sales summaries
-  //       // 🔹 Recalculate sales summaries
-  //       this.totalSalesQuantity = filteredData.reduce((sum, item) => sum + item.quantity, 0);
-  //       this.calculateDailySales(filteredData);
-  //       this.calculateLast12MonthsSales(filteredData); // fill monthlyChartData first
-  //       this.calculateMonthlySalesFromChart(); // update info box
-  //       this.calculateFiscalYearSales(filteredData);
-  //
-  //
-  //       // 🔹 Update charts
-  //       this.chart1();
-  //       const dailySalesData = this.getLast10DaysSales(filteredData);
-  //       this.barchart(dailySalesData);
-  //       const yearlyData = this.calculateYearlySales(filteredData);
-  //       this.areachart(yearlyData.years, yearlyData.quantities);
-  //
-  //       // 🔹 Update the zero-sales outlets using the filtered list
-  //       this.calculateZeroSales(filteredData, filteredOutlets);
-  //
-  //       this.loadingService.setLoading(false);
-  //     });
-  //   });
-  // }
-
   loadSalesList(selectedCountries: string[] = []) {
     this.loadingService.setLoading(true);
     runInInjectionContext(this.injector, () => {
       this.dailySlaes.getDailySalesList().subscribe((data: any[]) => {
         let filteredData: any[] = [];
         let filteredOutlets: any[] = [];
+
         if (selectedCountries.length === 0) {
           filteredData = [];
           filteredOutlets = [];
         } else {
           filteredData = data.filter(item => selectedCountries.includes(item.country));
-          // Ensure you filter outlets based on the selected countries as well
-          filteredOutlets = this.outletdataSource.data.filter(outlet => selectedCountries.includes(outlet.country));
+          filteredOutlets = this.outletdataSource.data.filter(outlet =>
+            selectedCountries.includes(outlet.country)
+          );
         }
+
         this.dataSource.data = filteredData;
         this.totalSalesQuantity = filteredData.reduce((sum, item) => sum + item.quantity, 0);
         this.calculateDailySales(filteredData);
@@ -337,111 +283,558 @@ export class MainComponent implements OnInit {
         this.calculateMonthlySalesFromChart();
         this.calculateFiscalYearSales(filteredData);
 
-        // 🔹 Update charts
         this.chart1();
-        const dailySalesData = this.getLast10DaysSales(filteredData);
-        this.barchart(dailySalesData);
+        this.barchart();
         const yearlyData = this.calculateYearlySales(filteredData);
         this.areachart(yearlyData.years, yearlyData.quantities);
 
-        // 💡 NEW: Load budgets with the current country filter
         this.loadbudget(selectedCountries);
         this.loadMonthlyBudget(selectedCountries);
-
-        // this.calculateZeroSales(filteredData, filteredOutlets);
-        this.loadingService.setLoading(false);
-      });
-    });
-  }
-
-
-  loadStockList(selectedCountries: string[] = []) {
-    this.loadingService.setLoading(true);
-    runInInjectionContext(this.injector, () => {
-      this.grnService.getGrnList().subscribe((data: any[]) => {
-        let filteredData: any[] = [];
-        let filteredOutlets: any[] = [];
-        if (selectedCountries.length === 0) {
-          filteredData = [];
-          filteredOutlets = [];
-        } else {
-          filteredData = data.filter(item => selectedCountries.includes(item.country));
-          // Ensure you filter outlets based on the selected countries as well
-          filteredOutlets = this.outletdataSource.data.filter(outlet => selectedCountries.includes(outlet.country));
-        }
-        this.dataSource.data = filteredData;
-        this.totalSalesQuantity = filteredData.reduce((sum, item) => sum + item.quantity, 0);
-
-
-        // 🔹 Update charts
-
-
         this.calculateZeroSales(filteredData, filteredOutlets);
         this.loadingService.setLoading(false);
       });
     });
   }
 
-
-  toggleAllCountries() {
-    if (this.countryControl.value?.includes('All')) {
-      this.countryControl.setValue([]); // unselect all
-    } else {
-      this.countryControl.setValue(['All', ...this._countriesTypes]); // select all
-    }
-  }
-
-  calculateMonthlySalesFromChart() {
-    const lastIndex = this.monthlyChartData.length - 1;
-    const secondLastIndex = this.monthlyChartData.length - 2;
-
-    this.currentMonthSales = this.monthlyChartData[lastIndex] || 0;
-    const lastMonthSales = this.monthlyChartData[secondLastIndex] || 0;
-
-    this.monthlySales = this.currentMonthSales; // ✅ info box value
-
-    if (lastMonthSales === 0) {
-      this.monthlyPercentage = this.currentMonthSales > 0
-        ? '100% Higher Than Last Month'
-        : 'No sales last month';
-    } else {
-      const percentage = ((this.currentMonthSales - lastMonthSales) / lastMonthSales) * 100;
-      this.monthlyPercentage = `${Math.abs(percentage).toFixed(0)}% ${percentage >= 0 ? 'Higher' : 'Lower'} Than Last Month`;
-    }
-
-    console.log(`Info Box → Monthly Sales: ${this.monthlySales}, Percentage: ${this.monthlyPercentage}`);
-  }
-
-
-
-  DealerList() {
+  loadStockList(selectedCountries: string[] = []) {
+    this.loadingService.setLoading(true);
     runInInjectionContext(this.injector, () => {
-      this.addDealerService.getDealerList().subscribe((data: any[]) => {
-        this.outletdataSource.data = data;   // ✅ correct
+      this.grnService.getGrnList().subscribe((data: any[]) => {
+        console.log("Stock data", data);
+        let filteredData: any[] = [];
+
+        if (selectedCountries.length === 0) {
+          filteredData = [];
+        } else {
+          filteredData = data.filter(item => selectedCountries.includes(item.country));
+        }
+
+        // ✅ Store the filtered data
+        this.stockDataSource.data = filteredData;
+
+        this.totalStockQuantity = filteredData.reduce((sum, item) => sum + item.quantity, 0);
+
+        // Calculate stock metrics
+        this.calculateDailyStock(filteredData);
+        this.calculateLast12MonthsStock(filteredData);
+        this.calculateMonthlyStockFromChart();
+        this.calculateFiscalYearStock(filteredData);
+
+        // Update stock charts
+        this.stockMonthlyChart();
+        this.stockDailyBarChart();
+        const yearlyStockData = this.calculateYearlyStock(filteredData);
+        this.stockYearlyAreaChart(yearlyStockData.years, yearlyStockData.quantities);
+
+        this.loadingService.setLoading(false);
       });
     });
   }
 
+  // Get stock date (similar to sales date)
+  getStockDate(item: any): Date {
+    if (item.stockDate) {
+      return new Date(item.stockDate);
+    } else if (item.createdAt?.seconds) {
+      return new Date(item.createdAt.seconds * 1000);
+    }
+    return new Date();
+  }
 
+  // Calculate daily stock
+  calculateDailyStock(data: any[]) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    let todayQuantity = 0;
+    let yesterdayQuantity = 0;
+    let last10DaysQuantity = 0;
+
+    const last10DaysStart = new Date(today);
+    last10DaysStart.setDate(today.getDate() - 9);
+
+    data.forEach(item => {
+      const itemDate = this.getStockDate(item);
+      itemDate.setHours(0, 0, 0, 0);
+
+      if (itemDate.getTime() === today.getTime()) {
+        todayQuantity += item.quantity;
+      } else if (itemDate.getTime() === yesterday.getTime()) {
+        yesterdayQuantity += item.quantity;
+      }
+
+      if (itemDate.getTime() >= last10DaysStart.getTime() && itemDate.getTime() <= today.getTime()) {
+        last10DaysQuantity += item.quantity;
+      }
+    });
+
+    this.todayStock = todayQuantity;
+    this.yesterdayStock = yesterdayQuantity;
+    this.last10DaysStock = last10DaysQuantity;
+
+    if (yesterdayQuantity === 0) {
+      this.todayStockPercentage = todayQuantity > 0 ? '100% Higher Than Yesterday' : 'No stock yesterday';
+    } else {
+      const percentage = ((todayQuantity - yesterdayQuantity) / yesterdayQuantity) * 100;
+      this.todayStockPercentage = `${Math.abs(percentage).toFixed(0)}% ${percentage >= 0 ? 'Higher' : 'Lower'} Than Yesterday`;
+    }
+
+    console.log(`Today Stock: ${this.todayStock}, Yesterday: ${this.yesterdayStock}, Last 10 Days: ${this.last10DaysStock}`);
+  }
+
+  // Calculate last 12 months stock
+  calculateLast12MonthsStock(data: any[]) {
+    const stockByMonth = new Map<string, number>();
+    const now = new Date();
+
+    for (let i = 0; i < 12; i++) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const monthYearStr = `${d.getFullYear()}-${d.getMonth() + 1}`;
+      stockByMonth.set(monthYearStr, 0);
+    }
+
+    data.forEach(item => {
+      const itemDate = this.getStockDate(item);
+      const monthYearStr = `${itemDate.getFullYear()}-${itemDate.getMonth() + 1}`;
+      if (stockByMonth.has(monthYearStr)) {
+        stockByMonth.set(monthYearStr, stockByMonth.get(monthYearStr)! + item.quantity);
+      }
+    });
+
+    const sortedMonths = Array.from(stockByMonth.keys()).sort((a, b) => {
+      const [yearA, monthA] = a.split('-').map(Number);
+      const [yearB, monthB] = b.split('-').map(Number);
+      if (yearA !== yearB) return yearA - yearB;
+      return monthA - monthB;
+    });
+
+    this.monthlyStockChartLabels = sortedMonths.map(str => {
+      const [year, month] = str.split('-');
+      const date = new Date(Number(year), Number(month) - 1, 1);
+      return date.toLocaleString('default', { month: 'short' });
+    });
+
+    this.monthlyStockChartData = sortedMonths.map(str => stockByMonth.get(str)!);
+  }
+
+  // Calculate monthly stock from chart
+  calculateMonthlyStockFromChart() {
+    const lastIndex = this.monthlyStockChartData.length - 1;
+    const secondLastIndex = this.monthlyStockChartData.length - 2;
+
+    this.currentMonthStock = this.monthlyStockChartData[lastIndex] || 0;
+    const lastMonthStock = this.monthlyStockChartData[secondLastIndex] || 0;
+
+    this.monthlyStock = this.currentMonthStock;
+
+    if (lastMonthStock === 0) {
+      this.monthlyStockPercentage = this.currentMonthStock > 0
+        ? '100% Higher Than Last Month'
+        : 'No stock last month';
+    } else {
+      const percentage = ((this.currentMonthStock - lastMonthStock) / lastMonthStock) * 100;
+      this.monthlyStockPercentage = `${Math.abs(percentage).toFixed(0)}% ${percentage >= 0 ? 'Higher' : 'Lower'} Than Last Month`;
+    }
+
+    console.log(`Monthly Stock: ${this.monthlyStock}, Percentage: ${this.monthlyStockPercentage}`);
+  }
+
+  // Calculate fiscal year stock
+  calculateFiscalYearStock(data: any[]) {
+    const now = new Date();
+    let currentFYStart: Date;
+    let lastFYStart: Date;
+    let lastFYEnd: Date;
+
+    const currentYear = now.getFullYear();
+
+    if (now.getMonth() >= 3) {
+      currentFYStart = new Date(currentYear, 3, 1);
+      lastFYStart = new Date(currentYear - 1, 3, 1);
+      lastFYEnd = new Date(currentYear, 2, 31);
+      this.stockFiscalYearTitle = `Total Stock FY-${currentYear.toString().slice(-2)}-${(currentYear + 1).toString().slice(-2)}`;
+    } else {
+      currentFYStart = new Date(currentYear - 1, 3, 1);
+      lastFYStart = new Date(currentYear - 2, 3, 1);
+      lastFYEnd = new Date(currentYear - 1, 2, 31);
+      this.stockFiscalYearTitle = `Total Stock FY-${(currentYear - 1).toString().slice(-2)}-${currentYear.toString().slice(-2)}`;
+    }
+
+    let currentFYQuantity = 0;
+    let lastFYQuantity = 0;
+
+    data.forEach(item => {
+      const itemDate = this.getStockDate(item);
+      if (itemDate >= currentFYStart) {
+        currentFYQuantity += item.quantity;
+      } else if (itemDate >= lastFYStart && itemDate <= lastFYEnd) {
+        lastFYQuantity += item.quantity;
+      }
+    });
+
+    this.totalStockFY = currentFYQuantity;
+    this.currentYearStock = currentFYQuantity;
+    this.lastYearStock = lastFYQuantity;
+
+    if (lastFYQuantity === 0) {
+      this.totalStockPercentageFY = currentFYQuantity > 0 ? '100% Higher Than Last Year' : 'No stock last year';
+    } else {
+      const percentage = ((currentFYQuantity - lastFYQuantity) / lastFYQuantity) * 100;
+      this.totalStockPercentageFY = `${Math.abs(percentage).toFixed(0)}% ${percentage >= 0 ? 'Higher' : 'Lower'} Than Last Year`;
+    }
+  }
+
+  // Calculate yearly stock
+  calculateYearlyStock(data: any[]): { years: string[], quantities: number[] } {
+    const now = new Date();
+    const yearlyStockMap = new Map<number, number>();
+
+    for (let i = 0; i < 5; i++) {
+      yearlyStockMap.set(now.getFullYear() - i, 0);
+    }
+
+    data.forEach(item => {
+      const itemDate = this.getStockDate(item);
+      const itemYear = itemDate.getFullYear();
+
+      if (yearlyStockMap.has(itemYear)) {
+        yearlyStockMap.set(itemYear, yearlyStockMap.get(itemYear)! + item.quantity);
+      }
+    });
+
+    const sortedYears = Array.from(yearlyStockMap.keys()).sort((a, b) => a - b);
+    const sortedQuantities = sortedYears.map(year => yearlyStockMap.get(year)!);
+
+    return {
+      years: sortedYears.map(String),
+      quantities: sortedQuantities,
+    };
+  }
+
+  // Get last 10 days stock country-wise
+  getLast10DaysStockCountryWise(data: any[]): {
+    categories: string[],
+    seriesData: { name: string, data: number[] }[]
+  } {
+    const now = new Date();
+    const last10Days: string[] = [];
+    const stockByCountryAndDate = new Map<string, Map<string, number>>();
+
+    // Prepare last 10 days array
+    for (let i = 9; i >= 0; i--) {
+      const date = new Date(now);
+      date.setDate(now.getDate() - i);
+      date.setHours(0, 0, 0, 0);
+
+      const dateKey = date.getFullYear() + '-' +
+        (date.getMonth() + 1).toString().padStart(2, '0') + '-' +
+        date.getDate().toString().padStart(2, '0');
+
+      last10Days.push(dateKey);
+    }
+
+    // Initialize country-date map
+    const countries = new Set<string>();
+    data.forEach(item => {
+      if (item.country) {
+        countries.add(item.country);
+      }
+    });
+
+    countries.forEach(country => {
+      const dateMap = new Map<string, number>();
+      last10Days.forEach(date => dateMap.set(date, 0));
+      stockByCountryAndDate.set(country, dateMap);
+    });
+
+    // Aggregate stock data
+    data.forEach(item => {
+      if (!item.country) return;
+
+      const itemDate = this.getStockDate(item);
+      itemDate.setHours(0, 0, 0, 0);
+      const itemKey = itemDate.getFullYear() + '-' +
+        (itemDate.getMonth() + 1).toString().padStart(2, '0') + '-' +
+        itemDate.getDate().toString().padStart(2, '0');
+
+      const countryMap = stockByCountryAndDate.get(item.country);
+      if (countryMap && countryMap.has(itemKey)) {
+        countryMap.set(itemKey, countryMap.get(itemKey)! + item.quantity);
+      }
+    });
+
+    // Format categories (x-axis labels)
+    const categories = last10Days.map(dateStr => {
+      const [year, month, day] = dateStr.split('-').map(Number);
+      const date = new Date(year, month - 1, day);
+      return date.toLocaleDateString('default', { month: 'short', day: 'numeric' });
+    });
+
+    // Format series data
+    const seriesData = Array.from(stockByCountryAndDate.entries()).map(([country, dateMap]) => ({
+      name: country,
+      data: last10Days.map(date => dateMap.get(date) || 0)
+    }));
+
+    return { categories, seriesData };
+  }
+
+  // Stock Daily Bar Chart
+  private stockDailyBarChart() {
+    // ✅ Use the stored data instead of calling the service
+    const stockData = this.getLast10DaysStockCountryWise(this.stockDataSource.data);
+
+    this.stockBarChartOptions = {
+      series: stockData.seriesData,
+      chart: {
+        height: 350,
+        type: 'bar',
+        stacked: true,
+        toolbar: {
+          show: true,
+        },
+        zoom: {
+          enabled: true,
+        },
+        foreColor: '#9aa0ac',
+      },
+      responsive: [
+        {
+          breakpoint: 480,
+          options: {
+            legend: {
+              position: 'bottom',
+              offsetX: -5,
+              offsetY: 0,
+            },
+          },
+        },
+      ],
+      plotOptions: {
+        bar: {
+          horizontal: false,
+          columnWidth: '60%',
+          dataLabels: {
+            total: {
+              enabled: true,
+              style: {
+                fontSize: '13px',
+                fontWeight: 900
+              }
+            }
+          }
+        },
+      },
+      colors: ['#008FFB', '#00E396', '#FEB019', '#FF4560', '#775DD0', '#546E7A', '#26a69a', '#D10CE8'],
+      dataLabels: {
+        enabled: true,
+      },
+      stroke: {
+        width: 1,
+        colors: ['#fff']
+      },
+      grid: {
+        show: true,
+        borderColor: '#9aa0ac',
+        strokeDashArray: 1,
+      },
+      xaxis: {
+        categories: stockData.categories,
+        title: {
+          text: 'Days',
+        },
+        labels: {
+          style: {
+            colors: '#9aa0ac',
+          },
+        },
+      },
+      yaxis: {
+        title: {
+          text: 'Stock Quantity',
+        },
+        labels: {
+          style: {
+            colors: ['#9aa0ac'],
+          },
+        },
+      },
+      legend: {
+        position: 'bottom',
+        offsetY: 5,
+      },
+      fill: {
+        opacity: 1,
+      },
+      tooltip: {
+        theme: 'dark',
+        y: {
+          formatter: function (val: number) {
+            return val + ' units';
+          },
+        },
+      },
+    };
+  }
+
+  // Stock Monthly Chart
+  private stockMonthlyChart() {
+    this.stockMonthlyChartOptions = {
+      series: [
+        {
+          name: 'Monthly Stock',
+          data: this.monthlyStockChartData,
+        },
+      ],
+      chart: {
+        height: 250,
+        type: 'line',
+        foreColor: '#9aa0ac',
+        dropShadow: {
+          enabled: true,
+          color: '#000',
+          top: 18,
+          left: 7,
+          blur: 10,
+          opacity: 0.2,
+        },
+        toolbar: {
+          show: false,
+        },
+      },
+      colors: ['#00E396'],
+      stroke: {
+        curve: 'smooth',
+      },
+      grid: {
+        show: true,
+        borderColor: '#9aa0ac',
+        strokeDashArray: 1,
+      },
+      markers: {
+        size: 3,
+      },
+      xaxis: {
+        categories: this.monthlyStockChartLabels,
+        title: {
+          text: 'Month',
+        },
+      },
+      yaxis: {
+        title: {
+          text: 'Stock Quantity',
+        },
+      },
+      legend: {
+        position: 'top',
+        horizontalAlign: 'right',
+        floating: true,
+        offsetY: -25,
+        offsetX: -5,
+      },
+      tooltip: {
+        theme: 'dark',
+        marker: {
+          show: true,
+        },
+        x: {
+          show: true,
+        },
+      },
+    };
+  }
+
+  // Stock Yearly Area Chart
+  private stockYearlyAreaChart(years: string[] = [], quantities: number[] = []) {
+    this.stockYearlyChartOptions = {
+      series: [
+        {
+          name: 'Total Stock',
+          data: quantities,
+        },
+      ],
+      chart: {
+        height: 350,
+        type: 'area',
+        toolbar: {
+          show: false,
+        },
+        foreColor: '#9aa0ac',
+      },
+      colors: ['#FEB019'],
+      dataLabels: {
+        enabled: false,
+      },
+      stroke: {
+        curve: 'smooth',
+      },
+      xaxis: {
+        type: 'category',
+        categories: years,
+        title: {
+          text: 'Year',
+        },
+      },
+      yaxis: {
+        title: {
+          text: 'Stock Quantity',
+        },
+      },
+      legend: {
+        show: true,
+        position: 'top',
+        horizontalAlign: 'center',
+        offsetX: 0,
+        offsetY: 0,
+      },
+      grid: {
+        show: true,
+        borderColor: '#9aa0ac',
+        strokeDashArray: 1,
+      },
+      tooltip: {
+        theme: 'dark',
+        marker: {
+          show: true,
+        },
+        x: {
+          show: true,
+        },
+      },
+    };
+  }
+
+  // Existing methods remain the same...
+  // (Keep all your existing sales calculation methods)
+
+  DealerList() {
+    runInInjectionContext(this.injector, () => {
+      this.addDealerService.getDealerList().subscribe((data: any[]) => {
+        this.outletdataSource.data = data;
+      });
+    });
+  }
 
   loadbudget(selectedCountries: string[] = []) {
     runInInjectionContext(this.injector, () => {
       this.budgetService.getBudgetList().subscribe({
         next: (data: any[]) => {
           console.log("Raw Budget Data:", data);
-          this.calculateCurrentMonthTarget(data, selectedCountries); // 💡 Pass filter
+          this.calculateCurrentMonthTarget(data, selectedCountries);
         },
       });
     });
   }
 
-// 💡 2. Updated loadMonthlyBudget to accept and forward selected countries
   loadMonthlyBudget(selectedCountries: string[] = []) {
     runInInjectionContext(this.injector, () => {
       this.monthlybudgetService.getBudgetList().subscribe({
         next: (data: any[]) => {
           console.log("Monthly Raw Data:", data);
-          this.calculateMonthlyBudgetTargets(data, selectedCountries); // 💡 Pass filter
+          this.calculateMonthlyBudgetTargets(data, selectedCountries);
         },
       });
     });
@@ -532,24 +925,23 @@ export class MainComponent implements OnInit {
     const secondLastIndex = this.monthlyChartData.length - 2;
 
     this.currentMonthSales = this.monthlyChartData[lastIndex] || 0;
-    const lastMonthSales = this.monthlyChartData[secondLastIndex] || 0;
+    this.lastMonthSales = this.monthlyChartData[secondLastIndex] || 0;
+
+    // ✅ ADD THIS LINE - Set monthlySales to currentMonthSales for the card display
+    this.monthlySales = this.currentMonthSales;
 
     // Calculate percentage difference
-    if (lastMonthSales === 0) {
+    if (this.lastMonthSales === 0) {
       this.monthlyPercentage = this.currentMonthSales > 0
         ? '100% Higher Than Last Month'
         : 'No sales last month';
     } else {
-      const percentage = ((this.currentMonthSales - lastMonthSales) / lastMonthSales) * 100;
+      const percentage = ((this.currentMonthSales - this.lastMonthSales) / this.lastMonthSales) * 100;
       this.monthlyPercentage = `${Math.abs(percentage).toFixed(0)}% ${percentage >= 0 ? 'Higher' : 'Lower'} Than Last Month`;
     }
 
-    console.log(`Dashboard Monthly Sales: ${this.currentMonthSales}, Last Month: ${lastMonthSales}`);
+    console.log(`Dashboard Monthly Sales: ${this.monthlySales}, Current Month: ${this.currentMonthSales}, Last Month: ${this.lastMonthSales}`);
   }
-
-
-
-
 
   calculateFiscalYearSales(data: any[]) {
     const now = new Date();
@@ -621,6 +1013,29 @@ export class MainComponent implements OnInit {
       years: sortedYears.map(String),
       quantities: sortedQuantities,
     };
+  }
+
+
+  calculateMonthlySalesFromChart() {
+    const lastIndex = this.monthlyChartData.length - 1;
+    const secondLastIndex = this.monthlyChartData.length - 2;
+
+    this.currentMonthSales = this.monthlyChartData[lastIndex] || 0;
+    this.lastMonthSales = this.monthlyChartData[secondLastIndex] || 0;
+
+    // ✅ Set monthlySales for the widget card
+    this.monthlySales = this.currentMonthSales;
+
+    if (this.lastMonthSales === 0) {
+      this.monthlyPercentage = this.currentMonthSales > 0
+        ? '100% Higher Than Last Month'
+        : 'No sales last month';
+    } else {
+      const percentage = ((this.currentMonthSales - this.lastMonthSales) / this.lastMonthSales) * 100;
+      this.monthlyPercentage = `${Math.abs(percentage).toFixed(0)}% ${percentage >= 0 ? 'Higher' : 'Lower'} Than Last Month`;
+    }
+
+    console.log(`Monthly Sales: ${this.monthlySales}, Percentage: ${this.monthlyPercentage}`);
   }
 
 
@@ -773,53 +1188,98 @@ export class MainComponent implements OnInit {
     };
   }
 
-  private barchart(dailySalesData: { x: string; y: number }[] = []) {
+  private barchart(dailySalesData?: { x: string; y: number }[]) {
+    // Get country-wise data from filtered sales
+    const countryData = this.getLast10DaysCountryWiseSales(this.dataSource.data);
+
     this.barChartOptions = {
-      series: [
-        {
-          name: 'Daily Sales',
-          data: dailySalesData,
-        },
-      ],
+      series: countryData.seriesData,
       chart: {
         height: 350,
         type: 'bar',
+        stacked: true,
+        toolbar: {
+          show: true,
+        },
+        zoom: {
+          enabled: true,
+        },
         foreColor: '#9aa0ac',
       },
+      responsive: [
+        {
+          breakpoint: 480,
+          options: {
+            legend: {
+              position: 'bottom',
+              offsetX: -5,
+              offsetY: 0,
+            },
+          },
+        },
+      ],
       plotOptions: {
         bar: {
+          horizontal: false,
           columnWidth: '60%',
+          dataLabels: {
+            total: {
+              enabled: true,
+              style: {
+                fontSize: '13px',
+                fontWeight: 900
+              }
+            }
+          }
         },
       },
-      colors: ['#6973c6'],
+      colors: ['#008FFB', '#00E396', '#FEB019', '#FF4560', '#775DD0', '#546E7A', '#26a69a', '#D10CE8'],
       dataLabels: {
         enabled: true,
+      },
+      stroke: {
+        width: 1,
+        colors: ['#fff']
       },
       grid: {
         show: true,
         borderColor: '#9aa0ac',
         strokeDashArray: 1,
       },
-      tooltip: {
-        theme: 'dark',
-        marker: {
-          show: true,
-        },
-        x: {
-          show: true,
-        },
-      },
-      legend: {
-        show: false,
-      },
       xaxis: {
+        categories: countryData.categories,
         title: {
           text: 'Days',
+        },
+        labels: {
+          style: {
+            colors: '#9aa0ac',
+          },
         },
       },
       yaxis: {
         title: {
           text: 'Sale Quantity',
+        },
+        labels: {
+          style: {
+            colors: ['#9aa0ac'],
+          },
+        },
+      },
+      legend: {
+        position: 'bottom',
+        offsetY: 5,
+      },
+      fill: {
+        opacity: 1,
+      },
+      tooltip: {
+        theme: 'dark',
+        y: {
+          formatter: function (val: number) {
+            return val + ' units';
+          },
         },
       },
     };
@@ -1185,6 +1645,84 @@ export class MainComponent implements OnInit {
     return this._countriesTypes.length > 0 &&
       this._countriesTypes.every(c => selectedCountries.includes(c));
   }
+
+
+  getLast10DaysCountryWiseSales(data: any[]): {
+    categories: string[],
+    seriesData: { name: string, data: number[] }[]
+  } {
+    const now = new Date();
+    const last10Days: string[] = [];
+    const salesByCountryAndDate = new Map<string, Map<string, number>>();
+
+    // Prepare last 10 days array
+    for (let i = 9; i >= 0; i--) {
+      const date = new Date(now);
+      date.setDate(now.getDate() - i);
+      date.setHours(0, 0, 0, 0);
+
+      const dateKey = date.getFullYear() + '-' +
+        (date.getMonth() + 1).toString().padStart(2, '0') + '-' +
+        date.getDate().toString().padStart(2, '0');
+
+      last10Days.push(dateKey);
+    }
+
+    // Initialize country-date map
+    const countries = new Set<string>();
+    data.forEach(item => {
+      if (item.country) {
+        countries.add(item.country);
+      }
+    });
+
+    countries.forEach(country => {
+      const dateMap = new Map<string, number>();
+      last10Days.forEach(date => dateMap.set(date, 0));
+      salesByCountryAndDate.set(country, dateMap);
+    });
+
+    // Aggregate sales data
+    data.forEach(item => {
+      if (!item.country) return;
+
+      let itemDate: Date | null = null;
+      if (item.salesDate) {
+        itemDate = new Date(item.salesDate);
+      } else if (item.createdAt?.seconds) {
+        itemDate = new Date(item.createdAt.seconds * 1000);
+      }
+
+      if (itemDate) {
+        itemDate.setHours(0, 0, 0, 0);
+        const itemKey = itemDate.getFullYear() + '-' +
+          (itemDate.getMonth() + 1).toString().padStart(2, '0') + '-' +
+          itemDate.getDate().toString().padStart(2, '0');
+
+        const countryMap = salesByCountryAndDate.get(item.country);
+        if (countryMap && countryMap.has(itemKey)) {
+          countryMap.set(itemKey, countryMap.get(itemKey)! + item.quantity);
+        }
+      }
+    });
+
+    // Format categories (x-axis labels)
+    const categories = last10Days.map(dateStr => {
+      const [year, month, day] = dateStr.split('-').map(Number);
+      const date = new Date(year, month - 1, day);
+      return date.toLocaleDateString('default', { month: 'short', day: 'numeric' });
+    });
+
+    // Format series data
+    const seriesData = Array.from(salesByCountryAndDate.entries()).map(([country, dateMap]) => ({
+      name: country,
+      data: last10Days.map(date => dateMap.get(date) || 0)
+    }));
+
+    return { categories, seriesData };
+  }
+
+
 
 
 
