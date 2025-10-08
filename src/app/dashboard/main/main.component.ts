@@ -46,6 +46,7 @@ import {BudgetService} from "../../module/budget.service";
 import {MonthlyBudgetService} from "../../module/monthly-budget.service";
 import {CountryService} from "../../Services/country.service";
 import {MatCheckbox} from "@angular/material/checkbox";
+import {GrnService} from "../../module/grn.service";
 
 export type ChartOptions = {
   series: ApexAxisChartSeries;
@@ -151,6 +152,7 @@ export class MainComponent implements OnInit {
 
   constructor(
     private dailySlaes: DailySalesService,
+    private grnService: GrnService,
     private injector: EnvironmentInjector,
     private mDatabase: AngularFireDatabase,
     private loadingService : LoadingService,
@@ -210,7 +212,8 @@ export class MainComponent implements OnInit {
 
       // By default: show ALL data but dropdown has nothing checked (only "All" available)
       this.countryControl.setValue(['All']);
-      this.loadSalesList(this._countriesTypes); // This call will load data and update charts
+      this.loadSalesList(this._countriesTypes);
+      this.loadStockList(this._countriesTypes);// This call will load data and update charts
     });
 
     this.countryControl.valueChanges.subscribe((selected: string[] | null) => {
@@ -220,12 +223,15 @@ export class MainComponent implements OnInit {
         // If "All" is selected → show all data and replace selection with just "All"
         this.countryControl.setValue(['All'], { emitEvent: false });
         this.loadSalesList(this._countriesTypes);
+        this.loadStockList(this._countriesTypes);
       } else if (selected.length === 0) {
         // If nothing selected → show no data
         this.loadSalesList([]);
+        this.loadStockList([]);
       } else {
         // Otherwise show selected countries only
         this.loadSalesList(selected);
+        this.loadStockList(selected);
       }
     });
   }
@@ -309,6 +315,7 @@ export class MainComponent implements OnInit {
   //     });
   //   });
   // }
+
   loadSalesList(selectedCountries: string[] = []) {
     this.loadingService.setLoading(true);
     runInInjectionContext(this.injector, () => {
@@ -341,13 +348,39 @@ export class MainComponent implements OnInit {
         this.loadbudget(selectedCountries);
         this.loadMonthlyBudget(selectedCountries);
 
-        this.calculateZeroSales(filteredData, filteredOutlets);
+        // this.calculateZeroSales(filteredData, filteredOutlets);
         this.loadingService.setLoading(false);
       });
     });
   }
 
 
+  loadStockList(selectedCountries: string[] = []) {
+    this.loadingService.setLoading(true);
+    runInInjectionContext(this.injector, () => {
+      this.grnService.getGrnList().subscribe((data: any[]) => {
+        let filteredData: any[] = [];
+        let filteredOutlets: any[] = [];
+        if (selectedCountries.length === 0) {
+          filteredData = [];
+          filteredOutlets = [];
+        } else {
+          filteredData = data.filter(item => selectedCountries.includes(item.country));
+          // Ensure you filter outlets based on the selected countries as well
+          filteredOutlets = this.outletdataSource.data.filter(outlet => selectedCountries.includes(outlet.country));
+        }
+        this.dataSource.data = filteredData;
+        this.totalSalesQuantity = filteredData.reduce((sum, item) => sum + item.quantity, 0);
+
+
+        // 🔹 Update charts
+
+
+        this.calculateZeroSales(filteredData, filteredOutlets);
+        this.loadingService.setLoading(false);
+      });
+    });
+  }
 
 
   toggleAllCountries() {
@@ -388,6 +421,7 @@ export class MainComponent implements OnInit {
       });
     });
   }
+
 
 
   loadbudget(selectedCountries: string[] = []) {
