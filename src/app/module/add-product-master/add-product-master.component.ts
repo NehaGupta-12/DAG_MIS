@@ -630,6 +630,7 @@ countries$:Observable<string[]>
 
     onRegister() {
       if (this.productForm.valid) {
+
         Swal.fire({
           title: this.isEditMode ? 'Update Product Details?' : 'Add Product Details?',
           text: 'Are you sure you want to proceed?',
@@ -639,6 +640,7 @@ countries$:Observable<string[]>
           cancelButtonText: 'No'
         }).then((result: any) => {
           if (result.isConfirmed) {
+            this.loadingService.setLoading(true);
             const { availableIn, ...productData } = this.productForm.getRawValue();
             const userData = JSON.parse(localStorage.getItem('userData') || '{}');
             const username = `${userData.first || ''} ${userData.last || ''}`.trim() || 'Unknown User';
@@ -736,6 +738,11 @@ countries$:Observable<string[]>
         console.log('Form is invalid:', this.productForm.errors);
       }
     }
+
+
+
+
+
 
 
 
