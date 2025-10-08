@@ -673,7 +673,7 @@ export class MainComponent implements OnInit {
         theme: 'dark',
         y: {
           formatter: function (val: number) {
-            return val + ' units';
+            return val + ' Products';
           },
         },
       },
@@ -1278,7 +1278,7 @@ export class MainComponent implements OnInit {
         theme: 'dark',
         y: {
           formatter: function (val: number) {
-            return val + ' units';
+            return val + ' Products';
           },
         },
       },
