@@ -459,13 +459,20 @@ export class DailySaleReportsComponent implements OnInit{
   }
 
 
+
   generateReport(filteredData: any[], startDate: Date | null, endDate: Date, productsToShow: any[]) {
     const { monthStart, fyStart } = this.getDateRanges(endDate);
     const report: any = {};
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    // ✅ First include only models from filtered products with 0 counts
+    // ✅ Detect if it's a single-day report
+    const isSingleDay =
+      startDate &&
+      endDate &&
+      startDate.toDateString() === endDate.toDateString();
+
+    // ✅ Initialize report with all products (even if no sales)
     productsToShow.forEach((p: any) => {
       const model = (p.model || '').trim().toUpperCase();
       if (model) {
@@ -473,11 +480,9 @@ export class DailySaleReportsComponent implements OnInit{
       }
     });
 
-    // ✅ Then add sales data - includes ALL models from sales data
+    // ✅ Add sales data
     filteredData.forEach(item => {
       const model = (item.model || '').trim().toUpperCase();
-
-      // Initialize if not already present (handles models in sales but not in product master)
       if (!report[model]) {
         report[model] = { YTD: 0, Month: 0, Day: 0 };
       }
@@ -504,18 +509,27 @@ export class DailySaleReportsComponent implements OnInit{
         report[model].Month += qty;
       }
 
-      // Day (today only, if inside range)
-      if (
-        itemDate.getTime() === today.getTime() &&
-        today >= (startDate || today) &&
-        today <= endDate
-      ) {
-        report[model].Day += qty;
+      // ✅ Day (handle both single-day & multi-day range properly)
+      if (isSingleDay) {
+        // For same-day range → count only that date
+        if (itemDate.getTime() === startDate.getTime()) {
+          report[model].Day += qty;
+        }
+      } else {
+        // For other cases → count only today's date if inside range
+        if (
+          itemDate.getTime() === today.getTime() &&
+          today >= (startDate || today) &&
+          today <= endDate
+        ) {
+          report[model].Day += qty;
+        }
       }
     });
 
     return report;
   }
+
 
 
   getProductsByCountry(countryName: string): any[] {
