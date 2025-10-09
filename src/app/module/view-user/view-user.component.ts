@@ -1,4 +1,12 @@
-import {Component, ElementRef, EnvironmentInjector, OnInit, runInInjectionContext, ViewChild} from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  EnvironmentInjector,
+  isDevMode,
+  OnInit,
+  runInInjectionContext,
+  ViewChild
+} from '@angular/core';
 import {UserService} from "../add-user/user.service";
 import {ActivatedRoute, Router, RouterLink} from "@angular/router";
 import {MatDividerModule} from "@angular/material/divider";
@@ -16,6 +24,7 @@ import {AddDealerService} from "../add-dealer.service";
 import {FormsModule, ReactiveFormsModule} from "@angular/forms";
 import {MatCheckbox} from "@angular/material/checkbox";
 import {MatIcon} from "@angular/material/icon";
+import {environment} from "../../../environments/environment";
 
 @Component({
   selector: 'app-view-user',
@@ -45,6 +54,7 @@ import {MatIcon} from "@angular/material/icon";
     ]
 })
 export class ViewUserComponent implements OnInit {
+  env = isDevMode() ? environment.testCollections : environment.collections
   userId: string | null = null;
   userData: any = null;
   selectedRole: string | null = null;
@@ -78,11 +88,11 @@ export class ViewUserComponent implements OnInit {
               private addDealerService: AddDealerService,
               private route: ActivatedRoute) {
     this._roles$ = this.mDatabase
-      .object<{ subcategories: any[] }>('/typelist/Role')
+      .object<{ subcategories: any[] }>(`${this.env.typeList}/Role`)
       .valueChanges()
       .pipe(map(data => data?.subcategories || []));
     this._departments$ = this.mDatabase
-      .object<{ subcategories: any }>('/typelist/Department')
+      .object<{ subcategories: any }>(`${this.env.typeList}/Department`)
       .valueChanges()
       .pipe(
         map(data => {
@@ -92,7 +102,7 @@ export class ViewUserComponent implements OnInit {
         })
       );
     this._country$ = this.mDatabase
-      .object<{ subcategories: any[] }>('/typelist/Countries')
+      .object<{ subcategories: any[] }>(`${this.env.typeList}/Countries`)
       .valueChanges()
       .pipe(map(data => data?.subcategories || []));
 

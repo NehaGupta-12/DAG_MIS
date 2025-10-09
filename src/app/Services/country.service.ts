@@ -1,14 +1,16 @@
-import {Injectable, Injector, runInInjectionContext} from '@angular/core';
+import {Injectable, Injector, isDevMode, runInInjectionContext} from '@angular/core';
 import { AngularFireDatabase } from '@angular/fire/compat/database';
 import { Observable, of } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
 import { UserDataModel } from '../module/add-user/UserData.model';
 import { UserService } from '../module/add-user/user.service';
+import {environment} from "../../environments/environment";
 
 @Injectable({
   providedIn: 'root'
 })
 export class CountryService {
+  env = isDevMode() ? environment.testCollections : environment.collections
   userData: any;
   filterUser: any;
   users: any[] = [];
@@ -143,7 +145,7 @@ export class CountryService {
 
         return runInInjectionContext(this.injector, () =>
           this.mDatabase
-            .object<{ subcategories: string[] }>('typelist/Countries')
+            .object<{ subcategories: string[] }>(`${this.env.typeList}/Countries`)
             .valueChanges()
             .pipe(
               map(data => data?.subcategories || []),

@@ -2,7 +2,7 @@ import {
   Component,
   ElementRef,
   EnvironmentInjector,
-  Inject,
+  Inject, isDevMode,
   OnInit,
   runInInjectionContext,
   ViewChild
@@ -51,6 +51,7 @@ import {MatDatepicker, MatDatepickerInput, MatDatepickerToggle} from "@angular/m
 import {MatProgressSpinner} from "@angular/material/progress-spinner";
 import {PrettyJsonModule} from "angular2-prettyjson";
 import {ActivityLogService} from "../activity-log/activity-log.service";
+import {environment} from "../../../environments/environment";
 
 @Component({
   selector: 'app-add-grn',
@@ -90,6 +91,7 @@ import {ActivityLogService} from "../activity-log/activity-log.service";
   styleUrl: './add-grn.component.scss'
 })
 export class AddGRNComponent implements OnInit{
+  env = isDevMode() ? environment.testCollections : environment.collections
   isEditMode: boolean = false;
   isSubmitting: boolean = false;
   grnForm: FormGroup;
@@ -141,16 +143,16 @@ export class AddGRNComponent implements OnInit{
     @Inject(MAT_DIALOG_DATA) public data: any,
   ) {
     this._divisionTypes$ = this.mDatabase
-      .object<{ subcategories: string[] }>('typelist/Division')
+      .object<{ subcategories: string[] }>(`${this.env.typeList}/Division`)
       .valueChanges()
       .pipe(map(data => data?.subcategories || []));
     this._countriesTypes$ = this.mDatabase
-      .object<{ subcategories: string[] }>('typelist/Countries')
+      .object<{ subcategories: string[] }>(`${this.env.typeList}/Countries`)
       .valueChanges()
       .pipe(map(data => data?.subcategories || []));
 
     this._townTypes$ = this.mDatabase
-      .object<{ subcategories: string[] }>('typelist/Town')
+      .object<{ subcategories: string[] }>(`${this.env.typeList}/Town`)
       .valueChanges()
       .pipe(map(data => data?.subcategories || []));
 

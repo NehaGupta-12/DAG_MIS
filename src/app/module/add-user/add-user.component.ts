@@ -1,4 +1,4 @@
-import {Component, ElementRef, OnInit, ViewChild} from '@angular/core';
+import {Component, ElementRef, isDevMode, OnInit, ViewChild} from '@angular/core';
 import {
   FormControl,
   FormsModule,
@@ -25,6 +25,7 @@ import {map} from "rxjs/operators";
 import {Observable} from "rxjs";
 import {LoadingService} from "../../Services/loading.service";
 import {ActivityLogService} from "../activity-log/activity-log.service";
+import {environment} from "../../../environments/environment";
 
 @Component({
   selector: 'app-add-user',
@@ -47,6 +48,7 @@ import {ActivityLogService} from "../activity-log/activity-log.service";
   styleUrl: './add-user.component.scss'
 })
 export class AddUserComponent implements OnInit{
+  env = isDevMode() ? environment.testCollections : environment.collections
   // Form 1
   register?: UntypedFormGroup;
   submitted = false;
@@ -105,16 +107,16 @@ export class AddUserComponent implements OnInit{
     this.initSecondForm();
     this.initThirdForm();
     this._roles$ = this.mDatabase
-      .object<{ subcategories: any[] }>('/typelist/Role')
+      .object<{ subcategories: any[] }>(`${this.env.typeList}/Role`)
       .valueChanges()
       .pipe(map(data => data?.subcategories || []));
     this._country$ = this.mDatabase
-      .object<{ subcategories: any[] }>('/typelist/Countries')
+      .object<{ subcategories: any[] }>(`${this.env.typeList}/Countries`)
       .valueChanges()
       .pipe(map(data => data?.subcategories || []));
 
     this._departments$ = this.mDatabase
-      .object<{ subcategories: any }>('/typelist/Department')
+      .object<{ subcategories: any }>(`${this.env.typeList}/Department`)
       .valueChanges()
       .pipe(
         map(data => {

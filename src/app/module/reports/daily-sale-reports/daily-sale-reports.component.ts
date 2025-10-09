@@ -2,7 +2,7 @@ import {
   Component,
   ElementRef,
   EnvironmentInjector,
-  Inject,
+  Inject, isDevMode,
   OnInit,
   runInInjectionContext,
   ViewChild
@@ -48,6 +48,7 @@ import {LoadingService} from "../../../Services/loading.service";
 import {CountryService} from "../../../Services/country.service";
 import {ActivityLogService} from "../../activity-log/activity-log.service";
 import {ActivityLog} from "../../activity-log/activity-log.component";
+import {environment} from "../../../../environments/environment";
 
 @Component({
   selector: 'app-daily-sale-reports',
@@ -88,7 +89,7 @@ import {ActivityLog} from "../../activity-log/activity-log.component";
   styleUrl: './daily-sale-reports.component.scss'
 })
 export class DailySaleReportsComponent implements OnInit{
-
+  env = isDevMode() ? environment.testCollections : environment.collections
   isEditMode: boolean = false;
   dealerForm: FormGroup;
   dataSource: any[] = [];
@@ -182,15 +183,15 @@ export class DailySaleReportsComponent implements OnInit{
     });
 
     // Load Firebase options
-    this.mDatabase.object<{ subcategories: string[] }>('typelist/Division').valueChanges()
+    this.mDatabase.object<{ subcategories: string[] }>(`${this.env.typeList}/Division`).valueChanges()
       .pipe(map(d => d?.subcategories || []))
       .subscribe(data => { this.options.division = data; this.filteredOptions.division = [...data]; });
 
-    this.mDatabase.object<{ subcategories: string[] }>('typelist/outletType').valueChanges()
+    this.mDatabase.object<{ subcategories: string[] }>(`${this.env.typeList}/outletType`).valueChanges()
       .pipe(map(d => d?.subcategories || []))
       .subscribe(data => { this.options.outletType = data; this.filteredOptions.outletType = [...data]; });
 
-    this.mDatabase.object<{ subcategories: string[] }>('typelist/outletCategory').valueChanges()
+    this.mDatabase.object<{ subcategories: string[] }>(`${this.env.typeList}/outletCategory`).valueChanges()
       .pipe(map(d => d?.subcategories || []))
       .subscribe(data => { this.options.category = data; this.filteredOptions.category = [...data]; });
 
@@ -201,11 +202,11 @@ export class DailySaleReportsComponent implements OnInit{
       this.countryOptionsLoaded = true;
     });
 
-    this.mDatabase.object<{ subcategories: string[] }>('typelist/Town').valueChanges()
+    this.mDatabase.object<{ subcategories: string[] }>(`${this.env.typeList}/Town`).valueChanges()
       .pipe(map(d => d?.subcategories || []))
       .subscribe(data => { this.options.town = data; this.filteredOptions.town = [...data]; });
 
-    this.mDatabase.object<{ subcategories: string[] }>('typelist/SalesType').valueChanges()
+    this.mDatabase.object<{ subcategories: string[] }>(`${this.env.typeList}/SalesType`).valueChanges()
       .pipe(map(d => d?.subcategories || []))
       .subscribe(data => { this.options.sale = data; this.filteredOptions.sale = [...data]; });
   }

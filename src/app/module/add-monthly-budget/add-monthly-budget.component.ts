@@ -1,4 +1,12 @@
-import {Component, ElementRef, EnvironmentInjector, OnInit, runInInjectionContext, ViewChild} from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  EnvironmentInjector,
+  isDevMode,
+  OnInit,
+  runInInjectionContext,
+  ViewChild
+} from '@angular/core';
 import { FormGroup, FormsModule, ReactiveFormsModule, UntypedFormBuilder, Validators } from "@angular/forms";
 import { CommonModule, Location, NgForOf } from "@angular/common";
 import { ActivatedRoute, Router } from "@angular/router";
@@ -20,6 +28,7 @@ import {LoadingService} from "../../Services/loading.service";
 import {MatCheckbox} from "@angular/material/checkbox";
 import {CountryService} from "../../Services/country.service";
 import {ActivityLogService} from "../activity-log/activity-log.service";
+import {environment} from "../../../environments/environment";
 
 @Component({
   selector: 'app-add-monthly-budget',
@@ -43,7 +52,7 @@ import {ActivityLogService} from "../activity-log/activity-log.service";
     ]
 })
 export class AddMonthlyBudgetComponent implements OnInit {
-
+  env = isDevMode() ? environment.testCollections : environment.collections
   isEditMode = false;
   editingDocId: string | null = null;
   budgetForm: FormGroup;
@@ -97,17 +106,17 @@ export class AddMonthlyBudgetComponent implements OnInit {
   ) {
     // Dropdowns
     this._countriesTypes$ = this.mDatabase
-      .object<{ subcategories: string[] }>('typelist/Countries')
+      .object<{ subcategories: string[] }>(`${this.env.typeList}/Countries`)
       .valueChanges()
       .pipe(map(data => data?.subcategories || []));
 
     this._yearTypes$ = this.mDatabase
-      .object<{ subcategories: string[] }>('typelist/Year')
+      .object<{ subcategories: string[] }>(`${this.env.typeList}/Year`)
       .valueChanges()
       .pipe(map(data => data?.subcategories || []));
 
     this._monthTypes$ = this.mDatabase
-      .object<{ subcategories: string[] }>('typelist/Month')
+      .object<{ subcategories: string[] }>(`${this.env.typeList}/Month`)
       .valueChanges()
       .pipe(map(data => data?.subcategories || []));
 
