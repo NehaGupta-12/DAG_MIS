@@ -17,7 +17,8 @@
                         </div>
 
                         <h4 class="font-20 mt-4">Welcome Back to DAG MIS !</h4>
-                        <p class="text-muted">Log in to continue.</p>
+<!--                        <p class="text-muted">Log in to continue.</p>-->
+                        <p style="color: #ffff00 ">Log in to continue.</p>
                       </div>
 
     <form [formGroup]="loginForm">
@@ -31,11 +32,11 @@
           type="email"
           formControlName="email"
           class="form-control"
-          placeholder="Username"
+          placeholder="Enter Mail"
           [ngClass]="{ 'is-invalid': submitted && form['email'].errors }"
         />
         <span class="input-icon">
-          <mat-icon>person</mat-icon>
+          <mat-icon>mail</mat-icon>
         </span>
         @if (submitted && form['email'].errors) {
           <div class="invalid-feedback">
@@ -55,7 +56,7 @@
           [type]="hidePassword ? 'password' : 'text'"
           formControlName="password"
           class="form-control"
-          placeholder="Password"
+          placeholder="Enter Password"
           [ngClass]="{ 'is-invalid': submitted && form['password'].errors }"
         />
         <span class="input-icon">
@@ -93,7 +94,7 @@
       <button
         mat-flat-button
         type="button"
-        class="login-btn w-100"
+        class="login-btn w-50 "
         (click)="onSubmit()"
         [disabled]="isLoading"
       >
@@ -107,4 +108,8 @@
     </form>
   </div>
 </div>
+
+
+
+
 
