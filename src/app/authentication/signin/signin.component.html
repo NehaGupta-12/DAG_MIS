@@ -1,149 +1,110 @@
+
 <div class="spinner-container" *ngIf="isLoading">
   <mat-spinner diameter="60"></mat-spinner>
 </div>
-<div class="container-fluid p-0">
-  <div class="row g-0">
-    <div class="col-lg-5">
-      <div class="auth-content p-4 d-flex align-items-center min-vh-500">
-        <div class="w-100">
-          <div class="row justify-content-center">
-            <div class="col-lg-9">
-              <div>
-                <div class="text-center">
-                  <div class="mt-1">
-                    <a routerLink="" class="logo-full"><img src="assets/myimages/dubaiautogalleryllc_logo.jpg" alt="logo-full" height="40%" width="40%" id="dattiimg"></a>
-                  </div>
 
-                  <h4 class="font-20 mt-4">Welcome Back !</h4>
-                  <p class="text-muted">Sign in to continue to DAG.</p>
-                </div>
+<div class="login-wrapper">
+  <!-- Full Background -->
+  <img src="assets/myimages/banner1.jpeg" alt="background" class="login-bg" />
 
-                <div class="p-2 mt-4">
-                  <form [formGroup]="loginForm">
-                    @if (error) {
-                      <div class="alert alert-danger mb-3 mt-0">{{error}}</div>
-                    }
-                    <div class="form-group auth-form-group mb-4">
-                      <mat-icon matSuffix class="material-icons-outlined auth-page-icon">email</mat-icon>
-                      <input type="email" formControlName="email" class="form-control auth-control" id="email"
-                             placeholder="Enter Email" [ngClass]="{ 'is-invalid': submitted && form['email'].errors }">
-                      @if (submitted && form['email'].errors) {
-                        <div class="invalid-feedback">
-                          @if (form['email'].errors?.['required']) {
-                            <div>Email is required</div>
-                          }
-                          @if (form['email'].errors?.['email']) {
-                            <div>Email must be a valid email address</div>
-                          }
+  <!-- Centered Transparent Login Box -->
+  <div class="login-box">
+
+
+                      <div class="text-center">
+                        <div class="mt-1">
+                          <a routerLink="" class="logo-full"><img src="assets/myimages/dubaiautogalleryllc_logo.jpg" alt="logo-full" height="40%" width="40%" id="dattiimg"></a>
                         </div>
-                      }
-                    </div>
 
-<!--                    <div class="form-group auth-form-group mb-4">-->
-<!--                      <mat-icon matSuffix class="material-icons-outlined auth-page-icon">vpn_key</mat-icon>-->
-<!--                      <input type="password" formControlName="password" class="form-control auth-control" id="password"-->
-<!--                             [ngClass]="{ 'is-invalid': submitted && form['password'].errors }" placeholder="Password" />-->
-<!--                      @if (submitted && form['password'].errors) {-->
-<!--                        <div class="invalid-feedback">-->
-<!--                          @if (form['password'].errors['required']) {-->
-<!--                            <div>Password is required</div>-->
-<!--                          }-->
-<!--                        </div>-->
-<!--                      }-->
-<!--                    </div>-->
-                    <div class="form-group auth-form-group mb-4 position-relative">
-                      <!-- Input + Eye toggle in flex -->
-                      <div class="d-flex align-items-center position-relative">
-                        <!-- Lock Icon -->
-                        <mat-icon class="material-icons-outlined auth-page-icon">vpn_key</mat-icon>
-
-                        <!-- Password Input -->
-                        <input
-                          [type]="hidePassword ? 'password' : 'text'"
-                          formControlName="password"
-                          class="form-control auth-control no-validation-icon"
-                          id="password"
-                          [ngClass]="{ 'is-invalid': submitted && form['password'].errors }"
-                          placeholder="Enter Password" />
-
-                        <!-- Eye Icon -->
-                        <button type="button" mat-icon-button class="eye-toggle" (click)="hidePassword = !hidePassword">
-                          <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
-                        </button>
+                        <h4 class="font-20 mt-4">Welcome Back DAG MIS !</h4>
+                        <p class="text-muted">Log in to continue.</p>
                       </div>
 
-                      <!-- Validation Error (below input, icon after text) -->
-                      <!-- Validation Error (below input, icon after text) -->
-                      @if (submitted && form['password'].errors) {
-                        <div class="invalid-feedback d-flex align-items-center mt-1">
-                          @if (form['password'].errors?.['required']) {
-                            <span>Password is required</span>
-                            <mat-icon class="text-danger ms-1 small-error-icon">error_outline</mat-icon>
-                          }
-                        </div>
-                      }
+    <form [formGroup]="loginForm">
+      @if (error) {
+        <div class="alert alert-danger mb-3 mt-0">{{ error }}</div>
+      }
 
-                    </div>
-
-
-
-
-
-                    <!--                    <div class="flex-sb-m w-full p-t-15 p-b-20">-->
-<!--                      <div class="form-check m-0">-->
-<!--                        <label class="form-check-label fw-bold">  &lt;!&ndash; added fw-bold &ndash;&gt;-->
-<!--                          <input class="form-check-input" type="checkbox" value=""> Remember me-->
-<!--                          <span class="form-check-sign">-->
-<!--        <span class="check"></span>-->
-<!--      </span>-->
-<!--                        </label>-->
-<!--                      </div>-->
-<!--                      <div>-->
-<!--                        <a class="txt1 fw-bold" routerLink="/authentication/forgot-password">Forgot Password?</a>-->
-<!--                      </div>-->
-<!--                    </div>-->
-
-
-                    <div class="container-login100-form-btn mt-3" >
-                      <button mat-flat-button  style="
-            background-color:#0056D2; border-radius: 24px; color:#fff; "  class="login100-form-btn" type="button" (click)="onSubmit()" [disabled]="isLoading">
-                        Login
-                      </button>
-                    </div>
-                  </form>
-                </div>
-
-<!--                <div class="mt-4 text-center">-->
-<!--                  <p class="moveup" >Don't have an account ? <a routerLink="/authentication/signup"-->
-<!--                                                                class="font-weight-medium text-primary">-->
-<!--                    Register </a> </p>-->
-<!--&lt;!&ndash;                  <ul class="list-unstyled social-icon mb-0 mt-3">&ndash;&gt;-->
-<!--&lt;!&ndash;                    <li class="list-inline-item m-2"><a href="javascript:void(0)" class="rounded">&ndash;&gt;-->
-<!--&lt;!&ndash;                      <i class="fab fa-google"></i>&ndash;&gt;-->
-<!--&lt;!&ndash;                    </a></li>&ndash;&gt;-->
-<!--&lt;!&ndash;                    <li class="list-inline-item m-2"><a href="javascript:void(0)" class="rounded flex-c-m">&ndash;&gt;-->
-<!--&lt;!&ndash;                      <i class="fab fa-facebook-f"></i>&ndash;&gt;-->
-<!--&lt;!&ndash;                    </a></li>&ndash;&gt;-->
-<!--&lt;!&ndash;                    <li class="list-inline-item m-2"><a href="javascript:void(0)" class="rounded">&ndash;&gt;-->
-<!--&lt;!&ndash;                      <i class="fab fa-twitter"></i>&ndash;&gt;-->
-<!--&lt;!&ndash;                    </a></li>&ndash;&gt;-->
-<!--&lt;!&ndash;                    <li class="list-inline-item m-2"><a href="javascript:void(0)" class="rounded">&ndash;&gt;-->
-<!--&lt;!&ndash;                      <i class="fab fa-linkedin-in"></i>&ndash;&gt;-->
-<!--&lt;!&ndash;                    </a></li>&ndash;&gt;-->
-<!--&lt;!&ndash;                  </ul>&ndash;&gt;-->
-<!--                </div>-->
-              </div>
-            </div>
+      <!-- Username -->
+      <div class="input-group mb-3">
+        <input
+          type="email"
+          formControlName="email"
+          class="form-control"
+          placeholder="Username"
+          [ngClass]="{ 'is-invalid': submitted && form['email'].errors }"
+        />
+        <span class="input-icon">
+          <mat-icon>person</mat-icon>
+        </span>
+        @if (submitted && form['email'].errors) {
+          <div class="invalid-feedback">
+            @if (form['email'].errors?.['required']) {
+              <div>Email is required</div>
+            }
+            @if (form['email'].errors?.['email']) {
+              <div>Email must be a valid email address</div>
+            }
           </div>
-        </div>
+        }
       </div>
-    </div>
-    <div class="col-lg-7 movedown ">
-      <img src="assets/myimages/banner.webp" height="100%">
-      <!--      <div class="auth-bg">-->
-      <!--        <div class="bg-overlay"></div>-->
-      <!--      </div>-->
-    </div>
+
+      <!-- Password -->
+      <div class="input-group mb-3">
+        <input
+          [type]="hidePassword ? 'password' : 'text'"
+          formControlName="password"
+          class="form-control"
+          placeholder="Password"
+          [ngClass]="{ 'is-invalid': submitted && form['password'].errors }"
+        />
+        <span class="input-icon">
+<!--          <mat-icon>lock</mat-icon>-->
+        </span>
+        <button
+          type="button"
+          mat-icon-button
+          class="eye-toggle"
+          (click)="hidePassword = !hidePassword"
+        >
+          <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+        </button>
+
+        @if (submitted && form['password'].errors) {
+          <div class="invalid-feedback d-flex align-items-center mt-1">
+            @if (form['password'].errors?.['required']) {
+              <span>Password is required</span>
+              <mat-icon class="text-danger ms-1 small-error-icon">error_outline</mat-icon>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Remember Me + Forgot -->
+<!--      <div class="d-flex justify-content-between align-items-center mb-3 small">-->
+<!--        <div class="form-check text-light">-->
+<!--          <input type="checkbox" class="form-check-input" id="rememberMe" />-->
+<!--          <label class="form-check-label" for="rememberMe">Remember Me</label>-->
+<!--        </div>-->
+<!--        <a href="#" class="forgot text-light">Forgot Password?</a>-->
+<!--      </div>-->
+
+      <!-- Login Button -->
+      <button
+        mat-flat-button
+        type="button"
+        class="login-btn w-100"
+        (click)="onSubmit()"
+        [disabled]="isLoading"
+      >
+        Login
+      </button>
+
+      <!-- Register -->
+<!--      <div class="text-center mt-3 small text-light">-->
+<!--        Don't have an account? <a routerLink="/register" class="text-white fw-bold">Register</a>-->
+<!--      </div>-->
+    </form>
   </div>
 </div>
 
