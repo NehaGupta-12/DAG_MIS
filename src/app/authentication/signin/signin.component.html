@@ -16,7 +16,7 @@
                           <a routerLink="" class="logo-full"><img src="assets/myimages/dubaiautogalleryllc_logo.jpg" alt="logo-full" height="40%" width="40%" id="dattiimg"></a>
                         </div>
 
-                        <h4 class="font-20 mt-4">Welcome Back to DAG MIS !</h4>
+                        <h4 class="font-18 mt-4">Welcome Back to DAG MIS !</h4>
 <!--                        <p class="text-muted">Log in to continue.</p>-->
                         <p style="color: #ffff00 ">Log in to continue.</p>
                       </div>
@@ -41,7 +41,7 @@
         @if (submitted && form['email'].errors) {
           <div class="invalid-feedback">
             @if (form['email'].errors?.['required']) {
-              <div>Email is required</div>
+              <div class="mx-2">Email is required</div>
             }
             @if (form['email'].errors?.['email']) {
               <div>Email must be a valid email address</div>
@@ -74,7 +74,7 @@
         @if (submitted && form['password'].errors) {
           <div class="invalid-feedback d-flex align-items-center mt-1">
             @if (form['password'].errors?.['required']) {
-              <span>Password is required</span>
+              <span class="mx-2">Password is required</span>
               <mat-icon class="text-danger ms-1 small-error-icon">error_outline</mat-icon>
             }
           </div>
