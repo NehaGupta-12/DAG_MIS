@@ -176,19 +176,64 @@
   <div class="container-fluid">
     <mat-card>
       <div class="d-flex gap-1">
-        <mat-form-field appearance="outline">
-          <mat-label>Section</mat-label>
-          <mat-select [(ngModel)]="sectionSelected" (selectionChange)="onSection($event)">
-            <mat-option *ngFor="let a of filteredSection" [value]="a">{{ a }}</mat-option>
-          </mat-select>
-        </mat-form-field>
+<!--        <mat-form-field appearance="outline">-->
+<!--          <mat-label>Section</mat-label>-->
+<!--          <mat-select [(ngModel)]="sectionSelected" (selectionChange)="onSection($event)">-->
+<!--            <mat-option *ngFor="let a of filteredSection" [value]="a">{{ a }}</mat-option>-->
+<!--          </mat-select>-->
+<!--        </mat-form-field>-->
 
-        <mat-form-field appearance="outline">
-          <mat-label>Action</mat-label>
-          <mat-select [(ngModel)]="actionSelected" (selectionChange)="onAction($event)">
-            <mat-option *ngFor="let a of filteredAction" [value]="a">{{ a }}</mat-option>
-          </mat-select>
-        </mat-form-field>
+<!--        <mat-form-field appearance="outline">-->
+<!--          <mat-label>Action</mat-label>-->
+<!--          <mat-select [(ngModel)]="actionSelected" (selectionChange)="onAction($event)">-->
+<!--            <mat-option *ngFor="let a of filteredAction" [value]="a">{{ a }}</mat-option>-->
+<!--          </mat-select>-->
+<!--        </mat-form-field>-->
+
+        <!-- SECTION FILTER -->
+        <div class="col-md-3">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Select Section</mat-label>
+            <mat-select (openedChange)="onSectionOpened()" [(ngModel)]="sectionSelected" (selectionChange)="onSection($event)">
+              <div class="mat-select-search">
+                <input
+                  matInput
+                  placeholder="Search Section"
+                  #sectionSearchInput
+                  (input)="filterSection(sectionSearchInput.value)"
+                />
+              </div>
+
+              <mat-option disabled *ngIf="filteredSection.length === 0">No matching section</mat-option>
+              <mat-option *ngFor="let s of filteredSection" [value]="s">
+                {{ s }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <!-- ACTION FILTER -->
+        <div class="col-md-3">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Select Action</mat-label>
+            <mat-select (openedChange)="onActionOpened()" [(ngModel)]="actionSelected" (selectionChange)="onAction($event)">
+              <div class="mat-select-search">
+                <input
+                  matInput
+                  placeholder="Search Action"
+                  #actionSearchInput
+                  (input)="filterActionInput(actionSearchInput.value)"
+                />
+              </div>
+
+              <mat-option disabled *ngIf="filteredAction.length === 0">No matching action</mat-option>
+              <mat-option *ngFor="let a of filteredAction" [value]="a">
+                {{ a }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
 
         <mat-form-field appearance="outline">
           <mat-label>Start Date</mat-label>
@@ -257,6 +302,10 @@
             <th mat-header-cell *matHeaderCellDef mat-sort-header> Action </th>
             <td mat-cell *matCellDef="let element"> {{element.action}} </td>
           </ng-container>
+
+
+
+
 
           <ng-container matColumnDef="user">
             <th mat-header-cell *matHeaderCellDef mat-sort-header> User </th>

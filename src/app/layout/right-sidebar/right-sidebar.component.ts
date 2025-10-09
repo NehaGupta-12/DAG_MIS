@@ -17,17 +17,18 @@ import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { NgScrollbar } from 'ngx-scrollbar';
 
 @Component({
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    selector: 'app-right-sidebar',
-    templateUrl: './right-sidebar.component.html',
-    styleUrls: ['./right-sidebar.component.scss'],
-    imports: [
-        NgClass,
-        NgScrollbar,
-        MatButtonToggleModule,
-        MatSlideToggleModule,
-    ],
-    providers: [RightSidebarService]
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  selector: 'app-right-sidebar',
+  templateUrl: './right-sidebar.component.html',
+  styleUrls: ['./right-sidebar.component.scss'],
+  imports: [
+    NgClass,
+    NgScrollbar,
+    MatButtonToggleModule,
+    MatSlideToggleModule,
+  ],
+  standalone: true,
+  providers: [RightSidebarService]
 })
 export class RightSidebarComponent
   extends UnsubscribeOnDestroyAdapter

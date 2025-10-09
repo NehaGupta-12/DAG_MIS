@@ -86,7 +86,7 @@ export class ActivityLogComponent implements OnInit, AfterViewInit, OnDestroy {
 
   dataSource: MatTableDataSource<ActivityLog> = new MatTableDataSource<ActivityLog>([]);
   data: ActivityLog[] = [];
-  filterdata: ActivityLog[] = [];
+
 
   displayedColumns: string[] = ['position','date', 'section', 'action', 'user', 'description', 'currentIp'];
 
@@ -157,12 +157,7 @@ export class ActivityLogComponent implements OnInit, AfterViewInit, OnDestroy {
     this.dataSource.sort = this.sort;
   }
 
-  filterAction() {
-    const search = this.searchActionText.toLowerCase();
-    this.filteredAction = this.action.filter(item =>
-      item.toLowerCase().includes(search)
-    );
-  }
+
 
   ngOnDestroy(): void {
     this._destroyed$.next(true);
@@ -230,5 +225,29 @@ export class ActivityLogComponent implements OnInit, AfterViewInit, OnDestroy {
   applyDateRangeFilter() {
     this.applyFilters();
   }
+
+
+  onSectionOpened() {
+    this.filteredSection = [...this.section]; // reset filter when opened
+  }
+
+  filterSection(value: string) {
+    const searchText = (value || '').toLowerCase();
+    this.filteredSection = this.section.filter(s =>
+      s.toLowerCase().includes(searchText)
+    );
+  }
+
+  onActionOpened() {
+    this.filteredAction = [...this.action]; // reset filter when opened
+  }
+
+  filterActionInput(value: string) {
+    const searchText = (value || '').toLowerCase();
+    this.filteredAction = this.action.filter(a =>
+      a.toLowerCase().includes(searchText)
+    );
+  }
+
 }
 

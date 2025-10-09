@@ -5,6 +5,7 @@ import { IpService } from "./Services/ip.service";
 import { HttpClient } from "@angular/common/http";
 import { NetworkService } from "./module/network.service";
 import {MatSnackBar, MatSnackBarModule} from "@angular/material/snack-bar";
+import {FooterComponent} from "./footer/footer.component";
 
 @Component({
   selector: 'app-root',
