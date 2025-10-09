@@ -25,6 +25,7 @@ import {UnsubscribeOnDestroyAdapter} from '@shared';
 import {SidebarService} from './sidebar.service';
 import {UserDataModel} from "../../module/add-user/UserData.model";
 import {AuthService} from "../../authentication/auth.service";
+import {FooterComponent} from "../../footer/footer.component";
 
 @Component({
   selector: 'app-sidebar',
@@ -39,6 +40,7 @@ import {AuthService} from "../../authentication/auth.service";
     FeatherModule,
     TranslateModule,
     NgIf,
+    FooterComponent,
   ]
 })
 export class SidebarComponent

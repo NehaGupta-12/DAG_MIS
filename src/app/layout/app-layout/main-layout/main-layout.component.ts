@@ -8,18 +8,21 @@ import { RightSidebarComponent } from '../../right-sidebar/right-sidebar.compone
 import { SidebarComponent } from '../../sidebar/sidebar.component';
 import { HeaderComponent } from '../../header/header.component';
 import { UnsubscribeOnDestroyAdapter } from '@shared';
+import {FooterComponent} from "../../../footer/footer.component";
 
 @Component({
-    selector: 'app-main-layout',
-    templateUrl: './main-layout.component.html',
-    styleUrls: [],
-    imports: [
-        HeaderComponent,
-        SidebarComponent,
-        RightSidebarComponent,
-        BidiModule,
-        RouterOutlet,
-    ]
+  selector: 'app-main-layout',
+  templateUrl: './main-layout.component.html',
+  styleUrls: [],
+  standalone: true,
+  imports: [
+    HeaderComponent,
+    SidebarComponent,
+    RightSidebarComponent,
+    BidiModule,
+    RouterOutlet,
+    FooterComponent
+  ]
 })
 export class MainLayoutComponent extends UnsubscribeOnDestroyAdapter implements AfterViewInit {
   direction!: Direction;
