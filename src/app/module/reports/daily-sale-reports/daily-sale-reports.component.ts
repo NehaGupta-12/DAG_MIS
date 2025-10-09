@@ -459,18 +459,14 @@ export class DailySaleReportsComponent implements OnInit{
   }
 
 
-
   generateReport(filteredData: any[], startDate: Date | null, endDate: Date, productsToShow: any[]) {
-    const { monthStart, fyStart } = this.getDateRanges(endDate);
-    const report: any = {};
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    // ✅ Detect if it's a single-day report
-    const isSingleDay =
-      startDate &&
-      endDate &&
-      startDate.toDateString() === endDate.toDateString();
+    // ✅ ALWAYS use current date for Month and YTD calculations
+    const { monthStart, fyStart } = this.getDateRanges(today);
+
+    const report: any = {};
 
     // ✅ Initialize report with all products (even if no sales)
     productsToShow.forEach((p: any) => {
@@ -480,8 +476,49 @@ export class DailySaleReportsComponent implements OnInit{
       }
     });
 
-    // ✅ Add sales data
-    filteredData.forEach(item => {
+    // ✅ Determine the "Day" range based on selection
+    let dayRangeStart: Date;
+    let dayRangeEnd: Date;
+
+    if (!startDate) {
+      // No date selected → use today's date for "Day"
+      dayRangeStart = new Date(today);
+      dayRangeEnd = new Date(today);
+    } else if (startDate.toDateString() === endDate.toDateString()) {
+      // Single day selected → use that day for "Day"
+      dayRangeStart = new Date(startDate);
+      dayRangeEnd = new Date(startDate);
+    } else {
+      // Date range selected → sum all days in the range for "Day"
+      dayRangeStart = new Date(startDate);
+      dayRangeEnd = new Date(endDate);
+    }
+
+    dayRangeStart.setHours(0, 0, 0, 0);
+    dayRangeEnd.setHours(23, 59, 59, 999);
+
+    // ✅ Process ALL sales data (not filtered by date range) for Month and YTD
+    // We need to look at all data, not just filteredData
+    this.salesdataSource.forEach(item => {
+      // First check if this item matches the other filters (country, division, town, outlet, salesType)
+      const filters = this.dealerForm.value;
+      const countriesToInclude: string[] = [];
+      if (filters.country) {
+        countriesToInclude.push(filters.country);
+      } else {
+        countriesToInclude.push(...this.options.country);
+      }
+
+      // Apply non-date filters
+      const matchesFilters = (
+        (countriesToInclude.length === 0 || countriesToInclude.includes(item.country)) &&
+        (!filters.town || item.town === filters.town) &&
+        (!filters.division || item.division === filters.division) &&
+        (!filters.sale || item.salesType === filters.sale)
+      );
+
+      if (!matchesFilters) return;
+
       const model = (item.model || '').trim().toUpperCase();
       if (!report[model]) {
         report[model] = { YTD: 0, Month: 0, Day: 0 };
@@ -494,42 +531,24 @@ export class DailySaleReportsComponent implements OnInit{
         : (item.createdAt?.seconds ? new Date(item.createdAt.seconds * 1000) : new Date(item.createdAt));
       itemDate.setHours(0, 0, 0, 0);
 
-      // Skip if outside selected range
-      if ((startDate && itemDate < startDate) || (endDate && itemDate > endDate)) {
-        return;
-      }
-
-      // YTD
-      if (itemDate >= fyStart && itemDate <= endDate) {
+      // ✅ YTD - ALWAYS from current financial year start to TODAY
+      if (itemDate >= fyStart && itemDate <= today) {
         report[model].YTD += qty;
       }
 
-      // Month
-      if (itemDate >= monthStart && itemDate <= endDate) {
+      // ✅ Month - ALWAYS from current month start to TODAY
+      if (itemDate >= monthStart && itemDate <= today) {
         report[model].Month += qty;
       }
 
-      // ✅ Day (handle both single-day & multi-day range properly)
-      if (isSingleDay) {
-        // For same-day range → count only that date
-        if (itemDate.getTime() === startDate.getTime()) {
-          report[model].Day += qty;
-        }
-      } else {
-        // For other cases → count only today's date if inside range
-        if (
-          itemDate.getTime() === today.getTime() &&
-          today >= (startDate || today) &&
-          today <= endDate
-        ) {
-          report[model].Day += qty;
-        }
+      // ✅ Day - based on the selected date range (or today if no selection)
+      if (itemDate >= dayRangeStart && itemDate <= dayRangeEnd) {
+        report[model].Day += qty;
       }
     });
 
     return report;
   }
-
 
 
   getProductsByCountry(countryName: string): any[] {
