@@ -2,7 +2,7 @@ import {
   Component,
   ElementRef,
   EnvironmentInjector,
-  Inject, isDevMode,
+  Inject,
   OnInit,
   runInInjectionContext,
   ViewChild
@@ -52,7 +52,6 @@ import {LoadingService} from "../../../Services/loading.service";
 import {CountryService} from "../../../Services/country.service";
 import {ActivityLogService} from "../../activity-log/activity-log.service";
 import {ActivityLog} from "../../activity-log/activity-log.component";
-import {environment} from "../../../../environments/environment";
 
 
 @Component({
@@ -94,8 +93,7 @@ import {environment} from "../../../../environments/environment";
   styleUrl: './stock-report.component.scss'
 })
 export class StockReportComponent implements OnInit{
-  env = isDevMode() ? environment.testCollections : environment.collections
-  isEditMode: boolean = false;
+    isEditMode: boolean = false;
     dealerForm: FormGroup;
     dataSource: any[] = [];
     vehicledataSource: any[] = [];
@@ -182,11 +180,11 @@ export class StockReportComponent implements OnInit{
 
 
       // Load Firebase options
-      this.mDatabase.object<{ subcategories: string[] }>(`${this.env.typeList}/Division`).valueChanges()
+      this.mDatabase.object<{ subcategories: string[] }>('typelist/Division').valueChanges()
         .pipe(map(d => d?.subcategories || [])).subscribe(data => { this.options.division = data; this.filteredOptions.division = [...data]; });
-        this.mDatabase.object<{ subcategories: string[] }>(`${this.env.typeList}/outletType`).valueChanges()
+      this.mDatabase.object<{ subcategories: string[] }>('typelist/outletType').valueChanges()
         .pipe(map(d => d?.subcategories || [])).subscribe(data => { this.options.outletType = data; this.filteredOptions.outletType = [...data]; });
-      this.mDatabase.object<{ subcategories: string[] }>(`${this.env.typeList}/outletCategory`).valueChanges()
+      this.mDatabase.object<{ subcategories: string[] }>('typelist/outletCategory').valueChanges()
         .pipe(map(d => d?.subcategories || [])).subscribe(data => { this.options.category = data; this.filteredOptions.category = [...data]; });
 
       // 🌟 UPDATED COUNTRY LOADING: Set flag on complete
@@ -196,7 +194,7 @@ export class StockReportComponent implements OnInit{
         this.countryOptionsLoaded = true; // ✅ Set flag here
       });
 
-      this.mDatabase.object<{ subcategories: string[] }>(`${this.env.typeList}/Town`).valueChanges()
+      this.mDatabase.object<{ subcategories: string[] }>('typelist/Town').valueChanges()
         .pipe(map(d => d?.subcategories || [])).subscribe(data => { this.options.town = data; this.filteredOptions.town = [...data]; });
     }
 

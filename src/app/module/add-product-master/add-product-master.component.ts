@@ -1,8 +1,8 @@
 import {
   Component,
-  ElementRef,
+    ElementRef,
   EnvironmentInjector,
-  Inject, isDevMode,
+  Inject,
   OnInit,
   runInInjectionContext,
   ViewChild
@@ -33,7 +33,6 @@ import {
   import {LoadingService} from "../../Services/loading.service";
   import {CountryService} from "../../Services/country.service";
 import {ActivityLogService} from "../activity-log/activity-log.service";
-import {environment} from "../../../environments/environment";
 
   @Component({
     selector: 'app-add-product-master',
@@ -60,7 +59,6 @@ import {environment} from "../../../environments/environment";
     styleUrl: './add-product-master.component.scss'
   })
   export class AddProductMasterComponent implements OnInit {
-    env = isDevMode() ? environment.testCollections : environment.collections
     uniqueCountries: any[] = [];
     isEditMode: boolean = false;
     productForm: FormGroup;
@@ -121,7 +119,7 @@ countries$:Observable<string[]>
 
       // Subscribe to all observables and populate local arrays
       this._modelTypes$ = this.mDatabase
-        .object<{ subcategories: string[] }>(`${this.env.typeList}/Model`)
+        .object<{ subcategories: string[] }>('typelist/Model')
         .valueChanges()
         .pipe(map(data => data?.subcategories || []));
       this._modelTypes$.subscribe(data => {
@@ -130,7 +128,7 @@ countries$:Observable<string[]>
       });
 
       this._categoryTypes$ = this.mDatabase
-        .object<{ subcategories: string[] }>(`${this.env.typeList}/Product_Category`)
+        .object<{ subcategories: string[] }>('/typelist/Product_Category')
         .valueChanges()
         .pipe(map(data => data?.subcategories || []));
       this._categoryTypes$.subscribe(data => {
@@ -139,12 +137,12 @@ countries$:Observable<string[]>
       });
 
       this._subCategoryTypes$ = this.mDatabase
-        .object<{ subcategories: string[] }>(`${this.env.typeList}/Sub_Category`)
+        .object<{ subcategories: string[] }>('/typelist/Sub_Category')
         .valueChanges()
         .pipe(map(data => data?.subcategories || []));
 
       this._variantTypes$ = this.mDatabase
-        .object<{ subcategories: string[] }>(`${this.env.typeList}/Variant`)
+        .object<{ subcategories: string[] }>('typelist/Variant')
         .valueChanges()
         .pipe(map(data => data?.subcategories || []));
       this._variantTypes$.subscribe(data => {
@@ -153,7 +151,7 @@ countries$:Observable<string[]>
       });
 
       this._engineTypes$ = this.mDatabase
-        .object<{ subcategories: string[] }>(`${this.env.typeList}/EngineCC`)
+        .object<{ subcategories: string[] }>('typelist/EngineCC')
         .valueChanges()
         .pipe(map(data => data?.subcategories || []));
       this._engineTypes$.subscribe(data => {
@@ -162,7 +160,7 @@ countries$:Observable<string[]>
       });
 
       this._unitTypes$ = this.mDatabase
-        .object<{ subcategories: string[] }>(`${this.env.typeList}/UnitOfMeasurement`)
+        .object<{ subcategories: string[] }>('typelist/UnitOfMeasurement')
         .valueChanges()
         .pipe(map(data => data?.subcategories || []));
       this._unitTypes$.subscribe(data => {

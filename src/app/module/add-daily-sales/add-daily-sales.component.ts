@@ -2,7 +2,7 @@ import {
   Component,
   ElementRef,
   EnvironmentInjector,
-  Inject, isDevMode,
+  Inject,
   OnInit,
   runInInjectionContext, signal,
   ViewChild
@@ -40,7 +40,6 @@ import {MatDatepicker, MatDatepickerInput, MatDatepickerToggle} from "@angular/m
 import {CountryService} from "../../Services/country.service";
 import {MatProgressSpinner} from "@angular/material/progress-spinner";
 import {ActivityLogService} from "../activity-log/activity-log.service";
-import {environment} from "../../../environments/environment";
 
 @Component({
   selector: 'app-add-daily-sales',
@@ -73,7 +72,7 @@ import {environment} from "../../../environments/environment";
   styleUrl: './add-daily-sales.component.scss'
 })
 export class AddDailySalesComponent implements OnInit {
-  env = isDevMode() ? environment.testCollections : environment.collections
+
   isEditMode: boolean = false;
   dailySalesForm: FormGroup;
   displayedColumns: string[] = ['sku', 'name', 'brand', 'model', 'variant', 'unit', 'quantity','action'];
@@ -150,21 +149,21 @@ export class AddDailySalesComponent implements OnInit {
     @Inject(MAT_DIALOG_DATA) public data: any,
   ) {
     this._divisionTypes$ = this.mDatabase
-      .object<{ subcategories: string[] }>(`${this.env.typeList}/Division`)
+      .object<{ subcategories: string[] }>('typelist/Division')
       .valueChanges()
       .pipe(map(data => data?.subcategories || []));
     this._countriesTypes$ = this.mDatabase
-      .object<{ subcategories: string[] }>(`${this.env.typeList}/Countries`)
+      .object<{ subcategories: string[] }>('typelist/Countries')
       .valueChanges()
       .pipe(map(data => data?.subcategories || []));
 
     this._townTypes$ = this.mDatabase
-      .object<{ subcategories: string[] }>(`${this.env.typeList}/Town`)
+      .object<{ subcategories: string[] }>('typelist/Town')
       .valueChanges()
       .pipe(map(data => data?.subcategories || []));
 
     this._salesTypes$ = this.mDatabase
-      .object<{ subcategories: string[] }>(`${this.env.typeList}/SalesType`)
+      .object<{ subcategories: string[] }>('typelist/SalesType')
       .valueChanges()
       .pipe(map(data => data?.subcategories || []));
 
