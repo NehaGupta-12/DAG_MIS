@@ -89,7 +89,7 @@ export class AddRoleComponent implements OnInit {
       this.userId = id;
     });
     this._roles$ = this.mDatabase
-      .object<{ subcategories: any[] }>(`${this.env.typeList}/Role`)
+      .object<{ subcategories: any[] }>('/typelist/Role')
       .valueChanges()
       .pipe(map(data => data?.subcategories || []));
 

@@ -1,4 +1,4 @@
-import {Component, EnvironmentInjector, isDevMode, OnInit, runInInjectionContext} from '@angular/core';
+import {Component, EnvironmentInjector, OnInit, runInInjectionContext} from '@angular/core';
 import { FormGroup, FormsModule, ReactiveFormsModule, FormBuilder, Validators } from "@angular/forms";
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatInputModule } from "@angular/material/input";
@@ -16,7 +16,6 @@ import {LoadingService} from "../../Services/loading.service";
 import {AuthService} from "../../authentication/auth.service";
 import {MatTooltip} from "@angular/material/tooltip";
 import {ActivityLogService} from "../activity-log/activity-log.service";
-import {environment} from "../../../environments/environment";
 
 
 @Component({
@@ -42,7 +41,6 @@ import {environment} from "../../../environments/environment";
   styleUrl: './types.component.scss'
 })
 export class TypesComponent implements OnInit {
-  env = isDevMode() ? environment.testCollections : environment.collections
   showModal = false;
   newCategory = '';
   newField = '';
@@ -75,7 +73,7 @@ export class TypesComponent implements OnInit {
     this.loadingService.setLoading(true);
     runInInjectionContext(this.injector, () => {
       const mDatabase = this.injector.get(AngularFireDatabase);
-      mDatabase.list(`${this.env.typeList}`).valueChanges().subscribe({
+      mDatabase.list('typelist').valueChanges().subscribe({
         next: (data: any[]) => {
           this.categories = data;
           console.log(this.categories);
@@ -188,7 +186,7 @@ export class TypesComponent implements OnInit {
 //       const mDatabase = this.injector.get(AngularFireDatabase);
 //       const key = name.replace(/\s+/g, '_');
 //
-//       mDatabase.object(`${this.env.typeList}/${key}`).set({ name, subcategories: [] })
+//       mDatabase.object(`typelist/${key}`).set({ name, subcategories: [] })
 //         .then(() => {
 //           this.newCategory = '';
 //           console.log('Category added successfully!');
@@ -209,7 +207,7 @@ export class TypesComponent implements OnInit {
       const mDatabase = this.injector.get(AngularFireDatabase);
       const key = name.replace(/\s+/g, '_');
 
-      mDatabase.object(`${this.env.typeList}/${key}`).set({ name, subcategories: [] })
+      mDatabase.object(`typelist/${key}`).set({ name, subcategories: [] })
         .then(() => {
           this.newCategory = '';
           console.log('Category added successfully!');
@@ -258,7 +256,7 @@ export class TypesComponent implements OnInit {
           const mDatabase = this.injector.get(AngularFireDatabase);
           const key = name.replace(/\s+/g, '_');
 
-          mDatabase.object(`${this.env.typeList}/${key}`).remove()
+          mDatabase.object(`typelist/${key}`).remove()
             .then(() => {
               Swal.fire('Deleted!', 'Type has been deleted.', 'success');
               this.loadingService.setLoading(false);
@@ -288,14 +286,14 @@ export class TypesComponent implements OnInit {
 //       const mDatabase = this.injector.get(AngularFireDatabase);
 //       const key = this.selectedCategory.name.replace(/\s+/g, '_');
 //
-//       mDatabase.object<any[]>(`${this.env.typeList}/${key}/subcategories`)
+//       mDatabase.object<any[]>(`typelist/${key}/subcategories`)
 //         .valueChanges()
 //         .pipe(take(1))
 //         .subscribe({
 //           next: (subcats) => {
 //             const updatedSubcategories = subcats ? [...subcats, field] : [field];
 //
-//             mDatabase.object(`${this.env.typeList}/${key}/subcategories`)
+//             mDatabase.object(`typelist/${key}/subcategories`)
 //               .set(updatedSubcategories)
 //               .then(() => {
 //                 console.log(`Subcategory "${field}" added to ${this.selectedCategory.name}`);
@@ -343,7 +341,7 @@ export class TypesComponent implements OnInit {
 //           const mDatabase = this.injector.get(AngularFireDatabase);
 //           const key = this.selectedCategory.name.replace(/\s+/g, '_');
 //
-//           mDatabase.object<any[]>(`${this.env.typeList}/${key}/subcategories`)
+//           mDatabase.object<any[]>(`typelist/${key}/subcategories`)
 //             .valueChanges()
 //             .pipe(take(1))
 //             .subscribe({
@@ -351,7 +349,7 @@ export class TypesComponent implements OnInit {
 //                 if (subcats && Array.isArray(subcats)) {
 //                   const updatedSubcategories = subcats.filter(item => item !== subCategory);
 //
-//                   mDatabase.object(`${this.env.typeList}/${key}/subcategories`)
+//                   mDatabase.object(`typelist/${key}/subcategories`)
 //                     .set(updatedSubcategories)
 //                     .then(() => {
 //                       Swal.fire('Deleted!', `Sub Type "${subCategory}" deleted.`, 'success');
@@ -403,7 +401,7 @@ export class TypesComponent implements OnInit {
           const mDatabase = this.injector.get(AngularFireDatabase);
           const key = this.selectedCategory.name.replace(/\s+/g, '_');
 
-          mDatabase.object<any[]>(`${this.env.typeList}/${key}/subcategories`)
+          mDatabase.object<any[]>(`typelist/${key}/subcategories`)
             .valueChanges()
             .pipe(take(1))
             .subscribe({
@@ -411,7 +409,7 @@ export class TypesComponent implements OnInit {
                 if (subcats && Array.isArray(subcats)) {
                   const updatedSubcategories = subcats.filter(item => item !== subCategory);
 
-                  mDatabase.object(`${this.env.typeList}/${key}/subcategories`)
+                  mDatabase.object(`typelist/${key}/subcategories`)
                     .set(updatedSubcategories)
                     .then(() => {
                       Swal.fire('Deleted!', `Sub Type "${subCategory}" deleted.`, 'success');
@@ -481,7 +479,7 @@ export class TypesComponent implements OnInit {
   //     const mDatabase = this.injector.get(AngularFireDatabase);
   //     const key = this.selectedCategory.name.replace(/\s+/g, '_');
   //
-  //     mDatabase.object<any[]>(`${this.env.typeList}/${key}/subcategories`)
+  //     mDatabase.object<any[]>(`typelist/${key}/subcategories`)
   //       .valueChanges()
   //       .pipe(take(1))
   //       .subscribe({
@@ -509,7 +507,7 @@ export class TypesComponent implements OnInit {
   //             updatedSubcategories.push(field.trim());
   //           }
   //
-  //           mDatabase.object(`${this.env.typeList}/${key}/subcategories`)
+  //           mDatabase.object(`typelist/${key}/subcategories`)
   //             .set(updatedSubcategories)
   //             .then(() => {
   //               this.selectedCategory = {
@@ -553,7 +551,7 @@ export class TypesComponent implements OnInit {
       const mDatabase = this.injector.get(AngularFireDatabase);
       const key = this.selectedCategory.name.replace(/\s+/g, '_');
 
-      mDatabase.object<any[]>(`${this.env.typeList}/${key}/subcategories`)
+      mDatabase.object<any[]>(`typelist/${key}/subcategories`)
         .valueChanges()
         .pipe(take(1))
         .subscribe({
@@ -581,7 +579,7 @@ export class TypesComponent implements OnInit {
               updatedSubcategories.push(field.trim());
             }
 
-            mDatabase.object(`${this.env.typeList}/${key}/subcategories`)
+            mDatabase.object(`typelist/${key}/subcategories`)
               .set(updatedSubcategories)
               .then(() => {
                 this.selectedCategory = {

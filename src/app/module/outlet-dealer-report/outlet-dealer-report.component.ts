@@ -1,7 +1,7 @@
 import {
   Component,
   EnvironmentInjector,
-  Inject, isDevMode,
+  Inject,
   OnInit,
   runInInjectionContext,
 } from '@angular/core';
@@ -40,7 +40,6 @@ import {
 } from '@angular/material/table';
 import {MatAutocomplete, MatAutocompleteTrigger} from "@angular/material/autocomplete";
 import {LoadingService} from "../../Services/loading.service";
-import {environment} from "../../../environments/environment";
 
 interface ReadonlyFlags {
   name: boolean;
@@ -86,7 +85,6 @@ interface ReadonlyFlags {
   styleUrl: './outlet-dealer-report.component.scss',
 })
 export class OutletDealerReportComponent implements OnInit {
-  env = isDevMode() ? environment.testCollections : environment.collections
   isEditMode = false;
   dealerForm: FormGroup;
   dataSource: any[] = [];
@@ -156,19 +154,19 @@ export class OutletDealerReportComponent implements OnInit {
     });
 
     // Load Firebase options
-    this.mDatabase.object<{ subcategories: string[] }>(`${this.env.typeList}/Division`).valueChanges()
+    this.mDatabase.object<{ subcategories: string[] }>('typelist/Division').valueChanges()
       .pipe(map(d => d?.subcategories || []))
       .subscribe(data => { this.options.division = data; this.filteredOptions.division = [...data]; });
-    this.mDatabase.object<{ subcategories: string[] }>(`${this.env.typeList}/outletType`).valueChanges()
+    this.mDatabase.object<{ subcategories: string[] }>('typelist/outletType').valueChanges()
       .pipe(map(d => d?.subcategories || []))
       .subscribe(data => { this.options.outletType = data; this.filteredOptions.outletType = [...data]; });
-    this.mDatabase.object<{ subcategories: string[] }>(`${this.env.typeList}/outletCategory`).valueChanges()
+    this.mDatabase.object<{ subcategories: string[] }>('typelist/outletCategory').valueChanges()
       .pipe(map(d => d?.subcategories || []))
       .subscribe(data => { this.options.category = data; this.filteredOptions.category = [...data]; });
-    this.mDatabase.object<{ subcategories: string[] }>(`${this.env.typeList}/Countries`).valueChanges()
+    this.mDatabase.object<{ subcategories: string[] }>('typelist/Countries').valueChanges()
       .pipe(map(d => d?.subcategories || []))
       .subscribe(data => { this.options.country = data; this.filteredOptions.country = [...data]; });
-    this.mDatabase.object<{ subcategories: string[] }>(`${this.env.typeList}/Town`).valueChanges()
+    this.mDatabase.object<{ subcategories: string[] }>('typelist/Town').valueChanges()
       .pipe(map(d => d?.subcategories || []))
       .subscribe(data => { this.options.town = data; this.filteredOptions.town = [...data]; });
   }

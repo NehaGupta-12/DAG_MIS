@@ -2,7 +2,7 @@ import {
   Component,
   ElementRef,
   EnvironmentInjector,
-  Inject, isDevMode,
+  Inject,
   OnInit,
   runInInjectionContext,
   ViewChild
@@ -30,7 +30,6 @@ import {MonthlyBudgetService} from "../monthly-budget.service";
 import {MatCheckbox} from "@angular/material/checkbox";
 import {CountryService} from "../../Services/country.service";
 import {ActivityLogService} from "../activity-log/activity-log.service";
-import {environment} from "../../../environments/environment";
 
 @Component({
   selector: 'app-add-budget',
@@ -54,7 +53,6 @@ import {environment} from "../../../environments/environment";
   ]
 })
 export class AddBudgetComponent implements OnInit {
-  env = isDevMode() ? environment.testCollections : environment.collections
   isEditMode = false;
   editingDocId: string | null = null;
   targetForm: FormGroup;
@@ -109,17 +107,17 @@ export class AddBudgetComponent implements OnInit {
   ) {
     // Dropdowns
     this._countriesTypes$ = this.mDatabase
-      .object<{ subcategories: string[] }>(`${this.env.typeList}/Countries`)
+      .object<{ subcategories: string[] }>('typelist/Countries')
       .valueChanges()
       .pipe(map(data => data?.subcategories || []));
 
     this._yearTypes$ = this.mDatabase
-      .object<{ subcategories: string[] }>(`${this.env.typeList}/Year`)
+      .object<{ subcategories: string[] }>('typelist/Year')
       .valueChanges()
       .pipe(map(data => data?.subcategories || []));
 
     this._monthTypes$ = this.mDatabase
-      .object<{ subcategories: string[] }>(`${this.env.typeList}/Month`)
+      .object<{ subcategories: string[] }>('typelist/Month')
       .valueChanges()
       .pipe(map(data => data?.subcategories || []));
 
