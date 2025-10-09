@@ -607,24 +607,97 @@ export class StockReportComponent implements OnInit{
     // }
 
 
-  generateReport(filteredData: any[], start?: Date, end?: Date) {
-    const { startDate, endDate } = this.getDateRanges(start, end);
+  generateReport(filteredData: any[], start?: Date, end?: Date, productsToShow?: any[]) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // ✅ ALWAYS use current date for Month and YTD calculations
+    const { startDate: monthStart, endDate: fyStart } = this.getDateRanges();
+
+    // Calculate month start and FY start based on today
+    const currentMonthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+    currentMonthStart.setHours(0, 0, 0, 0);
+
+    const currentFYStart = today.getMonth() >= 3
+      ? new Date(today.getFullYear(), 3, 1)   // If Apr-Dec
+      : new Date(today.getFullYear() - 1, 3, 1); // If Jan-Mar
+    currentFYStart.setHours(0, 0, 0, 0);
+
     const report: any = {};
 
-    filteredData.forEach(item => {
+    // ✅ Initialize report with all products (even if no stock entries)
+    if (productsToShow && productsToShow.length > 0) {
+      productsToShow.forEach((p: any) => {
+        const productName = p.name;
+        if (productName) {
+          report[productName] = { YTD: 0, Month: 0, Day: 0 };
+        }
+      });
+    }
+
+    // ✅ Determine the "Day" range based on selection
+    let dayRangeStart: Date;
+    let dayRangeEnd: Date;
+
+    if (!start) {
+      // No date selected → use today's date for "Day"
+      dayRangeStart = new Date(today);
+      dayRangeEnd = new Date(today);
+    } else if (start.toDateString() === end?.toDateString()) {
+      // Single day selected → use that day for "Day"
+      dayRangeStart = new Date(start);
+      dayRangeEnd = new Date(start);
+    } else {
+      // Date range selected → sum all days in the range for "Day"
+      dayRangeStart = new Date(start);
+      dayRangeEnd = end ? new Date(end) : new Date(today);
+    }
+
+    dayRangeStart.setHours(0, 0, 0, 0);
+    dayRangeEnd.setHours(23, 59, 59, 999);
+
+    // ✅ Process ALL stock data (not filtered by date range) for Month and YTD
+    this.salesdataSource.forEach(item => {
+      // First check if this item matches the other filters (country, division, town, outlet)
+      const filters = this.dealerForm.value;
+      const countriesToInclude: string[] = [];
+      if (filters.country) {
+        countriesToInclude.push(filters.country);
+      } else {
+        countriesToInclude.push(...this.options.country);
+      }
+
+      // Apply non-date filters
+      const matchesFilters = (
+        (countriesToInclude.length === 0 || countriesToInclude.includes(item.country)) &&
+        (!filters.town || item.town === filters.town) &&
+        (!filters.division || item.division === filters.division)
+      );
+
+      if (!matchesFilters) return;
+
       const product = item.name;
       const qty = Number(item.quantity) || 0;
       const itemDate = this.normalizeDate(item);
 
-      // ✅ Initialize if not present (handles products in GRN but not in master)
+      // ✅ Initialize if not present
       if (!report[product]) {
         report[product] = { YTD: 0, Month: 0, Day: 0 };
       }
 
-      if (itemDate >= startDate && itemDate <= endDate) {
-        report[product].Day += qty;
-        report[product].Month += qty;
+      // ✅ YTD - ALWAYS from current financial year start to TODAY
+      if (itemDate >= currentFYStart && itemDate <= today) {
         report[product].YTD += qty;
+      }
+
+      // ✅ Month - ALWAYS from current month start to TODAY
+      if (itemDate >= currentMonthStart && itemDate <= today) {
+        report[product].Month += qty;
+      }
+
+      // ✅ Day - based on the selected date range (or today if no selection)
+      if (itemDate >= dayRangeStart && itemDate <= dayRangeEnd) {
+        report[product].Day += qty;
       }
     });
 
@@ -686,7 +759,7 @@ export class StockReportComponent implements OnInit{
 
       if (outlets.length === 0) {
         const filtered = this.salesdataSource.filter(item => filterFn(item));
-        const report = this.generateReport(filtered, startDate, endDate);
+        const report = this.generateReport(filtered, startDate, endDate, productsToShow);
 
         // ✅ Pass filtered products to buildRows
         const tempRows = this.buildRows(report, productsToShow);
