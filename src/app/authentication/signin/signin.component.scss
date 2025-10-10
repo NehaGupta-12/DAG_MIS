@@ -126,25 +126,30 @@
   color: #fff;
 }
 
-/* Input field styles */
+
+
+
+/* Keep icons fixed even when input is focused */
+.input-group {
+  position: relative;
+  border-radius: 25px; /* match input */
+  overflow: hidden;    /* clip the icon inside rounded corners */
+
+}
 
 .input-group input.form-control {
   width: 100%;
   padding: 12px 40px; /* Make sure padding on the right leaves space for icon */
   border: none;
-  border-radius: 25px; /* Full round */
-  background: rgba(255, 255, 255, 0.2);
+  border-radius: 25px;
+  background: rgba(255, 255, 255, 0.2); /* transparent black background */
   color: #fff;
   outline: none;
-  box-sizing: border-box; /* Ensure padding doesn't break rounding */
+  box-sizing: border-box;
+  position: relative;
+  z-index: 1; /* ensures input stays under icons */
 }
 
-/* Optional: if you want icon inside without breaking round corners */
-.input-group {
-  position: relative;
-  border-radius: 25px; /* match input */
-  overflow: hidden;    /* clip the icon inside rounded corners */
-}
 
 .input-group input::placeholder {
   color: #eee;
@@ -153,26 +158,31 @@
 
 
 .input-icon {
-  position: absolute;
   right: 12px;
-  top: 50%;
   transform: translateY(-50%);
-  color: #666; /* medium grey */
-
-  pointer-events: none;
+   color: #999; /* medium grey */
 }
+
 
 .eye-toggle {
   position: absolute;
   right: 8px;
   top: 50%;
   transform: translateY(-50%);
-  color: #666; /* medium grey */
-
+  color: #ccc;
   background: transparent;
   border: none;
+  cursor: pointer;
+  z-index: 3;
+  pointer-events: auto; /* ✅ clickable */
 }
 
+
+/* Keep same appearance on focus */
+.input-group input.form-control:focus {
+  background: rgba(0, 0, 0, 0.4);
+  color: #fff;
+}
 
 
 
@@ -190,10 +200,6 @@
   text-align: center;
 }
 
-
-//.login-btn:hover {
-//  background-color: #ffff00;
-//}
 
 /* Remember me + forgot */
 .forgot {
@@ -219,3 +225,18 @@
 }
 
 
+.input-icon-left,
+.input-icon,
+.eye-toggle {
+  position: absolute;
+  top: 50%;
+  opacity: 0.8;
+  transform: translateY(-50%);
+  color: #ccc;
+  z-index: 2; /* ensures icons stay visible above input */
+  pointer-events: auto !important; /* enable clicking */
+}
+
+.input-icon-left {
+  left: 12px;
+}
