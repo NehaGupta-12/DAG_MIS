@@ -7,7 +7,7 @@ import {
   runInInjectionContext,
   ViewChild
 } from '@angular/core';
-import {FormGroup, FormsModule, ReactiveFormsModule, UntypedFormBuilder, Validators} from "@angular/forms";
+import {FormControl, FormGroup, FormsModule, ReactiveFormsModule, UntypedFormBuilder, Validators} from "@angular/forms";
 import { MatButtonModule} from "@angular/material/button";
 import {
   MatCell,
@@ -35,6 +35,7 @@ import {OutletProductService} from "../outlet-product.service";
 import {InventoryService} from "../add-inventory/inventory.service";
 import {LoadingService} from "../../Services/loading.service";
 import {ActivityLogService} from "../activity-log/activity-log.service";
+import {CountryService} from "../../Services/country.service";
 
 @Component({
   selector: 'app-add-stock-transfer',
@@ -77,9 +78,11 @@ export class AddStockTransferComponent implements OnInit {
   vehicledataSource = new MatTableDataSource<any>();
   addedProducts: any[] = [];
   dataSource = new MatTableDataSource<any>();
+  countryControl = new FormControl<string[] | null>([]);
   @ViewChild('fromDealerSearchInput') fromDealerSearchInput!: ElementRef;
   @ViewChild('toDealerSearchInput') toDealerSearchInput!: ElementRef;
   @ViewChild('productSearchInput') productSearchInput!: ElementRef;
+  @ViewChild('countrySearchInput') countrySearchInput!: ElementRef;
 
   _allDealers: any[] = [];
   filteredFromDealers: any[] = [];
@@ -90,6 +93,10 @@ export class AddStockTransferComponent implements OnInit {
   _allProducts: any[] = [];
   filteredProducts: any[] = [];
   productSearchText: string = '';
+
+  _countriesTypes: string[] = [];
+  filteredCountries: string[] = [];
+  countrySearchText: string = '';
 
   debounceTimer: any;
 
@@ -114,6 +121,7 @@ export class AddStockTransferComponent implements OnInit {
     private inventoryService: InventoryService,
     private loadingService: LoadingService,
     private mService: ActivityLogService,
+    private countryService: CountryService,
     @Inject(MAT_DIALOG_DATA) public data: any,
   ) {
     this.isEditMode = !!data?.id;
@@ -123,12 +131,21 @@ export class AddStockTransferComponent implements OnInit {
       toDealerOutlet: ['', [Validators.required]],
       items: this.fb.array([]),
     });
+
   }
 
   ngOnInit() {
     this.DealerList();
     this.productList();
     this.loadInventoryDaata();
+
+    this.countryService.getCountries().subscribe(countries => {
+      this._countriesTypes = countries;
+      this.filteredCountries = [...this._countriesTypes];
+      // this.countryControl.setValue(['All']);
+
+    });
+
 
     this.stockTransferForm.get('products')?.disable();
 
@@ -325,6 +342,52 @@ export class AddStockTransferComponent implements OnInit {
     }, 300);
   }
 
+  // ----------------- PRODUCTS -----------------
+  toggleSelectAllProducts() {
+    const allProducts = this.filteredProducts.filter(p => !p.disabled);
+    const selectedProducts: any[] = this.stockTransferForm.get('products')?.value || [];
+
+    if (this.isAllProductsSelected()) {
+      // Unselect all
+      this.stockTransferForm.get('products')?.setValue([]);
+    } else {
+      // Select all
+      this.stockTransferForm.get('products')?.setValue(allProducts);
+    }
+  }
+
+
+  // --- Country Methods ---
+  filterCountries() {
+    const searchText = this.countrySearchText.toLowerCase();
+    this.filteredCountries = this._countriesTypes.filter(country => country.toLowerCase().includes(searchText));
+  }
+  onCountrySearchChange(event: any) {
+    clearTimeout(this.debounceTimer);
+    this.debounceTimer = setTimeout(() => {
+      this.countrySearchText = event.target.value;
+      this.filterCountries();
+    }, 300);
+  }
+  onCountrySelectOpened(isOpened: boolean) {
+    if (isOpened) {
+      this.countrySearchText = '';
+      this.filterCountries();
+      setTimeout(() => this.countrySearchInput.nativeElement.focus(), 0);
+    }
+  }
+
+  isAllProductsSelected(): boolean {
+    const selectedProducts: any[] = this.stockTransferForm.get('products')?.value || [];
+    const allEnabledProducts = this.filteredProducts.filter(p => !p.disabled);
+
+    return allEnabledProducts.length > 0 &&
+      allEnabledProducts.every(ap =>
+        selectedProducts.some(sp => sp.id === ap.id)
+      );
+  }
+
+
   onProductSelectOpened(isOpened: boolean) {
     if (isOpened) {
       this.productSearchText = '';
@@ -411,97 +474,6 @@ export class AddStockTransferComponent implements OnInit {
     }
   }
 
-  // submitForm() {
-  //   try {
-  //     const formValues = this.stockTransferForm.getRawValue();
-  //     delete formValues.products;
-  //
-  //     const isMainFormValid =
-  //       this.stockTransferForm.get('fromDealerOutlet')?.valid &&
-  //       this.stockTransferForm.get('toDealerOutlet')?.valid;
-  //
-  //     if (isMainFormValid && this.addedProducts.length > 0) {
-  //       Swal.fire({
-  //         title: this.isEditMode ? 'Update Stock Transfer?' : 'Add Stock Transfer?',
-  //         text: 'Are you sure you want to proceed?',
-  //         icon: 'question',
-  //         showCancelButton: true,
-  //         confirmButtonText: 'Yes',
-  //         cancelButtonText: 'No'
-  //       }).then((result: any) => {
-  //         if (result.isConfirmed) {
-  //           try {
-  //             const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-  //             const username = userData.userName || 'Unknown User';
-  //             const timestamp = Date.now();
-  //
-  //             const transformedData: any = {
-  //               ...formValues,
-  //               items: this.addedProducts.map(p => ({
-  //                 id: p.id ?? '',
-  //                 sku: p.sku ?? '',
-  //                 name: p.name ?? '',
-  //                 brand: p.brand ?? '',
-  //                 model: p.model ?? '',
-  //                 variant: p.variant ?? p.varient ?? '',
-  //                 unit: p.unit ?? '',
-  //                 quantity: p.quantity ?? 0
-  //               }))
-  //             };
-  //
-  //             runInInjectionContext(this.injector, async () => {
-  //               try {
-  //                 this.loadingService.setLoading(true);
-  //
-  //                 if (this.isEditMode && this.data.id) {
-  //                   transformedData.updateBy = username;
-  //                   transformedData.updatedAt = timestamp;
-  //
-  //                   await this.stockTransferService.updateStockTransfer(this.data.id, transformedData);
-  //
-  //                   for (const item of transformedData.items) {
-  //                     await this.updateInventory(item, formValues.fromDealerOutlet, 'decrease');
-  //                     await this.updateInventory(item, formValues.toDealerOutlet, 'increase');
-  //                   }
-  //
-  //                   Swal.fire('Updated!', 'Stock Transfer updated successfully.', 'success');
-  //                   this.goBack();
-  //                 } else {
-  //                   transformedData.status = 'Active';
-  //                   transformedData.createBy = username;
-  //                   transformedData.createdAt = timestamp;
-  //
-  //                   await this.stockTransferService.addStockTransfer(transformedData);
-  //
-  //                   for (const item of transformedData.items) {
-  //                     await this.updateInventory(item, formValues.fromDealerOutlet, 'decrease');
-  //                     await this.updateInventory(item, formValues.toDealerOutlet, 'increase');
-  //                   }
-  //
-  //                   Swal.fire('Added!', 'Stock Transfer added successfully.', 'success');
-  //                   this.goBack();
-  //                 }
-  //               } catch (innerErr) {
-  //                 console.error('Unexpected error during submission:', innerErr);
-  //                 Swal.fire('Error', 'Unexpected issue occurred.', 'error');
-  //               } finally {
-  //                 this.loadingService.setLoading(false); // ✅ Always stop loader
-  //               }
-  //             });
-  //           } catch (innerErr) {
-  //             console.error('Unexpected error during submission:', innerErr);
-  //             Swal.fire('Error', 'Unexpected issue occurred.', 'error');
-  //           }
-  //         }
-  //       });
-  //     } else {
-  //       Swal.fire('Error', 'Please fill in From/To dealers and add at least one product.', 'error');
-  //     }
-  //   } catch (err) {
-  //     console.error('Global submit error:', err);
-  //     Swal.fire('Error', 'Something went wrong while submitting.', 'error');
-  //   }
-  // }
 
   submitForm() {
     try {
