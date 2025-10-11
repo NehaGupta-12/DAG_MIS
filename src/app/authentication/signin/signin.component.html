@@ -28,6 +28,10 @@
 
       <!-- Username -->
       <div class="input-group mb-3">
+           <span class="input-icon-left">
+          <mat-icon>person</mat-icon>
+        </span>
+
         <input
           type="email"
           formControlName="email"
@@ -52,6 +56,10 @@
 
       <!-- Password -->
       <div class="input-group mb-3">
+
+        <span class="input-icon-left">
+          <mat-icon>lock</mat-icon>
+        </span>
         <input
           [type]="hidePassword ? 'password' : 'text'"
           formControlName="password"
@@ -59,9 +67,7 @@
           placeholder="Enter Password"
           [ngClass]="{ 'is-invalid': submitted && form['password'].errors }"
         />
-        <span class="input-icon">
-<!--          <mat-icon>lock</mat-icon>-->
-        </span>
+
         <button
           type="button"
           mat-icon-button
