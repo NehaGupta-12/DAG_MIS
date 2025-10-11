@@ -24,6 +24,7 @@ export class AuthService {
   private permissionsLoadedSubject = new BehaviorSubject<boolean>(false);
   public permissionsLoaded$ = this.permissionsLoadedSubject.asObservable();
   public currentUser: Observable<User> | undefined;
+
   constructor(
     public mAuth: AngularFireAuth,
     private router: Router,
@@ -32,7 +33,7 @@ export class AuthService {
     private _snackBar: MatSnackBar,
     private injector: EnvironmentInjector,
     private roleService: RoleService,
-    private firestore : AngularFirestore,
+    private firestore: AngularFirestore,
     private mLogService: ActivityLogService   // ✅ inject ActivityLogService
   ) {
     this.currentUserSubject = new BehaviorSubject<User>(
@@ -47,6 +48,7 @@ export class AuthService {
 
     console.log('userRoelPermissions', this.userRolePermissions);
   }
+
   public get currentUserValue(): User {
     return <User>this.currentUserSubject?.value;
   }
@@ -92,56 +94,7 @@ export class AuthService {
 
 
   }
-  // canShowMenu(menuName: string): boolean {
-  //   const translatedName = this.translate.instant(menuName); // convert key to real label
-  //   const menu = this.userRolePermissions.find((p: any) => p.menu_name === translatedName);
-  //   return !!menu;
-  // }
 
-
-
-  // async login(email: string, password: string) {
-  //   localStorage.clear();
-  //   try {
-  //     const userCredential = await this.mAuth.signInWithEmailAndPassword(email, password).catch(() => {
-  //       this._snackBar.open('Invalid Username Or Password', 'Close', {
-  //         duration: 3000,
-  //       });
-  //       return null;
-  //     });
-  //     if (userCredential && userCredential.user) {
-  //       const user = userCredential.user;
-  //       console.log('Login successful:', JSON.stringify(user));
-  //
-  //       localStorage.setItem('user', JSON.stringify(user));
-  //       localStorage.setItem('uid', user.uid);
-  //       if (user.email) {
-  //         localStorage.setItem('userEmail', user.email);
-  //       }
-  //       runInInjectionContext(this.injector, async () => {
-  //         const currentIp = localStorage.getItem('currentip') || '';
-  //         let activity : ActivityLog = {
-  //           date: new Date().getTime(),
-  //           section: 'Login',
-  //           action: 'Login',
-  //           user: user.email || 'N/A',
-  //           description: 'Login by user ',
-  //           currentIp: currentIp,
-  //           changes: [], // empty array by default
-  //         };
-  //         await this.mLogService.addLog(activity);
-  //         await this.setUserData(user.uid);
-  //         console.log('Login activity logged and user data set.');
-  //       });
-  //     }
-  //   } catch (err: unknown) {
-  //     if (err instanceof Error) {
-  //       this._snackBar.open('Login failed: ' + err.message, 'Close', {
-  //         duration: 3000,
-  //       });
-  //     }
-  //   }
-  // }
   async login(email: string, password: string) {
     localStorage.clear();
     try {
@@ -179,11 +132,10 @@ export class AuthService {
       } else if (err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found') {
         message = 'Invalid Username or Password';
       }
-      this._snackBar.open(message, 'Close', { duration: 4000 });
+      this._snackBar.open(message, 'Close', {duration: 4000});
       throw err;
     }
   }
-
 
 
   async logout() {
@@ -208,15 +160,13 @@ export class AuthService {
   }
 
 
-
-
   async setUserData(uid: string) {
     try {
       runInInjectionContext(this.injector, () => {
         this.mDatabase
           .object<UserDataModel>('users/' + uid)
           .valueChanges()
-          .subscribe((userData:any) => {
+          .subscribe((userData: any) => {
             if (userData) {
               console.log('USERDATA ===>>>', userData);
               localStorage.setItem('userData', JSON.stringify(userData));
@@ -244,5 +194,35 @@ export class AuthService {
       this._snackBar.open('Error changing password', 'Close', {duration: 3000});
     }
   }
+
+  async sendPasswordResetEmail(email: string) {
+    return this.mAuth.sendPasswordResetEmail(email)
+      .then(() => {
+        this._snackBar.open(
+          'Password reset link has been sent to your email.',
+          'Close',
+          { duration: 4000, panelClass: ['snackbar-success'] }
+        );
+      })
+      .catch((error: any) => {
+        let message = 'Error sending password reset email.';
+
+        if (error.code === 'auth/user-not-found') {
+          message = 'No account found with this email address.';
+        } else if (error.code === 'auth/invalid-email') {
+          message = 'Please enter a valid email address.';
+        } else if (error.code === 'auth/invalid-continue-uri' || error.code === 'auth/missing-continue-uri' || error.code === 'auth/invalid-action-code' || error.code === '400') {
+          message = 'Something went wrong. Please try again later.';
+        }
+
+        this._snackBar.open(message, 'Close', {
+          duration: 4000,
+          panelClass: ['snackbar-error'],
+        });
+      });
+  }
+
+
+
 
 }
