@@ -213,7 +213,7 @@ export class DealerListComponent implements OnInit {
         this.loadingService.setLoading(true);
         runInInjectionContext(this.injector, () => {
           // Use correct id field for deletion
-          const dealerId = data.id || data.outlateId; // fallback
+          const dealerId = data.outletId;
           const showroomName = data.name || 'Unknown Showroom';
 
           this.addDealerService.deleteDealer(dealerId)
