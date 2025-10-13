@@ -1203,7 +1203,7 @@ export class AddStockTransferComponent implements OnInit {
                     transformedData.updatedAt = timestamp;
 
                     await this.stockTransferService.updateStockTransfer(
-                      this.data.id,
+                      this.data.ref.id,
                       transformedData.status,
                       'outgoing'  // or 'incoming' depending on context
                     );
