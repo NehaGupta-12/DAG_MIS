@@ -74,7 +74,7 @@
 // }
 
 // stock-transfer.service.ts
-import { Injectable, isDevMode } from '@angular/core';
+import {EnvironmentInjector, Injectable, isDevMode, runInInjectionContext} from '@angular/core';
 import { AngularFirestore } from "@angular/fire/compat/firestore";
 import { Observable } from "rxjs";
 import { map } from "rxjs/operators";
@@ -87,7 +87,8 @@ import firebase from "firebase/compat/app";
 export class StockTransferService {
   env = isDevMode() ? environment.testCollections : environment.collections;
 
-  constructor(private firestore: AngularFirestore) {}
+  constructor(private firestore: AngularFirestore,
+              private injector : EnvironmentInjector) {}
 
   // ✅ Get Outgoing list
   getStockTransferList(): Observable<any[]> {
@@ -159,10 +160,10 @@ export class StockTransferService {
 
   // ✅ Update both collections safely
   async updateStockTransfer(id: string, status: string, type: 'incoming' | 'outgoing'): Promise<void> {
-    const collectionName = type === 'incoming'
-      ? this.env.incomingStockTransfer
-      : this.env.stockTransfer;
-    await this.firestore.collection(collectionName).doc(id).update({ status });
+    const collectionName = type === 'incoming' ? this.env.incomingStockTransfer : this.env.stockTransfer;
+    runInInjectionContext(this.injector, async () => {
+      await this.firestore.collection(collectionName).doc(id).update({status});
+    });
   }
 
   // ✅ Delete / Cancel / Approve handled separately

@@ -274,6 +274,7 @@ export class StockTransferListComponent implements OnInit {
 
 
   approveTransfer(row: any) {
+    runInInjectionContext(this.injector, async () => {
     Swal.fire({
       title: 'Approve this transfer?',
       icon: 'question',
@@ -290,6 +291,7 @@ export class StockTransferListComponent implements OnInit {
           Swal.fire('Error', 'Failed to approve transfer.', 'error');
         }
       }
+    });
     });
   }
 
