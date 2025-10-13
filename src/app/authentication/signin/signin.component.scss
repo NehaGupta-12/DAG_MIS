@@ -158,7 +158,7 @@
 .input-icon {
   right: 12px;
   transform: translateY(-50%);
-   color: #999; /* medium grey */
+   color: #666; /* medium grey */
 }
 
 
@@ -230,7 +230,8 @@
   top: 50%;
   opacity: 0.8;
   transform: translateY(-50%);
-  color: #ccc;
+  //color: #ccc;
+  color: #666; /* medium grey */
   z-index: 2; /* ensures icons stay visible above input */
   pointer-events: auto !important; /* enable clicking */
 }
