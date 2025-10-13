@@ -16,6 +16,7 @@ export const environment = {
     budget: 'dev-budget',
     dailySales: 'dev-daily-sales',
     stockTransfer: 'dev-stockTransfer',
+    incomingStockTransfer: 'dev-incomingStockTransfer',
     roles: 'dev-roles',
     outletProduct: 'dev-outletProduct',
     monthlyBudget: 'dev-monthlyBudget',
@@ -31,6 +32,7 @@ export const environment = {
     budget: 'budget',
     dailySales: 'daily-sales',
     stockTransfer: 'stockTransfer',
+    incomingStockTransfer: 'incomingStockTransfer', // ✅ add this
     roles: 'roles',
     outletProduct: 'outletProduct',
     monthlyBudget: 'monthlyBudget',

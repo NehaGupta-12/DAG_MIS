@@ -3,140 +3,312 @@
     <div class="row">
       <div class="col-lg-12">
         <div class="card">
+          <mat-tab-group mat-stretch-tabs>
 
-          <!-- Header -->
-          <div class="materialTableHeader">
-            <div class="left">
-              <ul class="header-buttons-left ms-0">
-                <li class="tbl-title">
-                  <h2 class="fs-4">Stock Transfer List</h2>
-                </li>
-                <li class="tbl-search-box">
-                  <label for="search-input">
-                    <i class="material-icons search-icon">search</i>
-                  </label>
-                  <input
-                    id="search-input"
-                    placeholder="Search"
-                    type="text"
-                    (keyup)="applyFilter($event)"
-                    class="browser-default search-field"
-                  />
-                </li>
-              </ul>
-            </div>
-            <div class="right">
-              <div class="right-side-btn tbl-header-btn col-green btn-large-icon">
+
+              <mat-tab label="Outgoing">
+                <ng-template matTabContent>
+
+                  <!-- Header -->
+                  <div class="materialTableHeader">
+                    <div class="left">
+                      <ul class="header-buttons-left ms-0">
+                        <li class="tbl-title">
+                          <h2 class="fs-4">Stock Transfer List</h2>
+                        </li>
+                        <li class="tbl-search-box">
+                          <label for="search-input">
+                            <i class="material-icons search-icon">search</i>
+                          </label>
+                          <input
+                            id="search-input"
+                            placeholder="Search"
+                            type="text"
+                            (keyup)="applyFilter($event)"
+                            class="browser-default search-field"
+                          />
+                        </li>
+                      </ul>
+                    </div>
+                    <div class="right">
+                      <div class="right-side-btn tbl-header-btn col-green btn-large-icon">
                 <span [matTooltip]="!authService.hasPermission('Stock Transfer','create') ? 'No permission' : 'Add Stock Transfer'" matTooltipPosition="above">
 
                 <button mat-icon-button  class="tbl-header-btn col-green" (click)="navigateToAddStockTransfer()" [disabled]="!authService.hasPermission('Stock Transfer','create')">
                   <mat-icon>add_circle_outline</mat-icon>
                 </button>
                 </span>
-              </div>
-            </div>
-          </div>
+                      </div>
+                    </div>
+                  </div>
 
-          <!-- Body -->
-          <div class="body overflow-auto">
-            <div class="responsive_table">
-              <table mat-table [dataSource]="dataSource" matSort class="mat-cell advance-table">
+                  <!-- Body -->
+                  <div class="body overflow-auto">
+                    <div class="responsive_table">
+                      <table mat-table [dataSource]="dataSource" matSort class="mat-cell advance-table">
 
-                <!-- ID -->
-                <ng-container matColumnDef="serial">
-                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Sr. No.</th>
-                  <td mat-cell *matCellDef="let row; let i = index">
-                    {{ i + 1 + (paginator.pageIndex * paginator.pageSize) }}
-                  </td>
-                </ng-container>
+                        <!-- ID -->
+                        <ng-container matColumnDef="serial">
+                          <th mat-header-cell *matHeaderCellDef mat-sort-header>Sr. No.</th>
+                          <td mat-cell *matCellDef="let row; let i = index">
+                            {{ i + 1 + (paginator.pageIndex * paginator.pageSize) }}
+                          </td>
+                        </ng-container>
 
-                <!-- First Name -->
-                <ng-container matColumnDef="fromOutletDealer">
-                  <th mat-header-cell *matHeaderCellDef mat-sort-header>From Outlet/dealer</th>
-                  <td mat-cell *matCellDef="let row">{{ row.fromDealerOutlet }}</td>
-                </ng-container>
-
-
-                <!-- Gender -->
-                <ng-container matColumnDef="toOutletDealer">
-                  <th mat-header-cell *matHeaderCellDef mat-sort-header>To Outlet/dealer</th>
-                  <td mat-cell *matCellDef="let row">{{ row.toDealerOutlet }}</td>
-                </ng-container>
+                        <!-- First Name -->
+                        <ng-container matColumnDef="fromOutletDealer">
+                          <th mat-header-cell *matHeaderCellDef mat-sort-header>From Outlet/dealer</th>
+                          <td mat-cell *matCellDef="let row">{{ row.fromDealerOutlet }}</td>
+                        </ng-container>
 
 
+                        <!-- Gender -->
+                        <ng-container matColumnDef="toOutletDealer">
+                          <th mat-header-cell *matHeaderCellDef mat-sort-header>To Outlet/dealer</th>
+                          <td mat-cell *matCellDef="let row">{{ row.toDealerOutlet }}</td>
+                        </ng-container>
 
 
-                <!-- Quantity -->
-                <ng-container matColumnDef="quantityCount">
-                  <th mat-header-cell *matHeaderCellDef> Quantity Count </th>
-                  <td mat-cell *matCellDef="let row">
-                    {{ getTotalQuantity(row) }}
-                  </td>
-                </ng-container>
-
-                <!-- Quantity -->
-                <ng-container matColumnDef="productsCount">
-                  <th mat-header-cell *matHeaderCellDef> Products Count </th>
-                  <td mat-cell *matCellDef="let row">
-                    {{ row.items.length || 0 }}
-                  </td>
-                </ng-container>
-
-                <!-- Quantity -->
-                <ng-container matColumnDef="createdAt">
-                  <th mat-header-cell *matHeaderCellDef>Created At</th>
-                  <td mat-cell *matCellDef="let row">
-                    {{ row.createdAt?.toDate() | date:'dd/MM/yyyy' }}
-                  </td>
-                </ng-container>
 
 
-                <!-- Action -->
-                <ng-container matColumnDef="action">
-                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Action</th>
-                  <td mat-cell *matCellDef="let row">
-                    <button mat-icon-button style="color: #6c757d;" (click)="openAssignDialog(row)" [disabled]="!authService.hasPermission('Stock Transfer','list')">
-                      <mat-icon>visibility</mat-icon>
-                    </button>
-                    <button mat-icon-button color="accent" (click)="deleteGrn(row.id, row)" [disabled]="!authService.hasPermission('Stock Transfer','delete')">
-                      <app-feather-icons [icon]="'trash-2'" [class]="'tbl-fav-delete'"></app-feather-icons>
-                    </button>
-                  </td>
-                </ng-container>
+                        <!-- Quantity -->
+                        <ng-container matColumnDef="quantityCount">
+                          <th mat-header-cell *matHeaderCellDef> Quantity Count </th>
+                          <td mat-cell *matCellDef="let row">
+                            {{ getTotalQuantity(row) }}
+                          </td>
+                        </ng-container>
+
+                        <!-- Quantity -->
+                        <ng-container matColumnDef="productsCount">
+                          <th mat-header-cell *matHeaderCellDef> Products Count </th>
+                          <td mat-cell *matCellDef="let row">
+                            {{ row.items.length || 0 }}
+                          </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="status">
+                          <th mat-header-cell  *matHeaderCellDef>Status</th>
+                          <td mat-cell *matCellDef="let element">{{element.status}}</td>
+                        </ng-container>
+
+                        <!-- Quantity -->
+                        <ng-container matColumnDef="createdAt">
+                          <th mat-header-cell *matHeaderCellDef>Created At</th>
+                          <td mat-cell *matCellDef="let row">
+                            {{ row.createdAt?.toDate() | date:'dd/MM/yyyy' }}
+                          </td>
+                        </ng-container>
 
 
-                <!-- Table Rows -->
-                <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-                <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-              </table>
+                        <!-- Action -->
+                        <ng-container matColumnDef="action">
+                          <th mat-header-cell *matHeaderCellDef mat-sort-header>Action</th>
+                          <td mat-cell *matCellDef="let row">
+                            <button mat-icon-button style="color: #6c757d;" (click)="openAssignDialog(row)" [disabled]="!authService.hasPermission('Stock Transfer','list')">
+                              <mat-icon>visibility</mat-icon>
+                            </button>
+<!--                            <button mat-icon-button color="accent" (click)="deleteGrn(row.id, row)" [disabled]="!authService.hasPermission('Stock Transfer','delete')">-->
+<!--                              <app-feather-icons [icon]="'trash-2'" [class]="'tbl-fav-delete'"></app-feather-icons>-->
+<!--                            </button>-->
+
+                            <button mat-icon-button color="warn"
+                                    (click)="cancelTransfer(row.id)"
+                                    [disabled]="!authService.hasPermission('Stock Transfer','delete')">
+                              <mat-icon>cancel</mat-icon>
+                            </button>
 
 
-            </div>
+                          </td>
+                        </ng-container>
 
-            <!-- Loading spinner -->
-            <div *ngIf="isLoading" class="tbl-spinner">
-              <mat-progress-spinner color="primary" [diameter]="40" mode="indeterminate">
-              </mat-progress-spinner>
-            </div>
 
-            <!-- No results -->
-            <div class="no-results" *ngIf="!isLoading && dataSource.data.length === 0">
-              No results
-            </div>
+                        <!-- Table Rows -->
+                        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+                      </table>
 
-            <!-- Pagination -->
-            <mat-paginator
-              #paginator
-              [length]="dataSource.filteredData.length"
-              [pageIndex]="0"
-              [pageSize]="10"
-              [pageSizeOptions]="[5, 10, 25, 100]">
-            </mat-paginator>
 
-          </div>
+                    </div>
+
+                    <!-- Loading spinner -->
+                    <div *ngIf="isLoading" class="tbl-spinner">
+                      <mat-progress-spinner color="primary" [diameter]="40" mode="indeterminate">
+                      </mat-progress-spinner>
+                    </div>
+
+                    <!-- No results -->
+                    <div class="no-results" *ngIf="!isLoading && dataSource.data.length === 0">
+                      No results
+                    </div>
+
+                    <!-- Pagination -->
+                    <mat-paginator
+                      #paginator
+                      [length]="dataSource.filteredData.length"
+                      [pageIndex]="0"
+                      [pageSize]="10"
+                      [pageSizeOptions]="[5, 10, 25, 100]">
+                    </mat-paginator>
+
+                  </div>
+
+                </ng-template>
+              </mat-tab>
+
+              <mat-tab label="Incoming">
+                <ng-template matTabContent>
+                  <!-- Header -->
+                  <div class="materialTableHeader">
+                    <div class="left">
+                      <ul class="header-buttons-left ms-0">
+                        <li class="tbl-title">
+                          <h2 class="fs-4">Stock Transfer List</h2>
+                        </li>
+                        <li class="tbl-search-box">
+                          <label for="search-input">
+                            <i class="material-icons search-icon">search</i>
+                          </label>
+                          <input
+                            id="searchs-input"
+                            placeholder="Search"
+                            type="text"
+                            (keyup)="applyFilter($event)"
+                            class="browser-default search-field"
+                          />
+                        </li>
+                      </ul>
+                    </div>
+
+                  </div>
+
+                  <!-- Body -->
+                  <div class="body overflow-auto">
+                    <div class="responsive_table">
+                      <table mat-table [dataSource]="dataSource" matSort class="mat-cell advance-table">
+
+                        <!-- ID -->
+                        <ng-container matColumnDef="serial">
+                          <th mat-header-cell *matHeaderCellDef mat-sort-header>Sr. No.</th>
+                          <td mat-cell *matCellDef="let row; let i = index">
+                            {{ i + 1 + (paginator.pageIndex * paginator.pageSize) }}
+                          </td>
+                        </ng-container>
+
+                        <!-- First Name -->
+                        <ng-container matColumnDef="fromOutletDealer">
+                          <th mat-header-cell *matHeaderCellDef mat-sort-header>From Outlet/dealer</th>
+                          <td mat-cell *matCellDef="let row">{{ row.fromDealerOutlet }}</td>
+                        </ng-container>
+
+
+                        <!-- Gender -->
+                        <ng-container matColumnDef="toOutletDealer">
+                          <th mat-header-cell *matHeaderCellDef mat-sort-header>To Outlet/dealer</th>
+                          <td mat-cell *matCellDef="let row">{{ row.toDealerOutlet }}</td>
+                        </ng-container>
+
+
+
+
+                        <!-- Quantity -->
+                        <ng-container matColumnDef="quantityCount">
+                          <th mat-header-cell *matHeaderCellDef> Quantity Count </th>
+                          <td mat-cell *matCellDef="let row">
+                            {{ getTotalQuantity(row) }}
+                          </td>
+                        </ng-container>
+
+                        <!-- Quantity -->
+                        <ng-container matColumnDef="productsCount">
+                          <th mat-header-cell *matHeaderCellDef> Products Count </th>
+                          <td mat-cell *matCellDef="let row">
+                            {{ row.items.length || 0 }}
+                          </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="status">
+                          <th mat-header-cell  *matHeaderCellDef>Status</th>
+                          <td mat-cell *matCellDef="let element">{{element.status}}</td>
+                        </ng-container>
+
+                        <!-- Quantity -->
+                        <ng-container matColumnDef="createdAt">
+                          <th mat-header-cell *matHeaderCellDef>Created At</th>
+                          <td mat-cell *matCellDef="let row">
+                            {{ row.createdAt?.toDate() | date:'dd/MM/yyyy' }}
+                          </td>
+                        </ng-container>
+
+
+                        <!-- Action -->
+                        <ng-container matColumnDef="action">
+                          <th mat-header-cell *matHeaderCellDef mat-sort-header>Action</th>
+                          <td mat-cell *matCellDef="let row">
+                            <button mat-icon-button style="color: #6c757d;" (click)="openAssignDialog(row)" [disabled]="!authService.hasPermission('Stock Transfer','list')">
+                              <mat-icon>visibility</mat-icon>
+                            </button>
+<!--                            <button mat-icon-button color="accent" (click)="deleteGrn(row.id, row)" [disabled]="!authService.hasPermission('Stock Transfer','delete')">-->
+<!--                              <app-feather-icons [icon]="'trash-2'" [class]="'tbl-fav-delete'"></app-feather-icons>-->
+<!--                            </button>-->
+
+                            <button mat-icon-button color="primary"
+                                    (click)="approveTransfer(row)">
+                              <mat-icon>check_circle</mat-icon>
+                            </button>
+
+                            <button mat-icon-button color="warn"
+                                    (click)="rejectTransfer(row)">
+                              <mat-icon>cancel</mat-icon>
+                            </button>
+
+
+
+
+                          </td>
+                        </ng-container>
+
+
+                        <!-- Table Rows -->
+                        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+                      </table>
+
+
+                    </div>
+
+                    <!-- Loading spinner -->
+                    <div *ngIf="isLoading" class="tbl-spinner">
+                      <mat-progress-spinner color="primary" [diameter]="40" mode="indeterminate">
+                      </mat-progress-spinner>
+                    </div>
+
+                    <!-- No results -->
+                    <div class="no-results" *ngIf="!isLoading && dataSource.data.length === 0">
+                      No results
+                    </div>
+
+                    <!-- Pagination -->
+                    <mat-paginator
+                      #paginator
+                      [length]="dataSource.filteredData.length"
+                      [pageIndex]="0"
+                      [pageSize]="10"
+                      [pageSizeOptions]="[5, 10, 25, 100]">
+                    </mat-paginator>
+
+                  </div>
+                </ng-template>
+              </mat-tab>
+
+
+          </mat-tab-group>
+
+
         </div>
       </div>
     </div>
   </div>
 </section>
+
 

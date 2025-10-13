@@ -1,6 +1,6 @@
 
 <section class="content d-flex justify-content-center align-items-center">
-  <div class="content-block w-100" style="max-width: 800px;">
+  <div class="content-block w-100" style="max-width: 1050px;">
 
     <div class="row clearfix justify-content-center">
       <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12">
@@ -11,20 +11,20 @@
           <div class="body">
             <form class="register-form m-4" [formGroup]="stockTransferForm!" (ngSubmit)="submitForm()">
 
-              <!-- 🌍 Country Selection -->
+              <!--  Country Selection -->
               <div class="row">
                 <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 mb-2">
                   <mat-form-field appearance="outline" class="w-100">
                     <mat-label>Country</mat-label>
                     <mat-select formControlName="country"
                                 required
-                                #countrySelect="matSelect"
                                 panelClass="custom-select-panel"
                                 (openedChange)="onCountrySelectOpened($event)">
 
                       <!-- 🔍 Search -->
                       <div class="mat-select-search" (click)="$event.stopPropagation()">
                         <input matInput
+                               #countrySearchInput
                                [value]="countrySearchText"
                                (input)="onCountrySearchChange($event)"
                                (click)="$event.stopPropagation()"
@@ -284,6 +284,8 @@
                 </div>
               </div>
             </form>
+
+
           </div>
         </div>
       </div>

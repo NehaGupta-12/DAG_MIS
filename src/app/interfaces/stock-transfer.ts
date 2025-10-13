@@ -15,3 +15,4 @@ export interface StockTransferItem {
   unit: string;
   [key: string]: any;
 }
+

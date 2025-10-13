@@ -667,6 +667,7 @@ import {InventoryService} from "../add-inventory/inventory.service";
 import {LoadingService} from "../../Services/loading.service";
 import {ActivityLogService} from "../activity-log/activity-log.service";
 import {CountryService} from "../../Services/country.service";
+import {MatTab, MatTabContent, MatTabGroup} from "@angular/material/tabs";
 
 @Component({
   selector: 'app-add-stock-transfer',
@@ -691,7 +692,10 @@ import {CountryService} from "../../Services/country.service";
     MatRowDef,
     MatTable,
     CommonModule,
-    MatTableModule
+    MatTableModule,
+    MatTabGroup,
+    MatTab,
+    MatTabContent
   ],
   providers: [
     {provide: MAT_DIALOG_DATA, useValue: {}}
@@ -869,13 +873,19 @@ export class AddStockTransferComponent implements OnInit {
     }, 300);
   }
 
+
   onCountrySelectOpened(isOpened: boolean) {
     if (isOpened) {
       this.countrySearchText = '';
       this.filterCountries();
       setTimeout(() => this.countrySearchInput.nativeElement.focus(), 0);
+    }else{
+      this.countrySearchText = '';
+      this.filterCountries();
     }
   }
+
+
 
   toggleProducts() {
     const fromOutletName = this.stockTransferForm.get('fromDealerOutlet')?.value;
@@ -1081,40 +1091,9 @@ export class AddStockTransferComponent implements OnInit {
     });
   }
 
-  isSubmitEnabled(): boolean {
-    const formValid =
-      this.stockTransferForm.get('country')?.valid &&
-      this.stockTransferForm.get('fromDealerOutlet')?.valid &&
-      this.stockTransferForm.get('toDealerOutlet')?.valid;
 
-    const hasProducts = this.addedProducts.length > 0;
-    const allQuantitiesValid = this.addedProducts.every(p => p.quantity && p.quantity > 0);
 
-    return !!formValid && hasProducts && allQuantitiesValid;
-  }
 
-  // addProduct() {
-  //   const selectedProductName = this.stockTransferForm.get('products')?.value;
-  //
-  //   if (!selectedProductName) {
-  //     Swal.fire('Error', 'Please select a product before adding.', 'error');
-  //     return;
-  //   }
-  //
-  //   const product = this.vehicledataSource.data.find(p => p.name === selectedProductName);
-  //
-  //   if (product) {
-  //     const exists = this.addedProducts.some(p => p.id === product.id);
-  //     if (exists) {
-  //       Swal.fire('Info', 'This product is already added.', 'info');
-  //       return;
-  //     }
-  //
-  //     this.addedProducts = [...this.addedProducts, { ...product, quantity: 1 }];
-  //   }
-  //
-  //   this.stockTransferForm.get('products')?.reset();
-  // }
 
   addProduct() {
     const selectedProducts: any[] = this.stockTransferForm.get('products')?.value || [];
@@ -1160,6 +1139,18 @@ export class AddStockTransferComponent implements OnInit {
       console.error('Error removing product:', error);
       Swal.fire('Error', 'Failed to remove product. Please try again.', 'error');
     }
+  }
+
+  isSubmitEnabled(): boolean {
+    const formValid =
+      this.stockTransferForm.get('country')?.valid &&
+      this.stockTransferForm.get('fromDealerOutlet')?.valid &&
+      this.stockTransferForm.get('toDealerOutlet')?.valid;
+
+    const hasProducts = this.addedProducts.length > 0;
+    const allQuantitiesValid = this.addedProducts.every(p => p.quantity && p.quantity > 0);
+
+    return !!formValid && hasProducts && allQuantitiesValid;
   }
 
   submitForm() {
@@ -1211,7 +1202,12 @@ export class AddStockTransferComponent implements OnInit {
                     transformedData.updateBy = username;
                     transformedData.updatedAt = timestamp;
 
-                    await this.stockTransferService.updateStockTransfer(this.data.id, transformedData);
+                    await this.stockTransferService.updateStockTransfer(
+                      this.data.id,
+                      transformedData.status,
+                      'outgoing'  // or 'incoming' depending on context
+                    );
+
 
                     for (const item of transformedData.items) {
                       await this.updateInventory(item, formValues.fromDealerOutlet, 'decrease');
@@ -1233,7 +1229,8 @@ export class AddStockTransferComponent implements OnInit {
                     transformedData.createBy = username;
                     transformedData.createdAt = timestamp;
 
-                    await this.stockTransferService.addStockTransfer(transformedData);
+                    await this.stockTransferService.addStockTransferWithIncoming(transformedData);
+
 
                     for (const item of transformedData.items) {
                       await this.updateInventory(item, formValues.fromDealerOutlet, 'decrease');

@@ -27,7 +27,27 @@ import {ViewStockTransferComponent} from "../view-stock-transfer/view-stock-tran
 import {LoadingService} from "../../Services/loading.service";
 import {AuthService} from "../../authentication/auth.service";
 import {ActivityLogService} from "../activity-log/activity-log.service";
+import {MatTab, MatTabContent, MatTabGroup} from "@angular/material/tabs";
+import {InventoryService} from "../add-inventory/inventory.service";
 
+
+export interface StockTransfer {
+  id?: string;
+  createBy: string;
+  createdAt: Date | string;
+  fromDealerOutlet: string;
+  toDealerOutlet: string;
+  status:'Approved','Pending','Cancel','Rejected',
+  items: StockTransferItem[];
+}
+
+export interface StockTransferItem {
+  model: string;
+  sku: string;
+  quantity: number;
+  unit: string;
+  [key: string]: any;
+}
 @Component({
   selector: 'app-stock-transfer-list',
   imports: [
@@ -45,7 +65,10 @@ import {ActivityLogService} from "../activity-log/activity-log.service";
     MatTableModule,
     DatePipe,
     FeatherIconsComponent,
-    CommonModule
+    CommonModule,
+    MatTab,
+    MatTabContent,
+    MatTabGroup
   ],
   templateUrl: './stock-transfer-list.component.html',
   standalone: true,
@@ -62,6 +85,7 @@ export class StockTransferListComponent implements OnInit {
     {def: 'toOutletDealer', label: 'ToOutletDealer'},
     {def: 'quantityCount', label: 'QuantityCount'},
     {def: 'productsCount', label: 'ProductsCount'},
+    {def: 'status', label: 'Status'},
     {def: 'createdAt', label: 'CreatedAt'},
     {def: 'typeOfGrn', label: 'GrnType'},
   ];
@@ -72,6 +96,7 @@ export class StockTransferListComponent implements OnInit {
     'toOutletDealer',
     'quantityCount',
     'productsCount',
+    'status',
     'createdAt',
     'action'
   ];
@@ -88,15 +113,35 @@ export class StockTransferListComponent implements OnInit {
     private injector: EnvironmentInjector,
     private loadingService: LoadingService,
     public authService : AuthService,
+    private inventoryService: InventoryService,
     private mService: ActivityLogService,
   ) {}
 
   ngOnInit() {
     this.loadLocationList();
+    this. getIncomingStockTransferList();
   }
 
 // ✅ Load list with loader
   loadLocationList() {
+    this.loadingService.setLoading(true);
+    runInInjectionContext(this.injector, () => {
+      this.stockTransferService.getStockTransferList().subscribe({
+        next: (data: any) => {
+          this.dataSource.data = data;
+          this.dataSource.paginator = this.paginator;
+          this.dataSource.sort = this.sort;
+          this.loadingService.setLoading(false);
+        },
+        error: (err) => {
+          console.error('Failed to fetch stock transfer list', err);
+          this.loadingService.setLoading(false);
+        }
+      });
+    });
+  }
+
+  getIncomingStockTransferList() {
     this.loadingService.setLoading(true);
     runInInjectionContext(this.injector, () => {
       this.stockTransferService.getStockTransferList().subscribe({
@@ -129,81 +174,14 @@ export class StockTransferListComponent implements OnInit {
 
   }
 
+
+
 // Filtering
   applyFilter(event: Event) {
     const filterValue = (event.target as HTMLInputElement).value;
     this.dataSource.filter = filterValue.trim().toLowerCase();
   }
 
-// ✅ Delete with loader
-//   deleteGrn(id: string) {
-//     Swal.fire({
-//       title: 'Are you sure?',
-//       text: 'You will not be able to recover this Stock Transfer!',
-//       icon: 'warning',
-//       showCancelButton: true,
-//       confirmButtonText: 'Yes, delete it!',
-//       cancelButtonText: 'No, cancel',
-//     }).then((result) => {
-//       if (!result.isConfirmed) return;
-//
-//       this.loadingService.setLoading(true); // loader before deletion
-//
-//       runInInjectionContext(this.injector, () => {
-//         this.stockTransferService.deleteStockTransfer(id)
-//           .then(() => {
-//             this.loadLocationList();
-//             Swal.fire('Deleted!', 'Stock Transfer has been deleted.', 'success');
-//           })
-//           .catch((err) => {
-//             console.error('Delete failed:', err);
-//             Swal.fire('Error', 'Failed to delete the Stock Transfer. Please try again.', 'error');
-//           })
-//           .finally(() => {
-//             this.loadingService.setLoading(false);
-//           });
-//       });
-//     });
-//   }
-
-  // ✅ DELETE Stock Transfer
-  // deleteGrn(id: string, row?: any) {
-  //   Swal.fire({
-  //     title: 'Are you sure?',
-  //     text: 'You will not be able to recover this Stock Transfer!',
-  //     icon: 'warning',
-  //     showCancelButton: true,
-  //     confirmButtonText: 'Yes, delete it!',
-  //     cancelButtonText: 'No, cancel',
-  //   }).then((result) => {
-  //     if (!result.isConfirmed) return;
-  //
-  //     this.loadingService.setLoading(true);
-  //
-  //     runInInjectionContext(this.injector, () => {
-  //       this.stockTransferService.deleteStockTransfer(id)
-  //         .then(() => {
-  //           this.loadLocationList();
-  //           Swal.fire('Deleted!', 'Stock Transfer has been deleted.', 'success');
-  //
-  //           // 👉 log delete
-  //           this.mService.addLog({
-  //             date: Date.now(),
-  //             section: 'StockTransfer',
-  //             action: 'Delete',
-  //             description: `Deleted Stock Transfer from ${row?.fromOutletDealer} to ${row?.toOutletDealer} (ID: ${id})`
-  //           });
-  //         })
-  //         .catch((err) => {
-  //           console.error('Delete failed:', err);
-  //           Swal.fire('Error', 'Failed to delete the Stock Transfer. Please try again.', 'error');
-  //         })
-  //         .finally(() => {
-  //           this.loadingService.setLoading(false);
-  //         });
-  //     });
-  //   });
-  // }
 
   deleteGrn(id: string, row?: any) {
     Swal.fire({
@@ -277,6 +255,85 @@ export class StockTransferListComponent implements OnInit {
       }
     });
   }
+
+  cancelTransfer(id: string) {
+    Swal.fire({
+      title: 'Cancel this transfer?',
+      text: 'This will mark the transfer as Cancelled.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, cancel it',
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.stockTransferService.updateStockTransfer(id, 'Cancelled', 'outgoing')
+          .then(() => Swal.fire('Cancelled', 'Stock transfer has been cancelled.', 'success'))
+          .catch(err => Swal.fire('Error', 'Failed to cancel transfer.', 'error'));
+      }
+    });
+  }
+
+
+  approveTransfer(row: any) {
+    Swal.fire({
+      title: 'Approve this transfer?',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, approve',
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          await this.stockTransferService.updateStockTransfer(row.id, 'Approved', 'incoming');
+          await this.updateInventoryAfterApproval(row); // Inventory adjustment on approval
+          Swal.fire('Approved', 'Transfer approved successfully.', 'success');
+        } catch (err) {
+          console.error(err);
+          Swal.fire('Error', 'Failed to approve transfer.', 'error');
+        }
+      }
+    });
+  }
+
+  rejectTransfer(row: any) {
+    Swal.fire({
+      title: 'Reject this transfer?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, reject',
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.stockTransferService.updateStockTransfer(row.id, 'Rejected', 'incoming')
+          .then(() => Swal.fire('Rejected', 'Transfer has been rejected.', 'success'))
+          .catch(err => Swal.fire('Error', 'Failed to reject transfer.', 'error'));
+      }
+    });
+  }
+
+  // async updateInventoryAfterApproval(row: any) {
+  //   for (const item of row.items) {
+  //     await this.updateInventory(item, row.toDealerOutlet, 'increase');
+  //   }
+  // }
+
+  async updateInventoryAfterApproval(row: any) {
+    if (!row?.items || !row.toDealerOutlet) return;
+
+    for (const item of row.items) {
+      // Increase inventory in "to" outlet
+      await this.updateInventory(item, row.toDealerOutlet, 'increase');
+
+      // Decrease inventory in "from" outlet
+      await this.updateInventory(item, row.fromDealerOutlet, 'decrease');
+    }
+  }
+
+  updateInventory(product: any, outletId: string, action: 'increase' | 'decrease'): Promise<void> {
+    const quantityChange = action === 'increase' ? product.quantity : -product.quantity;
+    return runInInjectionContext(this.injector, () =>
+      this.inventoryService.updateInventoryQuantity(outletId, product.sku, quantityChange)
+    );
+  }
+
+
 
 
 
