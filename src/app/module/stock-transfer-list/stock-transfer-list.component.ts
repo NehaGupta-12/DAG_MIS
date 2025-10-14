@@ -1,4 +1,12 @@
-import {Component, EnvironmentInjector, OnInit, runInInjectionContext, ViewChild} from '@angular/core';
+import {
+  Component,
+  EnvironmentInjector,
+  OnInit,
+  runInInjectionContext,
+
+  ViewChild,
+
+} from '@angular/core';
 import {CommonModule, DatePipe, NgIf} from "@angular/common";
 import {FeatherIconsComponent} from "@shared/components/feather-icons/feather-icons.component";
 import {
@@ -254,79 +262,109 @@ export class StockTransferListComponent implements OnInit {
         console.log('Dialog closed with:', result);
       }
     });
-  }
 
-  cancelTransfer(id: string) {
-    Swal.fire({
-      title: 'Cancel this transfer?',
-      text: 'This will mark the transfer as Cancelled.',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonText: 'Yes, cancel it',
-    }).then((result) => {
-      if (result.isConfirmed) {
-        this.stockTransferService.updateStockTransfer(id, 'Cancelled', 'outgoing')
-          .then(() => Swal.fire('Cancelled', 'Stock transfer has been cancelled.', 'success'))
-          .catch(err => Swal.fire('Error', 'Failed to cancel transfer.', 'error'));
-      }
-    });
   }
-
 
   approveTransfer(row: any) {
-    runInInjectionContext(this.injector, async () => {
     Swal.fire({
       title: 'Approve this transfer?',
       icon: 'question',
       showCancelButton: true,
       confirmButtonText: 'Yes, approve',
     }).then(async (result) => {
-      if (result.isConfirmed) {
+      if (!result.isConfirmed) return;
+
+      await runInInjectionContext(this.injector, async () => {
         try {
-          await this.stockTransferService.updateStockTransfer(row.id, 'Approved', 'incoming');
-          await this.updateInventoryAfterApproval(row); // Inventory adjustment on approval
-          Swal.fire('Approved', 'Transfer approved successfully.', 'success');
+          this.loadingService.setLoading(true);
+
+          // Update statuses
+          await this.stockTransferService.updateLinkedStockTransfer(
+            row.id,
+            'Approved',
+            'incoming',
+            row.linkedIncomingId
+          );
+
+          // Update inventory only after approval
+          await this.updateInventoryAfterApproval(row);
+
+          Swal.fire('Approved!', 'Transfer approved successfully.', 'success');
+          this.loadLocationList();
         } catch (err) {
           console.error(err);
           Swal.fire('Error', 'Failed to approve transfer.', 'error');
+        } finally {
+          this.loadingService.setLoading(false);
         }
-      }
-    });
+      });
     });
   }
+
+
+
 
   rejectTransfer(row: any) {
-    Swal.fire({
-      title: 'Reject this transfer?',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonText: 'Yes, reject',
-    }).then((result) => {
-      if (result.isConfirmed) {
-        this.stockTransferService.updateStockTransfer(row.id, 'Rejected', 'incoming')
-          .then(() => Swal.fire('Rejected', 'Transfer has been rejected.', 'success'))
-          .catch(err => Swal.fire('Error', 'Failed to reject transfer.', 'error'));
-      }
+
+      Swal.fire({
+        title: 'Reject this transfer?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, reject',
+      }).then(async (result) => {
+        if (!result.isConfirmed) return;
+        await runInInjectionContext(this.injector, async () => {
+        try {
+          this.loadingService.setLoading(true);
+          await this.stockTransferService.updateLinkedStockTransfer(row.id, 'Rejected', 'incoming', row.linkedOutgoingId);
+          Swal.fire('Rejected', 'Transfer rejected successfully.', 'success');
+          this.loadLocationList();
+        } catch (err) {
+          console.error(err);
+          Swal.fire('Error', 'Failed to reject transfer.', 'error');
+        } finally {
+          this.loadingService.setLoading(false);
+        }
+      });
     });
   }
 
-  // async updateInventoryAfterApproval(row: any) {
-  //   for (const item of row.items) {
-  //     await this.updateInventory(item, row.toDealerOutlet, 'increase');
-  //   }
-  // }
+  cancelTransfer(row: any) {
+
+      Swal.fire({
+        title: 'Cancel this transfer?',
+        text: 'This will mark the transfer as Cancelled.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, cancel it',
+      }).then(async (result) => {
+        if (!result.isConfirmed) return;
+        await runInInjectionContext(this.injector, async () => {
+        try {
+          this.loadingService.setLoading(true);
+          await this.stockTransferService.updateLinkedStockTransfer(row.id, 'Cancelled', 'outgoing', row.linkedIncomingId);
+          Swal.fire('Cancelled', 'Transfer has been cancelled.', 'success');
+          this.loadLocationList();
+        } catch (err) {
+          console.error(err);
+          Swal.fire('Error', 'Failed to cancel transfer.', 'error');
+        } finally {
+          this.loadingService.setLoading(false);
+        }
+      });
+    });
+  }
+
 
   async updateInventoryAfterApproval(row: any) {
     if (!row?.items || !row.toDealerOutlet) return;
 
     for (const item of row.items) {
-      // Increase inventory in "to" outlet
       await this.updateInventory(item, row.toDealerOutlet, 'increase');
-
-      // Decrease inventory in "from" outlet
       await this.updateInventory(item, row.fromDealerOutlet, 'decrease');
     }
   }
+
 
   updateInventory(product: any, outletId: string, action: 'increase' | 'decrease'): Promise<void> {
     const quantityChange = action === 'increase' ? product.quantity : -product.quantity;
@@ -334,9 +372,5 @@ export class StockTransferListComponent implements OnInit {
       this.inventoryService.updateInventoryQuantity(outletId, product.sku, quantityChange)
     );
   }
-
-
-
-
 
 }

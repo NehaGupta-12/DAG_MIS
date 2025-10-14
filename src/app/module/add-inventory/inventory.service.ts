@@ -1,6 +1,6 @@
-import {Injectable, isDevMode, runInInjectionContext} from '@angular/core';
+import {EnvironmentInjector, Injectable, isDevMode, runInInjectionContext} from '@angular/core';
 import {AngularFirestore} from "@angular/fire/compat/firestore";
-import {Observable} from "rxjs";
+import {lastValueFrom, Observable} from "rxjs";
 import {map} from "rxjs/operators";
 import firebase from "firebase/compat/app";
 import {environment} from "../../../environments/environment";
@@ -10,7 +10,8 @@ import {environment} from "../../../environments/environment";
 })
 export class InventoryService {
   env = isDevMode() ? environment.testCollections : environment.collections;
-  constructor(private firestore: AngularFirestore) {
+  constructor(private firestore: AngularFirestore,
+              private injector : EnvironmentInjector) {
   }
 
   getInventoryData(dealerId: string): Observable<any[]> {
@@ -34,20 +35,23 @@ export class InventoryService {
     sku: string,
     quantityChange: number
   ): Promise<void> {
-    const docRef = this.firestore.collection(this.env.inventory).doc(outletId);
-    return docRef.get().toPromise().then((doc: any) => {
-      if (!doc.exists) {
-        return docRef.set({
-          products: {
-            [sku]: { quantity: quantityChange }
-          }
-        });
-      } else {
-        return docRef.update({
-          [`products.${sku}.quantity`]:
-          (doc.data()?.products?.[sku]?.quantity || 0) + quantityChange
-        });
-      }
+    // 1. MUST return the result of runInInjectionContext
+    return runInInjectionContext(this.injector, () => {
+      const docRef = this.firestore.collection(this.env.inventory).doc(outletId);
+      return lastValueFrom(docRef.get()).then((doc: any) => {
+        if (!doc.exists) {
+          return docRef.set({
+            products: {
+              [sku]: { quantity: quantityChange }
+            }
+          });
+        } else {
+          const currentQuantity = doc.data()?.products?.[sku]?.quantity || 0;
+          return docRef.update({
+            [`products.${sku}.quantity`]: currentQuantity + quantityChange
+          });
+        }
+      });
     });
   }
 

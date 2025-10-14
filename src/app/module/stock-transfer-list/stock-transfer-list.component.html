@@ -6,7 +6,7 @@
           <mat-tab-group mat-stretch-tabs>
 
 
-              <mat-tab label="Outgoing">
+              <mat-tab label="Outgoing Stock">
                 <ng-template matTabContent>
 
                   <!-- Header -->
@@ -88,9 +88,18 @@
                         </ng-container>
 
                         <ng-container matColumnDef="status">
-                          <th mat-header-cell  *matHeaderCellDef>Status</th>
-                          <td mat-cell *matCellDef="let element">{{element.status}}</td>
+                          <th mat-header-cell *matHeaderCellDef>Status</th>
+                          <td mat-cell *matCellDef="let element">
+  <span [ngClass]="{
+    'text-primary': element.status === 'Pending',
+    'text-success': element.status === 'Approved',
+    'text-danger': element.status === 'Cancelled'
+  }">
+    {{element.status}}
+  </span>
+                          </td>
                         </ng-container>
+
 
                         <!-- Quantity -->
                         <ng-container matColumnDef="createdAt">
@@ -105,21 +114,18 @@
                         <ng-container matColumnDef="action">
                           <th mat-header-cell *matHeaderCellDef mat-sort-header>Action</th>
                           <td mat-cell *matCellDef="let row">
-                            <button mat-icon-button style="color: #6c757d;" (click)="openAssignDialog(row)" [disabled]="!authService.hasPermission('Stock Transfer','list')">
+                            <button mat-icon-button style="color: #6c757d;" (click)="openAssignDialog(row)">
                               <mat-icon>visibility</mat-icon>
                             </button>
-<!--                            <button mat-icon-button color="accent" (click)="deleteGrn(row.id, row)" [disabled]="!authService.hasPermission('Stock Transfer','delete')">-->
-<!--                              <app-feather-icons [icon]="'trash-2'" [class]="'tbl-fav-delete'"></app-feather-icons>-->
-<!--                            </button>-->
 
+                            <!-- Cancel Button -->
                             <button mat-icon-button color="warn"
-                                    (click)="cancelTransfer(row.id)"
-                                    [disabled]="!authService.hasPermission('Stock Transfer','delete')">
+                                    [disabled]="row.status !== 'Pending'"
+                                    (click)="cancelTransfer(row)">
                               <mat-icon>cancel</mat-icon>
                             </button>
-
-
                           </td>
+
                         </ng-container>
 
 
@@ -156,7 +162,7 @@
                 </ng-template>
               </mat-tab>
 
-              <mat-tab label="Incoming">
+              <mat-tab label="Incoming Stock">
                 <ng-template matTabContent>
                   <!-- Header -->
                   <div class="materialTableHeader">
@@ -227,10 +233,23 @@
                           </td>
                         </ng-container>
 
+<!--                        <ng-container matColumnDef="status">-->
+<!--                          <th mat-header-cell  *matHeaderCellDef>Status</th>-->
+<!--                          <td mat-cell *matCellDef="let element">{{element.status}}</td>-->
+<!--                        </ng-container>-->
                         <ng-container matColumnDef="status">
-                          <th mat-header-cell  *matHeaderCellDef>Status</th>
-                          <td mat-cell *matCellDef="let element">{{element.status}}</td>
+                          <th mat-header-cell *matHeaderCellDef>Status</th>
+                          <td mat-cell *matCellDef="let element">
+  <span [ngClass]="{
+    'text-primary': element.status === 'Pending',
+    'text-success': element.status === 'Approved',
+    'text-danger': element.status === 'Cancelled' || element.status === 'Rejected'
+  }">
+    {{element.status}}
+  </span>
+                          </td>
                         </ng-container>
+
 
                         <!-- Quantity -->
                         <ng-container matColumnDef="createdAt">
@@ -242,31 +261,57 @@
 
 
                         <!-- Action -->
+<!--                        <ng-container matColumnDef="action">-->
+<!--                          <th mat-header-cell *matHeaderCellDef mat-sort-header>Action</th>-->
+<!--                          <td mat-cell *matCellDef="let row">-->
+<!--                            <button mat-icon-button style="color: #6c757d;" (click)="openAssignDialog(row)" [disabled]="!authService.hasPermission('Stock Transfer','list')">-->
+<!--                              <mat-icon>visibility</mat-icon>-->
+<!--                            </button>-->
+
+
+<!--                            <button mat-icon-button color="primary"-->
+<!--                                    (click)="approveTransfer(row.id)">-->
+<!--                              <mat-icon>check_circle</mat-icon>-->
+<!--                            </button>-->
+
+<!--                            <button mat-icon-button color="warn"-->
+<!--                                    (click)="rejectTransfer(row)">-->
+<!--                              <mat-icon>cancel</mat-icon>-->
+<!--                            </button>-->
+
+
+
+
+<!--                          </td>-->
+<!--                        </ng-container>-->
+
+                        <!-- Action -->
                         <ng-container matColumnDef="action">
                           <th mat-header-cell *matHeaderCellDef mat-sort-header>Action</th>
                           <td mat-cell *matCellDef="let row">
-                            <button mat-icon-button style="color: #6c757d;" (click)="openAssignDialog(row)" [disabled]="!authService.hasPermission('Stock Transfer','list')">
+                            <button mat-icon-button style="color: #6c757d;" (click)="openAssignDialog(row)"
+                                    [disabled]="!authService.hasPermission('Stock Transfer','list')">
                               <mat-icon>visibility</mat-icon>
                             </button>
-<!--                            <button mat-icon-button color="accent" (click)="deleteGrn(row.id, row)" [disabled]="!authService.hasPermission('Stock Transfer','delete')">-->
-<!--                              <app-feather-icons [icon]="'trash-2'" [class]="'tbl-fav-delete'"></app-feather-icons>-->
-<!--                            </button>-->
 
-                            <button mat-icon-button color="primary"
-                                    (click)="approveTransfer(row.id)">
-                              <mat-icon>check_circle</mat-icon>
+                            <!-- Approve Button -->
+                            <button mat-icon-button
+                                    [color]="row.status === 'Approved' ? 'primary' : ''"
+                                    [disabled]="row.status !== 'Pending'"
+                                    (click)="approveTransfer(row)">
+                              <mat-icon [ngStyle]="{'color': row.status === 'Approved' ? 'green' : ''}">check_circle</mat-icon>
                             </button>
 
+                            <!-- Reject Button -->
                             <button mat-icon-button color="warn"
+                                    [disabled]="row.status !== 'Pending'"
                                     (click)="rejectTransfer(row)">
                               <mat-icon>cancel</mat-icon>
                             </button>
-
-
-
-
                           </td>
+
                         </ng-container>
+
 
 
                         <!-- Table Rows -->

@@ -1202,7 +1202,7 @@ export class AddStockTransferComponent implements OnInit {
                     transformedData.updateBy = username;
                     transformedData.updatedAt = timestamp;
 
-                    await this.stockTransferService.updateStockTransfer(
+                    await this.stockTransferService.updateLinkedStockTransfer(
                       this.data.ref.id,
                       transformedData.status,
                       'outgoing'  // or 'incoming' depending on context
@@ -1231,11 +1231,14 @@ export class AddStockTransferComponent implements OnInit {
 
                     await this.stockTransferService.addStockTransferWithIncoming(transformedData);
 
-
-                    for (const item of transformedData.items) {
-                      await this.updateInventory(item, formValues.fromDealerOutlet, 'decrease');
-                      await this.updateInventory(item, formValues.toDealerOutlet, 'increase');
+                    if (transformedData.status === 'Approved') {
+                      for (const item of transformedData.items) {
+                        await this.updateInventory(item, formValues.fromDealerOutlet, 'decrease');
+                        await this.updateInventory(item, formValues.toDealerOutlet, 'increase');
+                      }
                     }
+
+
 
                     this.mService.addLog({
                       date: timestamp,
