@@ -119,8 +119,7 @@
                             </button>
 
                             <!-- Cancel Button -->
-                            <button mat-icon-button color="warn"
-                                    [disabled]="row.status !== 'Pending'"
+                            <button *ngIf="row.status === 'Pending'"  mat-icon-button color="warn"
                                     (click)="cancelTransfer(row)">
                               <mat-icon>cancel</mat-icon>
                             </button>
@@ -296,15 +295,15 @@
 
                             <!-- Approve Button -->
                             <button mat-icon-button
-                                    [color]="row.status === 'Approved' ? 'primary' : ''"
-                                    [disabled]="row.status !== 'Pending'"
+                                    [ngStyle]="{'color': row.status === 'Pending' ? 'green' : ''}"
+                                    *ngIf="row.status === 'Pending'"
                                     (click)="approveTransfer(row)">
-                              <mat-icon [ngStyle]="{'color': row.status === 'Approved' ? 'green' : ''}">check_circle</mat-icon>
+                              <mat-icon >check_circle</mat-icon>
                             </button>
 
                             <!-- Reject Button -->
                             <button mat-icon-button color="warn"
-                                    [disabled]="row.status !== 'Pending'"
+                                    *ngIf="row.status === 'Pending'"
                                     (click)="rejectTransfer(row)">
                               <mat-icon>cancel</mat-icon>
                             </button>
