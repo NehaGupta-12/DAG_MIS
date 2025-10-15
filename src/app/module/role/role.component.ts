@@ -203,75 +203,9 @@ ngOnInit() {
   editRole(id: string) {
     this.router.navigate(['/module/edit-role', id]);
 
-    // 👉 Log Activity
-    this.mService.addLog({
-      date: Date.now(),
-      section: "Role",
-      action: "Edit",
-      description: `Edited Role with ID: ${id}`
-    });
+
   }
 
-
-
-  // deleteRole(roleId: string): void {
-  //   Swal.fire({
-  //     title: 'Are you sure?',
-  //     text: 'This action will permanently delete the role.',
-  //     icon: 'warning',
-  //     showCancelButton: true,
-  //     confirmButtonText: 'Yes, delete it!',
-  //     cancelButtonText: 'Cancel',
-  //     confirmButtonColor: '#d33',
-  //     cancelButtonColor: '#3085d6'
-  //   }).then((result) => {
-  //     if (result.isConfirmed) {
-  //       runInInjectionContext(this.injector, () => {
-  //         this.loaderService.setLoading(true);
-  //       this.roleService.deleteRole(roleId).then(() => {
-  //         Swal.fire('Deleted!', 'Role has been deleted successfully.', 'success');
-  //         this.loaderService.setLoading(false);
-  //       }).catch((error) => {
-  //         Swal.fire('Error!', 'Something went wrong: ' + error.message, 'error');
-  //       });
-  //       });
-  //     }
-  //   });
-  // }
-  // ✅ DELETE
-  // deleteRole(roleId: string): void {
-  //   Swal.fire({
-  //     title: 'Are you sure?',
-  //     text: 'This action will permanently delete the role.',
-  //     icon: 'warning',
-  //     showCancelButton: true,
-  //     confirmButtonText: 'Yes, delete it!',
-  //     cancelButtonText: 'Cancel',
-  //     confirmButtonColor: '#d33',
-  //     cancelButtonColor: '#3085d6'
-  //   }).then((result) => {
-  //     if (result.isConfirmed) {
-  //       runInInjectionContext(this.injector, () => {
-  //         this.loaderService.setLoading(true);
-  //         this.roleService.deleteRole(roleId).then(() => {
-  //           Swal.fire('Deleted!', 'Role has been deleted successfully.', 'success');
-  //           this.loaderService.setLoading(false);
-  //
-  //           // 👉 Log Activity
-  //           this.mService.addLog({
-  //             date: Date.now(),
-  //             section: "Role",
-  //             action: "Delete",
-  //             description: `Deleted Role with ID: ${roleId}`
-  //           });
-  //
-  //         }).catch((error) => {
-  //           Swal.fire('Error!', 'Something went wrong: ' + error.message, 'error');
-  //         });
-  //       });
-  //     }
-  //   });
-  // }
 
   deleteRole(roleId: string, roleName: string): void {
     Swal.fire({

@@ -90,7 +90,7 @@ export class ActivityLogComponent implements OnInit, AfterViewInit, OnDestroy {
 
   displayedColumns: string[] = ['position','date', 'section', 'action', 'user', 'description', 'currentIp'];
 
-  action: string[] = ['Delete','Add', 'Login', 'Logout', 'Submit', 'Update'].sort((a, b) => a.localeCompare(b));
+  action: string[] = ['Delete','Add', 'Login', 'Logout', 'Submit', 'Update', 'Approved', 'Disapproved'].sort((a, b) => a.localeCompare(b));
   section: string[] = [
     "Dashboard","Daily Sales","Daily Stock","Inventory List",
     "Master","Menu List","Monthly Target","Operation","Outlet/Dealer",
