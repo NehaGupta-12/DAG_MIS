@@ -459,7 +459,7 @@ export class DailySaleReportsComponent implements OnInit{
   }
 
 
-  generateReport(filteredData: any[], startDate: Date | null, endDate: Date, productsToShow: any[]) {
+  generateReport(filteredData: any[], startDate: Date | null, endDate: Date, productsToShow: any[], selectedOutlets: string[] = []) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -498,7 +498,6 @@ export class DailySaleReportsComponent implements OnInit{
     dayRangeEnd.setHours(23, 59, 59, 999);
 
     // ✅ Process ALL sales data (not filtered by date range) for Month and YTD
-    // We need to look at all data, not just filteredData
     this.salesdataSource.forEach(item => {
       // First check if this item matches the other filters (country, division, town, outlet, salesType)
       const filters = this.dealerForm.value;
@@ -509,12 +508,16 @@ export class DailySaleReportsComponent implements OnInit{
         countriesToInclude.push(...this.options.country);
       }
 
-      // Apply non-date filters
+      // 🔥 FIX: Add outlet filter check
+      const matchesOutletFilter = selectedOutlets.length === 0 || selectedOutlets.includes(item.dealerOutlet);
+
+      // Apply non-date filters INCLUDING outlet filter
       const matchesFilters = (
         (countriesToInclude.length === 0 || countriesToInclude.includes(item.country)) &&
         (!filters.town || item.town === filters.town) &&
         (!filters.division || item.division === filters.division) &&
-        (!filters.sale || item.salesType === filters.sale)
+        (!filters.sale || item.salesType === filters.sale) &&
+        matchesOutletFilter  // 🔥 ADD THIS LINE
       );
 
       if (!matchesFilters) return;
@@ -625,32 +628,12 @@ export class DailySaleReportsComponent implements OnInit{
       console.log('User assigned countries:', this.options.country);
       console.log('Products to show:', productsToShow.length);
       console.log('Product models:', productsToShow.map(p => p.model));
+      console.log('Selected outlets:', outlets);
 
-      // 🎯 MODIFIED: Include check for filters.sale
-      const filterFn = (item: any, outlet: string | null = null) => {
-        const itemDate = item.salesDate
-          ? new Date(item.salesDate)
-          : (item.createdAt?.seconds ? new Date(item.createdAt.seconds * 1000) : new Date(item.createdAt));
-
-        return (
-          (countriesToInclude.length === 0 || countriesToInclude.includes(item.country)) &&
-          (!filters.town || item.town === filters.town) &&
-          (!filters.division || item.division === filters.division) &&
-          (!outlet || item.dealerOutlet === outlet) &&
-          // --- New Sales Type Filter ---
-          (!filters.sale || item.salesType === filters.sale) &&
-          // -----------------------------
-          (!startDate || itemDate >= startDate) &&
-          (!endDate || itemDate <= endDate)
-        );
-      };
-
-      // Case 1: No outlet selected → show merged report
+      // Case 1: No outlet selected → show merged report for ALL outlets
       if (outlets.length === 0) {
-        const filtered = this.salesdataSource.filter(item => filterFn(item));
-        console.log('Filtered sales data:', filtered.length);
-
-        const report = this.generateReport(filtered, startDate, endDate, productsToShow);
+        // 🔥 FIX: Pass empty array to get data for ALL outlets
+        const report = this.generateReport([], startDate, endDate, productsToShow, []);
 
         const tempRows = this.buildRows(report);
         const grouped = this.groupAndColorRows(tempRows);
@@ -661,10 +644,10 @@ export class DailySaleReportsComponent implements OnInit{
         });
 
       } else {
-        // Case 2: One or more outlets selected
+        // Case 2: One or more outlets selected → show separate reports for each
         outlets.forEach((outlet: string) => {
-          const filtered = this.salesdataSource.filter(item => filterFn(item, outlet));
-          const report = this.generateReport(filtered, startDate, endDate, productsToShow);
+          // 🔥 FIX: Pass the specific outlet as an array
+          const report = this.generateReport([], startDate, endDate, productsToShow, [outlet]);
 
           const tempRows = this.buildRows(report);
           const grouped = this.groupAndColorRows(tempRows);
