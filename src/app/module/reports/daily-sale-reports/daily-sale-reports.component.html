@@ -43,8 +43,13 @@
             <mat-label>Select Division</mat-label>
             <mat-select formControlName="division" >
               <div class="mat-select-search">
-                <input matInput placeholder="Search Division" #divisionSearchInput
-                       (input)="filterDivision(divisionSearchInput.value)" />
+                <input
+                  matInput
+                  type="text"
+                  #divisionSearchInput
+                  placeholder="Search Division"
+                  (input)="filterDivision(divisionSearchInput.value)" />
+
               </div>
               <mat-option disabled *ngIf="filteredOptions.division.length === 0">
                 No matching division
@@ -139,15 +144,16 @@
             <mat-label>Select Date</mat-label>
 
             <mat-date-range-input [rangePicker]="picker" [max]="maxDate" formGroupName="period">
-              <input matStartDate formControlName="start" placeholder="Start date">
-              <input matEndDate formControlName="end" placeholder="End date">
+              <!-- Make inputs readonly -->
+              <input matStartDate formControlName="start" placeholder="Start date" readonly>
+              <input matEndDate formControlName="end" placeholder="End date" readonly>
             </mat-date-range-input>
 
             <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
             <mat-date-range-picker #picker></mat-date-range-picker>
-
           </mat-form-field>
         </div>
+
 
         <!-- Action Buttons -->
         <div class="col-md-3 d-flex justify-content-end gap-2 mt-2">

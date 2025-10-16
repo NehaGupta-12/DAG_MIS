@@ -1,22 +1,13 @@
 <section class="content d-flex justify-content-center align-items-center">
   <div class="content-block w-100" style="max-width: 800px;">
-    <!-- 🔙 Back Button (outside the card, top-left) -->
-<!--    <div class="mb-3">-->
-<!--      <button mat-stroked-button color="primary" (click)="goBack()">-->
-<!--        <mat-icon>arrow_back</mat-icon> Back-->
-<!--      </button>-->
-<!--    </div>-->
 
-<!--      {{-->
-<!--      productForm.value|json-->
-<!--      }}-->
     <div class="row clearfix justify-content-center">
       <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12">
         <div class="card shadow">
           <div class="header form-header">
             <h2>{{ data?.id ? 'Edit Product Master' : 'Add Product Master' }}</h2>
           </div>
-          <div class="body">
+          <div class="body mb-2">
             <form class="register-form m-4" [formGroup]="productForm!" (ngSubmit)="onRegister()">
               <div class="row">
                 <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 mb-2">
