@@ -342,14 +342,32 @@ export class DailySaleReportsComponent implements OnInit{
 
   filterDivision(value: string) {
     const searchText = (value || '').toLowerCase();
-    this.filteredOptions.division = this.filteredDivisionsByCountry
-      .filter(d => d.toLowerCase().includes(searchText));
+    const selectedCountry = this.dealerForm.get('country')?.value;
+
+    // If country is selected, filter from filtered list
+    if (selectedCountry) {
+      this.filteredOptions.division = this.filteredDivisionsByCountry
+        .filter(d => d.toLowerCase().includes(searchText));
+    } else {
+      // If no country selected, filter from all divisions
+      this.filteredOptions.division = this.options.division
+        .filter(d => d.toLowerCase().includes(searchText));
+    }
   }
 
   filterTown(value: string) {
     const searchText = (value || '').toLowerCase();
-    this.filteredOptions.town = this.filteredTownsByDivision
-      .filter(t => t.toLowerCase().includes(searchText));
+    const selectedCountry = this.dealerForm.get('country')?.value;
+
+    // If country is selected, filter from filtered list
+    if (selectedCountry) {
+      this.filteredOptions.town = this.filteredTownsByDivision
+        .filter(t => t.toLowerCase().includes(searchText));
+    } else {
+      // If no country selected, filter from all towns
+      this.filteredOptions.town = this.options.town
+        .filter(t => t.toLowerCase().includes(searchText));
+    }
   }
 
   filterSales(value: string) {
@@ -360,7 +378,24 @@ export class DailySaleReportsComponent implements OnInit{
 
   filterOutlet(value: string) {
     const searchText = (value || '').toLowerCase();
-    this.filteredOptions.name = this.filteredOutletsByTown
+    const selectedCountry = this.dealerForm.get('country')?.value;
+    const selectedDivision = this.dealerForm.get('division')?.value;
+    const selectedTown = this.dealerForm.get('town')?.value;
+
+    // Determine which base list to filter from
+    let baseList: string[];
+
+    if (selectedCountry || selectedDivision || selectedTown) {
+      // If any filter is applied, use the filtered list
+      baseList = this.filteredOutletsByTown.length > 0
+        ? this.filteredOutletsByTown
+        : this.options.name;
+    } else {
+      // No filters applied, use all outlets
+      baseList = this.options.name;
+    }
+
+    this.filteredOptions.name = baseList
       .filter(o => o.toLowerCase().includes(searchText));
   }
 
