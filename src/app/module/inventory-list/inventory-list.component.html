@@ -2,7 +2,7 @@
   <div class="container-fluid">
     <!-- 🔽 Dropdown above table -->
     <div class="d-flex justify-content-start mb-2">
-      <mat-form-field appearance="outline" class="compact-select col-6">
+      <mat-form-field appearance="outline" class="compact-select col-4">
         <mat-label>Filter by Outlet</mat-label>
         <mat-select (selectionChange)="onOutletChange($event.value)" #dealerSelect panelClass="custom-select-panel" (openedChange)="onDealerSelectOpened($event)">
           <div class="mat-select-search" (click)="$event.stopPropagation()" >
