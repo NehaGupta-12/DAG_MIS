@@ -9,7 +9,7 @@
             <div class="left">
               <ul class="header-buttons-left ms-0">
                 <li class="tbl-title">
-                  <h2 class="fs-4">Daily Stock List</h2>
+                  <h2 class="fs-4">GRN List</h2>
                 </li>
                 <li class="tbl-search-box">
                   <label for="search-input">
@@ -27,9 +27,9 @@
             </div>
             <div class="right">
               <div class="right-side-btn tbl-header-btn col-green btn-large-icon">
-                <span [matTooltip]="!authService.hasPermission('Daily Stock','create') ? 'No permission' : 'Add Daily Stock'" matTooltipPosition="above">
+                <span [matTooltip]="!authService.hasPermission('GRN','create') ? 'No permission' : 'Add GRN'" matTooltipPosition="above">
 
-                <button mat-icon-button  class="tbl-header-btn col-green"  (click)="navigateToAddGrn()" [disabled]="!authService.hasPermission('Daily Stock','create')">
+                <button mat-icon-button  class="tbl-header-btn col-green"  (click)="navigateToAddGrn()" [disabled]="!authService.hasPermission('GRN','create')">
                   <mat-icon>add_circle_outline</mat-icon>
                 </button>
                 </span>
@@ -110,15 +110,15 @@
 <!--                      <app-feather-icons [icon]="'edit'" [class]="'tbl-fav-edit'"></app-feather-icons>-->
 <!--                    </button>-->
 <!--                    </span>-->
-                    <span [matTooltip]="!authService.hasPermission('Daily Stock','list') ? 'No permission' : 'View Daily Stock '" matTooltipPosition="above">
+                    <span [matTooltip]="!authService.hasPermission('GRN','list') ? 'No permission' : 'View Daily Stock '" matTooltipPosition="above">
                       <button mat-icon-button color="primary"
                               (click)="viewGrn(row)"
-                              [disabled]="!authService.hasPermission('Daily Stock','list')">
+                              [disabled]="!authService.hasPermission('GRN','list')">
                      <app-feather-icons [icon]="'eye'" [class]="'tbl-fav-view'"></app-feather-icons>
                     </button>
                     </span>
-                    <span [matTooltip]="!authService.hasPermission('Daily Stock','delete') ? 'No permission' : 'Delete Daily Stock '" matTooltipPosition="above">
-                    <button mat-icon-button color="" (click)="deleteGrn(row)" [disabled]="!authService.hasPermission('Daily Stock','delete')">
+                    <span [matTooltip]="!authService.hasPermission('GRN','delete') ? 'No permission' : 'Delete Daily Stock '" matTooltipPosition="above">
+                    <button mat-icon-button color="" (click)="deleteGrn(row)" [disabled]="!authService.hasPermission('GRN','delete')">
                       <app-feather-icons [icon]="'trash-2'" [class]="'tbl-fav-delete'"></app-feather-icons>
                     </button>
                     </span>
