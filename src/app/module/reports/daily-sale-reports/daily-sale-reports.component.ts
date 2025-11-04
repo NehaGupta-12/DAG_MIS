@@ -126,6 +126,9 @@ export class DailySaleReportsComponent implements OnInit{
   filteredSalesByDivision: string[] = [];
   salesList: any[] = [];   // raw data from Firestore
   filteredSalesList: any[] = [];
+  country: string = '';
+  date: string = '';
+  formattedDate: string = '';
 
   search: any = {
     name: '',
@@ -212,7 +215,6 @@ export class DailySaleReportsComponent implements OnInit{
 
 
   ngOnInit() {
-
     this.route.queryParams.subscribe(params => {
       if (params['data']) {
         const rowData = JSON.parse(params['data']);
@@ -224,9 +226,37 @@ export class DailySaleReportsComponent implements OnInit{
       }
     });
 
+    // Load initial data first
     this.loadSalesList();
     this.DealerList();
     this.productList();
+
+    // ✅ Get query parameters from dashboard navigation
+    this.route.queryParams.subscribe(params => {
+      this.country = params['country'] || '';
+      this.date = params['date'] || '';
+
+      // Format date for display
+      if (this.date) {
+        const dateObj = new Date(this.date);
+        this.formattedDate = dateObj.toLocaleDateString('default', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        });
+
+        console.log('Received params:', {
+          country: this.country,
+          date: this.date,
+          formattedDate: this.formattedDate
+        });
+
+        // ✅ Wait for country options to load, then patch values and generate report
+        if (this.country && this.date) {
+          this.waitForCountryOptionsAndPatch();
+        }
+      }
+    });
 
     // === ✅ Make COUNTRY mandatory and control visibility ===
     this.dealerForm.get('country')?.valueChanges.subscribe(selectedCountry => {
@@ -333,6 +363,62 @@ export class DailySaleReportsComponent implements OnInit{
   }
 
 
+  // ✅ New method to wait for country options to load and then patch values
+  private waitForCountryOptionsAndPatch() {
+    // Check if country options are already loaded
+    if (this.countryOptionsLoaded && this.options.country.length > 0) {
+      this.patchDashboardData();
+      return;
+    }
+
+    // Wait for country options to load (with timeout)
+    const checkInterval = setInterval(() => {
+      if (this.countryOptionsLoaded && this.options.country.length > 0) {
+        clearInterval(checkInterval);
+        this.patchDashboardData();
+      }
+    }, 100);
+
+    // Timeout after 5 seconds
+    setTimeout(() => {
+      clearInterval(checkInterval);
+      if (!this.countryOptionsLoaded) {
+        console.error('Country options failed to load');
+      }
+    }, 5000);
+  }
+
+// ✅ New method to patch the form with dashboard data and generate report
+  private patchDashboardData() {
+    if (!this.country || !this.date) return;
+
+    console.log('Patching form with dashboard data:', {
+      country: this.country,
+      date: this.date
+    });
+
+    // Convert date string to Date object for the date picker
+    const selectedDate = new Date(this.date);
+
+    // ✅ Patch the form with country and date
+    this.dealerForm.patchValue({
+      country: this.country,
+      period: {
+        start: selectedDate,
+        end: selectedDate // Set both start and end to the same date
+      }
+    });
+
+    // ✅ Wait a bit for the form to update and cascading filters to apply
+    setTimeout(() => {
+      // Automatically trigger the report generation
+      this.onSubmit();
+
+      console.log('Form patched and report generated automatically');
+    }, 500);
+  }
+
+
   // --- Filter methods for cascading + search ---
   filterCountry(value: string) {
     const searchText = (value || '').toLowerCase();
@@ -406,7 +492,11 @@ export class DailySaleReportsComponent implements OnInit{
     );
   }
 
-
+  clearDashboardParams() {
+    this.country = '';
+    this.date = '';
+    this.formattedDate = '';
+  }
 
 
   // --- Reset / cancel ---
@@ -422,6 +512,8 @@ export class DailySaleReportsComponent implements OnInit{
       this.filteredOptions[key] = [...this.options[key]];
     });
     this.allOutletReports = [];
+
+    this.clearDashboardParams();
   }
 
   isAllOutletsSelected(): boolean {

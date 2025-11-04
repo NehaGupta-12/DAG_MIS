@@ -178,14 +178,6 @@
           "class": "ml-menu",
           "groupTitle": false,
           "submenu": []
-        },
-        {
-          "path": "module/new-stock-reports",
-          "title": "New Stock Report",
-          "icon": "",
-          "class": "ml-menu",
-          "groupTitle": false,
-          "submenu": []
         }
       ]
     }
