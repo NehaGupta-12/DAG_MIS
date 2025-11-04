@@ -85,7 +85,6 @@ export class AuthService {
     return menuPerm?.permissions?.[action] === true;
   }
 
-
   canShowMenu(menuName: string): boolean {
     const menu = this.userRolePermissions.find((p: any) => p.menu_name === menuName);
     // console.log(this.userRolePermissions.find((p: any) => p.menu_name === menuName))

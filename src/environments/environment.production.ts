@@ -32,7 +32,7 @@ export const environment = {
     budget: 'budget',
     dailySales: 'daily-sales',
     stockTransfer: 'stockTransfer',
-    incomingStockTransfer: 'incomingStockTransfer', // ✅ add this
+    incomingStockTransfer: 'incomingStockTransfer',
     roles: 'roles',
     outletProduct: 'outletProduct',
     monthlyBudget: 'monthlyBudget',

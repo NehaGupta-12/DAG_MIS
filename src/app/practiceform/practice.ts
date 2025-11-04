@@ -1,2 +1,2 @@
-export interface Practice {
+ export interface Practice {
 }
