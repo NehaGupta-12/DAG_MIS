@@ -120,14 +120,6 @@
           "class": "ml-menu",
           "groupTitle": false,
           "submenu": []
-        },
-        {
-          "path": "module/stock-transfer-list",
-          "title": "Stock Transfer",
-          "icon": "",
-          "class": "ml-menu",
-          "groupTitle": false,
-          "submenu": []
         }
       ]
     },
@@ -148,7 +140,15 @@
         },
         {
           "path": "module/grn-list",
-          "title": "Daily Stock",
+          "title": "GRN",
+          "icon": "",
+          "class": "ml-menu",
+          "groupTitle": false,
+          "submenu": []
+        },
+        {
+          "path": "module/stock-transfer-list",
+          "title": "Stock Transfer",
           "icon": "",
           "class": "ml-menu",
           "groupTitle": false,

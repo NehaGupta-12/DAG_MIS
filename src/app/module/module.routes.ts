@@ -39,6 +39,7 @@ import {AddEditMenuListComponent} from "./Menu list/add-edit-menu-list/add-edit-
 import {AuthGuard} from "../authentication/auth.guard";
 import {ActivityLogComponent} from "./activity-log/activity-log.component";
 import {AutoFunctionUploadComponent} from "../auto-function-upload/auto-function-upload.component";
+import {NewStockReportComponent} from "./reports/new-stock-report/new-stock-report.component";
 
 
 export const MODULES_ROUTE: Route[] = [
@@ -247,6 +248,11 @@ export const MODULES_ROUTE: Route[] = [
   {
     path:'stock-transfer-report',
     component: StockTransferReportComponent,
+    canActivate:[AuthGuard]
+  },
+  {
+    path: 'new-stock-reports',
+    component: NewStockReportComponent,
     canActivate:[AuthGuard]
   },
   { path: '**', component: Page404Component },

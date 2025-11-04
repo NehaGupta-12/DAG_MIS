@@ -1,8 +1,54 @@
 <section class="content">
   <div class="container-fluid">
     <div class="col-xl-4 col-lg-4 col-md-12 col-sm-12 mb-2">
+<!--      <mat-form-field appearance="outline" class="w-100">-->
+<!--        <mat-label>Country</mat-label>-->
+<!--        <mat-select [formControl]="countryControl"-->
+<!--                    multiple-->
+<!--                    #countrySelect="matSelect"-->
+<!--                    panelClass="custom-select-panel"-->
+<!--                    (openedChange)="onCountrySelectOpened($event)">-->
+
+<!--          &lt;!&ndash; 🔍 Search &ndash;&gt;-->
+<!--          <div class="mat-select-search" (click)="$event.stopPropagation()">-->
+<!--            <input matInput-->
+<!--                   [value]="countrySearchText"-->
+<!--                   (input)="onCountrySearchChange($event)"-->
+<!--                   (click)="$event.stopPropagation()"-->
+<!--                   (keydown)="$event.stopPropagation()"-->
+<!--                   placeholder="Search Country"-->
+<!--                   class="search-input" />-->
+<!--          </div>-->
+
+<!--          &lt;!&ndash; Custom Trigger &ndash;&gt;-->
+<!--          <mat-select-trigger>-->
+<!--            <ng-container *ngIf="countrySelect.value?.length; else noSelection">-->
+<!--        <span *ngFor="let country of countrySelect.value.slice(0,2); let i = index">-->
+<!--          {{ country }}<span *ngIf="i < 1 && countrySelect.value.length > 1">, </span>-->
+<!--        </span>-->
+<!--              <span *ngIf="countrySelect.value.length > 2" class="textcol">-->
+<!--          (+{{ countrySelect.value.length - 2 }} more)-->
+<!--        </span>-->
+<!--            </ng-container>-->
+<!--            <ng-template #noSelection>-->
+<!--              Select Country-->
+<!--            </ng-template>-->
+<!--          </mat-select-trigger>-->
+
+<!--          &lt;!&ndash; ✅ "All" option &ndash;&gt;-->
+<!--          <mat-option [value]="'All'">All</mat-option>-->
+
+<!--          &lt;!&ndash; 🔹 Country options &ndash;&gt;-->
+<!--          <mat-option *ngFor="let country of filteredCountries" [value]="country">-->
+<!--            {{ country }}-->
+<!--          </mat-option>-->
+<!--        </mat-select>-->
+<!--      </mat-form-field>-->
+
+
       <mat-form-field appearance="outline" class="w-100">
         <mat-label>Country</mat-label>
+
         <mat-select [formControl]="countryControl"
                     multiple
                     #countrySelect="matSelect"
@@ -42,7 +88,15 @@
           <mat-option *ngFor="let country of filteredCountries" [value]="country">
             {{ country }}
           </mat-option>
+
         </mat-select>
+
+        <!-- Clear icon -->
+        <button mat-icon-button matSuffix *ngIf="countryControl.value?.length" (click)="clearCountrySelection($event)">
+          <!--          <mat-icon>clear</mat-icon>-->
+          <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#63666CFF"><path d="M480-160q-134 0-227-93t-93-227q0-134 93-227t227-93q69 0 132 28.5T720-690v-110h80v280H520v-80h168q-32-56-87.5-88T480-720q-100 0-170 70t-70 170q0 100 70 170t170 70q77 0 139-44t87-116h84q-28 106-114 173t-196 67Z"/></svg>
+        </button>
+
       </mat-form-field>
 
 
@@ -51,8 +105,8 @@
     <div class="row">
       <div class="col-lg-3 col-sm-6">
         <app-order-info-box
-          title="Today's Sales"
-          [value]="todaySales"
+          title="Yesterday's Sales"
+          [value]="yesterdaySales"
           [percentageText]="todayPercentage"
           iconClass="fas fa-cart-plus"
           bgClass="bg-c-blue"

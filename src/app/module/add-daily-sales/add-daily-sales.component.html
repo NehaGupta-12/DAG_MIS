@@ -148,14 +148,14 @@
                     <mat-label>Select Sales Type</mat-label>
                     <mat-select formControlName="salesType" required #townSelect panelClass="custom-select-panel" (openedChange)="onSalesSelectOpened($event)">
                       <div class="mat-select-search">
-                        <input matInput (input)="onSalesSearchChange($event)" #townSearchInput placeholder="Search Town" />
+                        <input matInput (input)="onSalesSearchChange($event)" #salesSearchInput placeholder="Search Sales type" />
                       </div>
                       <mat-option *ngFor="let sale of filteredSalesTypes" [value]="sale">
                         {{ sale }}
                       </mat-option>
                     </mat-select>
-                    @if (dailySalesForm?.get('town')?.hasError('required')) {
-                      <mat-error>Town is required</mat-error>
+                    @if (dailySalesForm?.get('salesType')?.hasError('required')) {
+                      <mat-error>Sales type is required</mat-error>
                     }
                   </mat-form-field>
                 </div>

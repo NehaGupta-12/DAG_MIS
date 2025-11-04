@@ -47,6 +47,8 @@ import {MonthlyBudgetService} from "../../module/monthly-budget.service";
 import {CountryService} from "../../Services/country.service";
 import {MatCheckbox} from "@angular/material/checkbox";
 import {GrnService} from "../../module/grn.service";
+import {Router} from "@angular/router";
+import {MatIcon} from "@angular/material/icon";
 
 export type ChartOptions = {
   series: ApexAxisChartSeries;
@@ -98,7 +100,8 @@ export type ChartOptions = {
     MatInput,
     NgIf,
     MatCheckbox,
-    MatSelectModule
+    MatSelectModule,
+    MatIcon
   ],
   standalone: true
 })
@@ -188,6 +191,7 @@ export class MainComponent implements OnInit {
     private budgetService: BudgetService,
     private countryService: CountryService,
     private monthlybudgetService: MonthlyBudgetService,
+    private router: Router
   ) {}
 
   ngOnInit() {
@@ -208,14 +212,27 @@ export class MainComponent implements OnInit {
     this.countryControl.valueChanges.subscribe((selected: string[] | null) => {
       if (!selected) return;
 
+      // If "All" is in the selection
       if (selected.includes('All')) {
-        this.countryControl.setValue(['All'], { emitEvent: false });
-        this.loadSalesList(this._countriesTypes);
-        this.loadStockList(this._countriesTypes);
+        // If there are other countries selected along with "All"
+        if (selected.length > 1) {
+          // Remove "All" and keep only the other selected countries
+          const filteredSelection = selected.filter(c => c !== 'All');
+          this.countryControl.setValue(filteredSelection, { emitEvent: false });
+          this.loadSalesList(filteredSelection);
+          this.loadStockList(filteredSelection);
+        } else {
+          // Only "All" is selected
+          this.countryControl.setValue(['All'], { emitEvent: false });
+          this.loadSalesList(this._countriesTypes);
+          this.loadStockList(this._countriesTypes);
+        }
       } else if (selected.length === 0) {
+        // No selection
         this.loadSalesList([]);
         this.loadStockList([]);
       } else {
+        // Specific countries selected
         this.loadSalesList(selected);
         this.loadStockList(selected);
       }
@@ -904,14 +921,13 @@ export class MainComponent implements OnInit {
     this.yesterdaySales = yesterdayQuantity;
     this.last10DaysSales = last10DaysQuantity; // <-- new field
 
-    if (yesterdayQuantity === 0) {
-      this.todayPercentage = todayQuantity > 0 ? '100% Higher Than Yesterday' : 'No sales yesterday';
+    if (todayQuantity === 0) {
+      this.todayPercentage = yesterdayQuantity > 0 ? '100% Higher Than Today' : 'No sales today';
     } else {
-      const percentage = ((todayQuantity - yesterdayQuantity) / yesterdayQuantity) * 100;
-      this.todayPercentage = `${Math.abs(percentage).toFixed(0)}% ${percentage >= 0 ? 'Higher' : 'Lower'} Than Yesterday`;
+      const percentage = ((yesterdayQuantity - todayQuantity) / todayQuantity) * 100;
+      this.todayPercentage = `${Math.abs(percentage).toFixed(0)}% ${percentage >= 0 ? 'Higher' : 'Lower'} Than Today`;
     }
 
-    console.log(`Today: ${this.todaySales}, Yesterday: ${this.yesterdaySales}, Last 10 Days: ${this.last10DaysSales}`);
   }
 
 
@@ -1189,8 +1205,10 @@ export class MainComponent implements OnInit {
   }
 
   private barchart(dailySalesData?: { x: string; y: number }[]) {
-    // Get country-wise data from filtered sales
     const countryData = this.getLast10DaysCountryWiseSales(this.dataSource.data);
+
+    // 📌 Store date mapping for click events
+    const dateMapping = this.getDateMappingForCategories(countryData.categories);
 
     this.barChartOptions = {
       series: countryData.seriesData,
@@ -1205,6 +1223,34 @@ export class MainComponent implements OnInit {
           enabled: true,
         },
         foreColor: '#9aa0ac',
+        events: {
+          // 👇 Add click event handler
+          dataPointSelection: (event: any, chartContext: any, config: any) => {
+            const seriesIndex = config.seriesIndex;
+            const dataPointIndex = config.dataPointIndex;
+
+            // Get the country name from the series
+            const countryName = countryData.seriesData[seriesIndex].name;
+
+            // Get the date from the category
+            const categoryLabel = countryData.categories[dataPointIndex];
+            const actualDate = dateMapping[dataPointIndex];
+
+            console.log('Clicked:', {
+              country: countryName,
+              date: actualDate,
+              label: categoryLabel
+            });
+
+            // Navigate to detail component with query params
+            this.router.navigate(['module/daily-sale-reports'], {
+              queryParams: {
+                country: countryName,
+                date: actualDate
+              }
+            });
+          }
+        }
       },
       responsive: [
         {
@@ -1283,6 +1329,28 @@ export class MainComponent implements OnInit {
         },
       },
     };
+  }
+
+
+  // 📌 Helper method to map categories to actual dates
+  private getDateMappingForCategories(categories: string[]): string[] {
+    const now = new Date();
+    const dateMapping: string[] = [];
+
+    for (let i = 9; i >= 0; i--) {
+      const date = new Date(now);
+      date.setDate(now.getDate() - i);
+      date.setHours(0, 0, 0, 0);
+
+      // Format as YYYY-MM-DD for easy parsing
+      const dateStr = date.getFullYear() + '-' +
+        (date.getMonth() + 1).toString().padStart(2, '0') + '-' +
+        date.getDate().toString().padStart(2, '0');
+
+      dateMapping.push(dateStr);
+    }
+
+    return dateMapping;
   }
 
 
@@ -1722,6 +1790,11 @@ export class MainComponent implements OnInit {
     return { categories, seriesData };
   }
 
+  clearCountrySelection(event: MouseEvent) {
+    event.stopPropagation();  // prevent dropdown from opening
+    this.countryControl.setValue([]);  // clear selection
+    this.countrySearchText = '';       // optional: clear search input
+  }
 
 
 

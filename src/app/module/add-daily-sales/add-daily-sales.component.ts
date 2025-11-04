@@ -195,7 +195,7 @@ export class AddDailySalesComponent implements OnInit {
       town: [''],
       vehicle: [[], Validators.required],
       salesDate: ['', Validators.required],
-      salesType: ['']
+      salesType: ['', Validators.required]
     });
   }
 
@@ -588,7 +588,8 @@ export class AddDailySalesComponent implements OnInit {
       this.dailySalesForm.get('division')?.valid &&
       this.dailySalesForm.get('country')?.valid &&
       this.dailySalesForm.get('town')?.valid &&
-      this.dailySalesForm.get('salesDate')?.valid;
+      this.dailySalesForm.get('salesDate')?.valid &&
+      this.dailySalesForm.get('salesType')?.valid;
 
     const hasProducts = this.addedProducts.length > 0;
 
