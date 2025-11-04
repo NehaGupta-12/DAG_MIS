@@ -360,6 +360,20 @@ export class DailySaleReportsComponent implements OnInit{
     this.countryFilter.valueChanges.subscribe(val => this.filterCountry(val || ''));
     this.townFilter.valueChanges.subscribe(val => this.filterTown(val || ''));
     this.productFilter.valueChanges.subscribe(val => this.filterOptions('product', val || ''));
+
+    const savedState = localStorage.getItem('dailySalesState');
+    if (savedState) {
+      const { filters, reportData, reportTitle, reportDate, selectedCountry } = JSON.parse(savedState);
+
+      // ✅ Restore form values
+      this.dealerForm.patchValue(filters);
+
+      // ✅ Restore table data
+      this.allOutletReports = reportData;
+      this.reportTitle = reportTitle;
+      this.reportDate = reportDate;
+      this.selectedCountry = selectedCountry;
+    }
   }
 
 
@@ -514,6 +528,7 @@ export class DailySaleReportsComponent implements OnInit{
     this.allOutletReports = [];
 
     this.clearDashboardParams();
+    localStorage.removeItem('dailySalesState'); // ✅ clear cache
   }
 
   isAllOutletsSelected(): boolean {
@@ -723,7 +738,6 @@ export class DailySaleReportsComponent implements OnInit{
 
     try {
       const filters = this.dealerForm.value;
-
       this.selectedSaleTypeLabel = filters.sale ? `(${filters.sale})` : '';
 
       const startDate = filters.period?.start ? new Date(filters.period.start) : null;
@@ -732,61 +746,58 @@ export class DailySaleReportsComponent implements OnInit{
       if (startDate) startDate.setHours(0, 0, 0, 0);
       if (endDate) endDate.setHours(23, 59, 59, 999);
 
-      const outlets = Array.isArray(filters.name) ? filters.name : (filters.name ? [filters.name] : []);
+      const outlets = Array.isArray(filters.name)
+        ? filters.name
+        : (filters.name ? [filters.name] : []);
 
       this.allOutletReports = [];
 
       // Determine which countries to include in the filter
       const countriesToInclude: string[] = [];
       if (filters.country) {
-        // Specific country selected
         countriesToInclude.push(filters.country);
       } else {
-        // No country selected - use all user's assigned countries
         countriesToInclude.push(...this.options.country);
       }
 
-      // ✅ CRITICAL: Filter products based on user's assigned countries or selected country
+      // Get products according to selected or assigned countries
       const productsToShow = filters.country
-        ? this.getProductsByCountry(filters.country)  // Single country
-        : this.getProductsByCountries(this.options.country); // User's assigned countries
+        ? this.getProductsByCountry(filters.country)
+        : this.getProductsByCountries(this.options.country);
 
-      console.log('Countries to include:', countriesToInclude);
-      console.log('User assigned countries:', this.options.country);
-      console.log('Products to show:', productsToShow.length);
-      console.log('Product models:', productsToShow.map(p => p.model));
       console.log('Selected outlets:', outlets);
+      console.log('Products to show:', productsToShow.length);
 
-      // Case 1: No outlet selected → show merged report for ALL outlets
+      // ✅ CASE 1: No outlet selected → merged report
       if (outlets.length === 0) {
-        // 🔥 FIX: Pass empty array to get data for ALL outlets
         const report = this.generateReport([], startDate, endDate, productsToShow, []);
-
         const tempRows = this.buildRows(report);
-        const grouped = this.groupAndColorRows(tempRows);
-
         this.allOutletReports.push({
-          outlet: 'All Outlets',
-          rows: grouped
+          outlet: filters.country ? filters.country : 'All Outlets',
+          rows: tempRows
         });
-
-      } else {
-        // Case 2: One or more outlets selected → show separate reports for each
-        outlets.forEach((outlet: string) => {
-          // 🔥 FIX: Pass the specific outlet as an array
-          const report = this.generateReport([], startDate, endDate, productsToShow, [outlet]);
-
-          const tempRows = this.buildRows(report);
-          const grouped = this.groupAndColorRows(tempRows);
-
-          this.allOutletReports.push({
-            outlet,
-            rows: grouped
-          });
-        });
-
-        this.selectedCountry = filters.country || '';
       }
+      // ✅ CASE 2: Specific outlets selected → individual reports
+      else {
+        outlets.forEach((outlet: string) => {
+          const report = this.generateReport([], startDate, endDate, productsToShow, [outlet]);
+          const tempRows = this.buildRows(report);
+          this.allOutletReports.push({ outlet, rows: tempRows });
+        });
+      }
+
+      // 🧹 Removed reportTitle, reportDate, and selectedCountry (so nothing shows in UI)
+
+      // ✅ Save only essential data to localStorage
+      const saveState = {
+        filters,
+        reportData: this.allOutletReports
+      };
+      localStorage.setItem('dailySalesState', JSON.stringify(saveState));
+
+    } catch (err) {
+      console.error('Error generating report:', err);
+      Swal.fire('Error', 'Failed to generate report', 'error');
     } finally {
       this.loadingService.setLoading(false);
     }
