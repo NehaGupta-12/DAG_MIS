@@ -1,0 +1,226 @@
+
+<section class="content">
+  <div class="content-block">
+
+    <div class="card shadow">
+
+      <div class="materialTableHeader">
+        <div class="left">
+          <ul class="header-buttons-left">
+            <li class="tbl-title">
+              <h2 class="fs-4">Stock Report</h2>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <form [formGroup]="dealerForm" class="row g-3 align-items-center my-2 mx-2">
+
+        <!-- COUNTRY -->
+        <div class="col-md-3">
+          <!-- COUNTRY -->
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Select Country</mat-label>
+            <mat-select formControlName="country" >
+              <div class="mat-select-search" (click)="$event.stopPropagation()">
+                <input matInput #countrySearchInput placeholder="Search Country"
+                       (input)="filterCountry(countrySearchInput.value)" />
+              </div>
+              <mat-option disabled *ngIf="filteredOptions.country.length === 0">
+                No matching country
+              </mat-option>
+              <mat-option *ngFor="let country of filteredOptions.country" [value]="country">
+                {{ country }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <!-- DIVISION -->
+        <div class="col-md-3">
+          <!-- DIVISION -->
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Select Division</mat-label>
+            <mat-select formControlName="division" >
+              <div class="mat-select-search" (click)="$event.stopPropagation()">
+                <input matInput #divisionSearchInput placeholder="Search Division"
+                       (input)="filterDivision(divisionSearchInput.value)" />
+              </div>
+              <mat-option disabled *ngIf="filteredOptions.division.length === 0">
+                No matching division
+              </mat-option>
+              <mat-option *ngFor="let division of filteredOptions.division" [value]="division">
+                {{ division }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <!-- TOWN -->
+        <div class="col-md-3">
+          <!-- TOWN -->
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Select Town</mat-label>
+            <mat-select formControlName="town" >
+              <div class="mat-select-search"  (click)="$event.stopPropagation()">
+                <input matInput #townSearchInput placeholder="Search Town"
+                       (input)="filterTown(townSearchInput.value)" />
+              </div>
+              <mat-option disabled *ngIf="filteredOptions.town.length === 0">
+                No matching town
+              </mat-option>
+              <mat-option *ngFor="let town of filteredOptions.town" [value]="town">
+                {{ town }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <!-- OUTLETS -->
+        <div class="col-md-3">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Select Outlet(s)</mat-label>
+            <mat-select formControlName="name" multiple >
+              <mat-select-trigger>
+        <span *ngIf="dealerForm.get('name')?.value!.length; else noSelection">
+          {{ dealerForm.get('name')?.value[0] | slice:0:16 }}
+          {{ dealerForm.get('name')?.value[0]?.length > 16 ? '...' : '' }}
+          <span *ngIf="dealerForm.get('name')?.value!.length > 1" class="textcol">
+            (+{{ dealerForm.get('name')?.value!.length - 1 }} more)
+          </span>
+        </span>
+                <ng-template #noSelection>Select...</ng-template>
+              </mat-select-trigger>
+
+              <div class="mat-select-search" (click)="$event.stopPropagation()">
+                <input matInput placeholder="Search Outlet" #outletSearchInput
+                       (input)="filterOutlet(outletSearchInput.value)" />
+              </div>
+
+              <div class="px-2 py-1">
+                <mat-checkbox [checked]="isAllOutletsSelected()"
+                              (click)="$event.stopPropagation()"
+                              (change)="toggleSelectAllOutlets()">
+                  Select All
+                </mat-checkbox>
+              </div>
+              <mat-option disabled *ngIf="filteredOptions.name.length === 0">
+                No matching outlet
+              </mat-option>
+              <mat-option *ngFor="let outlet of filteredOptions.name" [value]="outlet">
+                {{ outlet }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <div class="col-md-3">
+          <mat-form-field class="example-full-width w-100" appearance="outline">
+            <mat-label>Select Date</mat-label>
+            <mat-date-range-input [rangePicker]="picker" [max]="maxDate" formGroupName="period">
+              <input matStartDate formControlName="start" placeholder="Start date" readonly>
+              <input matEndDate formControlName="end" placeholder="End date" readonly>
+            </mat-date-range-input>
+            <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+            <mat-date-range-picker #picker></mat-date-range-picker>
+          </mat-form-field>
+
+        </div>
+
+
+        <!-- Action Buttons -->
+        <div class="col-md-3 d-flex justify-content-end gap-2 mt-2">
+          <button
+            mat-mini-fab
+            color="primary"
+            matTooltip="Search"
+            >
+            <mat-icon>search</mat-icon>
+          </button>
+
+          <button mat-mini-fab color="warn" matTooltip="Clear" >
+            <mat-icon>clear</mat-icon>
+          </button>
+          <button mat-mini-fab matTooltip="Export to Excel" style="background-color:#28a745; color:#fff;"  [disabled]="!authService.hasPermission('New Stock Report','export')">
+            <mat-icon>download</mat-icon>
+          </button>
+        </div>
+      </form>
+
+      <div *ngFor="let report of allOutletReports" class="mb-4 mx-3">
+        <h5 class="text-center">{{ report.outlet }} - Stock Report</h5>
+
+        <table mat-table [dataSource]="report.rows" class="mat-cell advance-table responsive_table">
+
+          <!-- Product Column -->
+          <ng-container matColumnDef="product">
+            <th mat-header-cell *matHeaderCellDef class="product-col"> Products Name </th>
+            <td mat-cell *matCellDef="let row" class="product-col">
+              <span class="cell-color">{{ row.product }}</span>
+            </td>
+          </ng-container>
+
+          <!-- Opening Stock -->
+          <ng-container matColumnDef="opening">
+            <th mat-header-cell *matHeaderCellDef> Opening Stock </th>
+            <td mat-cell *matCellDef="let row">
+              {{ row.opening }}
+            </td>
+          </ng-container>
+
+          <!-- Sales -->
+          <ng-container matColumnDef="sales">
+            <th mat-header-cell *matHeaderCellDef> Sales </th>
+            <td mat-cell *matCellDef="let row">
+              {{ row.sales }}
+            </td>
+          </ng-container>
+
+          <!-- GRN -->
+          <ng-container matColumnDef="grn">
+            <th mat-header-cell *matHeaderCellDef> GRN </th>
+            <td mat-cell *matCellDef="let row">
+              {{ row.grn }}
+            </td>
+          </ng-container>
+
+          <!-- Outgoing Stock -->
+          <ng-container matColumnDef="outgoing">
+            <th mat-header-cell *matHeaderCellDef> Outgoing Stock </th>
+            <td mat-cell *matCellDef="let row">
+              {{ row.outgoing }}
+            </td>
+          </ng-container>
+
+          <!-- Incoming Stock -->
+          <ng-container matColumnDef="incoming">
+            <th mat-header-cell *matHeaderCellDef> Incoming Stock </th>
+            <td mat-cell *matCellDef="let row">
+              {{ row.incoming }}
+            </td>
+          </ng-container>
+
+          <!-- Total -->
+          <ng-container matColumnDef="total">
+            <th mat-header-cell *matHeaderCellDef> Total </th>
+            <td mat-cell *matCellDef="let row">
+              {{ row.total }}
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="['product','opening','sales','grn','outgoing','incoming','total']"></tr>
+          <tr mat-row *matRowDef="let row; columns: ['product','opening','sales','grn','outgoing','incoming','total']"
+              [ngClass]="row.rowColor">
+          </tr>
+        </table>
+      </div>
+
+
+
+    </div>
+  </div>
+</section>
+
+
+
+

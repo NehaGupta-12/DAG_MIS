@@ -1,0 +1,95 @@
+/* Default table cell background is white */
+.responsive_table td,
+.responsive_table th {
+  padding: 2px 6px;
+  line-height: 1;
+}
+
+
+/* Only product and numeric columns get borders */
+.responsive_table .product-col,
+.responsive_table .number-col {
+  border-right: 1px solid #ccc;    /* vertical line */
+  border-bottom: 1px solid #ccc;   /* horizontal line */
+  text-align: center;
+  padding: 4px 8px;
+}
+
+/* Remove right border from last column */
+.responsive_table .number-col:last-child {
+  border-right: none;
+}
+
+/* Fixed widths */
+.responsive_table .product-col {
+  width: 200px;    /* adjust as needed */
+}
+
+.responsive_table .number-col {
+  width: 100px;    /* adjust as needed */
+}
+
+/* Optional: bold headers */
+.responsive_table th.product-col,
+.responsive_table th.number-col {
+  font-weight: 600;
+  text-align: center;
+}
+
+/* Add padding + inline-block so bg color wraps text only */
+.cell-color {
+  display: inline-block;       /* make width fit content */
+  padding: 2px 6px;            /* some spacing around text */
+  border-radius: 2px;          /* optional: slightly rounded corners */
+  text-align: center;
+}
+
+/* Full row background color for Daily Stock table */
+.responsive_table tr.green-row td {
+  background-color: #e8f5e9 !important;   /* light green */
+}
+
+.responsive_table tr.yellow-row td {
+  background-color: #fffde7 !important;   /* light yellow */
+}
+
+.responsive_table tr.red-row td {
+  background-color: #fce4e4 !important;   /* light red */
+}
+
+
+
+
+/* Outer border for the table */
+.responsive_table {
+  border: 1px solid #ccc;  /* outer line */
+  border-collapse: collapse;
+  width: 100%;
+}
+
+/* Borders for individual cells */
+.responsive_table .product-col,
+.responsive_table .number-col {
+  border-right: 1px solid #ccc;
+  border-bottom: 1px solid #ccc;
+  text-align: center;
+  padding: 4px 8px;
+}
+
+/* Remove right border from last column */
+.responsive_table .number-col:last-child {
+  border-right: none;
+}
+
+/* Reduce row height */
+.responsive_table tr {
+  height: 24px;  /* adjust as needed */
+}
+
+/* Only last row (TOTAL) bold */
+.responsive_table tr:last-child td {
+  font-weight: 700;
+}
+.textcol{
+  color: #0d8df3;
+}
