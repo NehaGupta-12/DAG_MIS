@@ -8,6 +8,7 @@ import { MatIconModule } from '@angular/material/icon';
 // import {AuthService} from "@core";
 import { AuthService } from '../auth.service';
 import {LoadingService} from "../../Services/loading.service";
+import { MatProgressSpinner } from '@angular/material/progress-spinner';
 @Component({
   selector: 'app-forgot-password',
   templateUrl: './forgot-password.component.html',
@@ -21,7 +22,8 @@ import {LoadingService} from "../../Services/loading.service";
     MatFormFieldModule,
     NgClass,
     MatButtonModule,
-    CommonModule
+    CommonModule,
+    MatProgressSpinner
   ]
 })
 export class ForgotPasswordComponent implements OnInit {
