@@ -153,8 +153,10 @@ export class UserListComponent implements OnInit{
     }
   }
 
+
   deleteUser(element:any) {
   }
+
   toggleStatus(user: any, isActive: boolean): void {
     const disable = !isActive;
     // alert(disable)

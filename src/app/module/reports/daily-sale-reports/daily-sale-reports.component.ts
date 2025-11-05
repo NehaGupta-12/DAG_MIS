@@ -100,8 +100,11 @@ export class DailySaleReportsComponent implements OnInit{
   selectedCountry: string = '';
   selectedOutlets: string[] = [];
   allOutletReports: { outlet: string; rows: any[] }[] = [];
-  maxDate: Date = new Date(); // today
+  maxDate: Date = new Date();
 
+  // ✅ NEW: Dynamic column header
+  dayColumnHeader: string = 'Sales for the Day';
+  displayedColumns: string[] = ['product', 'Day', 'Month', 'YTD'];
 
   @ViewChild('countrySearchInput') countrySearchInput!: ElementRef;
   @ViewChild('divisionSearchInput') divisionSearchInput!: ElementRef;
@@ -110,10 +113,8 @@ export class DailySaleReportsComponent implements OnInit{
 
   debounceTimer: any;
   countryOptionsLoaded: boolean = false;
-  selectedSaleTypeLabel: string = ''; // Add at the class level
+  selectedSaleTypeLabel: string = '';
 
-
-  // Filters
   nameFilter = new FormControl('');
   divisionFilter = new FormControl('');
   countryFilter = new FormControl('');
@@ -124,7 +125,7 @@ export class DailySaleReportsComponent implements OnInit{
   filteredTownsByDivision: string[] = [];
   filteredOutletsByTown: string[] = [];
   filteredSalesByDivision: string[] = [];
-  salesList: any[] = [];   // raw data from Firestore
+  salesList: any[] = [];
   filteredSalesList: any[] = [];
   country: string = '';
   date: string = '';
@@ -165,9 +166,9 @@ export class DailySaleReportsComponent implements OnInit{
     private mDatabase: AngularFireDatabase,
     private productService: ProductMasterService,
     private dailySlaes: DailySalesService,
-    public authService : AuthService,
+    public authService: AuthService,
     private loadingService: LoadingService,
-    private countryService : CountryService,
+    private countryService: CountryService,
     private mService: ActivityLogService,
     @Inject(MAT_DIALOG_DATA) public data: any
   ) {
@@ -197,7 +198,6 @@ export class DailySaleReportsComponent implements OnInit{
       .pipe(map(d => d?.subcategories || []))
       .subscribe(data => { this.options.category = data; this.filteredOptions.category = [...data]; });
 
-    // COUNTRY LOADING
     this.countryService.getCountries().subscribe((data: string[]) => {
       this.options.country = data;
       this.filteredOptions.country = [...data];
@@ -213,8 +213,10 @@ export class DailySaleReportsComponent implements OnInit{
       .subscribe(data => { this.options.sale = data; this.filteredOptions.sale = [...data]; });
   }
 
-
   ngOnInit() {
+    // ✅ RESTORE STATE FIRST
+    this.restoreState();
+
     this.route.queryParams.subscribe(params => {
       if (params['data']) {
         const rowData = JSON.parse(params['data']);
@@ -226,17 +228,14 @@ export class DailySaleReportsComponent implements OnInit{
       }
     });
 
-    // Load initial data first
     this.loadSalesList();
     this.DealerList();
     this.productList();
 
-    // ✅ Get query parameters from dashboard navigation
     this.route.queryParams.subscribe(params => {
       this.country = params['country'] || '';
       this.date = params['date'] || '';
 
-      // Format date for display
       if (this.date) {
         const dateObj = new Date(this.date);
         this.formattedDate = dateObj.toLocaleDateString('default', {
@@ -245,23 +244,15 @@ export class DailySaleReportsComponent implements OnInit{
           day: 'numeric'
         });
 
-        console.log('Received params:', {
-          country: this.country,
-          date: this.date,
-          formattedDate: this.formattedDate
-        });
-
-        // ✅ Wait for country options to load, then patch values and generate report
         if (this.country && this.date) {
           this.waitForCountryOptionsAndPatch();
         }
       }
     });
 
-    // === ✅ Make COUNTRY mandatory and control visibility ===
+    // Country dependency
     this.dealerForm.get('country')?.valueChanges.subscribe(selectedCountry => {
       if (!selectedCountry) {
-        // If no country selected, clear and disable others
         this.dealerForm.patchValue({ division: '', town: '', name: [] });
         this.filteredOptions.division = [];
         this.filteredOptions.town = [];
@@ -269,7 +260,6 @@ export class DailySaleReportsComponent implements OnInit{
         return;
       }
 
-      // When country is selected, enable others and make them independent
       this.filteredDivisionsByCountry = Array.from(new Set(
         this.dataSource
           .filter(d => d.country === selectedCountry && d.division && d.division !== 'NA')
@@ -277,7 +267,6 @@ export class DailySaleReportsComponent implements OnInit{
       ));
       this.filteredOptions.division = [...this.filteredDivisionsByCountry];
 
-      // For towns (independent of division now)
       this.filteredTownsByDivision = Array.from(new Set(
         this.dataSource
           .filter(d => d.country === selectedCountry && d.town && d.town !== 'NA')
@@ -285,7 +274,6 @@ export class DailySaleReportsComponent implements OnInit{
       ));
       this.filteredOptions.town = [...this.filteredTownsByDivision];
 
-      // For outlets (independent of both division & town)
       const allOutlets = Array.from(new Set(
         this.dataSource
           .filter(d => d.country === selectedCountry && d.name && d.name !== 'NA')
@@ -294,13 +282,11 @@ export class DailySaleReportsComponent implements OnInit{
       this.filteredOptions.name = [...allOutlets];
     });
 
-    // === ✅ Division Independent Filtering ===
     this.dealerForm.get('division')?.valueChanges.subscribe(selectedDivision => {
       const selectedCountry = this.dealerForm.get('country')?.value;
-      if (!selectedCountry) return; // country mandatory
+      if (!selectedCountry) return;
 
       if (!selectedDivision) {
-        // Reset outlet list to all of the selected country
         const allOutlets = Array.from(new Set(
           this.dataSource
             .filter(d => d.country === selectedCountry && d.name && d.name !== 'NA')
@@ -310,7 +296,6 @@ export class DailySaleReportsComponent implements OnInit{
         return;
       }
 
-      // Filter only those outlets which match selected division (still within country)
       const outlets = Array.from(new Set(
         this.dataSource
           .filter(d =>
@@ -324,13 +309,11 @@ export class DailySaleReportsComponent implements OnInit{
       this.filteredOptions.name = [...outlets];
     });
 
-    // === ✅ Town Independent Filtering ===
     this.dealerForm.get('town')?.valueChanges.subscribe(selectedTown => {
       const selectedCountry = this.dealerForm.get('country')?.value;
-      if (!selectedCountry) return; // country mandatory
+      if (!selectedCountry) return;
 
       if (!selectedTown) {
-        // Reset outlets for whole country if town cleared
         const allOutlets = Array.from(new Set(
           this.dataSource
             .filter(d => d.country === selectedCountry && d.name && d.name !== 'NA')
@@ -340,7 +323,6 @@ export class DailySaleReportsComponent implements OnInit{
         return;
       }
 
-      // Filter outlets by town only (still within country)
       const outlets = Array.from(new Set(
         this.dataSource
           .filter(d =>
@@ -354,38 +336,93 @@ export class DailySaleReportsComponent implements OnInit{
       this.filteredOptions.name = [...outlets];
     });
 
-    // === Search filters (unchanged) ===
     this.nameFilter.valueChanges.subscribe(val => this.filterOutlet(val || ''));
     this.divisionFilter.valueChanges.subscribe(val => this.filterDivision(val || ''));
     this.countryFilter.valueChanges.subscribe(val => this.filterCountry(val || ''));
     this.townFilter.valueChanges.subscribe(val => this.filterTown(val || ''));
     this.productFilter.valueChanges.subscribe(val => this.filterOptions('product', val || ''));
-
-    // const savedState = localStorage.getItem('dailySalesState');
-    // if (savedState) {
-    //   const { filters, reportData, reportTitle, reportDate, selectedCountry } = JSON.parse(savedState);
-    //
-    //   // ✅ Restore form values
-    //   this.dealerForm.patchValue(filters);
-    //
-    //   // ✅ Restore table data
-    //   this.allOutletReports = reportData;
-    //   this.reportTitle = reportTitle;
-    //   this.reportDate = reportDate;
-    //   this.selectedCountry = selectedCountry;
-    // }
   }
 
+  // ✅ NEW: Save state before navigating away
+  ngOnDestroy() {
+    this.saveState();
+  }
 
-  // ✅ New method to wait for country options to load and then patch values
+  // ✅ NEW: Save current state to localStorage
+  private saveState() {
+    const state = {
+      formValues: this.dealerForm.value,
+      allOutletReports: this.allOutletReports,
+      dayColumnHeader: this.dayColumnHeader,
+      selectedCountry: this.selectedCountry,
+      selectedSaleTypeLabel: this.selectedSaleTypeLabel,
+      reportTitle: this.reportTitle,
+      reportDate: this.reportDate
+    };
+    localStorage.setItem('dailySalesState', JSON.stringify(state));
+  }
+
+  // ✅ NEW: Restore state from localStorage
+  private restoreState() {
+    const savedState = localStorage.getItem('dailySalesState');
+    if (savedState) {
+      try {
+        const state = JSON.parse(savedState);
+
+        // Restore form values (convert date strings back to Date objects)
+        if (state.formValues) {
+          const formValues = { ...state.formValues };
+          if (formValues.period) {
+            if (formValues.period.start) {
+              formValues.period.start = new Date(formValues.period.start);
+            }
+            if (formValues.period.end) {
+              formValues.period.end = new Date(formValues.period.end);
+            }
+          }
+          this.dealerForm.patchValue(formValues);
+        }
+
+        // Restore report data
+        this.allOutletReports = state.allOutletReports || [];
+        this.dayColumnHeader = state.dayColumnHeader || 'Sales for the Day';
+        this.selectedCountry = state.selectedCountry || '';
+        this.selectedSaleTypeLabel = state.selectedSaleTypeLabel || '';
+        this.reportTitle = state.reportTitle || '';
+        this.reportDate = state.reportDate || '';
+      } catch (error) {
+        console.error('Error restoring state:', error);
+      }
+    }
+  }
+
+  // ✅ NEW: Update column header based on date selection
+  private updateColumnHeader(startDate: Date | null, endDate: Date) {
+    if (!startDate) {
+      this.dayColumnHeader = 'Sales for the Day';
+    } else if (startDate.toDateString() === endDate.toDateString()) {
+      // Single day selected
+      this.dayColumnHeader = `Sales for ${this.formatDate(startDate)}`;
+    } else {
+      // Date range selected
+      this.dayColumnHeader = `${this.formatDate(startDate)} - ${this.formatDate(endDate)}`;
+    }
+  }
+
+  // ✅ NEW: Format date helper
+  private formatDate(date: Date): string {
+    const day = date.getDate();
+    const month = date.getMonth() + 1;
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  }
+
   private waitForCountryOptionsAndPatch() {
-    // Check if country options are already loaded
     if (this.countryOptionsLoaded && this.options.country.length > 0) {
       this.patchDashboardData();
       return;
     }
 
-    // Wait for country options to load (with timeout)
     const checkInterval = setInterval(() => {
       if (this.countryOptionsLoaded && this.options.country.length > 0) {
         clearInterval(checkInterval);
@@ -393,7 +430,6 @@ export class DailySaleReportsComponent implements OnInit{
       }
     }, 100);
 
-    // Timeout after 5 seconds
     setTimeout(() => {
       clearInterval(checkInterval);
       if (!this.countryOptionsLoaded) {
@@ -402,38 +438,24 @@ export class DailySaleReportsComponent implements OnInit{
     }, 5000);
   }
 
-// ✅ New method to patch the form with dashboard data and generate report
   private patchDashboardData() {
     if (!this.country || !this.date) return;
 
-    console.log('Patching form with dashboard data:', {
-      country: this.country,
-      date: this.date
-    });
-
-    // Convert date string to Date object for the date picker
     const selectedDate = new Date(this.date);
 
-    // ✅ Patch the form with country and date
     this.dealerForm.patchValue({
       country: this.country,
       period: {
         start: selectedDate,
-        end: selectedDate // Set both start and end to the same date
+        end: selectedDate
       }
     });
 
-    // ✅ Wait a bit for the form to update and cascading filters to apply
     setTimeout(() => {
-      // Automatically trigger the report generation
       this.onSubmit();
-
-      console.log('Form patched and report generated automatically');
     }, 500);
   }
 
-
-  // --- Filter methods for cascading + search ---
   filterCountry(value: string) {
     const searchText = (value || '').toLowerCase();
     this.filteredOptions.country = this.options.country
@@ -444,12 +466,10 @@ export class DailySaleReportsComponent implements OnInit{
     const searchText = (value || '').toLowerCase();
     const selectedCountry = this.dealerForm.get('country')?.value;
 
-    // If country is selected, filter from filtered list
     if (selectedCountry) {
       this.filteredOptions.division = this.filteredDivisionsByCountry
         .filter(d => d.toLowerCase().includes(searchText));
     } else {
-      // If no country selected, filter from all divisions
       this.filteredOptions.division = this.options.division
         .filter(d => d.toLowerCase().includes(searchText));
     }
@@ -459,12 +479,10 @@ export class DailySaleReportsComponent implements OnInit{
     const searchText = (value || '').toLowerCase();
     const selectedCountry = this.dealerForm.get('country')?.value;
 
-    // If country is selected, filter from filtered list
     if (selectedCountry) {
       this.filteredOptions.town = this.filteredTownsByDivision
         .filter(t => t.toLowerCase().includes(searchText));
     } else {
-      // If no country selected, filter from all towns
       this.filteredOptions.town = this.options.town
         .filter(t => t.toLowerCase().includes(searchText));
     }
@@ -482,16 +500,13 @@ export class DailySaleReportsComponent implements OnInit{
     const selectedDivision = this.dealerForm.get('division')?.value;
     const selectedTown = this.dealerForm.get('town')?.value;
 
-    // Determine which base list to filter from
     let baseList: string[];
 
     if (selectedCountry || selectedDivision || selectedTown) {
-      // If any filter is applied, use the filtered list
       baseList = this.filteredOutletsByTown.length > 0
         ? this.filteredOutletsByTown
         : this.options.name;
     } else {
-      // No filters applied, use all outlets
       baseList = this.options.name;
     }
 
@@ -512,8 +527,6 @@ export class DailySaleReportsComponent implements OnInit{
     this.formattedDate = '';
   }
 
-
-  // --- Reset / cancel ---
   onCancel() {
     this.selectedOutlets = [];
     this.dealerForm.reset();
@@ -526,9 +539,10 @@ export class DailySaleReportsComponent implements OnInit{
       this.filteredOptions[key] = [...this.options[key]];
     });
     this.allOutletReports = [];
+    this.dayColumnHeader = 'Sales for the Day'; // ✅ Reset header
 
     this.clearDashboardParams();
-    localStorage.removeItem('dailySalesState'); // ✅ clear cache
+    localStorage.removeItem('dailySalesState');
   }
 
   isAllOutletsSelected(): boolean {
@@ -548,13 +562,11 @@ export class DailySaleReportsComponent implements OnInit{
     }
   }
 
-
   loadSalesList() {
     runInInjectionContext(this.injector, () => {
       this.dailySlaes.getDailySalesList().subscribe((data) => {
-        this.salesdataSource = data
+        this.salesdataSource = data;
         this.filteredProducts = [];
-        console.log('daily sales',data);
       });
     });
   }
@@ -571,46 +583,37 @@ export class DailySaleReportsComponent implements OnInit{
     });
   }
 
-
   productList() {
     runInInjectionContext(this.injector, () => {
       this.productService.getProductList().subscribe((data) => {
         (this.productService as any).cachedProducts = data;
         this.vehicledataSource = data;
 
-        // Extract product names for dropdown
         const productNames = Array.from(new Set(data.map((p: any) => p.name).filter(Boolean)));
         this.options.product = productNames;
         this.filteredOptions.product = [...productNames];
-
-        console.log("All Products:", data);
       });
     });
   }
 
   getDateRanges(currentDate: Date) {
-    // Start of month
     const monthStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
 
-    // Start of financial year (1st April)
     const fyStart = currentDate.getMonth() >= 3
-      ? new Date(currentDate.getFullYear(), 3, 1)   // If Apr-Dec
-      : new Date(currentDate.getFullYear() - 1, 3, 1); // If Jan-Mar
+      ? new Date(currentDate.getFullYear(), 3, 1)
+      : new Date(currentDate.getFullYear() - 1, 3, 1);
 
     return { monthStart, fyStart };
   }
-
 
   generateReport(filteredData: any[], startDate: Date | null, endDate: Date, productsToShow: any[], selectedOutlets: string[] = []) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    // ✅ ALWAYS use current date for Month and YTD calculations
     const { monthStart, fyStart } = this.getDateRanges(today);
 
     const report: any = {};
 
-    // ✅ Initialize report with all products (even if no sales)
     productsToShow.forEach((p: any) => {
       const model = (p.model || '').trim().toUpperCase();
       if (model) {
@@ -618,20 +621,16 @@ export class DailySaleReportsComponent implements OnInit{
       }
     });
 
-    // ✅ Determine the "Day" range based on selection
     let dayRangeStart: Date;
     let dayRangeEnd: Date;
 
     if (!startDate) {
-      // No date selected → use today's date for "Day"
       dayRangeStart = new Date(today);
       dayRangeEnd = new Date(today);
     } else if (startDate.toDateString() === endDate.toDateString()) {
-      // Single day selected → use that day for "Day"
       dayRangeStart = new Date(startDate);
       dayRangeEnd = new Date(startDate);
     } else {
-      // Date range selected → sum all days in the range for "Day"
       dayRangeStart = new Date(startDate);
       dayRangeEnd = new Date(endDate);
     }
@@ -639,9 +638,7 @@ export class DailySaleReportsComponent implements OnInit{
     dayRangeStart.setHours(0, 0, 0, 0);
     dayRangeEnd.setHours(23, 59, 59, 999);
 
-    // ✅ Process ALL sales data (not filtered by date range) for Month and YTD
     this.salesdataSource.forEach(item => {
-      // First check if this item matches the other filters (country, division, town, outlet, salesType)
       const filters = this.dealerForm.value;
       const countriesToInclude: string[] = [];
       if (filters.country) {
@@ -650,16 +647,14 @@ export class DailySaleReportsComponent implements OnInit{
         countriesToInclude.push(...this.options.country);
       }
 
-      // 🔥 FIX: Add outlet filter check
       const matchesOutletFilter = selectedOutlets.length === 0 || selectedOutlets.includes(item.dealerOutlet);
 
-      // Apply non-date filters INCLUDING outlet filter
       const matchesFilters = (
         (countriesToInclude.length === 0 || countriesToInclude.includes(item.country)) &&
         (!filters.town || item.town === filters.town) &&
         (!filters.division || item.division === filters.division) &&
         (!filters.sale || item.salesType === filters.sale) &&
-        matchesOutletFilter  // 🔥 ADD THIS LINE
+        matchesOutletFilter
       );
 
       if (!matchesFilters) return;
@@ -676,17 +671,14 @@ export class DailySaleReportsComponent implements OnInit{
         : (item.createdAt?.seconds ? new Date(item.createdAt.seconds * 1000) : new Date(item.createdAt));
       itemDate.setHours(0, 0, 0, 0);
 
-      // ✅ YTD - ALWAYS from current financial year start to TODAY
       if (itemDate >= fyStart && itemDate <= today) {
         report[model].YTD += qty;
       }
 
-      // ✅ Month - ALWAYS from current month start to TODAY
       if (itemDate >= monthStart && itemDate <= today) {
         report[model].Month += qty;
       }
 
-      // ✅ Day - based on the selected date range (or today if no selection)
       if (itemDate >= dayRangeStart && itemDate <= dayRangeEnd) {
         report[model].Day += qty;
       }
@@ -694,7 +686,6 @@ export class DailySaleReportsComponent implements OnInit{
 
     return report;
   }
-
 
   getProductsByCountry(countryName: string): any[] {
     if (!countryName) {
@@ -708,10 +699,6 @@ export class DailySaleReportsComponent implements OnInit{
     );
   }
 
-  /**
-   * Filter products by multiple countries (user's assigned countries)
-   * Returns products that are available in ANY of the specified countries
-   */
   getProductsByCountries(countries: string[]): any[] {
     if (!countries || countries.length === 0) {
       return [];
@@ -723,85 +710,6 @@ export class DailySaleReportsComponent implements OnInit{
       product.availableIn.some(country => countries.includes(country))
     );
   }
-
-// ... inside DailySaleReportsComponent class
-
-// ... (other methods)
-
-  // onSubmit() {
-  //   if (!this.countryOptionsLoaded) {
-  //     this.loadingService.setLoading(false);
-  //     return;
-  //   }
-  //
-  //   this.loadingService.setLoading(true);
-  //
-  //   try {
-  //     const filters = this.dealerForm.value;
-  //     this.selectedSaleTypeLabel = filters.sale ? `(${filters.sale})` : '';
-  //
-  //     const startDate = filters.period?.start ? new Date(filters.period.start) : null;
-  //     const endDate = filters.period?.end ? new Date(filters.period.end) : new Date();
-  //
-  //     if (startDate) startDate.setHours(0, 0, 0, 0);
-  //     if (endDate) endDate.setHours(23, 59, 59, 999);
-  //
-  //     const outlets = Array.isArray(filters.name)
-  //       ? filters.name
-  //       : (filters.name ? [filters.name] : []);
-  //
-  //     this.allOutletReports = [];
-  //
-  //     // Determine which countries to include in the filter
-  //     const countriesToInclude: string[] = [];
-  //     if (filters.country) {
-  //       countriesToInclude.push(filters.country);
-  //     } else {
-  //       countriesToInclude.push(...this.options.country);
-  //     }
-  //
-  //     // Get products according to selected or assigned countries
-  //     const productsToShow = filters.country
-  //       ? this.getProductsByCountry(filters.country)
-  //       : this.getProductsByCountries(this.options.country);
-  //
-  //     console.log('Selected outlets:', outlets);
-  //     console.log('Products to show:', productsToShow.length);
-  //
-  //     // ✅ CASE 1: No outlet selected → merged report
-  //     if (outlets.length === 0) {
-  //       const report = this.generateReport([], startDate, endDate, productsToShow, []);
-  //       const tempRows = this.buildRows(report);
-  //       this.allOutletReports.push({
-  //         outlet: filters.country ? filters.country : 'All Outlets',
-  //         rows: tempRows
-  //       });
-  //     }
-  //     // ✅ CASE 2: Specific outlets selected → individual reports
-  //     else {
-  //       outlets.forEach((outlet: string) => {
-  //         const report = this.generateReport([], startDate, endDate, productsToShow, [outlet]);
-  //         const tempRows = this.buildRows(report);
-  //         this.allOutletReports.push({ outlet, rows: tempRows });
-  //       });
-  //     }
-  //
-  //     // 🧹 Removed reportTitle, reportDate, and selectedCountry (so nothing shows in UI)
-  //
-  //     // ✅ Save only essential data to localStorage
-  //     const saveState = {
-  //       filters,
-  //       reportData: this.allOutletReports
-  //     };
-  //     localStorage.setItem('dailySalesState', JSON.stringify(saveState));
-  //
-  //   } catch (err) {
-  //     console.error('Error generating report:', err);
-  //     Swal.fire('Error', 'Failed to generate report', 'error');
-  //   } finally {
-  //     this.loadingService.setLoading(false);
-  //   }
-  // }
 
   onSubmit() {
     if (!this.countryOptionsLoaded) {
@@ -819,6 +727,9 @@ export class DailySaleReportsComponent implements OnInit{
       const startDate = filters.period?.start ? new Date(filters.period.start) : null;
       const endDate = filters.period?.end ? new Date(filters.period.end) : new Date();
 
+      // ✅ UPDATE COLUMN HEADER
+      this.updateColumnHeader(startDate, endDate);
+
       if (startDate) startDate.setHours(0, 0, 0, 0);
       if (endDate) endDate.setHours(23, 59, 59, 999);
 
@@ -826,30 +737,18 @@ export class DailySaleReportsComponent implements OnInit{
 
       this.allOutletReports = [];
 
-      // Determine which countries to include in the filter
       const countriesToInclude: string[] = [];
       if (filters.country) {
-        // Specific country selected
         countriesToInclude.push(filters.country);
       } else {
-        // No country selected - use all user's assigned countries
         countriesToInclude.push(...this.options.country);
       }
 
-      // ✅ CRITICAL: Filter products based on user's assigned countries or selected country
       const productsToShow = filters.country
-        ? this.getProductsByCountry(filters.country)  // Single country
-        : this.getProductsByCountries(this.options.country); // User's assigned countries
+        ? this.getProductsByCountry(filters.country)
+        : this.getProductsByCountries(this.options.country);
 
-      console.log('Countries to include:', countriesToInclude);
-      console.log('User assigned countries:', this.options.country);
-      console.log('Products to show:', productsToShow.length);
-      console.log('Product models:', productsToShow.map(p => p.model));
-      console.log('Selected outlets:', outlets);
-
-      // Case 1: No outlet selected → show merged report for ALL outlets
       if (outlets.length === 0) {
-        // 🔥 FIX: Pass empty array to get data for ALL outlets
         const report = this.generateReport([], startDate, endDate, productsToShow, []);
 
         const tempRows = this.buildRows(report);
@@ -861,9 +760,7 @@ export class DailySaleReportsComponent implements OnInit{
         });
 
       } else {
-        // Case 2: One or more outlets selected → show separate reports for each
         outlets.forEach((outlet: string) => {
-          // 🔥 FIX: Pass the specific outlet as an array
           const report = this.generateReport([], startDate, endDate, productsToShow, [outlet]);
 
           const tempRows = this.buildRows(report);
@@ -877,14 +774,15 @@ export class DailySaleReportsComponent implements OnInit{
 
         this.selectedCountry = filters.country || '';
       }
+
+      // ✅ SAVE STATE AFTER GENERATING REPORT
+      this.saveState();
+
     } finally {
       this.loadingService.setLoading(false);
     }
   }
 
-// ... (other methods)
-
-// ✅ Helper to build rows
   private buildRows(report: any) {
     return Object.keys(report).map(key => {
       const displayModel = key.trim().toUpperCase();
@@ -903,8 +801,6 @@ export class DailySaleReportsComponent implements OnInit{
     });
   }
 
-// ✅ Helper to group and add totals
-// ✅ Group rows + add a TOTAL row
   private groupAndColorRows(tempRows: any[]) {
     const grouped: Record<string, any> = {};
 
@@ -920,7 +816,6 @@ export class DailySaleReportsComponent implements OnInit{
 
     const rows = Object.values(grouped);
 
-    // Apply row colors consistently
     rows.forEach((row: any) => {
       if (row.Day > 10 || row.Month > 10 || row.YTD > 10) {
         row.rowColor = 'green-row';
@@ -931,7 +826,6 @@ export class DailySaleReportsComponent implements OnInit{
       }
     });
 
-    // Add TOTAL row ✅
     rows.push({
       product: 'TOTAL',
       Day: rows.reduce((s: number, r: any) => s + r.Day, 0),
@@ -958,7 +852,6 @@ export class DailySaleReportsComponent implements OnInit{
       if (!outletReport || !outletReport.rows) return;
 
       // === OUTLET TITLE ROW ===
-      // FIXED: Merging A to D to match the 4 data columns (Product, Day, Month, YTD)
       worksheet.mergeCells(`A${currentRow}:D${currentRow}`);
       worksheet.getCell(`A${currentRow}`).value = `Cumulative for the month - ${outletReport.outlet}`;
       worksheet.getCell(`A${currentRow}`).alignment = { horizontal: "center", vertical: "middle" };
@@ -971,6 +864,7 @@ export class DailySaleReportsComponent implements OnInit{
       worksheet.getRow(currentRow).height = 20;
       currentRow++;
 
+      // === DATE ROW ===
       worksheet.mergeCells(`A${currentRow}:D${currentRow}`);
       worksheet.getCell(`A${currentRow}`).value = `Date: ${new Date().toLocaleDateString()} ${this.selectedSaleTypeLabel}`;
       worksheet.getCell(`A${currentRow}`).alignment = { horizontal: "center", vertical: "middle" };
@@ -983,9 +877,8 @@ export class DailySaleReportsComponent implements OnInit{
       worksheet.getRow(currentRow).height = 20;
       currentRow += 2;
 
-
-      // === HEADER ROW ===
-      const headerRow = ["Product", "Day", "Month", "YTD"];
+      // === HEADER ROW === ✅ Use dynamic column header
+      const headerRow = ["Product", this.dayColumnHeader, "Month", "YTD"];
       const headerExcelRow = worksheet.addRow(headerRow);
       headerExcelRow.font = { bold: true };
       headerExcelRow.height = 20;
@@ -1014,14 +907,12 @@ export class DailySaleReportsComponent implements OnInit{
           right: { style: "thin" },
         };
         if (rowNumber > 1) {
-          // This alignment applies to all data/header cells, including the merged title/date cells
           cell.alignment = { vertical: "middle", horizontal: "center" };
         }
       });
     });
 
     // === Column widths ===
-    // Only 4 columns are relevant now (0 to 3)
     worksheet.columns.forEach((col, index) => {
       col.width = index === 0 ? 25 : 12;
     });
@@ -1034,14 +925,15 @@ export class DailySaleReportsComponent implements OnInit{
       // ✅ Get username from localStorage
       const userData = JSON.parse(localStorage.getItem('userData') || '{}');
       const username = `${userData.first || ''} ${userData.last || ''}`.trim() || 'Unknown User';
+
       // 🔹 Log activity after successful export
       const activity: ActivityLog = {
         action: 'Export',
         section: 'Sales Report',
         description: `${username} downloaded the sales report and mail is`,
         date: Date.now(),
-        user: username,  // optional field if your model supports
-        currentIp: '',   // fill with IP if needed
+        user: username,
+        currentIp: '',
       };
 
       this.mService.addLog(activity)

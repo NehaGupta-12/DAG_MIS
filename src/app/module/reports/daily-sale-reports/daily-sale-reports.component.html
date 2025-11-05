@@ -139,6 +139,7 @@
         </div>
 
 
+
         <div class="col-md-3">
           <mat-form-field class="example-full-width w-100" appearance="outline">
             <mat-label>Select Date</mat-label>
@@ -148,6 +149,7 @@
               <input matStartDate formControlName="start" placeholder="Start date" readonly>
               <input matEndDate formControlName="end" placeholder="End date" readonly>
             </mat-date-range-input>
+
 
             <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
             <mat-date-range-picker #picker></mat-date-range-picker>
@@ -198,8 +200,15 @@
           </ng-container>
 
           <!-- Day Column -->
+<!--          <ng-container matColumnDef="Day">-->
+<!--            <th mat-header-cell *matHeaderCellDef class="number-col"> Sales for the Day </th>-->
+<!--            <td mat-cell *matCellDef="let row" class="number-col">-->
+<!--              <span class="cell-color">{{ row.Day }}</span>-->
+<!--            </td>-->
+<!--          </ng-container>-->
+          <!-- Day Column - ✅ UPDATED: Use dynamic header -->
           <ng-container matColumnDef="Day">
-            <th mat-header-cell *matHeaderCellDef class="number-col"> Sales for the Day </th>
+            <th mat-header-cell *matHeaderCellDef class="number-col"> {{ dayColumnHeader }} </th>
             <td mat-cell *matCellDef="let row" class="number-col">
               <span class="cell-color">{{ row.Day }}</span>
             </td>

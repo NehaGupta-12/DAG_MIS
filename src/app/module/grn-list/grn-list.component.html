@@ -110,14 +110,14 @@
 <!--                      <app-feather-icons [icon]="'edit'" [class]="'tbl-fav-edit'"></app-feather-icons>-->
 <!--                    </button>-->
 <!--                    </span>-->
-                    <span [matTooltip]="!authService.hasPermission('GRN','list') ? 'No permission' : 'View Daily Stock '" matTooltipPosition="above">
+                    <span [matTooltip]="!authService.hasPermission('GRN','list') ? 'No permission' : 'View GRN List '" matTooltipPosition="above">
                       <button mat-icon-button color="primary"
                               (click)="viewGrn(row)"
                               [disabled]="!authService.hasPermission('GRN','list')">
                      <app-feather-icons [icon]="'eye'" [class]="'tbl-fav-view'"></app-feather-icons>
                     </button>
                     </span>
-                    <span [matTooltip]="!authService.hasPermission('GRN','delete') ? 'No permission' : 'Delete Daily Stock '" matTooltipPosition="above">
+                    <span [matTooltip]="!authService.hasPermission('GRN','delete') ? 'No permission' : 'Delete GRN List '" matTooltipPosition="above">
                     <button mat-icon-button color="" (click)="deleteGrn(row)" [disabled]="!authService.hasPermission('GRN','delete')">
                       <app-feather-icons [icon]="'trash-2'" [class]="'tbl-fav-delete'"></app-feather-icons>
                     </button>
