@@ -201,54 +201,76 @@ export class MainComponent implements OnInit {
     this.loadbudget();
     this.loadMonthlyBudget();
 
-    this.countryService.getCountries().subscribe(countries => {
-      this._countriesTypes = countries;
-      this.filteredCountries = [...this._countriesTypes];
-      this.countryControl.setValue(['All']);
-      this.loadSalesList(this._countriesTypes);
-      this.loadStockList(this._countriesTypes);
-    });
-
     // this.countryService.getCountries().subscribe(countries => {
     //   this._countriesTypes = countries;
     //   this.filteredCountries = [...this._countriesTypes];
-    //
-    //   // ✅ Set both 'All' and all countries as selected by default
-    //   this.countryControl.setValue(['All', ...this._countriesTypes]);
-    //
+    //   this.countryControl.setValue(['All']);
     //   this.loadSalesList(this._countriesTypes);
     //   this.loadStockList(this._countriesTypes);
     // });
 
+    this.countryService.getCountries().subscribe(countries => {
+      this._countriesTypes = countries;
+      this.filteredCountries = [...this._countriesTypes];
+
+      // ✅ Select "All" and every country internally
+      this.countryControl.setValue(['All', ...this._countriesTypes]);
+
+      this.loadSalesList(this._countriesTypes);
+      this.loadStockList(this._countriesTypes);
+    });
+
+
+
+
+    // this.countryControl.valueChanges.subscribe((selected: string[] | null) => {
+    //   if (!selected) return;
+    //
+    //   // If "All" is in the selection
+    //   if (selected.includes('All')) {
+    //     // If there are other countries selected along with "All"
+    //     if (selected.length > 1) {
+    //       // Remove "All" and keep only the other selected countries
+    //       const filteredSelection = selected.filter(c => c !== 'All');
+    //       this.countryControl.setValue(filteredSelection, { emitEvent: false });
+    //       this.loadSalesList(filteredSelection);
+    //       this.loadStockList(filteredSelection);
+    //     } else {
+    //       // Only "All" is selected
+    //       this.countryControl.setValue(['All'], { emitEvent: false });
+    //       this.loadSalesList(this._countriesTypes);
+    //       this.loadStockList(this._countriesTypes);
+    //     }
+    //   } else if (selected.length === 0) {
+    //     // No selection
+    //     this.loadSalesList([]);
+    //     this.loadStockList([]);
+    //   } else {
+    //     // Specific countries selected
+    //     this.loadSalesList(selected);
+    //     this.loadStockList(selected);
+    //   }
+    // });
 
     this.countryControl.valueChanges.subscribe((selected: string[] | null) => {
       if (!selected) return;
 
-      // If "All" is in the selection
       if (selected.includes('All')) {
-        // If there are other countries selected along with "All"
-        if (selected.length > 1) {
-          // Remove "All" and keep only the other selected countries
-          const filteredSelection = selected.filter(c => c !== 'All');
-          this.countryControl.setValue(filteredSelection, { emitEvent: false });
-          this.loadSalesList(filteredSelection);
-          this.loadStockList(filteredSelection);
-        } else {
-          // Only "All" is selected
-          this.countryControl.setValue(['All'], { emitEvent: false });
-          this.loadSalesList(this._countriesTypes);
-          this.loadStockList(this._countriesTypes);
-        }
+        // ✅ When "All" selected, mark all countries as selected
+        this.countryControl.setValue(['All', ...this._countriesTypes], { emitEvent: false });
+        this.loadSalesList(this._countriesTypes);
+        this.loadStockList(this._countriesTypes);
       } else if (selected.length === 0) {
-        // No selection
+        // ✅ Nothing selected
         this.loadSalesList([]);
         this.loadStockList([]);
       } else {
-        // Specific countries selected
+        // ✅ Specific countries selected
         this.loadSalesList(selected);
         this.loadStockList(selected);
       }
     });
+
   }
 
   filterCountries() {

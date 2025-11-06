@@ -67,19 +67,41 @@
           </div>
 
           <!-- Custom Trigger -->
+<!--          <mat-select-trigger>-->
+<!--            <ng-container *ngIf="countrySelect.value?.length; else noSelection">-->
+<!--    <span *ngFor="let country of countrySelect.value.slice(0,2); let i = index">-->
+<!--      {{ country }}<span *ngIf="i < 1 && countrySelect.value.length > 1">, </span>-->
+<!--    </span>-->
+<!--              <span *ngIf="countrySelect.value.length > 2" class="textcol">-->
+<!--      (+{{ countrySelect.value.length - 2 }} more)-->
+<!--    </span>-->
+<!--            </ng-container>-->
+<!--            <ng-template #noSelection>-->
+<!--              Select Country-->
+<!--            </ng-template>-->
+<!--          </mat-select-trigger>-->
+
           <mat-select-trigger>
-            <ng-container *ngIf="countrySelect.value?.length; else noSelection">
-        <span *ngFor="let country of countrySelect.value.slice(0,2); let i = index">
-          {{ country }}<span *ngIf="i < 1 && countrySelect.value.length > 1">, </span>
-        </span>
-              <span *ngIf="countrySelect.value.length > 2" class="textcol">
-          (+{{ countrySelect.value.length - 2 }} more)
-        </span>
+            <ng-container *ngIf="countrySelect.value?.includes('All'); else showCountries">
+              All
             </ng-container>
-            <ng-template #noSelection>
-              Select Country
+
+            <ng-template #showCountries>
+              <ng-container *ngIf="countrySelect.value?.length; else noSelection">
+      <span *ngFor="let country of countrySelect.value.slice(0,2); let i = index">
+        {{ country }}<span *ngIf="i < 1 && countrySelect.value.length > 1">, </span>
+      </span>
+                <span *ngIf="countrySelect.value.length > 2" class="textcol">
+        (+{{ countrySelect.value.length - 2 }} more)
+      </span>
+              </ng-container>
+              <ng-template #noSelection>
+                Select Country
+              </ng-template>
             </ng-template>
           </mat-select-trigger>
+
+
 
           <!-- ✅ "All" option -->
           <mat-option [value]="'All'">All</mat-option>
