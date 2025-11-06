@@ -283,8 +283,6 @@ export class MainComponent implements OnInit {
         this.loadStockList(selected);
       }
     });
-
-
   }
 
   filterCountries() {
