@@ -255,21 +255,35 @@ export class MainComponent implements OnInit {
     this.countryControl.valueChanges.subscribe((selected: string[] | null) => {
       if (!selected) return;
 
+      // ✅ CASE 1: "All" selected
       if (selected.includes('All')) {
-        // ✅ When "All" selected, mark all countries as selected
+        // Mark all countries (and "All") as selected
         this.countryControl.setValue(['All', ...this._countriesTypes], { emitEvent: false });
         this.loadSalesList(this._countriesTypes);
         this.loadStockList(this._countriesTypes);
-      } else if (selected.length === 0) {
-        // ✅ Nothing selected
+      }
+
+      // ✅ CASE 2: "All" unselected
+      else if (!selected.includes('All') && selected.length === this._countriesTypes.length) {
+        // if user manually unselects "All", remove all selections
+        this.countryControl.setValue([], { emitEvent: false });
         this.loadSalesList([]);
         this.loadStockList([]);
-      } else {
-        // ✅ Specific countries selected
+      }
+
+      // ✅ CASE 3: No selection at all
+      else if (selected.length === 0) {
+        this.loadSalesList([]);
+        this.loadStockList([]);
+      }
+
+      // ✅ CASE 4: Some specific countries selected
+      else {
         this.loadSalesList(selected);
         this.loadStockList(selected);
       }
     });
+
 
   }
 
