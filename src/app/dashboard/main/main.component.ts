@@ -209,6 +209,18 @@ export class MainComponent implements OnInit {
       this.loadStockList(this._countriesTypes);
     });
 
+    // this.countryService.getCountries().subscribe(countries => {
+    //   this._countriesTypes = countries;
+    //   this.filteredCountries = [...this._countriesTypes];
+    //
+    //   // ✅ Set both 'All' and all countries as selected by default
+    //   this.countryControl.setValue(['All', ...this._countriesTypes]);
+    //
+    //   this.loadSalesList(this._countriesTypes);
+    //   this.loadStockList(this._countriesTypes);
+    // });
+
+
     this.countryControl.valueChanges.subscribe((selected: string[] | null) => {
       if (!selected) return;
 
@@ -260,6 +272,8 @@ export class MainComponent implements OnInit {
       this.filterCountries();
     }, 300);
   }
+
+
 
   onCountrySelectOpened(isOpened: boolean) {
     if (isOpened && this.countrySearchInput) {
