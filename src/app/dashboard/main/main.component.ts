@@ -221,8 +221,6 @@ export class MainComponent implements OnInit {
     });
 
 
-
-
     // this.countryControl.valueChanges.subscribe((selected: string[] | null) => {
     //   if (!selected) return;
     //
@@ -294,8 +292,10 @@ export class MainComponent implements OnInit {
       this.filteredCountries = sortedCountries;
     } else {
       this.filteredCountries = sortedCountries.filter(country =>
-        country.toLowerCase().includes(this.countrySearchText.toLowerCase())
+        country.toLowerCase().includes(this.countrySearchText.toLowerCase()) ||
+        (this.countryControl.value?.includes(country) ?? false)
       );
+
     }
   }
 
@@ -307,8 +307,6 @@ export class MainComponent implements OnInit {
     }, 300);
   }
 
-
-
   onCountrySelectOpened(isOpened: boolean) {
     if (isOpened && this.countrySearchInput) {
       this.countrySearchText = '';
@@ -318,6 +316,7 @@ export class MainComponent implements OnInit {
       }, 0);
     }
   }
+
 
   ngAfterViewInit() {
     this.dailyZeroSalesDataSource.paginator = this.dailyPaginator;
