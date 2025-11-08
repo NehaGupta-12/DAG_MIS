@@ -137,123 +137,7 @@ export class AuthService {
     }
   }
 
-
-  // async login(email: string, password: string) {
-  //   localStorage.clear();
-  //
-  //   try {
-  //     console.log('🟢 Attempting login for:', email);
-  //
-  //     const userCredential = await this.mAuth.signInWithEmailAndPassword(email, password);
-  //     console.log('🟢 Firebase login successful:', userCredential?.user?.uid);
-  //
-  //     if (userCredential && userCredential.user) {
-  //       const user = userCredential.user;
-  //
-  //       // ✅ Wrap all DB reads inside Angular context
-  //       let userData: any = await runInInjectionContext(this.injector, async () => {
-  //         console.log('🟡 Fetching user data from Realtime Database...');
-  //         let data = await firstValueFrom(
-  //           this.mDatabase.object<UserDataModel>('Users/' + user.uid).valueChanges()
-  //         );
-  //         if (!data) {
-  //           console.log('🟠 User not found in "Users/", checking "users/"...');
-  //           data = await firstValueFrom(
-  //             this.mDatabase.object<UserDataModel>('users/' + user.uid).valueChanges()
-  //           );
-  //         }
-  //         return data;
-  //       });
-  //
-  //       if (!userData) {
-  //         console.error('🔴 No user record found for UID:', user.uid);
-  //         this._snackBar.open('User record not found in database.', 'Close', { duration: 4000 });
-  //         await this.mAuth.signOut();
-  //         throw new Error('User data not found.');
-  //       }
-  //
-  //       console.log('🟢 User data found:', userData);
-  //
-  //       // 🔹 Check active status
-  //       const isInactive =
-  //         userData.isActive === false ||
-  //         userData.isActive === 'false' ||
-  //         userData.active === false ||
-  //         userData.active === 'false' ||
-  //         userData.status?.toString()?.toLowerCase() === 'inactive';
-  //
-  //       console.log('🟡 Active status check:', {
-  //         isActive: userData.isActive,
-  //         active: userData.active,
-  //         status: userData.status,
-  //         result: isInactive ? 'INACTIVE' : 'ACTIVE',
-  //       });
-  //
-  //       if (isInactive) {
-  //         console.warn('⛔ Login blocked: User is inactive.');
-  //         this._snackBar.open('Your account is inactive. Please contact the admin.', 'Close', { duration: 4000 });
-  //         await this.mAuth.signOut();
-  //         throw new Error('Inactive user blocked from login.');
-  //       }
-  //
-  //       // ✅ Normal login flow
-  //       localStorage.setItem('user', JSON.stringify(user));
-  //       localStorage.setItem('uid', user.uid);
-  //       if (user.email) localStorage.setItem('userEmail', user.email);
-  //
-  //       // ✅ Log activity & load user data
-  //       await runInInjectionContext(this.injector, async () => {
-  //         const currentIp = localStorage.getItem('currentip') || '';
-  //         const activity: ActivityLog = {
-  //           date: new Date().getTime(),
-  //           section: 'Login',
-  //           action: 'Login',
-  //           user: user.email || 'N/A',
-  //           description: 'Login by user',
-  //           currentIp: currentIp,
-  //           changes: [],
-  //         };
-  //         await this.mLogService.addLog(activity);
-  //         await this.setUserData(user.uid);
-  //       });
-  //
-  //       console.log('✅ Login successful for:', user.email);
-  //       return user;
-  //     }
-  //
-  //     throw new Error('Invalid user');
-  //   } catch (err: any) {
-  //     console.error('🔴 Login error:', err);
-  //
-  //     let message = '';
-  //     if (err.code === 'auth/user-disabled') {
-  //       message = 'Your ID is deactivated. Please contact admin.';
-  //     } else if (err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found') {
-  //       message = 'Invalid Username or Password';
-  //     } else if (err.message?.includes('Inactive user')) {
-  //       message = 'Your account is inactive. Please contact admin.';
-  //     } else if (err.message?.includes('User data not found')) {
-  //       message = 'User record not found in the system.';
-  //     } else {
-  //       message = 'Unexpected error: ' + (err.message || 'Please try again later.');
-  //     }
-  //
-  //     this._snackBar.open(message, 'Close', { duration: 4000 });
-  //     throw err;
-  //   }
-  // }
-
-
-
-
-
-
-
-
-
 // Update the login method in AuthService
-
-
   async logout() {
     localStorage.removeItem('userData');
     localStorage.removeItem('userRolePermissions');
@@ -322,22 +206,54 @@ export class AuthService {
       })
       .catch((error: any) => {
         let message = 'Error sending password reset email.';
-
         if (error.code === 'auth/user-not-found') {
           message = 'No account found with this email address.';
         } else if (error.code === 'auth/invalid-email') {
           message = 'Please enter a valid email address.';
         } else if (error.code === 'auth/invalid-continue-uri' || error.code === 'auth/missing-continue-uri' || error.code === 'auth/invalid-action-code' || error.code === '400') {
           message = 'Something went wrong. Please try again later.';
+        }  else if(error.code === 'auth/user-disabled'){
+          message = 'Your account has been disabled. Please contact support.';
         }
-
         this._snackBar.open(message, 'Close', {
           duration: 4000,
           panelClass: ['snackbar-error'],
         });
       });
   }
+  async isUserDisabled(email: string): Promise<boolean> {debugger
+    try {
+      return await runInInjectionContext(this.injector, async () => {
+        const snapshot = await firstValueFrom(
+          this.mDatabase.list('users', ref => ref.orderByChild('email').equalTo(email)).valueChanges()
+        );
+        if (snapshot.length > 0) {
+          const userData: any = snapshot[0];
+          return userData.status != 'Active';
+        }
+        return false;
+      });
+    } catch (error) {
+      console.error('Error checking user disabled status:', error);
+      return false;
+    }
+  }
+  async isEmailRegistered(email: string): Promise<boolean> {
+    try {
+      return await runInInjectionContext(this.injector, async () => {
+        const snapshot = await firstValueFrom(
+          this.mDatabase.list('users', ref =>
+            ref.orderByChild('email').equalTo(email)
+          ).valueChanges()
+        );
 
+        return snapshot.length > 0;
+      });
+    } catch (error) {
+      console.error('Error checking email in Realtime DB:', error);
+      return false;
+    }
+  }
 
 
 
