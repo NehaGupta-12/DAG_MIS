@@ -172,6 +172,7 @@ export class MainComponent implements OnInit {
   lastMonthBudget: number = 0;
   currentMonthTarget: number = 0;
   lastMonthTarget: number = 0;
+  lastSelectedValue: string[] = [];
 
   displayedColumns: string[] = [
     'id',
@@ -250,37 +251,100 @@ export class MainComponent implements OnInit {
     //   }
     // });
 
+    // this.countryControl.valueChanges.subscribe((selected: string[] | null) => {
+    //   if (!selected) return;
+    //
+    //   // ✅ CASE 1: "All" selected
+    //   if (selected.includes('All')) {
+    //     // Mark all countries (and "All") as selected
+    //     this.countryControl.setValue(['All', ...this._countriesTypes], { emitEvent: false });
+    //     this.loadSalesList(this._countriesTypes);
+    //     this.loadStockList(this._countriesTypes);
+    //   }
+    //
+    //   // ✅ CASE 2: "All" unselected
+    //   else if (!selected.includes('All') && selected.length === this._countriesTypes.length) {
+    //     // if user manually unselects "All", remove all selections
+    //     this.countryControl.setValue([], { emitEvent: false });
+    //     this.loadSalesList([]);
+    //     this.loadStockList([]);
+    //   }
+    //
+    //   // ✅ CASE 3: No selection at all
+    //   else if (selected.length === 0) {
+    //     this.loadSalesList([]);
+    //     this.loadStockList([]);
+    //   }
+    //
+    //   // ✅ CASE 4: Some specific countries selected
+    //   else {
+    //     this.loadSalesList(selected);
+    //     this.loadStockList(selected);
+    //   }
+    // });
+
+    // Replace your existing countryControl.valueChanges subscription with this updated logic:
+
     this.countryControl.valueChanges.subscribe((selected: string[] | null) => {
       if (!selected) return;
 
-      // ✅ CASE 1: "All" selected
-      if (selected.includes('All')) {
+      const previousSelection = this.lastSelectedValue || [];
+
+      // ✅ CASE 1: User clicked "All"
+      if (selected.includes('All') && !previousSelection.includes('All')) {
         // Mark all countries (and "All") as selected
         this.countryControl.setValue(['All', ...this._countriesTypes], { emitEvent: false });
+        this.lastSelectedValue = ['All', ...this._countriesTypes];
         this.loadSalesList(this._countriesTypes);
         this.loadStockList(this._countriesTypes);
+        return;
       }
 
-      // ✅ CASE 2: "All" unselected
-      else if (!selected.includes('All') && selected.length === this._countriesTypes.length) {
-        // if user manually unselects "All", remove all selections
+      // ✅ CASE 2: User unchecked "All" directly
+      if (!selected.includes('All') && previousSelection.includes('All')) {
+        // Remove all selections
         this.countryControl.setValue([], { emitEvent: false });
+        this.lastSelectedValue = [];
         this.loadSalesList([]);
         this.loadStockList([]);
+        return;
       }
 
-      // ✅ CASE 3: No selection at all
-      else if (selected.length === 0) {
+      // ✅ CASE 3: User unchecked a specific country (while "All" was selected)
+      if (previousSelection.includes('All') && selected.length < previousSelection.length) {
+        // Remove "All" and keep only the remaining selected countries
+        const remainingCountries = selected.filter(c => c !== 'All');
+        this.countryControl.setValue(remainingCountries, { emitEvent: false });
+        this.lastSelectedValue = remainingCountries;
+        this.loadSalesList(remainingCountries);
+        this.loadStockList(remainingCountries);
+        return;
+      }
+
+      // ✅ CASE 4: User manually selected all countries (without clicking "All")
+      if (!selected.includes('All') && selected.length === this._countriesTypes.length) {
+        // Auto-select "All" checkbox
+        this.countryControl.setValue(['All', ...this._countriesTypes], { emitEvent: false });
+        this.lastSelectedValue = ['All', ...this._countriesTypes];
+        this.loadSalesList(this._countriesTypes);
+        this.loadStockList(this._countriesTypes);
+        return;
+      }
+
+      // ✅ CASE 5: No selection at all
+      if (selected.length === 0) {
+        this.lastSelectedValue = [];
         this.loadSalesList([]);
         this.loadStockList([]);
+        return;
       }
 
-      // ✅ CASE 4: Some specific countries selected
-      else {
-        this.loadSalesList(selected);
-        this.loadStockList(selected);
-      }
+      // ✅ CASE 6: Normal country selection/deselection
+      this.lastSelectedValue = selected;
+      this.loadSalesList(selected);
+      this.loadStockList(selected);
     });
+
   }
 
   filterCountries() {
