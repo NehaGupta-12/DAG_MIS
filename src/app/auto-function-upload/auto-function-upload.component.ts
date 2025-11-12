@@ -23,23 +23,18 @@ export class AutoFunctionUploadComponent {
     // this.copyRolesToRoles2()
   }
   copyRolesToRoles2() {
-    const sourceCollection = 'dealer';
-    const targetCollection = 'dealerCopyData';
-    runInInjectionContext(this.injector, async () => {
+    const sourceCollection = 'ALPurchases';
+    const targetCollection = 'ALPurchases-clone';
     this.firestore.collection(sourceCollection).get().subscribe(snapshot => {
       snapshot.forEach(doc => {
         const data = doc.data();
         const id = doc.id; // optional: keep the same doc ID
-        runInInjectionContext(this.injector, async () => {
         this.firestore.collection(targetCollection).doc(id).set(data)
           .then(() => console.log(`Copied document ${id}`))
           .catch(err => console.error('Error copying document', id, err));
       });
-      });
     }, error => {
       console.error('Error fetching source collection', error);
-    });
-
     });
   }
 

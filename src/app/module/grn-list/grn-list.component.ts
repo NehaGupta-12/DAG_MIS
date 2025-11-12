@@ -201,13 +201,13 @@ export class GRNListComponent implements OnInit {
     const docId = row.docId;
 
     if (!docId) {
-      Swal.fire('Error', 'Missing document ID for this Daily Stock.', 'error');
+      Swal.fire('Error', 'Missing document ID for this Grn.', 'error');
       return;
     }
 
     Swal.fire({
       title: 'Are you sure?',
-      text: 'You will not be able to recover this Daily Stock!',
+      text: 'You will not be able to recover this Grn Data!',
       icon: 'warning',
       showCancelButton: true,
       confirmButtonText: 'Yes, delete it!',
@@ -239,10 +239,10 @@ export class GRNListComponent implements OnInit {
             description: `${username} deleted GRN for ${row.name} (SKU: ${row.sku})`
           });
 
-          Swal.fire('Deleted!', 'Daily Stock has been deleted and inventory restored.', 'success');
+          Swal.fire('Deleted!', 'Grn Details has been deleted and inventory restored.', 'success');
         } catch (err) {
           console.error('Delete failed:', err);
-          Swal.fire('Error', 'Failed to delete the Daily Stock. Please try again.', 'error');
+          Swal.fire('Error', 'Failed to delete the Grn Details. Please try again.', 'error');
         } finally {
           this.loadingService.setLoading(false);
         }

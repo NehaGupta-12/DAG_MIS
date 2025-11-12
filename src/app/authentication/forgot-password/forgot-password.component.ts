@@ -52,47 +52,43 @@ export class ForgotPasswordComponent implements OnInit {
     return this.loginForm.controls;
   }
 
-  // onSubmit() {
-  //   this.submitted = true;
-  //   // stop here if form is invalid
-  //   if (this.loginForm.invalid) {
-  //     return;
-  //   } else {
-  //     this.router.navigate(['/dashboard/main']);
-  //   }
-  // }
-
-
-  onSubmit() {
+  async onSubmit() {
     this.errorMessage = '';
-
     if (this.loginForm.invalid) {
       this.loginForm.markAllAsTouched();
       return;
     }
 
-    const enteredEmail = this.loginForm.value.email.trim();
-    const registeredEmail = (this.authService.currentUserValue as any)?.email
-      || localStorage.getItem('userEmail');
-
-    if (!registeredEmail || enteredEmail.toLowerCase() !== registeredEmail.toLowerCase()) {
-      this.errorMessage = 'Please enter your registered email address.';
-      return;
-    }
-
-
+    const enteredEmail = this.loginForm.value.email.trim().toLowerCase();
     this.isLoading = true;
 
-    this.authService.sendPasswordResetEmail(enteredEmail)
-      .then(() => {
+    try {
+      // Step 1: Check if email exists
+      const exists = await this.authService.isEmailRegistered(enteredEmail);
+      if (!exists) {
         this.isLoading = false;
-        this.router.navigate(['/dashboard/main']); // navigate only on success
-      })
-      .catch(() => {
-        this.isLoading = false;
-        this.errorMessage = 'Failed to send reset email. Please try again.';
-      });
-  }
+        this.errorMessage = 'No user found with this email address.';
+        return;
+      }
 
+      // Step 2: Check if disabled
+      const isDisabled = await this.authService.isUserDisabled(enteredEmail);
+      if (isDisabled) {debugger
+        this.isLoading = false;
+        this.errorMessage = 'Your account has been disabled. Please contact support.';
+        return;
+      }
+
+      // Step 3: Send reset email
+      await this.authService.sendPasswordResetEmail(enteredEmail);
+      this.isLoading = false;
+      this.errorMessage = '';
+      this.router.navigate(['/authentication/signin']);
+    } catch (error) {
+      console.error('Forgot password error:', error);
+      this.isLoading = false;
+      this.errorMessage = 'Something went wrong. Please try again later.';
+    }
+  }
 
 }
