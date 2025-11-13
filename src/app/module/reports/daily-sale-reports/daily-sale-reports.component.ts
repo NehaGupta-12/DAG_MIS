@@ -353,14 +353,6 @@ export class DailySaleReportsComponent implements OnInit{
     this.productFilter.valueChanges.subscribe(val => this.filterOptions('product', val || ''));
   }
 
-
-
-
-
-
-
-
-
   // ✅ NEW: Save state before navigating away
   ngOnDestroy() {
     this.saveState();
@@ -614,79 +606,6 @@ export class DailySaleReportsComponent implements OnInit{
     });
   }
 
-
-  // loadDailySales() {
-  //   this.dailySlaes.getDailySalesList().subscribe(salesData => {
-  //     // Fetch yearly & monthly budgets in parallel
-  //     this.budgetService.getBudgetList().subscribe(yearlyBudgets => {
-  //       this.monthlyBudgetService.getBudgetList().subscribe(monthlyBudgets => {
-  //
-  //         // Map yearly and monthly budgets by product name
-  //         const yearlyMap = new Map(
-  //           yearlyBudgets.flatMap(b =>
-  //             (b.products || []).map((p: any) => [p.model.toLowerCase(), p.targetQuantity])
-  //           )
-  //         );
-  //
-  //         const monthlyMap = new Map(
-  //           monthlyBudgets.flatMap(b =>
-  //             (b.products || []).map((p: any) => [p.model.toLowerCase(), p.targetQuantity])
-  //           )
-  //         );
-  //
-  //         // Merge data
-  //         this.dataSource = salesData.map((row: any) => ({
-  //           ...row,
-  //           yearlyBudget: yearlyMap.get(row.product?.toLowerCase()) || '-',
-  //           monthlyTarget: monthlyMap.get(row.product?.toLowerCase()) || '-'
-  //         }));
-  //       });
-  //     });
-  //   });
-  // }
-
-  loadReports() {
-    combineLatest([
-      this.dailySlaes.getDailySalesList(),
-      this.budgetService.getBudgetList(),
-      this.monthlyBudgetService.getBudgetList()
-    ])
-      .pipe(
-        map(([dailySales, yearlyBudgets, monthlyTargets]) => {
-          console.log('Daily Sales:', dailySales);
-          console.log('Yearly Budgets:', yearlyBudgets);
-          console.log('Monthly Targets:', monthlyTargets);
-
-          const finalData = dailySales.map((sale: any) => {
-            const yearly = yearlyBudgets.find((b: any) => b.year === sale.year && b.products?.some((p: any) => p.model?.toLowerCase() === sale.product?.toLowerCase()));
-            const monthly = monthlyTargets.find((m: any) => m.year === sale.year && m.month === sale.month && m.products?.some((p: any) => p.model?.toLowerCase() === sale.product?.toLowerCase()));
-            const yearlyBudget = yearly?.products?.find((p: any) => p.model?.toLowerCase() === sale.product?.toLowerCase())?.targetQuantity || '-';
-            console.log(yearlyBudget)
-            const monthlyTarget = monthly?.products?.find((p: any) => p.model?.toLowerCase() === sale.product?.toLowerCase())?.targetQuantity || '-';
-             console.log(monthlyTarget)
-            return {
-              product: sale.product,
-              yearlyBudget,
-              monthlyTarget
-            };
-          });
-
-          console.log('Final Combined Data:', finalData);
-          return finalData;
-        })
-      )
-      .subscribe({
-        next: (finalData) => {
-          this.dataSource = finalData;
-          console.log(' Data Source Loaded:', this.dataSource);
-        },
-        error: (err) => {
-          console.error(' Error loading reports:', err);
-        }
-      });
-  }
-
-
   getDateRanges(currentDate: Date) {
     const monthStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
 
@@ -802,236 +721,118 @@ export class DailySaleReportsComponent implements OnInit{
     );
   }
 
-  // onSubmit() {
-  //   if (!this.countryOptionsLoaded) {
-  //     this.loadingService.setLoading(false);
-  //     return;
-  //   }
-  //
-  //   this.loadingService.setLoading(true);
-  //
-  //   try {
-  //     const filters = this.dealerForm.value;
-  //
-  //     this.selectedSaleTypeLabel = filters.sale ? `(${filters.sale})` : '';
-  //
-  //     const startDate = filters.period?.start ? new Date(filters.period.start) : null;
-  //     const endDate = filters.period?.end ? new Date(filters.period.end) : new Date();
-  //
-  //     // ✅ UPDATE COLUMN HEADER
-  //     this.updateColumnHeader(startDate, endDate);
-  //
-  //     if (startDate) startDate.setHours(0, 0, 0, 0);
-  //     if (endDate) endDate.setHours(23, 59, 59, 999);
-  //
-  //     const outlets = Array.isArray(filters.name) ? filters.name : (filters.name ? [filters.name] : []);
-  //
-  //     this.allOutletReports = [];
-  //
-  //     const countriesToInclude: string[] = [];
-  //     if (filters.country) {
-  //       countriesToInclude.push(filters.country);
-  //     } else {
-  //       countriesToInclude.push(...this.options.country);
-  //     }
-  //
-  //     const productsToShow = filters.country
-  //       ? this.getProductsByCountry(filters.country)
-  //       : this.getProductsByCountries(this.options.country);
-  //
-  //     if (outlets.length === 0) {
-  //       const report = this.generateReport([], startDate, endDate, productsToShow, []);
-  //
-  //       const tempRows = this.buildRows(report);
-  //       const grouped = this.groupAndColorRows(tempRows);
-  //
-  //       this.allOutletReports.push({
-  //         outlet: 'All Outlets',
-  //         rows: grouped
-  //       });
-  //
-  //     } else {
-  //       outlets.forEach((outlet: string) => {
-  //         const report = this.generateReport([], startDate, endDate, productsToShow, [outlet]);
-  //
-  //         const tempRows = this.buildRows(report);
-  //         const grouped = this.groupAndColorRows(tempRows);
-  //
-  //         this.allOutletReports.push({
-  //           outlet,
-  //           rows: grouped
-  //         });
-  //       });
-  //
-  //       this.selectedCountry = filters.country || '';
-  //     }
-  //
-  //     // ✅ SAVE STATE AFTER GENERATING REPORT
-  //     this.saveState();
-  //
-  //   } finally {
-  //     this.loadingService.setLoading(false);
-  //   }
-  // }
-  //
-  // private buildRows(report: any) {
-  //   return Object.keys(report).map(key => {
-  //     const displayModel = key.trim().toUpperCase();
-  //     const { Day, Month, YTD } = report[key];
-  //
-  //     let rowColor = '';
-  //     if (Day > 10 || Month > 10 || YTD > 10) {
-  //       rowColor = 'green-row';
-  //     } else if (Day >= 1 || Month >= 1 || YTD >= 1) {
-  //       rowColor = 'yellow-row';
-  //     } else {
-  //       rowColor = 'red-row';
-  //     }
-  //
-  //     return { product: displayModel, Day, Month, YTD, rowColor };
-  //   });
-  // }
-  //
-  // private groupAndColorRows(tempRows: any[]) {
-  //   const grouped: Record<string, any> = {};
-  //
-  //   tempRows.forEach(row => {
-  //     const key = row.product;
-  //     if (!grouped[key]) {
-  //       grouped[key] = { product: key, Day: 0, Month: 0, YTD: 0, rowColor: '' };
-  //     }
-  //     grouped[key].Day += row.Day;
-  //     grouped[key].Month += row.Month;
-  //     grouped[key].YTD += row.YTD;
-  //   });
-  //
-  //   const rows = Object.values(grouped);
-  //
-  //   rows.forEach((row: any) => {
-  //     if (row.Day > 10 || row.Month > 10 || row.YTD > 10) {
-  //       row.rowColor = 'green-row';
-  //     } else if (row.Day >= 1 || row.Month >= 1 || row.YTD >= 1) {
-  //       row.rowColor = 'yellow-row';
-  //     } else {
-  //       row.rowColor = 'red-row';
-  //     }
-  //   });
-  //
-  //   rows.push({
-  //     product: 'TOTAL',
-  //     Day: rows.reduce((s: number, r: any) => s + r.Day, 0),
-  //     Month: rows.reduce((s: number, r: any) => s + r.Month, 0),
-  //     YTD: rows.reduce((s: number, r: any) => s + r.YTD, 0),
-  //     rowColor: ''
-  //   });
-  //
-  //   return rows;
-  // }
-  //
-  // exportToExcel() {
-  //   if (!this.allOutletReports || this.allOutletReports.length === 0) {
-  //     Swal.fire('Info', 'No data available to export', 'info');
-  //     return;
-  //   }
-  //
-  //   const workbook = new Workbook();
-  //   const worksheet = workbook.addWorksheet("Sales Report");
-  //
-  //   let currentRow = 1;
-  //
-  //   this.allOutletReports.forEach((outletReport, outletIndex) => {
-  //     if (!outletReport || !outletReport.rows) return;
-  //
-  //     // === OUTLET TITLE ROW ===
-  //     worksheet.mergeCells(`A${currentRow}:D${currentRow}`);
-  //     worksheet.getCell(`A${currentRow}`).value = `Cumulative for the month - ${outletReport.outlet}`;
-  //     worksheet.getCell(`A${currentRow}`).alignment = { horizontal: "center", vertical: "middle" };
-  //     worksheet.getCell(`A${currentRow}`).font = { bold: true, size: 14 };
-  //     worksheet.getCell(`A${currentRow}`).fill = {
-  //       type: "pattern",
-  //       pattern: "solid",
-  //       fgColor: { argb: "FFFF00" },
-  //     };
-  //     worksheet.getRow(currentRow).height = 20;
-  //     currentRow++;
-  //
-  //     // === DATE ROW ===
-  //     worksheet.mergeCells(`A${currentRow}:D${currentRow}`);
-  //     worksheet.getCell(`A${currentRow}`).value = `Date: ${new Date().toLocaleDateString()} ${this.selectedSaleTypeLabel}`;
-  //     worksheet.getCell(`A${currentRow}`).alignment = { horizontal: "center", vertical: "middle" };
-  //     worksheet.getCell(`A${currentRow}`).font = { bold: true, size: 12 };
-  //     worksheet.getCell(`A${currentRow}`).fill = {
-  //       type: "pattern",
-  //       pattern: "solid",
-  //       fgColor: { argb: "FFFF00" },
-  //     };
-  //     worksheet.getRow(currentRow).height = 20;
-  //     currentRow += 2;
-  //
-  //     // === HEADER ROW === ✅ Use dynamic column header
-  //     const headerRow = ["Product", this.dayColumnHeader, "Month", "YTD"];
-  //     const headerExcelRow = worksheet.addRow(headerRow);
-  //     headerExcelRow.font = { bold: true };
-  //     headerExcelRow.height = 20;
-  //     headerExcelRow.eachCell(cell => {
-  //       cell.alignment = { horizontal: "center", vertical: "middle", wrapText: true };
-  //       cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "F4B083" } };
-  //     });
-  //     currentRow++;
-  //
-  //     // === DATA ROWS ===
-  //     outletReport.rows.forEach((row: any) => {
-  //       worksheet.addRow([row.product, row.Day, row.Month, row.YTD]);
-  //       currentRow++;
-  //     });
-  //
-  //     currentRow += 2; // add spacing before next outlet
-  //   });
-  //
-  //   // === Borders + alignment ===
-  //   worksheet.eachRow((row, rowNumber) => {
-  //     row.eachCell(cell => {
-  //       cell.border = {
-  //         top: { style: "thin" },
-  //         left: { style: "thin" },
-  //         bottom: { style: "thin" },
-  //         right: { style: "thin" },
-  //       };
-  //       if (rowNumber > 1) {
-  //         cell.alignment = { vertical: "middle", horizontal: "center" };
-  //       }
-  //     });
-  //   });
-  //
-  //   // === Column widths ===
-  //   worksheet.columns.forEach((col, index) => {
-  //     col.width = index === 0 ? 25 : 12;
-  //   });
-  //
-  //   // === Save Excel file ===
-  //   workbook.xlsx.writeBuffer().then(data => {
-  //     const blob = new Blob([data], { type: "application/octet-stream" });
-  //     FileSaver.saveAs(blob, `Sales_Report_${new Date().toLocaleDateString()}.xlsx`);
-  //
-  //     // ✅ Get username from localStorage
-  //     const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-  //     const username = `${userData.first || ''} ${userData.last || ''}`.trim() || 'Unknown User';
-  //
-  //     // 🔹 Log activity after successful export
-  //     const activity: ActivityLog = {
-  //       action: 'Export',
-  //       section: 'Sales Report',
-  //       description: `${username} downloaded the sales report and mail is`,
-  //       date: Date.now(),
-  //       user: username,
-  //       currentIp: '',
-  //     };
-  //
-  //     this.mService.addLog(activity)
-  //       .then(() => console.log('Export action logged.'))
-  //       .catch(err => console.error('Failed to log export:', err));
-  //   });
-  // }
+  loadReports() {
+    const currentYear = new Date().getFullYear();
+    const currentMonth = new Date().toLocaleString('default', { month: 'long' });
+
+    combineLatest([
+      this.dailySlaes.getDailySalesList(),
+      this.budgetService.getBudgetList(),
+      this.monthlyBudgetService.getBudgetList()
+    ])
+      .pipe(
+        map(([dailySales, yearlyBudgets, monthlyTargets]) => {
+          console.log(' Daily Sales:', dailySales);
+          console.log(' Yearly Budgets:', yearlyBudgets);
+          console.log(' Monthly Targets:', monthlyTargets);
+
+          // ✅ YEARLY MAP — Sum of ALL months' targets for same product + country + year
+          // ✅ YEARLY MAP — Sum of ALL months' targets for same product + country + year
+          const yearlyMap = new Map<string, number>();
+
+          console.log('Filtering monthly targets for year:', currentYear);
+
+          const filteredForYear = monthlyTargets.filter((m: any) => {
+            const yearMatch = (m.year || '').includes(currentYear.toString());
+            console.log(' Checking:', m.year, '→', yearMatch);
+            return yearMatch;
+          });
+
+          console.log('Filtered Monthly Targets for current year:', filteredForYear);
+
+          filteredForYear.forEach((m: any) => {
+            const country = (m.country || '').trim().toUpperCase();
+            console.log(' Processing country:', country, 'Month:', m.month);
+
+            // Loop through all products in this month
+            m.products?.forEach((p: any) => {
+              const model = (p.model || '').trim().toUpperCase();
+              if (model) {
+                const key = `${model}_${country}`; // Unique key per product + country
+                const previous = yearlyMap.get(key) || 0;
+                const targetQty = Number(p.targetQuantity) || 0;
+
+                console.log(`   Product: ${model}, Target: ${targetQty}, Previous Sum: ${previous}`);
+
+                // Add each month's target to the yearly total
+                yearlyMap.set(key, previous + targetQty);
+              }
+            });
+          });
+
+          console.log(' Final Yearly Budget Map:', Array.from(yearlyMap.entries()));
+
+
+
+          const monthlyMap = new Map<string, number>();
+          monthlyTargets
+            .filter((m: any) =>
+              (m.year || '').includes(currentYear.toString()) &&
+              (m.month || '').toLowerCase() === currentMonth.toLowerCase()
+            )
+            .forEach((m: any) => {
+              const country = (m.country || '').trim().toUpperCase();
+              m.products?.forEach((p: any) => {
+                const model = (p.model || '').trim().toUpperCase();
+                if (model) {
+                  const key = `${model}_${country}`;
+                  const previous = monthlyMap.get(key) || 0;
+                  monthlyMap.set(key, previous + (Number(p.targetQuantity) || 0));
+                }
+              });
+            });
+
+
+          // ✅ FINAL DATA — Show only current year data (else 0)
+          const finalData = dailySales.map((sale: any) => {
+            const modelKey = (sale.product || '').trim().toUpperCase();
+            const countryKey = (sale.country || '').trim().toUpperCase();
+
+            const key = `${modelKey}_${countryKey}`;
+
+            const yearlyBudget = yearlyMap.get(key) || 0;
+            const monthlyTarget = monthlyMap.get(key) || 0;
+
+            return {
+              product: sale.product,
+              country: sale.country,
+              yearlyBudget,
+              monthlyTarget,
+              salesForTheDay: sale.salesForTheDay || 0,
+              cumulativeForCurrentMonth: sale.cumulativeForCurrentMonth || 0,
+              ytd: sale.ytd || 0
+            };
+          });
+
+          console.log('✅ Final Combined Data:', finalData);
+          return finalData;
+        })
+      )
+      .subscribe({
+        next: (finalData) => {
+          this.dataSource = finalData;
+          console.log('✅ Data Source Loaded:', this.dataSource);
+        },
+        error: (err) => {
+          console.error('❌ Error loading reports:', err);
+        }
+      });
+  }
+
+
+
+
+
 
 
   // Replace your onSubmit() method with this updated version:
@@ -1144,7 +945,7 @@ export class DailySaleReportsComponent implements OnInit{
       this.loadingService.setLoading(false);
     }
   }
-Fv
+
 // ✅ UPDATE buildRows() to accept and use budget maps:
   private buildRows(report: any, yearlyMap: Map<string, number>, monthlyMap: Map<string, number>) {
     return Object.keys(report).map(key => {
