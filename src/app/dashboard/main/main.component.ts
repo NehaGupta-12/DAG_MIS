@@ -1525,6 +1525,53 @@ export class MainComponent implements OnInit {
   }
 
 
+
+// Helper method to attach hover listeners
+  private attachBarHoverListeners(chartContext: any, countryData: any, dailyTotals: number[]) {
+    const allBars = document.querySelectorAll('.apexcharts-bar-area');
+
+    allBars.forEach((bar: any) => {
+      // Remove old listeners
+      bar.removeEventListener('mouseenter', bar._hoverHandler);
+      bar.removeEventListener('mouseleave', bar._leaveHandler);
+
+      // Hover handler
+      bar._hoverHandler = () => {
+        const seriesIndex = parseInt(bar.getAttribute('i'));
+        const dataPointIndex = parseInt(bar.getAttribute('j'));
+
+        if (!isNaN(seriesIndex) && !isNaN(dataPointIndex)) {
+          const hoveredValue = countryData.seriesData[seriesIndex].data[dataPointIndex];
+
+          // Find and update the total label for this column
+          const totalLabels = document.querySelectorAll('.apexcharts-datalabel-value');
+          if (totalLabels[dataPointIndex]) {
+            totalLabels[dataPointIndex].textContent = String(hoveredValue);
+          }
+        }
+      };
+
+      // Leave handler
+      bar._leaveHandler = () => {
+        const dataPointIndex = parseInt(bar.getAttribute('j'));
+
+        if (!isNaN(dataPointIndex)) {
+          // Restore original total
+          const totalLabels = document.querySelectorAll('.apexcharts-datalabel-value');
+          if (totalLabels[dataPointIndex]) {
+            totalLabels[dataPointIndex].textContent = String(dailyTotals[dataPointIndex]);
+          }
+        }
+      };
+
+      bar.addEventListener('mouseenter', bar._hoverHandler);
+      bar.addEventListener('mouseleave', bar._leaveHandler);
+    });
+  }
+
+
+
+
   // 📌 Helper method to map categories to actual dates
   private getDateMappingForCategories(categories: string[]): string[] {
     const now = new Date();

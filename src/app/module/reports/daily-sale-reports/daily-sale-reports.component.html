@@ -199,6 +199,23 @@
             </td>
           </ng-container>
 
+          <!-- ✅ Yearly Budget Column -->
+          <ng-container matColumnDef="yearlyBudget">
+            <th mat-header-cell *matHeaderCellDef class="number-col"> Yearly Budget </th>
+            <td mat-cell *matCellDef="let row" class="number-col">
+              <span class="cell-color">{{ row.yearlyBudget  }}</span>
+            </td>
+          </ng-container>
+
+          <!-- ✅ Monthly Target Column -->
+          <ng-container matColumnDef="monthlyTarget">
+            <th mat-header-cell *matHeaderCellDef class="number-col"> Monthly Target </th>
+            <td mat-cell *matCellDef="let row" class="number-col">
+              <span class="cell-color">{{ row.monthlyTarget  }}</span>
+            </td>
+          </ng-container>
+
+
           <!-- Day Column -->
 <!--          <ng-container matColumnDef="Day">-->
 <!--            <th mat-header-cell *matHeaderCellDef class="number-col"> Sales for the Day </th>-->
@@ -230,8 +247,8 @@
             </td>
           </ng-container>
 
-          <tr mat-header-row *matHeaderRowDef="['product','Day','Month','YTD']"></tr>
-          <tr mat-row *matRowDef="let row; columns: ['product','Day','Month','YTD']" [ngClass]="row.rowColor"></tr>
+          <tr mat-header-row *matHeaderRowDef="['product','yearlyBudget','monthlyTarget','Day','Month','YTD']"></tr>
+          <tr mat-row *matRowDef="let row; columns: ['product','yearlyBudget','monthlyTarget','Day','Month','YTD']" [ngClass]="row.rowColor"></tr>
         </table>
 
       </div>
@@ -239,6 +256,7 @@
     </div>
   </div>
 </section>
+
 
 
 

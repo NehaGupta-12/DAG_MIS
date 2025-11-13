@@ -43,7 +43,6 @@ import {ActivityLogService} from "../activity-log/activity-log.service";
     ]
 })
 export class AddMonthlyBudgetComponent implements OnInit {
-
   isEditMode = false;
   editingDocId: string | null = null;
   budgetForm: FormGroup;
@@ -242,6 +241,33 @@ export class AddMonthlyBudgetComponent implements OnInit {
   }
 
 
+  // filterProductsByCountry(selectedCountry: string) {
+  //   if (!selectedCountry) {
+  //     this._allProducts = [];
+  //     this.filteredProducts = [];
+  //     return;
+  //   }
+  //
+  //   const countryFilteredProducts = this.vehicledataSource.data.filter((prod: any) =>
+  //     prod.availableIn && prod.availableIn.includes(selectedCountry)
+  //   );
+  //
+  //   // Deduplicate based on simplified model
+  //   const uniqueModelsMap = new Map<string, any>();
+  //   countryFilteredProducts.forEach((prod: any) => {
+  //     const simpleName = this.simplifyModelName(prod.model);
+  //     if (!uniqueModelsMap.has(simpleName)) {
+  //       uniqueModelsMap.set(simpleName, {
+  //         ...prod,
+  //         name: simpleName
+  //       });
+  //     }
+  //   });
+  //
+  //   this._allProducts = Array.from(uniqueModelsMap.values());
+  //   this.filteredProducts = [...this._allProducts];
+  // }
+
   filterProductsByCountry(selectedCountry: string) {
     if (!selectedCountry) {
       this._allProducts = [];
@@ -249,25 +275,21 @@ export class AddMonthlyBudgetComponent implements OnInit {
       return;
     }
 
+    // Filter products by selected country - NO deduplication
     const countryFilteredProducts = this.vehicledataSource.data.filter((prod: any) =>
       prod.availableIn && prod.availableIn.includes(selectedCountry)
     );
 
-    // Deduplicate based on simplified model
-    const uniqueModelsMap = new Map<string, any>();
-    countryFilteredProducts.forEach((prod: any) => {
-      const simpleName = this.simplifyModelName(prod.model);
-      if (!uniqueModelsMap.has(simpleName)) {
-        uniqueModelsMap.set(simpleName, {
-          ...prod,
-          name: simpleName
-        });
-      }
-    });
+    // Use the actual model name directly without simplification
+    this._allProducts = countryFilteredProducts.map((prod: any) => ({
+      ...prod,
+      name: prod.model // Use the full model name as-is
+    }));
 
-    this._allProducts = Array.from(uniqueModelsMap.values());
     this.filteredProducts = [...this._allProducts];
   }
+
+
 
 // Updated method to include country
   updateDisabledMonths(year: string, country: string) {

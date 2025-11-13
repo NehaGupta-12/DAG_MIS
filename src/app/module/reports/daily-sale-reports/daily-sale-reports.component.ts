@@ -48,6 +48,9 @@ import {LoadingService} from "../../../Services/loading.service";
 import {CountryService} from "../../../Services/country.service";
 import {ActivityLogService} from "../../activity-log/activity-log.service";
 import {ActivityLog} from "../../activity-log/activity-log.component";
+import { BudgetService } from 'app/module/budget.service';
+import {MonthlyBudgetService} from "../../monthly-budget.service";
+import {combineLatest} from "rxjs";
 
 @Component({
   selector: 'app-daily-sale-reports',
@@ -104,7 +107,7 @@ export class DailySaleReportsComponent implements OnInit{
 
   // ✅ NEW: Dynamic column header
   dayColumnHeader: string = 'Sales for the Day';
-  displayedColumns: string[] = ['product', 'Day', 'Month', 'YTD'];
+  displayedColumns: string[] = ['product','yearlyBudget','monthlyTarget', 'Day', 'Month', 'YTD'];
 
   @ViewChild('countrySearchInput') countrySearchInput!: ElementRef;
   @ViewChild('divisionSearchInput') divisionSearchInput!: ElementRef;
@@ -130,6 +133,8 @@ export class DailySaleReportsComponent implements OnInit{
   country: string = '';
   date: string = '';
   formattedDate: string = '';
+
+
 
   search: any = {
     name: '',
@@ -169,6 +174,8 @@ export class DailySaleReportsComponent implements OnInit{
     public authService: AuthService,
     private loadingService: LoadingService,
     private countryService: CountryService,
+    private budgetService: BudgetService,
+    private monthlyBudgetService: MonthlyBudgetService,
     private mService: ActivityLogService,
     @Inject(MAT_DIALOG_DATA) public data: any
   ) {
@@ -216,6 +223,9 @@ export class DailySaleReportsComponent implements OnInit{
   ngOnInit() {
     // ✅ RESTORE STATE FIRST
     this.restoreState();
+    this.loadReports();
+
+
 
     this.route.queryParams.subscribe(params => {
       if (params['data']) {
@@ -342,6 +352,14 @@ export class DailySaleReportsComponent implements OnInit{
     this.townFilter.valueChanges.subscribe(val => this.filterTown(val || ''));
     this.productFilter.valueChanges.subscribe(val => this.filterOptions('product', val || ''));
   }
+
+
+
+
+
+
+
+
 
   // ✅ NEW: Save state before navigating away
   ngOnDestroy() {
@@ -596,6 +614,79 @@ export class DailySaleReportsComponent implements OnInit{
     });
   }
 
+
+  // loadDailySales() {
+  //   this.dailySlaes.getDailySalesList().subscribe(salesData => {
+  //     // Fetch yearly & monthly budgets in parallel
+  //     this.budgetService.getBudgetList().subscribe(yearlyBudgets => {
+  //       this.monthlyBudgetService.getBudgetList().subscribe(monthlyBudgets => {
+  //
+  //         // Map yearly and monthly budgets by product name
+  //         const yearlyMap = new Map(
+  //           yearlyBudgets.flatMap(b =>
+  //             (b.products || []).map((p: any) => [p.model.toLowerCase(), p.targetQuantity])
+  //           )
+  //         );
+  //
+  //         const monthlyMap = new Map(
+  //           monthlyBudgets.flatMap(b =>
+  //             (b.products || []).map((p: any) => [p.model.toLowerCase(), p.targetQuantity])
+  //           )
+  //         );
+  //
+  //         // Merge data
+  //         this.dataSource = salesData.map((row: any) => ({
+  //           ...row,
+  //           yearlyBudget: yearlyMap.get(row.product?.toLowerCase()) || '-',
+  //           monthlyTarget: monthlyMap.get(row.product?.toLowerCase()) || '-'
+  //         }));
+  //       });
+  //     });
+  //   });
+  // }
+
+  loadReports() {
+    combineLatest([
+      this.dailySlaes.getDailySalesList(),
+      this.budgetService.getBudgetList(),
+      this.monthlyBudgetService.getBudgetList()
+    ])
+      .pipe(
+        map(([dailySales, yearlyBudgets, monthlyTargets]) => {
+          console.log('Daily Sales:', dailySales);
+          console.log('Yearly Budgets:', yearlyBudgets);
+          console.log('Monthly Targets:', monthlyTargets);
+
+          const finalData = dailySales.map((sale: any) => {
+            const yearly = yearlyBudgets.find((b: any) => b.year === sale.year && b.products?.some((p: any) => p.model?.toLowerCase() === sale.product?.toLowerCase()));
+            const monthly = monthlyTargets.find((m: any) => m.year === sale.year && m.month === sale.month && m.products?.some((p: any) => p.model?.toLowerCase() === sale.product?.toLowerCase()));
+            const yearlyBudget = yearly?.products?.find((p: any) => p.model?.toLowerCase() === sale.product?.toLowerCase())?.targetQuantity || '-';
+            console.log(yearlyBudget)
+            const monthlyTarget = monthly?.products?.find((p: any) => p.model?.toLowerCase() === sale.product?.toLowerCase())?.targetQuantity || '-';
+             console.log(monthlyTarget)
+            return {
+              product: sale.product,
+              yearlyBudget,
+              monthlyTarget
+            };
+          });
+
+          console.log('Final Combined Data:', finalData);
+          return finalData;
+        })
+      )
+      .subscribe({
+        next: (finalData) => {
+          this.dataSource = finalData;
+          console.log(' Data Source Loaded:', this.dataSource);
+        },
+        error: (err) => {
+          console.error(' Error loading reports:', err);
+        }
+      });
+  }
+
+
   getDateRanges(currentDate: Date) {
     const monthStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
 
@@ -711,6 +802,240 @@ export class DailySaleReportsComponent implements OnInit{
     );
   }
 
+  // onSubmit() {
+  //   if (!this.countryOptionsLoaded) {
+  //     this.loadingService.setLoading(false);
+  //     return;
+  //   }
+  //
+  //   this.loadingService.setLoading(true);
+  //
+  //   try {
+  //     const filters = this.dealerForm.value;
+  //
+  //     this.selectedSaleTypeLabel = filters.sale ? `(${filters.sale})` : '';
+  //
+  //     const startDate = filters.period?.start ? new Date(filters.period.start) : null;
+  //     const endDate = filters.period?.end ? new Date(filters.period.end) : new Date();
+  //
+  //     // ✅ UPDATE COLUMN HEADER
+  //     this.updateColumnHeader(startDate, endDate);
+  //
+  //     if (startDate) startDate.setHours(0, 0, 0, 0);
+  //     if (endDate) endDate.setHours(23, 59, 59, 999);
+  //
+  //     const outlets = Array.isArray(filters.name) ? filters.name : (filters.name ? [filters.name] : []);
+  //
+  //     this.allOutletReports = [];
+  //
+  //     const countriesToInclude: string[] = [];
+  //     if (filters.country) {
+  //       countriesToInclude.push(filters.country);
+  //     } else {
+  //       countriesToInclude.push(...this.options.country);
+  //     }
+  //
+  //     const productsToShow = filters.country
+  //       ? this.getProductsByCountry(filters.country)
+  //       : this.getProductsByCountries(this.options.country);
+  //
+  //     if (outlets.length === 0) {
+  //       const report = this.generateReport([], startDate, endDate, productsToShow, []);
+  //
+  //       const tempRows = this.buildRows(report);
+  //       const grouped = this.groupAndColorRows(tempRows);
+  //
+  //       this.allOutletReports.push({
+  //         outlet: 'All Outlets',
+  //         rows: grouped
+  //       });
+  //
+  //     } else {
+  //       outlets.forEach((outlet: string) => {
+  //         const report = this.generateReport([], startDate, endDate, productsToShow, [outlet]);
+  //
+  //         const tempRows = this.buildRows(report);
+  //         const grouped = this.groupAndColorRows(tempRows);
+  //
+  //         this.allOutletReports.push({
+  //           outlet,
+  //           rows: grouped
+  //         });
+  //       });
+  //
+  //       this.selectedCountry = filters.country || '';
+  //     }
+  //
+  //     // ✅ SAVE STATE AFTER GENERATING REPORT
+  //     this.saveState();
+  //
+  //   } finally {
+  //     this.loadingService.setLoading(false);
+  //   }
+  // }
+  //
+  // private buildRows(report: any) {
+  //   return Object.keys(report).map(key => {
+  //     const displayModel = key.trim().toUpperCase();
+  //     const { Day, Month, YTD } = report[key];
+  //
+  //     let rowColor = '';
+  //     if (Day > 10 || Month > 10 || YTD > 10) {
+  //       rowColor = 'green-row';
+  //     } else if (Day >= 1 || Month >= 1 || YTD >= 1) {
+  //       rowColor = 'yellow-row';
+  //     } else {
+  //       rowColor = 'red-row';
+  //     }
+  //
+  //     return { product: displayModel, Day, Month, YTD, rowColor };
+  //   });
+  // }
+  //
+  // private groupAndColorRows(tempRows: any[]) {
+  //   const grouped: Record<string, any> = {};
+  //
+  //   tempRows.forEach(row => {
+  //     const key = row.product;
+  //     if (!grouped[key]) {
+  //       grouped[key] = { product: key, Day: 0, Month: 0, YTD: 0, rowColor: '' };
+  //     }
+  //     grouped[key].Day += row.Day;
+  //     grouped[key].Month += row.Month;
+  //     grouped[key].YTD += row.YTD;
+  //   });
+  //
+  //   const rows = Object.values(grouped);
+  //
+  //   rows.forEach((row: any) => {
+  //     if (row.Day > 10 || row.Month > 10 || row.YTD > 10) {
+  //       row.rowColor = 'green-row';
+  //     } else if (row.Day >= 1 || row.Month >= 1 || row.YTD >= 1) {
+  //       row.rowColor = 'yellow-row';
+  //     } else {
+  //       row.rowColor = 'red-row';
+  //     }
+  //   });
+  //
+  //   rows.push({
+  //     product: 'TOTAL',
+  //     Day: rows.reduce((s: number, r: any) => s + r.Day, 0),
+  //     Month: rows.reduce((s: number, r: any) => s + r.Month, 0),
+  //     YTD: rows.reduce((s: number, r: any) => s + r.YTD, 0),
+  //     rowColor: ''
+  //   });
+  //
+  //   return rows;
+  // }
+  //
+  // exportToExcel() {
+  //   if (!this.allOutletReports || this.allOutletReports.length === 0) {
+  //     Swal.fire('Info', 'No data available to export', 'info');
+  //     return;
+  //   }
+  //
+  //   const workbook = new Workbook();
+  //   const worksheet = workbook.addWorksheet("Sales Report");
+  //
+  //   let currentRow = 1;
+  //
+  //   this.allOutletReports.forEach((outletReport, outletIndex) => {
+  //     if (!outletReport || !outletReport.rows) return;
+  //
+  //     // === OUTLET TITLE ROW ===
+  //     worksheet.mergeCells(`A${currentRow}:D${currentRow}`);
+  //     worksheet.getCell(`A${currentRow}`).value = `Cumulative for the month - ${outletReport.outlet}`;
+  //     worksheet.getCell(`A${currentRow}`).alignment = { horizontal: "center", vertical: "middle" };
+  //     worksheet.getCell(`A${currentRow}`).font = { bold: true, size: 14 };
+  //     worksheet.getCell(`A${currentRow}`).fill = {
+  //       type: "pattern",
+  //       pattern: "solid",
+  //       fgColor: { argb: "FFFF00" },
+  //     };
+  //     worksheet.getRow(currentRow).height = 20;
+  //     currentRow++;
+  //
+  //     // === DATE ROW ===
+  //     worksheet.mergeCells(`A${currentRow}:D${currentRow}`);
+  //     worksheet.getCell(`A${currentRow}`).value = `Date: ${new Date().toLocaleDateString()} ${this.selectedSaleTypeLabel}`;
+  //     worksheet.getCell(`A${currentRow}`).alignment = { horizontal: "center", vertical: "middle" };
+  //     worksheet.getCell(`A${currentRow}`).font = { bold: true, size: 12 };
+  //     worksheet.getCell(`A${currentRow}`).fill = {
+  //       type: "pattern",
+  //       pattern: "solid",
+  //       fgColor: { argb: "FFFF00" },
+  //     };
+  //     worksheet.getRow(currentRow).height = 20;
+  //     currentRow += 2;
+  //
+  //     // === HEADER ROW === ✅ Use dynamic column header
+  //     const headerRow = ["Product", this.dayColumnHeader, "Month", "YTD"];
+  //     const headerExcelRow = worksheet.addRow(headerRow);
+  //     headerExcelRow.font = { bold: true };
+  //     headerExcelRow.height = 20;
+  //     headerExcelRow.eachCell(cell => {
+  //       cell.alignment = { horizontal: "center", vertical: "middle", wrapText: true };
+  //       cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "F4B083" } };
+  //     });
+  //     currentRow++;
+  //
+  //     // === DATA ROWS ===
+  //     outletReport.rows.forEach((row: any) => {
+  //       worksheet.addRow([row.product, row.Day, row.Month, row.YTD]);
+  //       currentRow++;
+  //     });
+  //
+  //     currentRow += 2; // add spacing before next outlet
+  //   });
+  //
+  //   // === Borders + alignment ===
+  //   worksheet.eachRow((row, rowNumber) => {
+  //     row.eachCell(cell => {
+  //       cell.border = {
+  //         top: { style: "thin" },
+  //         left: { style: "thin" },
+  //         bottom: { style: "thin" },
+  //         right: { style: "thin" },
+  //       };
+  //       if (rowNumber > 1) {
+  //         cell.alignment = { vertical: "middle", horizontal: "center" };
+  //       }
+  //     });
+  //   });
+  //
+  //   // === Column widths ===
+  //   worksheet.columns.forEach((col, index) => {
+  //     col.width = index === 0 ? 25 : 12;
+  //   });
+  //
+  //   // === Save Excel file ===
+  //   workbook.xlsx.writeBuffer().then(data => {
+  //     const blob = new Blob([data], { type: "application/octet-stream" });
+  //     FileSaver.saveAs(blob, `Sales_Report_${new Date().toLocaleDateString()}.xlsx`);
+  //
+  //     // ✅ Get username from localStorage
+  //     const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+  //     const username = `${userData.first || ''} ${userData.last || ''}`.trim() || 'Unknown User';
+  //
+  //     // 🔹 Log activity after successful export
+  //     const activity: ActivityLog = {
+  //       action: 'Export',
+  //       section: 'Sales Report',
+  //       description: `${username} downloaded the sales report and mail is`,
+  //       date: Date.now(),
+  //       user: username,
+  //       currentIp: '',
+  //     };
+  //
+  //     this.mService.addLog(activity)
+  //       .then(() => console.log('Export action logged.'))
+  //       .catch(err => console.error('Failed to log export:', err));
+  //   });
+  // }
+
+
+  // Replace your onSubmit() method with this updated version:
+
   onSubmit() {
     if (!this.countryOptionsLoaded) {
       this.loadingService.setLoading(false);
@@ -721,13 +1046,11 @@ export class DailySaleReportsComponent implements OnInit{
 
     try {
       const filters = this.dealerForm.value;
-
       this.selectedSaleTypeLabel = filters.sale ? `(${filters.sale})` : '';
 
       const startDate = filters.period?.start ? new Date(filters.period.start) : null;
       const endDate = filters.period?.end ? new Date(filters.period.end) : new Date();
 
-      // ✅ UPDATE COLUMN HEADER
       this.updateColumnHeader(startDate, endDate);
 
       if (startDate) startDate.setHours(0, 0, 0, 0);
@@ -748,45 +1071,89 @@ export class DailySaleReportsComponent implements OnInit{
         ? this.getProductsByCountry(filters.country)
         : this.getProductsByCountries(this.options.country);
 
-      if (outlets.length === 0) {
-        const report = this.generateReport([], startDate, endDate, productsToShow, []);
+      // ✅ FETCH BUDGET DATA BEFORE GENERATING REPORTS
+      combineLatest([
+        this.budgetService.getBudgetList(),
+        this.monthlyBudgetService.getBudgetList()
+      ]).subscribe({
+        next: ([yearlyBudgets, monthlyTargets]) => {
+          // Create budget maps
+          const yearlyMap = new Map<string, number>();
+          const monthlyMap = new Map<string, number>();
 
-        const tempRows = this.buildRows(report);
-        const grouped = this.groupAndColorRows(tempRows);
-
-        this.allOutletReports.push({
-          outlet: 'All Outlets',
-          rows: grouped
-        });
-
-      } else {
-        outlets.forEach((outlet: string) => {
-          const report = this.generateReport([], startDate, endDate, productsToShow, [outlet]);
-
-          const tempRows = this.buildRows(report);
-          const grouped = this.groupAndColorRows(tempRows);
-
-          this.allOutletReports.push({
-            outlet,
-            rows: grouped
+          // Map yearly budgets by product name (case-insensitive)
+          yearlyBudgets.forEach((b: any) => {
+            if (b.products && Array.isArray(b.products)) {
+              b.products.forEach((p: any) => {
+                const key = (p.model || '').trim().toUpperCase();
+                if (key && p.targetQuantity !== undefined) {
+                  yearlyMap.set(key, Number(p.targetQuantity) || 0);
+                }
+              });
+            }
           });
-        });
 
-        this.selectedCountry = filters.country || '';
-      }
+          // Map monthly budgets by product name (case-insensitive)
+          monthlyTargets.forEach((m: any) => {
+            if (m.products && Array.isArray(m.products)) {
+              m.products.forEach((p: any) => {
+                const key = (p.model || '').trim().toUpperCase();
+                if (key && p.targetQuantity !== undefined) {
+                  monthlyMap.set(key, Number(p.targetQuantity) || 0);
+                }
+              });
+            }
+          });
 
-      // ✅ SAVE STATE AFTER GENERATING REPORT
-      this.saveState();
+          // Generate reports with budget data
+          if (outlets.length === 0) {
+            const report = this.generateReport([], startDate, endDate, productsToShow, []);
+            const tempRows = this.buildRows(report, yearlyMap, monthlyMap);
+            const grouped = this.groupAndColorRows(tempRows);
 
-    } finally {
+            this.allOutletReports.push({
+              outlet: 'All Outlets',
+              rows: grouped
+            });
+          } else {
+            outlets.forEach((outlet: string) => {
+              const report = this.generateReport([], startDate, endDate, productsToShow, [outlet]);
+              const tempRows = this.buildRows(report, yearlyMap, monthlyMap);
+              const grouped = this.groupAndColorRows(tempRows);
+
+              this.allOutletReports.push({
+                outlet,
+                rows: grouped
+              });
+            });
+
+            this.selectedCountry = filters.country || '';
+          }
+
+          this.saveState();
+          this.loadingService.setLoading(false);
+        },
+        error: (err) => {
+          console.error('Error fetching budget data:', err);
+          this.loadingService.setLoading(false);
+        }
+      });
+
+    } catch (error) {
+      console.error('Error in onSubmit:', error);
       this.loadingService.setLoading(false);
     }
   }
-
-  private buildRows(report: any) {
+Fv
+// ✅ UPDATE buildRows() to accept and use budget maps:
+  private buildRows(report: any, yearlyMap: Map<string, number>, monthlyMap: Map<string, number>) {
     return Object.keys(report).map(key => {
       const displayModel = key.trim().toUpperCase();
       const { Day, Month, YTD } = report[key];
+
+      // ✅ GET BUDGET DATA FROM MAPS
+      const yearlyBudget = yearlyMap.get(displayModel) || '-';
+      const monthlyTarget = monthlyMap.get(displayModel) || '-';
 
       let rowColor = '';
       if (Day > 10 || Month > 10 || YTD > 10) {
@@ -797,17 +1164,34 @@ export class DailySaleReportsComponent implements OnInit{
         rowColor = 'red-row';
       }
 
-      return { product: displayModel, Day, Month, YTD, rowColor };
+      return {
+        product: displayModel,
+        yearlyBudget,      // ✅ ADD THIS
+        monthlyTarget,     // ✅ ADD THIS
+        Day,
+        Month,
+        YTD,
+        rowColor
+      };
     });
   }
 
+// ✅ UPDATE groupAndColorRows() to preserve budget data:
   private groupAndColorRows(tempRows: any[]) {
     const grouped: Record<string, any> = {};
 
     tempRows.forEach(row => {
       const key = row.product;
       if (!grouped[key]) {
-        grouped[key] = { product: key, Day: 0, Month: 0, YTD: 0, rowColor: '' };
+        grouped[key] = {
+          product: key,
+          yearlyBudget: row.yearlyBudget,    // ✅ PRESERVE
+          monthlyTarget: row.monthlyTarget,  // ✅ PRESERVE
+          Day: 0,
+          Month: 0,
+          YTD: 0,
+          rowColor: ''
+        };
       }
       grouped[key].Day += row.Day;
       grouped[key].Month += row.Month;
@@ -826,8 +1210,11 @@ export class DailySaleReportsComponent implements OnInit{
       }
     });
 
+    // Add total row
     rows.push({
       product: 'TOTAL',
+      yearlyBudget: '-',
+      monthlyTarget: '-',
       Day: rows.reduce((s: number, r: any) => s + r.Day, 0),
       Month: rows.reduce((s: number, r: any) => s + r.Month, 0),
       YTD: rows.reduce((s: number, r: any) => s + r.YTD, 0),
@@ -837,6 +1224,7 @@ export class DailySaleReportsComponent implements OnInit{
     return rows;
   }
 
+// ✅ Also update exportToExcel() to include the new columns:
   exportToExcel() {
     if (!this.allOutletReports || this.allOutletReports.length === 0) {
       Swal.fire('Info', 'No data available to export', 'info');
@@ -845,14 +1233,13 @@ export class DailySaleReportsComponent implements OnInit{
 
     const workbook = new Workbook();
     const worksheet = workbook.addWorksheet("Sales Report");
-
     let currentRow = 1;
 
     this.allOutletReports.forEach((outletReport, outletIndex) => {
       if (!outletReport || !outletReport.rows) return;
 
-      // === OUTLET TITLE ROW ===
-      worksheet.mergeCells(`A${currentRow}:D${currentRow}`);
+      // Outlet title
+      worksheet.mergeCells(`A${currentRow}:F${currentRow}`);
       worksheet.getCell(`A${currentRow}`).value = `Cumulative for the month - ${outletReport.outlet}`;
       worksheet.getCell(`A${currentRow}`).alignment = { horizontal: "center", vertical: "middle" };
       worksheet.getCell(`A${currentRow}`).font = { bold: true, size: 14 };
@@ -864,8 +1251,8 @@ export class DailySaleReportsComponent implements OnInit{
       worksheet.getRow(currentRow).height = 20;
       currentRow++;
 
-      // === DATE ROW ===
-      worksheet.mergeCells(`A${currentRow}:D${currentRow}`);
+      // Date row
+      worksheet.mergeCells(`A${currentRow}:F${currentRow}`);
       worksheet.getCell(`A${currentRow}`).value = `Date: ${new Date().toLocaleDateString()} ${this.selectedSaleTypeLabel}`;
       worksheet.getCell(`A${currentRow}`).alignment = { horizontal: "center", vertical: "middle" };
       worksheet.getCell(`A${currentRow}`).font = { bold: true, size: 12 };
@@ -877,8 +1264,8 @@ export class DailySaleReportsComponent implements OnInit{
       worksheet.getRow(currentRow).height = 20;
       currentRow += 2;
 
-      // === HEADER ROW === ✅ Use dynamic column header
-      const headerRow = ["Product", this.dayColumnHeader, "Month", "YTD"];
+      // ✅ UPDATED HEADER with budget columns
+      const headerRow = ["Product", "Yearly Budget", "Monthly Target", this.dayColumnHeader, "Month", "YTD"];
       const headerExcelRow = worksheet.addRow(headerRow);
       headerExcelRow.font = { bold: true };
       headerExcelRow.height = 20;
@@ -888,16 +1275,23 @@ export class DailySaleReportsComponent implements OnInit{
       });
       currentRow++;
 
-      // === DATA ROWS ===
+      // ✅ DATA ROWS with budget values
       outletReport.rows.forEach((row: any) => {
-        worksheet.addRow([row.product, row.Day, row.Month, row.YTD]);
+        worksheet.addRow([
+          row.product,
+          row.yearlyBudget,
+          row.monthlyTarget,
+          row.Day,
+          row.Month,
+          row.YTD
+        ]);
         currentRow++;
       });
 
-      currentRow += 2; // add spacing before next outlet
+      currentRow += 2;
     });
 
-    // === Borders + alignment ===
+    // Borders and styling
     worksheet.eachRow((row, rowNumber) => {
       row.eachCell(cell => {
         cell.border = {
@@ -912,25 +1306,28 @@ export class DailySaleReportsComponent implements OnInit{
       });
     });
 
-    // === Column widths ===
-    worksheet.columns.forEach((col, index) => {
-      col.width = index === 0 ? 25 : 12;
-    });
+    // Column widths
+    worksheet.columns = [
+      { width: 25 }, // Product
+      { width: 15 }, // Yearly Budget
+      { width: 15 }, // Monthly Target
+      { width: 12 }, // Day
+      { width: 12 }, // Month
+      { width: 12 }  // YTD
+    ];
 
-    // === Save Excel file ===
+    // Save file
     workbook.xlsx.writeBuffer().then(data => {
       const blob = new Blob([data], { type: "application/octet-stream" });
       FileSaver.saveAs(blob, `Sales_Report_${new Date().toLocaleDateString()}.xlsx`);
 
-      // ✅ Get username from localStorage
       const userData = JSON.parse(localStorage.getItem('userData') || '{}');
       const username = `${userData.first || ''} ${userData.last || ''}`.trim() || 'Unknown User';
 
-      // 🔹 Log activity after successful export
       const activity: ActivityLog = {
         action: 'Export',
         section: 'Sales Report',
-        description: `${username} downloaded the sales report and mail is`,
+        description: `${username} downloaded the sales report`,
         date: Date.now(),
         user: username,
         currentIp: '',
@@ -941,5 +1338,4 @@ export class DailySaleReportsComponent implements OnInit{
         .catch(err => console.error('Failed to log export:', err));
     });
   }
-
 }

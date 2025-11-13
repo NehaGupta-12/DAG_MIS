@@ -222,10 +222,6 @@ export class AddBudgetComponent implements OnInit {
 
 
 
-
-
-
-
       this.targetForm.get('year')?.valueChanges.subscribe((selectedYear: string) => {
         const selectedCountry = this.targetForm.get('country')?.value;
         if (selectedYear && selectedCountry) {
@@ -240,6 +236,35 @@ export class AddBudgetComponent implements OnInit {
   }
 
 
+  // filterProductsByCountry(selectedCountry: string) {
+  //   if (!selectedCountry) {
+  //     this._allProducts = [];
+  //     this.filteredProducts = [];
+  //     return;
+  //   }
+  //
+  //   const countryFilteredProducts = this.vehicledataSource.data.filter((prod: any) =>
+  //     prod.availableIn && prod.availableIn.includes(selectedCountry)
+  //   );
+  //
+  //   // Deduplicate based on simplified model
+  //   const uniqueModelsMap = new Map<string, any>();
+  //   countryFilteredProducts.forEach((prod: any) => {
+  //     const simpleName = this.simplifyModelName(prod.model);
+  //     if (!uniqueModelsMap.has(simpleName)) {
+  //       uniqueModelsMap.set(simpleName, {
+  //         ...prod,
+  //         name: simpleName
+  //       });
+  //     }
+  //   });
+  //
+  //   this._allProducts = Array.from(uniqueModelsMap.values());
+  //   this.filteredProducts = [...this._allProducts];
+  // }
+
+  // Replace the filterProductsByCountry method in add-budget.component.ts with this:
+
   filterProductsByCountry(selectedCountry: string) {
     if (!selectedCountry) {
       this._allProducts = [];
@@ -247,25 +272,20 @@ export class AddBudgetComponent implements OnInit {
       return;
     }
 
+    // Filter products by selected country - NO deduplication
     const countryFilteredProducts = this.vehicledataSource.data.filter((prod: any) =>
       prod.availableIn && prod.availableIn.includes(selectedCountry)
     );
 
-    // Deduplicate based on simplified model
-    const uniqueModelsMap = new Map<string, any>();
-    countryFilteredProducts.forEach((prod: any) => {
-      const simpleName = this.simplifyModelName(prod.model);
-      if (!uniqueModelsMap.has(simpleName)) {
-        uniqueModelsMap.set(simpleName, {
-          ...prod,
-          name: simpleName
-        });
-      }
-    });
+    // Use the actual model name directly without simplification
+    this._allProducts = countryFilteredProducts.map((prod: any) => ({
+      ...prod,
+      name: prod.model // Use the full model name as-is
+    }));
 
-    this._allProducts = Array.from(uniqueModelsMap.values());
     this.filteredProducts = [...this._allProducts];
   }
+
 
   updateDisabledMonths(year: string, country: string) {
     if (!this.budgetdataSource?.data || !year || !country) {
@@ -482,35 +502,6 @@ export class AddBudgetComponent implements OnInit {
     return match ? match[0].toUpperCase() : model;
   }
 
-  // loadProducts() {
-  //   this.loadingService.setLoading(true);
-  //   runInInjectionContext(this.injector, () => {
-  //     this.productService.getProductList().subscribe({
-  //       next: (data) => {
-  //         console.log("raw data", data);
-  //
-  //         // ✅ Deduplicate based on simplified model
-  //         const uniqueModelsMap = new Map<string, any>();
-  //         data.forEach((prod) => {
-  //           const simpleName = this.simplifyModelName(prod.model);
-  //           if (!uniqueModelsMap.has(simpleName)) {
-  //             uniqueModelsMap.set(simpleName, {
-  //               ...prod,
-  //               name: simpleName // override name for dropdown
-  //             });
-  //           }
-  //         });
-  //
-  //         this._allProducts = Array.from(uniqueModelsMap.values());
-  //         this.filteredProducts = [...this._allProducts];
-  //         this.vehicledataSource.data = data; // keep raw data if needed for details
-  //         this.loadingService.setLoading(false);
-  //       },
-  //       error: () => this.loadingService.setLoading(false)
-  //     });
-  //   });
-  // }
-
 
   loadProducts() {
     this.loadingService.setLoading(true);
@@ -626,6 +617,19 @@ export class AddBudgetComponent implements OnInit {
   }
 
 
+
+
+
+
+
+  removeProduct(index: number) {
+    // Remove only the clicked product
+    this.addedProducts = this.addedProducts.filter((_, i) => i !== index);
+
+    // ✅ Force table refresh
+    this.addedProducts = [...this.addedProducts];
+  }
+
   addProduct() {
     const formValues = this.targetForm.getRawValue();
 
@@ -664,76 +668,6 @@ export class AddBudgetComponent implements OnInit {
     this.targetForm.get('products')?.reset([]);
   }
 
-
-
-
-  removeProduct(index: number) {
-    // Remove only the clicked product
-    this.addedProducts = this.addedProducts.filter((_, i) => i !== index);
-
-    // ✅ Force table refresh
-    this.addedProducts = [...this.addedProducts];
-  }
-
-  // submitForm() {
-  //   if (this.targetForm.invalid) {
-  //     Swal.fire('Error', 'Please fill all required fields.', 'error');
-  //     return;
-  //   }
-  //
-  //   if (this.addedProducts.length === 0) {
-  //     Swal.fire('Error', 'Please add at least one product.', 'error');
-  //     return;
-  //   }
-  //
-  //   Swal.fire({
-  //     title: this.isEditMode ? 'Update Yearly Budget?' : 'Add Yearly Budget?',
-  //     icon: 'question',
-  //     showCancelButton: true,
-  //     confirmButtonText: 'Yes'
-  //   }).then((result) => {
-  //     if (!result.isConfirmed) return;
-  //
-  //     const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-  //     const username = userData.userName || 'Unknown User';
-  //     const timestamp = Date.now();
-  //
-  //     const formValues = this.targetForm.getRawValue();
-  //
-  //     // ✅ Build document with products array
-  //     const productDoc = {
-  //       country: formValues.country,
-  //       year: formValues.year,
-  //       month: formValues.month,
-  //       period: formValues.period,
-  //       products: this.addedProducts.map(p => ({
-  //         model: p.name,               // from table
-  //         targetQuantity: p.target     // from input in table
-  //       })),
-  //       status: 'Active',
-  //       updatedBy: username,
-  //       updatedAt: timestamp
-  //     };
-  //
-  //     runInInjectionContext(this.injector, () => {
-  //       if (this.isEditMode && this.editingDocId) {
-  //         this.loadingService.setLoading(true);
-  //         this.budgetService.updateBudget(this.editingDocId, productDoc)
-  //           .then(() => Swal.fire('Updated!', 'Yearly Budget updated successfully.', 'success'))
-  //           .then(() => this.goBack())
-  //           .catch(() => Swal.fire('Error', 'Something went wrong while updating.', 'error'))
-  //           .finally(() => this.loadingService.setLoading(false));
-  //       } else {
-  //         this.loadingService.setLoading(true);
-  //         this.budgetService.addBudget(productDoc)
-  //           .then(() => Swal.fire('Added!', 'Yearly Budget saved successfully.', 'success'))
-  //           .then(() => this.goBack())
-  //           .catch(() => Swal.fire('Error', 'Something went wrong.', 'error'))
-  //           .finally(() => this.loadingService.setLoading(false));
-  //       }
-  //     });
-  //   });
-  // }
 
   submitForm() {
     if (this.targetForm.invalid) {
