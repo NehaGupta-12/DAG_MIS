@@ -736,43 +736,34 @@ export class DailySaleReportsComponent implements OnInit{
           console.log(' Yearly Budgets:', yearlyBudgets);
           console.log(' Monthly Targets:', monthlyTargets);
 
-          // ✅ YEARLY MAP — Sum of ALL months' targets for same product + country + year
-          // ✅ YEARLY MAP — Sum of ALL months' targets for same product + country + year
+          // ✅ YEARLY BUDGET MAP — from BudgetService (should show 70)
           const yearlyMap = new Map<string, number>();
 
-          console.log('Filtering monthly targets for year:', currentYear);
+          console.log('🔍 Processing Yearly Budgets from BudgetService for year:', currentYear);
 
-          const filteredForYear = monthlyTargets.filter((m: any) => {
-            const yearMatch = (m.year || '').includes(currentYear.toString());
-            console.log(' Checking:', m.year, '→', yearMatch);
-            return yearMatch;
-          });
+          yearlyBudgets
+            .filter((b: any) => {
+              const yearMatch = (b.year || '').includes(currentYear.toString());
+              console.log('   Checking Budget Year:', b.year, '→', yearMatch);
+              return yearMatch;
+            })
+            .forEach((b: any) => {
+              console.log('   Processing Budget for Country:', b.country);
 
-          console.log('Filtered Monthly Targets for current year:', filteredForYear);
+              b.products?.forEach((p: any) => {
+                const model = (p.model || '').trim().toUpperCase();
+                if (model) {
+                  const previous = yearlyMap.get(model) || 0;
+                  const targetQty = Number(p.targetQuantity) || 0;
 
-          filteredForYear.forEach((m: any) => {
-            const country = (m.country || '').trim().toUpperCase();
-            console.log(' Processing country:', country, 'Month:', m.month);
+                  console.log(`      Product: ${model}, Budget Qty: ${targetQty}, Previous Sum: ${previous}, New Sum: ${previous + targetQty}`);
 
-            // Loop through all products in this month
-            m.products?.forEach((p: any) => {
-              const model = (p.model || '').trim().toUpperCase();
-              if (model) {
-                const key = `${model}_${country}`; // Unique key per product + country
-                const previous = yearlyMap.get(key) || 0;
-                const targetQty = Number(p.targetQuantity) || 0;
-
-                console.log(`   Product: ${model}, Target: ${targetQty}, Previous Sum: ${previous}`);
-
-                // Add each month's target to the yearly total
-                yearlyMap.set(key, previous + targetQty);
-              }
+                  yearlyMap.set(model, previous + targetQty);
+                }
+              });
             });
-          });
 
-          console.log(' Final Yearly Budget Map:', Array.from(yearlyMap.entries()));
-
-
+          console.log('✅ Final Yearly Budget Map (from BudgetService):', Array.from(yearlyMap.entries()));
 
           const monthlyMap = new Map<string, number>();
           monthlyTargets
@@ -814,25 +805,20 @@ export class DailySaleReportsComponent implements OnInit{
             };
           });
 
-          console.log('✅ Final Combined Data:', finalData);
+          console.log(' Final Combined Data:', finalData);
           return finalData;
         })
       )
       .subscribe({
         next: (finalData) => {
           this.dataSource = finalData;
-          console.log('✅ Data Source Loaded:', this.dataSource);
+          console.log('Data Source Loaded:', this.dataSource);
         },
         error: (err) => {
-          console.error('❌ Error loading reports:', err);
+          console.error('Error loading reports:', err);
         }
       });
   }
-
-
-
-
-
 
 
   // Replace your onSubmit() method with this updated version:
@@ -878,33 +864,48 @@ export class DailySaleReportsComponent implements OnInit{
         this.monthlyBudgetService.getBudgetList()
       ]).subscribe({
         next: ([yearlyBudgets, monthlyTargets]) => {
-          // Create budget maps
+          // ✅ YEARLY BUDGET MAP — Sum ALL months from MonthlyBudgetService for current year
+          // ✅ YEARLY BUDGET MAP — from BudgetService (should show 70)
           const yearlyMap = new Map<string, number>();
           const monthlyMap = new Map<string, number>();
+          const currentYear = new Date().getFullYear();
+          const currentMonth = new Date().toLocaleString('default', { month: 'long' });
 
-          // Map yearly budgets by product name (case-insensitive)
-          yearlyBudgets.forEach((b: any) => {
-            if (b.products && Array.isArray(b.products)) {
-              b.products.forEach((p: any) => {
-                const key = (p.model || '').trim().toUpperCase();
-                if (key && p.targetQuantity !== undefined) {
-                  yearlyMap.set(key, Number(p.targetQuantity) || 0);
-                }
-              });
-            }
-          });
+// ✅ Use BudgetService for Yearly Budget
+          yearlyBudgets
+            .filter((b: any) => (b.year || '').includes(currentYear.toString()))
+            .forEach((b: any) => {
+              if (b.products && Array.isArray(b.products)) {
+                b.products.forEach((p: any) => {
+                  const key = (p.model || '').trim().toUpperCase();
+                  if (key && p.targetQuantity !== undefined) {
+                    const previous = yearlyMap.get(key) || 0;
+                    yearlyMap.set(key, previous + (Number(p.targetQuantity) || 0));
+                  }
+                });
+              }
+            });
 
-          // Map monthly budgets by product name (case-insensitive)
-          monthlyTargets.forEach((m: any) => {
-            if (m.products && Array.isArray(m.products)) {
-              m.products.forEach((p: any) => {
-                const key = (p.model || '').trim().toUpperCase();
-                if (key && p.targetQuantity !== undefined) {
-                  monthlyMap.set(key, Number(p.targetQuantity) || 0);
-                }
-              });
-            }
-          });
+
+          // ✅ MONTHLY TARGET MAP — from MonthlyBudgetService (current month, country-specific)
+          monthlyTargets
+            .filter((m: any) =>
+              (m.year || '').includes(currentYear.toString()) &&
+              (m.month || '').toLowerCase() === currentMonth.toLowerCase()
+            )
+            .forEach((m: any) => {
+              const country = (m.country || '').trim().toUpperCase();
+              if (m.products && Array.isArray(m.products)) {
+                m.products.forEach((p: any) => {
+                  const model = (p.model || '').trim().toUpperCase();
+                  if (model && p.targetQuantity !== undefined) {
+                    const key = `${model}_${country}`;
+                    const previous = monthlyMap.get(key) || 0;
+                    monthlyMap.set(key, previous + (Number(p.targetQuantity) || 0));
+                  }
+                });
+              }
+            });
 
           // Generate reports with budget data
           if (outlets.length === 0) {
@@ -946,15 +947,42 @@ export class DailySaleReportsComponent implements OnInit{
     }
   }
 
-// ✅ UPDATE buildRows() to accept and use budget maps:
+
+// UPDATE buildRows() to accept and use budget maps:
   private buildRows(report: any, yearlyMap: Map<string, number>, monthlyMap: Map<string, number>) {
+    const filters = this.dealerForm.value;
+
     return Object.keys(report).map(key => {
       const displayModel = key.trim().toUpperCase();
       const { Day, Month, YTD } = report[key];
 
-      // ✅ GET BUDGET DATA FROM MAPS
-      const yearlyBudget = yearlyMap.get(displayModel) || '-';
-      const monthlyTarget = monthlyMap.get(displayModel) || '-';
+      // ✅ Yearly Budget: Filter by selected country (if any)
+      let yearlyBudgetSum = 0;
+      if (filters.country) {
+        // Single country - only show budget for that country
+        yearlyBudgetSum = yearlyMap.get(displayModel) || 0;
+      } else {
+        // All countries - show full yearly budget
+        yearlyBudgetSum = yearlyMap.get(displayModel) || 0;
+      }
+      const yearlyBudget = yearlyBudgetSum > 0 ? yearlyBudgetSum : '-';
+
+      // ✅ Monthly Target: Filter by selected country
+      let monthlyTargetSum = 0;
+      if (filters.country) {
+        // Single country selected - only that country's target
+        const countryKey = filters.country.trim().toUpperCase();
+        const key = `${displayModel}_${countryKey}`;
+        monthlyTargetSum = monthlyMap.get(key) || 0;
+      } else {
+        // All countries - sum all entries for this product
+        monthlyMap.forEach((value, mapKey) => {
+          if (mapKey.startsWith(displayModel + '_')) {
+            monthlyTargetSum += value;
+          }
+        });
+      }
+      const monthlyTarget = monthlyTargetSum > 0 ? monthlyTargetSum : '-';
 
       let rowColor = '';
       if (Day > 10 || Month > 10 || YTD > 10) {
@@ -967,8 +995,8 @@ export class DailySaleReportsComponent implements OnInit{
 
       return {
         product: displayModel,
-        yearlyBudget,      // ✅ ADD THIS
-        monthlyTarget,     // ✅ ADD THIS
+        yearlyBudget,
+        monthlyTarget,
         Day,
         Month,
         YTD,
@@ -977,7 +1005,8 @@ export class DailySaleReportsComponent implements OnInit{
     });
   }
 
-// ✅ UPDATE groupAndColorRows() to preserve budget data:
+
+// UPDATE groupAndColorRows() to preserve budget data:
   private groupAndColorRows(tempRows: any[]) {
     const grouped: Record<string, any> = {};
 
@@ -1012,10 +1041,21 @@ export class DailySaleReportsComponent implements OnInit{
     });
 
     // Add total row
+    // Add total row with budget totals
+    const totalYearlyBudget = rows.reduce((sum: number, r: any) => {
+      const budget = r.yearlyBudget === '-' ? 0 : Number(r.yearlyBudget) || 0;
+      return sum + budget;
+    }, 0);
+
+    const totalMonthlyTarget = rows.reduce((sum: number, r: any) => {
+      const target = r.monthlyTarget === '-' ? 0 : Number(r.monthlyTarget) || 0;
+      return sum + target;
+    }, 0);
+
     rows.push({
       product: 'TOTAL',
-      yearlyBudget: '-',
-      monthlyTarget: '-',
+      yearlyBudget: totalYearlyBudget > 0 ? totalYearlyBudget : '-',
+      monthlyTarget: totalMonthlyTarget > 0 ? totalMonthlyTarget : '-',
       Day: rows.reduce((s: number, r: any) => s + r.Day, 0),
       Month: rows.reduce((s: number, r: any) => s + r.Month, 0),
       YTD: rows.reduce((s: number, r: any) => s + r.YTD, 0),
