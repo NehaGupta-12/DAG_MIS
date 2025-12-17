@@ -77,7 +77,11 @@
               <mat-icon>clear</mat-icon>
             </button>
 
-            <button mat-mini-fab matTooltip="Export to Excel" style="background-color:#28a745; color:#fff;">
+            <button
+              mat-mini-fab
+              matTooltip="Export to Excel"
+              style="background-color:#28a745; color:#fff;"
+              (click)="exportToExcel()">
               <mat-icon>download</mat-icon>
             </button>
           </div>

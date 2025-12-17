@@ -57,6 +57,8 @@ import {MatProgressSpinner} from "@angular/material/progress-spinner";
 import {DailySalesService} from "../../daily-sales.service";
 import {environment} from "../../../../environments/environment";
 import {StockReportService} from "../../stock-report.service";
+import { Workbook } from 'exceljs';
+import * as FileSaver from 'file-saver';
 
 @Component({
   selector: 'app-new-stock-report',
@@ -1278,6 +1280,118 @@ export class NewStockReportComponent implements OnInit{
     localStorage.setItem(storedDateKey, today);
 
     console.log('Previous day stock reports cleared. Fresh day started.');
+  }
+
+  exportToExcel() {
+
+    if (!this.allOutletReports || this.allOutletReports.length === 0) {
+      Swal.fire('No Data', 'No stock report available to export', 'warning');
+      return;
+    }
+
+    const workbook = new Workbook();
+
+    this.allOutletReports.forEach((report, index) => {
+
+      const sheetName = report.outlet
+        ? report.outlet.substring(0, 30)
+        : `Outlet_${index + 1}`;
+
+      const worksheet = workbook.addWorksheet(sheetName);
+
+      /* ===========================
+         TITLE
+      ============================ */
+      worksheet.mergeCells('A1:G1');
+      worksheet.getCell('A1').value = 'Stock Report';
+      worksheet.getCell('A1').font = { bold: true, size: 14 };
+      worksheet.getCell('A1').alignment = { horizontal: 'center' };
+
+      worksheet.mergeCells('A2:G2');
+      worksheet.getCell('A2').value = `Outlet : ${report.outlet}`;
+      worksheet.getCell('A2').font = { bold: true };
+      worksheet.getCell('A2').alignment = { horizontal: 'center' };
+
+      worksheet.addRow([]);
+
+      /* ===========================
+         HEADER (EXACT LIKE IMAGE)
+      ============================ */
+      const headerRow = worksheet.addRow([
+        'Products Name',
+        'Opening Stock',
+        'Sales',
+        'GRN',
+        'Outgoing Stock',
+        'Incoming Stock',
+        'Closing Stock'
+      ]);
+
+      headerRow.eachCell(cell => {
+        cell.font = { bold: true };
+        cell.alignment = { horizontal: 'center', vertical: 'middle' };
+        cell.border = {
+          top: { style: 'thin' },
+          left: { style: 'thin' },
+          bottom: { style: 'thin' },
+          right: { style: 'thin' }
+        };
+      });
+
+      /* ===========================
+         DATA ROWS
+      ============================ */
+      report.rows.forEach((row: any) => {
+
+        const dataRow = worksheet.addRow([
+          row.product,
+          row.opening,
+          row.sales,
+          row.grn,
+          row.outgoing,
+          row.incoming,
+          row.total
+        ]);
+
+        dataRow.eachCell(cell => {
+          cell.alignment = { horizontal: 'center', vertical: 'middle' };
+          cell.border = {
+            top: { style: 'thin' },
+            left: { style: 'thin' },
+            bottom: { style: 'thin' },
+            right: { style: 'thin' }
+          };
+        });
+      });
+
+      /* ===========================
+         COLUMN WIDTH (MATCH UI)
+      ============================ */
+      worksheet.columns = [
+        { width: 30 }, // Product
+        { width: 15 },
+        { width: 10 },
+        { width: 10 },
+        { width: 18 },
+        { width: 18 },
+        { width: 15 }
+      ];
+    });
+
+    /* ===========================
+       DOWNLOAD
+    ============================ */
+    workbook.xlsx.writeBuffer().then(buffer => {
+      const blob = new Blob(
+        [buffer],
+        { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }
+      );
+
+      FileSaver.saveAs(
+        blob,
+        `Stock_Report_${this.getTodayDateString()}.xlsx`
+      );
+    });
   }
 
 
