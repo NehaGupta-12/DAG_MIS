@@ -172,16 +172,8 @@
           "submenu": []
         },
         {
-          "path": "module/stock-reports",
-          "title": "Stock Report",
-          "icon": "",
-          "class": "ml-menu",
-          "groupTitle": false,
-          "submenu": []
-        },
-        {
           "path": "module/new-stock-reports",
-          "title": "New Stock Report",
+          "title": "Stock Report",
           "icon": "",
           "class": "ml-menu",
           "groupTitle": false,

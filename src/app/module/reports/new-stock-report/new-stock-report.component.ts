@@ -98,15 +98,8 @@ import {StockReportService} from "../../stock-report.service";
   styleUrl: './new-stock-report.component.scss'
 })
 export class NewStockReportComponent implements OnInit{
-  allOutletReports = [
-    {
-      outlet: 'Outlet A',
-      rows: [
-        { product: 'Product 1', opening: 100, sales: 20, grn: 10, outgoing: 5, incoming: 0, total: 85 },
-        { product: 'Product 2', opening: 150, sales: 30, grn: 5, outgoing: 10, incoming: 2, total: 117 },
-      ]
-    }
-  ];
+  allOutletReports: any[] = [];
+  isSearchPerformed = false;
 
 
   @ViewChild('dealerSearchInput') dealerSearchInput!: ElementRef;
@@ -115,6 +108,8 @@ export class NewStockReportComponent implements OnInit{
   dealerSearchText: string = '';
   debounceTimer: any;
   private isAutoSaveRunning = false;
+  selectedOutlet: string | null = null;
+  selectedDate: Date | null = null;
 
 
   dataSource = new MatTableDataSource<any>();
@@ -179,22 +174,22 @@ export class NewStockReportComponent implements OnInit{
 
 // Update ngOnInit to ensure data loads in correct order
   ngOnInit() {
+
+    // 🧹 CLEAR OLD DAY DATA FIRST
+    this.clearPreviousDayStockReportsIfDateChanged();
+
     this.DealerList();
     this.loadGrnList();
     this.stockStransferList();
     this.loadSalesList();
     this.loadAllInventoryData();
-
-    // Load stock report data from Firestore FIRST
     this.loadStockReportData();
 
-    // Start the auto-save scheduler
     this.scheduleAutoSave();
 
-    // Initialize with empty reports
-    this.allOutletReports = [];
-    console.log('Component initialized - select an outlet to view report');
+    // this.allOutletReports = [];
   }
+
 
 // Helper function to get date string in YYYY-MM-DD format
   getDateString(date: Date): string {
@@ -223,6 +218,15 @@ export class NewStockReportComponent implements OnInit{
   getTodayDate(): string {
     return new Date().toISOString().split('T')[0];
   }
+
+  getDateFromFirestoreTimestamp(createdAt: any): string {
+    if (!createdAt?.seconds) return '';
+
+    const date = new Date(createdAt.seconds * 1000);
+    date.setHours(0, 0, 0, 0); // normalize
+    return date.toISOString().split('T')[0];
+  }
+
 
   loadGrnList() {
     runInInjectionContext(this.injector, () => {
@@ -330,54 +334,42 @@ export class NewStockReportComponent implements OnInit{
 
 
 
-  getOpeningStockForProduct(
+  getLockedOpeningStock(
     outletName: string,
     sku: string,
-    inventoryQuantity: number,
-    openingStockField: number
+    inventoryQuantity: number
   ): number {
-    const yesterdayDate = this.getYesterdayDate();
 
-    // Create the expected document ID format - must match Firestore exactly
+    const today = this.getTodayDateString();
+
+    // 🔒 STEP 1: If today's report already exists → LOCK opening
+    const todayReport = this.loadReportFromLocalStorage(outletName, today);
+    if (todayReport?.rows) {
+      const todayProduct = todayReport.rows.find((r: any) => r.sku === sku);
+      if (todayProduct && todayProduct.opening !== undefined) {
+        return Number(todayProduct.opening);
+      }
+    }
+
+    // 🔁 STEP 2: Check yesterday's Firestore report
+    const yesterdayDate = this.getYesterdayDate();
     const yesterdayReportKey = `${outletName.replace(/\s+/g, '_')}_${yesterdayDate}`;
 
-    console.log(`🔍 Looking for yesterday's report: ${yesterdayReportKey}`);
-    console.log(`📊 Available reports in stockDataSource:`, this.stockDataSource.data.map((r: any) => r.id));
-
-    // Try to find yesterday's report in stockDataSource (from Firestore)
     const yesterdayReport = this.stockDataSource.data.find(
-      (report: any) => report.id === yesterdayReportKey
+      (r: any) => r.id === yesterdayReportKey
     );
 
-    if (yesterdayReport) {
-      console.log(`✅ Found yesterday's report for ${outletName}`);
-
-      // Check if yesterday's report has rows
-      if (yesterdayReport.rows && Array.isArray(yesterdayReport.rows)) {
-        // Find the product in yesterday's report
-        const yesterdayProduct = yesterdayReport.rows.find(
-          (row: any) => row.sku === sku
-        );
-
-        if (yesterdayProduct) {
-          // ✅ Product exists in yesterday's report - use closing stock
-          console.log(`✅ Product ${sku} (${outletName}): Opening = ${yesterdayProduct.total} (from yesterday's closing)`);
-          return yesterdayProduct.total;
-        } else {
-          // ✅ Yesterday's report exists but product is NOT in it - new product
-          console.log(`🆕 Product ${sku} (${outletName}): Opening = ${openingStockField} (new product, not in yesterday's report)`);
-          return openingStockField || 0;
-        }
-      } else {
-        console.warn(`⚠️ Yesterday's report found but has no rows for ${outletName}`);
-        return openingStockField || 0;
+    if (yesterdayReport?.rows) {
+      const yesterdayProduct = yesterdayReport.rows.find((r: any) => r.sku === sku);
+      if (yesterdayProduct) {
+        return Number(yesterdayProduct.total) || 0;
       }
-    } else {
-      // ✅ No yesterday report exists - use inventory openingStock
-      console.log(`🆕 No yesterday report for ${outletName}: Opening = ${openingStockField} (first day or new outlet)`);
-      return openingStockField || 0;
     }
+
+    // 🆕 STEP 3: No previous data → take inventory quantity (FIRST & ONLY TIME)
+    return Number(inventoryQuantity) || 0;
   }
+
 
 // Check if today's opening stock is already initialized in localStorage
   getTodayOpeningStockFromStorage(outletName: string, sku: string): number | null {
@@ -395,47 +387,36 @@ export class NewStockReportComponent implements OnInit{
   }
 
 // Calculate stock report for a specific outlet for a specific date
-    calculateStockReportForOutlet(outletName: string, dateString: string) {
-    console.log(`\n=== Calculating Stock Report for: ${outletName} on ${dateString} ===`);
+  calculateStockReportForOutlet(outletName: string, dateString: string) {
 
-    // Parse the target date
     const targetDate = new Date(dateString);
     targetDate.setHours(0, 0, 0, 0);
     const targetTime = targetDate.getTime();
 
-    // Filter inventory data for this outlet
-      const outletInventory = this.allInventoryData.filter(
-        item => item.dealerOutlet?.trim() === outletName.trim()
-      );
+    const outletInventory = this.allInventoryData.filter(
+      item => item.dealerOutlet?.trim() === outletName.trim()
+    );
 
-    if (outletInventory.length === 0) {
-      console.log(`No inventory found for outlet: ${outletName}`);
-      return null;
-    }
+    if (outletInventory.length === 0) return null;
 
-    // Create a map to store calculated data for each product
     const productStockMap = new Map<string, any>();
 
-    // Step 1: Initialize with Opening Stock
-    // Get opening stock from yesterday's Firestore closing stock OR inventory
+    // 🔒 STEP 1: INITIALIZE WITH LOCKED OPENING STOCK
     outletInventory.forEach((product: any) => {
-      const key = product.sku;
 
-      // Get opening stock from yesterday's Firestore data
-      const openingStock = this.getOpeningStockForProduct(
+      const openingStock = this.getLockedOpeningStock(
         outletName,
         product.sku,
-        product.quantity,
-        product.openingStock
+        product.quantity
       );
 
-      productStockMap.set(key, {
+      productStockMap.set(product.sku, {
         product: product.name,
         sku: product.sku,
         brand: product.brand,
         model: product.model,
         variant: product.variant,
-        opening: openingStock, // Set from yesterday's Firestore closing stock
+        opening: openingStock,   // 🔒 LOCKED
         sales: 0,
         grn: 0,
         outgoing: 0,
@@ -444,48 +425,34 @@ export class NewStockReportComponent implements OnInit{
       });
     });
 
-    // Step 2: Calculate Sales for the target date
-    let salesCount = 0;
+    // 🔻 STEP 2: SALES
     this.salesDataSource.forEach((sale: any) => {
       if (sale.dealerOutlet?.trim() === outletName.trim()) {
         const saleDate = new Date(sale.salesDate);
         saleDate.setHours(0, 0, 0, 0);
 
         if (saleDate.getTime() === targetTime) {
-          const key = sale.sku;
-          if (productStockMap.has(key)) {
-            const product = productStockMap.get(key);
-            product.sales += sale.quantity || 0;
-            salesCount++;
-          }
+          const p = productStockMap.get(sale.sku);
+          if (p) p.sales += sale.quantity || 0;
         }
       }
     });
 
-    // Step 3: Calculate GRN for the target date
-    let grnCount = 0;
+    // 🔺 STEP 3: GRN
     this.grnDataSource.forEach((grn: any) => {
       if (grn.dealerOutlet?.trim() === outletName.trim()) {
         const grnDate = grn.stockDate ? new Date(grn.stockDate) : null;
         if (grnDate) {
           grnDate.setHours(0, 0, 0, 0);
-
           if (grnDate.getTime() === targetTime) {
-            const key = grn.sku;
-            if (productStockMap.has(key)) {
-              const product = productStockMap.get(key);
-              product.grn += grn.quantity || 0;
-              grnCount++;
-            }
+            const p = productStockMap.get(grn.sku);
+            if (p) p.grn += grn.quantity || 0;
           }
         }
       }
     });
 
-    // Step 4: Calculate Stock Transfers for the target date
-    let outgoingCount = 0;
-    let incomingCount = 0;
-
+    // 🔁 STEP 4: STOCK TRANSFERS
     this.stockTransferDataSource.forEach((transfer: any) => {
       if (transfer.status === 'Approved' && transfer.items) {
         const transferDate = transfer.createdAt?.seconds
@@ -497,46 +464,35 @@ export class NewStockReportComponent implements OnInit{
 
           if (transferDate.getTime() === targetTime) {
             transfer.items.forEach((item: any) => {
-              const key = item.sku;
+              const p = productStockMap.get(item.sku);
 
-              // Outgoing
-              if (transfer.fromDealerOutlet?.trim() === outletName.trim()) {
-                if (productStockMap.has(key)) {
-                  const product = productStockMap.get(key);
-                  product.outgoing += item.quantity || 0;
-                  outgoingCount++;
-                }
+              if (transfer.fromDealerOutlet?.trim() === outletName.trim() && p) {
+                p.outgoing += item.quantity || 0;
               }
 
-              // Incoming
               if (transfer.toDealerOutlet?.trim() === outletName.trim()) {
-                if (productStockMap.has(key)) {
-                  const product = productStockMap.get(key);
-                  product.incoming += item.quantity || 0;
-                  incomingCount++;
+                if (p) {
+                  p.incoming += item.quantity || 0;
                 } else {
-                  // New product from transfer - get opening stock from Firestore
-                  const openingStock = this.getOpeningStockForProduct(
+                  const opening = this.getLockedOpeningStock(
                     outletName,
                     item.sku,
-                    0,
                     0
                   );
 
-                  productStockMap.set(key, {
+                  productStockMap.set(item.sku, {
                     product: item.name,
                     sku: item.sku,
                     brand: item.brand,
                     model: item.model,
                     variant: item.variant,
-                    opening: openingStock,
+                    opening,
                     sales: 0,
                     grn: 0,
                     outgoing: 0,
                     incoming: item.quantity || 0,
-                    total: openingStock
+                    total: opening
                   });
-                  incomingCount++;
                 }
               }
             });
@@ -545,64 +501,49 @@ export class NewStockReportComponent implements OnInit{
       }
     });
 
-    // Step 5: Calculate Total (Closing Stock)
-    // Formula: Opening - Sales + GRN - Outgoing + Incoming
-    productStockMap.forEach((product, key) => {
-      product.total =
-        product.opening -
-        product.sales +
-        product.grn -
-        product.outgoing +
-        product.incoming;
+    // 🧮 STEP 5: FINAL CLOSING STOCK
+    productStockMap.forEach(p => {
+      p.total = p.opening - p.sales + p.grn - p.outgoing + p.incoming;
     });
-
-    const reportRows = Array.from(productStockMap.values());
 
     return {
       outlet: outletName,
       date: dateString,
-      rows: reportRows
+      rows: Array.from(productStockMap.values())
     };
   }
 
-// Save all reports to localStorage for a specific date
+
 // Save all reports to localStorage for a specific date
   saveAllReportsToLocalStorage(allReports: any[], dateString: string) {
-    const timestamp = new Date().getTime();
+
+    const timestamp = Date.now();
 
     allReports.forEach(report => {
+
+      const existing = this.loadReportFromLocalStorage(report.outlet, dateString);
+
+      const mergedRows = report.rows.map((row: any) => {
+        const existingRow = existing?.rows?.find((r: any) => r.sku === row.sku);
+        return {
+          ...row,
+          opening: existingRow?.opening ?? row.opening // 🔒 LOCKED
+        };
+      });
+
       const storageKey = `stock_report_${report.outlet}_${dateString}`;
 
       const reportToSave = {
         outlet: report.outlet,
         date: dateString,
-        timestamp: timestamp,
-        rows: report.rows
+        timestamp,
+        rows: mergedRows
       };
 
-      try {
-        localStorage.setItem(storageKey, JSON.stringify(reportToSave));
-        // console.log(`✅ Report saved to localStorage: ${storageKey}`);
-      } catch (error) {
-        console.error(`❌ Error saving report for ${report.outlet}:`, error);
-      }
+      localStorage.setItem(storageKey, JSON.stringify(reportToSave));
     });
-
-    // Save master index
-    const masterKey = `stock_reports_index_${dateString}`;
-    const masterIndex = {
-      date: dateString,
-      timestamp: timestamp,
-      outlets: allReports.map(r => r.outlet)
-    };
-
-    try {
-      localStorage.setItem(masterKey, JSON.stringify(masterIndex));
-      // console.log(`✅ Master index saved: ${masterKey}`);
-    } catch (error) {
-      console.error('❌ Error saving master index:', error);
-    }
   }
+
 
 
 
@@ -702,33 +643,106 @@ export class NewStockReportComponent implements OnInit{
 
 
 // Update onOutletChange to show report for selected outlet
-  onOutletChange(selectedOutlet: any) {
-    if (!selectedOutlet) {
-      this.allOutletReports = [];
+//   onOutletChange(selectedOutlet: any) {
+//     if (!selectedOutlet) {
+//       this.allOutletReports = [];
+//       return;
+//     }
+//
+//     const selectedDealer = this.allDealers.find((d: any) => d.name === selectedOutlet);
+//
+//     if (!selectedDealer) {
+//       console.error('Error: Could not find dealer for selected outlet.');
+//       this.allOutletReports = [];
+//       return;
+//     }
+//
+//     // Try to load today's report from localStorage
+//     const savedReport = this.loadReportFromLocalStorage(selectedOutlet, this.getTodayDateString());
+//
+//     if (savedReport) {
+//       this.allOutletReports = [savedReport];
+//       console.log(`📊 Loaded report for ${selectedOutlet} from localStorage`);
+//     } else {
+//       // Generate today's report on-the-fly
+//       const report = this.calculateStockReportForOutlet(selectedOutlet, this.getTodayDateString());
+//       this.allOutletReports = report ? [report] : [];
+//       console.log(`📊 Generated new report for ${selectedOutlet}`);
+//     }
+//   }
+
+  onOutletChange(outlet: string) {
+    this.selectedOutlet = outlet;
+  }
+
+  onSearch() {
+
+    this.isSearchPerformed = true;
+
+    if (!this.selectedOutlet) {
+      Swal.fire('Required', 'Please select an outlet', 'warning');
       return;
     }
 
-    const selectedDealer = this.allDealers.find((d: any) => d.name === selectedOutlet);
+    // Selected date OR today
+    const selectedDateStr = this.selectedDate
+      ? this.getDateString(this.selectedDate)
+      : this.getTodayDateString();
 
-    if (!selectedDealer) {
-      console.error('Error: Could not find dealer for selected outlet.');
-      this.allOutletReports = [];
-      return;
+    const isToday = selectedDateStr === this.getTodayDateString();
+
+    // ✅ TODAY → LOCAL STORAGE
+    if (isToday) {
+      const localReport = this.loadReportFromLocalStorage(
+        this.selectedOutlet,
+        selectedDateStr
+      );
+
+      if (localReport) {
+        this.allOutletReports = [localReport];
+        console.log('📦 Loaded today data from localStorage');
+        return;
+      }
     }
 
-    // Try to load today's report from localStorage
-    const savedReport = this.loadReportFromLocalStorage(selectedOutlet, this.getTodayDateString());
+    // ✅ PAST DATE → FIRESTORE (COMPARE BY createdAt)
+    const firestoreReport = this.stockDataSource.data.find((r: any) => {
 
-    if (savedReport) {
-      this.allOutletReports = [savedReport];
-      console.log(`📊 Loaded report for ${selectedOutlet} from localStorage`);
+      const reportDate = this.getDateFromFirestoreTimestamp(r.createdAt);
+
+      return (
+        r.outlet?.trim() === this.selectedOutlet?.trim() &&
+        reportDate === selectedDateStr
+      );
+    });
+
+    if (firestoreReport) {
+      this.allOutletReports = [firestoreReport];
+      console.log('☁️ Loaded Firestore data by createdAt date');
     } else {
-      // Generate today's report on-the-fly
-      const report = this.calculateStockReportForOutlet(selectedOutlet, this.getTodayDateString());
-      this.allOutletReports = report ? [report] : [];
-      console.log(`📊 Generated new report for ${selectedOutlet}`);
+      this.allOutletReports = [];
+      Swal.fire('No Data', 'No stock report found for selected date', 'info');
     }
   }
+
+  onClear() {
+
+    this.selectedOutlet = null;
+    this.selectedDate = null;
+
+    this.allOutletReports = [];
+    this.isSearchPerformed = false;
+
+    this.dealerSearchText = '';
+    this.filteredDealers = [...this.allDealers];
+
+    if (this.dealerSearchInput) {
+      this.dealerSearchInput.nativeElement.value = '';
+    }
+  }
+
+
+
 
   openDialog() {
     this.dialog.open(AddUserComponent, {
@@ -1119,7 +1133,7 @@ export class NewStockReportComponent implements OnInit{
       const scheduledTime = new Date();
 
       // ⏰ YOUR PROVIDED TIME (UNCHANGED)
-      scheduledTime.setHours(19, 8, 0, 0); // 11:59 PM
+      scheduledTime.setHours(12, 5, 0, 0); // 11:59 PM
 
       if (now > scheduledTime) {
         scheduledTime.setDate(scheduledTime.getDate() + 1);
@@ -1234,6 +1248,39 @@ export class NewStockReportComponent implements OnInit{
       }
     }
   }
+
+
+  clearPreviousDayStockReportsIfDateChanged(): void {
+
+    const today = this.getTodayDateString(); // YYYY-MM-DD
+    const storedDateKey = 'stock_report_active_date';
+
+    const lastActiveDate = localStorage.getItem(storedDateKey);
+
+    // ✅ Same day → DO NOTHING
+    if (lastActiveDate === today) {
+      return;
+    }
+
+    console.warn(`🧹 Date changed (${lastActiveDate} → ${today}), clearing old stock reports`);
+
+    // ❌ Remove all previous stock report entries
+    Object.keys(localStorage).forEach(key => {
+
+      if (
+        key.startsWith('stock_report_') ||
+        key.startsWith('stock_reports_index_')
+      ) {
+        localStorage.removeItem(key);
+      }
+    });
+
+    // ✅ Save today as active date
+    localStorage.setItem(storedDateKey, today);
+
+    console.log('✅ Previous day stock reports cleared. Fresh day started.');
+  }
+
 
 
 }
