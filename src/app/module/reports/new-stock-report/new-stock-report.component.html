@@ -2,7 +2,19 @@
   <section class="content">
     <div class="content-block">
 
-        <div class="d-flex justify-content-start mb-2">
+      <div class="card shadow">
+
+        <div class="materialTableHeader">
+          <div class="left">
+            <ul class="header-buttons-left">
+              <li class="tbl-title">
+                <h2 class="fs-4">Stock Report</h2>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="d-flex justify-content-start mt-4 mx-3">
           <mat-form-field appearance="outline" class="compact-select col-4">
             <mat-label>Filter by Outlet</mat-label>
 
@@ -72,83 +84,110 @@
         </div>
 
 
+        <hr />
 
 
-      <div class="card shadow">
-
-        <div *ngIf="isSearchPerformed && allOutletReports.length === 0" class="text-center p-4 text-muted">
+        <div *ngIf="isSearchPerformed && allOutletReports.length === 0"
+             class="text-center p-4 text-muted">
           No data found. Please select outlet/date and click Search.
         </div>
 
         <div *ngIf="isSearchPerformed && allOutletReports.length > 0">
+
           <div *ngFor="let report of allOutletReports" class="mb-4 mx-3 mt-2">
-              <h5 class="text-center">Stock Report</h5>
 
-              <table mat-table [dataSource]="report.rows" class="mat-cell advance-table responsive_table">
+            <!-- Optional sub heading per outlet -->
+            <h5 class="text-center">{{ report.outlet }} - Stock Report</h5>
 
-                <!-- Product Column -->
-                <ng-container matColumnDef="product">
-                  <th mat-header-cell *matHeaderCellDef class="product-col"> Products Name </th>
-                  <td mat-cell *matCellDef="let row" class="product-col">
-                    <span class="cell-color">{{ row.product }}</span>
-                  </td>
-                </ng-container>
+            <table
+              mat-table
+              [dataSource]="report.rows"
+              class="mat-cell advance-table responsive_table">
 
-                <!-- Opening Stock -->
-                <ng-container matColumnDef="opening">
-                  <th mat-header-cell *matHeaderCellDef> Opening Stock </th>
-                  <td mat-cell *matCellDef="let row">
-                    {{ row.opening }}
-                  </td>
-                </ng-container>
+              <!-- Product Column -->
+              <ng-container matColumnDef="product">
+                <th mat-header-cell *matHeaderCellDef class="product-col">
+                  Products Name
+                </th>
+                <td mat-cell *matCellDef="let row" class="product-col">
+                  <span class="cell-color">{{ row.product }}</span>
+                </td>
+              </ng-container>
 
-                <!-- Sales -->
-                <ng-container matColumnDef="sales">
-                  <th mat-header-cell *matHeaderCellDef> Sales </th>
-                  <td mat-cell *matCellDef="let row">
-                    {{ row.sales }}
-                  </td>
-                </ng-container>
+              <!-- Opening Stock -->
+              <ng-container matColumnDef="opening">
+                <th mat-header-cell *matHeaderCellDef class="number-col">
+                  Opening Stock
+                </th>
+                <td mat-cell *matCellDef="let row" class="number-col">
+                  {{ row.opening }}
+                </td>
+              </ng-container>
 
-                <!-- GRN -->
-                <ng-container matColumnDef="grn">
-                  <th mat-header-cell *matHeaderCellDef> GRN </th>
-                  <td mat-cell *matCellDef="let row">
-                    {{ row.grn }}
-                  </td>
-                </ng-container>
+              <!-- Sales -->
+              <ng-container matColumnDef="sales">
+                <th mat-header-cell *matHeaderCellDef class="number-col">
+                  Sales
+                </th>
+                <td mat-cell *matCellDef="let row" class="number-col">
+                  {{ row.sales }}
+                </td>
+              </ng-container>
 
-                <!-- Outgoing Stock -->
-                <ng-container matColumnDef="outgoing">
-                  <th mat-header-cell *matHeaderCellDef> Outgoing Stock </th>
-                  <td mat-cell *matCellDef="let row">
-                    {{ row.outgoing }}
-                  </td>
-                </ng-container>
+              <!-- GRN -->
+              <ng-container matColumnDef="grn">
+                <th mat-header-cell *matHeaderCellDef class="number-col">
+                  GRN
+                </th>
+                <td mat-cell *matCellDef="let row" class="number-col">
+                  {{ row.grn }}
+                </td>
+              </ng-container>
 
-                <!-- Incoming Stock -->
-                <ng-container matColumnDef="incoming">
-                  <th mat-header-cell *matHeaderCellDef> Incoming Stock </th>
-                  <td mat-cell *matCellDef="let row">
-                    {{ row.incoming }}
-                  </td>
-                </ng-container>
+              <!-- Outgoing -->
+              <ng-container matColumnDef="outgoing">
+                <th mat-header-cell *matHeaderCellDef class="number-col">
+                  Outgoing Stock
+                </th>
+                <td mat-cell *matCellDef="let row" class="number-col">
+                  {{ row.outgoing }}
+                </td>
+              </ng-container>
 
-                <!-- Total -->
-                <ng-container matColumnDef="total">
-                  <th mat-header-cell *matHeaderCellDef>Closing Stock</th>
-                  <td mat-cell *matCellDef="let row">
-                    {{ row.total }}
-                  </td>
-                </ng-container>
+              <!-- Incoming -->
+              <ng-container matColumnDef="incoming">
+                <th mat-header-cell *matHeaderCellDef class="number-col">
+                  Incoming Stock
+                </th>
+                <td mat-cell *matCellDef="let row" class="number-col">
+                  {{ row.incoming }}
+                </td>
+              </ng-container>
 
-                <tr mat-header-row *matHeaderRowDef="['product','opening','sales','grn','outgoing','incoming','total']"></tr>
-                <tr mat-row *matRowDef="let row; columns: ['product','opening','sales','grn','outgoing','incoming','total']"
-                    [ngClass]="row.rowColor">
-                </tr>
-              </table>
-            </div>
-      </div>
+              <!-- Closing -->
+              <ng-container matColumnDef="total">
+                <th mat-header-cell *matHeaderCellDef class="number-col">
+                  Closing Stock
+                </th>
+                <td mat-cell *matCellDef="let row" class="number-col">
+                  {{ row.total }}
+                </td>
+              </ng-container>
+
+              <tr
+                mat-header-row
+                *matHeaderRowDef="['product','opening','sales','grn','outgoing','incoming','total']">
+              </tr>
+
+              <tr
+                mat-row
+                *matRowDef="let row; columns: ['product','opening','sales','grn','outgoing','incoming','total']"
+                [ngClass]="row.rowColor">
+              </tr>
+
+            </table>
+          </div>
+        </div>
       </div>
     </div>
   </section>

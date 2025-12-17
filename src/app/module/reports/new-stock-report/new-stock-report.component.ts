@@ -329,7 +329,7 @@ export class NewStockReportComponent implements OnInit{
 
     this.saveAllReportsToLocalStorage(allReports, this.getTodayDateString());
 
-    console.log(`✅ Reports generated for ${allReports.length} valid outlets`);
+    console.log(`Reports generated for ${allReports.length} valid outlets`);
   }
 
 
@@ -342,7 +342,7 @@ export class NewStockReportComponent implements OnInit{
 
     const today = this.getTodayDateString();
 
-    // 🔒 STEP 1: If today's report already exists → LOCK opening
+    // STEP 1: If today's report already exists → LOCK opening
     const todayReport = this.loadReportFromLocalStorage(outletName, today);
     if (todayReport?.rows) {
       const todayProduct = todayReport.rows.find((r: any) => r.sku === sku);
@@ -351,7 +351,7 @@ export class NewStockReportComponent implements OnInit{
       }
     }
 
-    // 🔁 STEP 2: Check yesterday's Firestore report
+    //  STEP 2: Check yesterday's Firestore report
     const yesterdayDate = this.getYesterdayDate();
     const yesterdayReportKey = `${outletName.replace(/\s+/g, '_')}_${yesterdayDate}`;
 
@@ -366,7 +366,7 @@ export class NewStockReportComponent implements OnInit{
       }
     }
 
-    // 🆕 STEP 3: No previous data → take inventory quantity (FIRST & ONLY TIME)
+    //  STEP 3: No previous data → take inventory quantity (FIRST & ONLY TIME)
     return Number(inventoryQuantity) || 0;
   }
 
@@ -401,7 +401,7 @@ export class NewStockReportComponent implements OnInit{
 
     const productStockMap = new Map<string, any>();
 
-    // 🔒 STEP 1: INITIALIZE WITH LOCKED OPENING STOCK
+    //  STEP 1: INITIALIZE WITH LOCKED OPENING STOCK
     outletInventory.forEach((product: any) => {
 
       const openingStock = this.getLockedOpeningStock(
@@ -416,7 +416,7 @@ export class NewStockReportComponent implements OnInit{
         brand: product.brand,
         model: product.model,
         variant: product.variant,
-        opening: openingStock,   // 🔒 LOCKED
+        opening: openingStock,
         sales: 0,
         grn: 0,
         outgoing: 0,
@@ -425,7 +425,7 @@ export class NewStockReportComponent implements OnInit{
       });
     });
 
-    // 🔻 STEP 2: SALES
+    //  STEP 2: SALES
     this.salesDataSource.forEach((sale: any) => {
       if (sale.dealerOutlet?.trim() === outletName.trim()) {
         const saleDate = new Date(sale.salesDate);
@@ -438,7 +438,7 @@ export class NewStockReportComponent implements OnInit{
       }
     });
 
-    // 🔺 STEP 3: GRN
+    //  STEP 3: GRN
     this.grnDataSource.forEach((grn: any) => {
       if (grn.dealerOutlet?.trim() === outletName.trim()) {
         const grnDate = grn.stockDate ? new Date(grn.stockDate) : null;
@@ -452,7 +452,7 @@ export class NewStockReportComponent implements OnInit{
       }
     });
 
-    // 🔁 STEP 4: STOCK TRANSFERS
+    //  STEP 4: STOCK TRANSFERS
     this.stockTransferDataSource.forEach((transfer: any) => {
       if (transfer.status === 'Approved' && transfer.items) {
         const transferDate = transfer.createdAt?.seconds
@@ -501,7 +501,7 @@ export class NewStockReportComponent implements OnInit{
       }
     });
 
-    // 🧮 STEP 5: FINAL CLOSING STOCK
+    //  STEP 5: FINAL CLOSING STOCK
     productStockMap.forEach(p => {
       p.total = p.opening - p.sales + p.grn - p.outgoing + p.incoming;
     });
@@ -527,7 +527,7 @@ export class NewStockReportComponent implements OnInit{
         const existingRow = existing?.rows?.find((r: any) => r.sku === row.sku);
         return {
           ...row,
-          opening: existingRow?.opening ?? row.opening // 🔒 LOCKED
+          opening: existingRow?.opening ?? row.opening
         };
       });
 
@@ -595,35 +595,35 @@ export class NewStockReportComponent implements OnInit{
     runInInjectionContext(this.injector, () => {
       this.addDealerService.getDealerList().subscribe({
         next: (data) => {
-          // ✅ Store all dealers
+          //  Store all dealers
           this.allDealers = data || [];
           this.dealerdataSource.data = this.allDealers;
           this.filteredDealers = [...this.allDealers];
 
-          console.log('✅ All Dealers Loaded:', this.allDealers);
+          console.log('All Dealers Loaded:', this.allDealers);
 
-          // ✅ Ensure inventory is already loaded before proceeding
+          // Ensure inventory is already loaded before proceeding
           if (!this.allInventoryData || this.allInventoryData.length === 0) {
-            console.warn('⚠️ Inventory not loaded yet. Dealer reports will generate later.');
+            console.warn('Inventory not loaded yet. Dealer reports will generate later.');
             return;
           }
 
-          // ✅ For EACH active dealer → ensure report exists
+          // For EACH active dealer → ensure report exists
           this.allDealers
             .filter(d => d.status === 'Active' && d.name)
             .forEach(dealer => {
               const outletName = dealer.name.trim();
 
-              // 🔥 Auto-create missing localStorage + Firestore entry
+              // Auto-create missing localStorage + Firestore entry
               this.saveSingleOutletIfMissing(outletName);
             });
 
-          // ✅ Also regenerate full outlet reports (safe)
+          // Also regenerate full outlet reports (safe)
           this.generateAllOutletsReports();
         },
 
         error: (err) => {
-          console.error('❌ Error loading dealers:', err);
+          console.error('Error loading dealers:', err);
         }
       });
     });
@@ -662,12 +662,12 @@ export class NewStockReportComponent implements OnInit{
 //
 //     if (savedReport) {
 //       this.allOutletReports = [savedReport];
-//       console.log(`📊 Loaded report for ${selectedOutlet} from localStorage`);
+//       console.log(`Loaded report for ${selectedOutlet} from localStorage`);
 //     } else {
 //       // Generate today's report on-the-fly
 //       const report = this.calculateStockReportForOutlet(selectedOutlet, this.getTodayDateString());
 //       this.allOutletReports = report ? [report] : [];
-//       console.log(`📊 Generated new report for ${selectedOutlet}`);
+//       console.log(`Generated new report for ${selectedOutlet}`);
 //     }
 //   }
 
@@ -691,7 +691,7 @@ export class NewStockReportComponent implements OnInit{
 
     const isToday = selectedDateStr === this.getTodayDateString();
 
-    // ✅ TODAY → LOCAL STORAGE
+    // TODAY → LOCAL STORAGE
     if (isToday) {
       const localReport = this.loadReportFromLocalStorage(
         this.selectedOutlet,
@@ -700,12 +700,12 @@ export class NewStockReportComponent implements OnInit{
 
       if (localReport) {
         this.allOutletReports = [localReport];
-        console.log('📦 Loaded today data from localStorage');
+        console.log('Loaded today data from localStorage');
         return;
       }
     }
 
-    // ✅ PAST DATE → FIRESTORE (COMPARE BY createdAt)
+    // PAST DATE → FIRESTORE (COMPARE BY createdAt)
     const firestoreReport = this.stockDataSource.data.find((r: any) => {
 
       const reportDate = this.getDateFromFirestoreTimestamp(r.createdAt);
@@ -718,7 +718,7 @@ export class NewStockReportComponent implements OnInit{
 
     if (firestoreReport) {
       this.allOutletReports = [firestoreReport];
-      console.log('☁️ Loaded Firestore data by createdAt date');
+      console.log('☁Loaded Firestore data by createdAt date');
     } else {
       this.allOutletReports = [];
       Swal.fire('No Data', 'No stock report found for selected date', 'info');
@@ -1048,14 +1048,14 @@ export class NewStockReportComponent implements OnInit{
 
   async saveAllReportsToFirestore(allReports: any[], dateString: string) {
 
-    // ⛔ BLOCK ALL UNSCHEDULED SAVES
+    // BLOCK ALL UNSCHEDULED SAVES
     if (!this.isAutoSaveRunning) {
-      console.warn('⛔ Firestore save blocked (not scheduled auto-save time)');
+      console.warn('Firestore save blocked (not scheduled auto-save time)');
       return;
     }
 
     const collectionName = this.env.stockReport;
-    console.log(`💾 Saving reports to Firestore collection: ${collectionName}`);
+    console.log(`Saving reports to Firestore collection: ${collectionName}`);
 
     return runInInjectionContext(this.injector, async () => {
 
@@ -1094,16 +1094,16 @@ export class NewStockReportComponent implements OnInit{
           successCount++;
 
         } catch (error) {
-          console.error(`❌ Error preparing Firestore save for ${report.outlet}`, error);
+          console.error(`Error preparing Firestore save for ${report.outlet}`, error);
         }
       }
 
       try {
         await batch.commit();
 
-        console.log(`✅ Successfully saved ${successCount} reports to Firestore`);
+        console.log(`Successfully saved ${successCount} reports to Firestore`);
 
-        // ✅ SUCCESS ALERT ONLY AT AUTO-SAVE TIME
+        // SUCCESS ALERT ONLY AT AUTO-SAVE TIME
         Swal.fire({
           title: 'Success!',
           text: `Stock reports saved to database: ${successCount} outlets`,
@@ -1113,7 +1113,7 @@ export class NewStockReportComponent implements OnInit{
         });
 
       } catch (error) {
-        console.error('❌ Error committing batch to Firestore:', error);
+        console.error('Error committing batch to Firestore:', error);
 
         Swal.fire({
           title: 'Error!',
@@ -1132,7 +1132,7 @@ export class NewStockReportComponent implements OnInit{
       const now = new Date();
       const scheduledTime = new Date();
 
-      // ⏰ YOUR PROVIDED TIME (UNCHANGED)
+      // YOUR PROVIDED TIME (UNCHANGED)
       scheduledTime.setHours(12, 5, 0, 0); // 11:59 PM
 
       if (now > scheduledTime) {
@@ -1142,9 +1142,9 @@ export class NewStockReportComponent implements OnInit{
       const timeUntilSave = scheduledTime.getTime() - now.getTime();
 
       setTimeout(async () => {
-        console.log('🕚 Auto-save triggered at 11 PM');
+        console.log('Auto-save triggered at 11 PM');
 
-        // ✅ ALLOW DB SAVE ONLY FROM SCHEDULER
+        // ALLOW DB SAVE ONLY FROM SCHEDULER
         this.isAutoSaveRunning = true;
 
         try {
@@ -1173,33 +1173,33 @@ export class NewStockReportComponent implements OnInit{
           });
 
           if (allReports.length > 0) {
-            // ✅ localStorage save (UNCHANGED)
+            // localStorage save (UNCHANGED)
             this.saveAllReportsToLocalStorage(allReports, this.getTodayDateString());
 
-            // ✅ Firestore save (ONLY HERE)
+            // Firestore save (ONLY HERE)
             await this.saveAllReportsToFirestore(
               allReports,
               this.getTodayDateString()
             );
 
-            console.log(`✅ Daily save completed: ${allReports.length} outlets saved`);
+            console.log(`Daily save completed: ${allReports.length} outlets saved`);
           } else {
-            console.warn('⚠️ No reports generated for auto-save');
+            console.warn('No reports generated for auto-save');
           }
 
         } catch (error) {
-          console.error('❌ Error during auto-save:', error);
+          console.error('Error during auto-save:', error);
         } finally {
-          // 🔒 BLOCK DB SAVE AFTER AUTO-SAVE
+          // BLOCK DB SAVE AFTER AUTO-SAVE
           this.isAutoSaveRunning = false;
         }
 
-        // 🔁 schedule next day
+        // schedule next day
         scheduleNextSave();
 
       }, timeUntilSave);
 
-      console.log(`⏰ Next auto-save scheduled for: ${scheduledTime.toLocaleString()}`);
+      console.log(`Next auto-save scheduled for: ${scheduledTime.toLocaleString()}`);
     };
 
     scheduleNextSave();
@@ -1244,27 +1244,26 @@ export class NewStockReportComponent implements OnInit{
       if (report) {
         this.saveAllReportsToLocalStorage([report], today);
         this.saveAllReportsToFirestore([report], today);
-        console.log(`✅ New outlet auto-saved: ${outletName}`);
+        console.log(`New outlet auto-saved: ${outletName}`);
       }
     }
   }
 
 
   clearPreviousDayStockReportsIfDateChanged(): void {
-
     const today = this.getTodayDateString(); // YYYY-MM-DD
     const storedDateKey = 'stock_report_active_date';
 
     const lastActiveDate = localStorage.getItem(storedDateKey);
 
-    // ✅ Same day → DO NOTHING
+    // Same day → DO NOTHING
     if (lastActiveDate === today) {
       return;
     }
 
-    console.warn(`🧹 Date changed (${lastActiveDate} → ${today}), clearing old stock reports`);
+    console.warn(`Date changed (${lastActiveDate} → ${today}), clearing old stock reports`);
 
-    // ❌ Remove all previous stock report entries
+    // Remove all previous stock report entries
     Object.keys(localStorage).forEach(key => {
 
       if (
@@ -1275,10 +1274,10 @@ export class NewStockReportComponent implements OnInit{
       }
     });
 
-    // ✅ Save today as active date
+    // Save today as active date
     localStorage.setItem(storedDateKey, today);
 
-    console.log('✅ Previous day stock reports cleared. Fresh day started.');
+    console.log('Previous day stock reports cleared. Fresh day started.');
   }
 
 
