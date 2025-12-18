@@ -102,18 +102,13 @@ import * as FileSaver from 'file-saver';
 export class NewStockReportComponent implements OnInit{
   allOutletReports: any[] = [];
   isSearchPerformed = false;
-
-
   @ViewChild('dealerSearchInput') dealerSearchInput!: ElementRef;
-
   filteredDealers: any[] = [];
   dealerSearchText: string = '';
   debounceTimer: any;
   private isAutoSaveRunning = false;
   selectedOutlet: string | null = null;
   selectedDate: Date | null = null;
-
-
   dataSource = new MatTableDataSource<any>();
   stockDataSource = new MatTableDataSource<any>();
   dealerdataSource = new MatTableDataSource<any>();
@@ -174,35 +169,21 @@ export class NewStockReportComponent implements OnInit{
   ) {
   }
 
-// Update ngOnInit to ensure data loads in correct order
   ngOnInit() {
-
-    // 🧹 CLEAR OLD DAY DATA FIRST
     this.clearPreviousDayStockReportsIfDateChanged();
-
     this.DealerList();
     this.loadGrnList();
     this.stockStransferList();
     this.loadSalesList();
     this.loadAllInventoryData();
     this.loadStockReportData();
-
     this.scheduleAutoSave();
-
     // this.allOutletReports = [];
   }
-
 
 // Helper function to get date string in YYYY-MM-DD format
   getDateString(date: Date): string {
     return date.toISOString().split('T')[0];
-  }
-
-// Helper function to get yesterday's date string
-  getYesterdayDateString(): string {
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-    return this.getDateString(yesterday);
   }
 
 // Helper function to get today's date string
@@ -214,11 +195,6 @@ export class NewStockReportComponent implements OnInit{
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
     return yesterday.toISOString().split('T')[0];
-  }
-
-// Add this helper method to get today's date in YYYY-MM-DD format
-  getTodayDate(): string {
-    return new Date().toISOString().split('T')[0];
   }
 
   getDateFromFirestoreTimestamp(createdAt: any): string {
@@ -244,8 +220,6 @@ export class NewStockReportComponent implements OnInit{
       created.getTime() <= endOfDay.getTime()
     );
   }
-
-
 
   loadGrnList() {
     runInInjectionContext(this.injector, () => {
@@ -298,10 +272,6 @@ export class NewStockReportComponent implements OnInit{
     });
   }
 
-  getAllowedOutletNames(): Set<string> {
-    return new Set(this.allDealers.map(d => d.name));
-  }
-
   getAllowedOutletSet(): Set<string> {
     return new Set(
       this.allDealers
@@ -309,7 +279,6 @@ export class NewStockReportComponent implements OnInit{
         .map(d => d.name.trim())
     );
   }
-
 
 // Check if all data is loaded and generate reports
   checkAndGenerateAllReports() {
@@ -333,7 +302,6 @@ export class NewStockReportComponent implements OnInit{
       )
     ];
 
-
     const allReports: any[] = [];
 
     uniqueOutlets.forEach(outlet => {
@@ -350,8 +318,6 @@ export class NewStockReportComponent implements OnInit{
 
     console.log(`Reports generated for ${allReports.length} valid outlets`);
   }
-
-
 
   getLockedOpeningStock(
     outletName: string,
@@ -389,21 +355,6 @@ export class NewStockReportComponent implements OnInit{
     return Number(inventoryQuantity) || 0;
   }
 
-
-// Check if today's opening stock is already initialized in localStorage
-  getTodayOpeningStockFromStorage(outletName: string, sku: string): number | null {
-    const todayReport = this.loadReportFromLocalStorage(outletName, this.getTodayDateString());
-
-    if (todayReport && todayReport.rows) {
-      const product = todayReport.rows.find((row: any) => row.sku === sku);
-      if (product && product.opening !== undefined) {
-        // Today's opening stock already set, use it
-        return product.opening;
-      }
-    }
-
-    return null;
-  }
 
 // Calculate stock report for a specific outlet for a specific date
   calculateStockReportForOutlet(outletName: string, dateString: string) {
@@ -563,10 +514,6 @@ export class NewStockReportComponent implements OnInit{
     });
   }
 
-
-
-
-  // Add these methods to your component class
   filterDealers() {
     if (!this.dealerSearchText) {
       this.filteredDealers = [...this.allDealers];
@@ -605,10 +552,6 @@ export class NewStockReportComponent implements OnInit{
     }
   }
 
-  // Prevent panel close when clicking on search input
-  onSearchClick(event: Event) {
-    event.stopPropagation();
-  }
 
   DealerList() {
     runInInjectionContext(this.injector, () => {
@@ -648,48 +591,6 @@ export class NewStockReportComponent implements OnInit{
     });
   }
 
-
-  productList(id:any) {
-    runInInjectionContext(this.injector, () => {
-      this.outletProductService.getOutletProductById(id).subscribe((data) => {
-        console.log("All outlet products:", data);
-        this.allOutletProducts = data; // keep all// empty table by default
-        this.dataSource.paginator =   this.paginator;
-        this.dataSource.sort = this.sort;
-      });
-    });
-  }
-
-
-// Update onOutletChange to show report for selected outlet
-//   onOutletChange(selectedOutlet: any) {
-//     if (!selectedOutlet) {
-//       this.allOutletReports = [];
-//       return;
-//     }
-//
-//     const selectedDealer = this.allDealers.find((d: any) => d.name === selectedOutlet);
-//
-//     if (!selectedDealer) {
-//       console.error('Error: Could not find dealer for selected outlet.');
-//       this.allOutletReports = [];
-//       return;
-//     }
-//
-//     // Try to load today's report from localStorage
-//     const savedReport = this.loadReportFromLocalStorage(selectedOutlet, this.getTodayDateString());
-//
-//     if (savedReport) {
-//       this.allOutletReports = [savedReport];
-//       console.log(`Loaded report for ${selectedOutlet} from localStorage`);
-//     } else {
-//       // Generate today's report on-the-fly
-//       const report = this.calculateStockReportForOutlet(selectedOutlet, this.getTodayDateString());
-//       this.allOutletReports = report ? [report] : [];
-//       console.log(`Generated new report for ${selectedOutlet}`);
-//     }
-//   }
-
   onOutletChange(outlet: string) {
     this.selectedOutlet = outlet;
   }
@@ -704,20 +605,15 @@ export class NewStockReportComponent implements OnInit{
   }
 
   onSearch() {
-
     this.isSearchPerformed = true;
 
-    /* ===============================
-       1. VALIDATION
-       =============================== */
+       // 1. VALIDATION
     if (!this.selectedOutlet) {
       Swal.fire('Required', 'Please select an outlet', 'warning');
       return;
     }
 
-    /* ===============================
-       2. DATE NORMALIZATION (LOCAL)
-       =============================== */
+       // 2. DATE NORMALIZATION (LOCAL)
     const todayStr = this.getLocalDateString(new Date());
 
     const selectedDateStr = this.selectedDate
@@ -732,9 +628,7 @@ export class NewStockReportComponent implements OnInit{
       isToday
     });
 
-    /* ===============================
-       3. TODAY → LOCAL STORAGE
-       =============================== */
+       // 3. TODAY → LOCAL STORAGE
     if (isToday) {
 
       const localReport = this.loadReportFromLocalStorage(
@@ -761,9 +655,7 @@ export class NewStockReportComponent implements OnInit{
       }
     }
 
-    /* ===============================
-       4. PAST DATE → FIRESTORE
-       =============================== */
+       // 4. PAST DATE → FIRESTORE
     const firestoreReports = this.stockDataSource.data.filter((r: any) => {
       return (
         r.outlet?.trim() === this.selectedOutlet?.trim() &&
@@ -798,85 +690,6 @@ export class NewStockReportComponent implements OnInit{
     }
   }
 
-
-
-
-  openDialog() {
-    this.dialog.open(AddUserComponent, {
-      // width: '400px',   // set width
-      autoFocus: false  // optional
-    });
-  }
-
-  navigateToAddProductMaster(){
-    this.router.navigate(['module/add-products-master']);
-  }
-
-  ngAfterViewInit() {
-    this.dataSource.paginator = this.paginator;
-    this.dataSource.sort = this.sort;
-  }
-
-  getDisplayedColumns() {
-    return this.columnDefinitions.map(c => c.def);
-  }
-
-  // Filtering
-  applyFilter(event: Event) {
-    const filterValue = (event.target as HTMLInputElement).value;
-    this.dataSource.filter = filterValue.trim().toLowerCase();
-  }
-
-  isLoading: any;
-
-  delete(id: string) {
-    Swal.fire({
-      title: 'Are you sure?',
-      text: 'You will not be able to recover this Product!',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonText: 'Yes, delete it!',
-      cancelButtonText: 'No, cancel',
-    }).then((result) => {
-      if (result.isConfirmed) {
-        // Proceed with deletion
-        runInInjectionContext(this.injector, () => {
-          this.productService.deleteProduct(id).then(() => {
-            // this.productList();
-
-            // // Log activity
-            // const activity = {
-            //   date: new Date().getTime(),
-            //   section: 'Installation List',
-            //   action: 'Delete',
-            //   description: `Installation deleted by user`,
-            //   currentIp: localStorage.getItem('currentip')!,
-            // };
-            // this.mLogService.addLog(activity);
-
-            // Optional: Show success alert
-            Swal.fire('Deleted!', 'Product has been deleted.', 'success');
-          });
-        });
-      } else if (result.dismiss === Swal.DismissReason.cancel) {
-        Swal.fire('Cancelled', 'Product is safe.', 'info');
-      }
-    });
-  }
-
-
-  openAssignDialog(): void {
-    const dialogRef = this.dialog.open(AddShowroomComponent, {
-      width: '400px',
-      data: { /* you can pass data here */ }
-    });
-
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        console.log('Assigned successfully!');
-      }
-    });
-  }
   inventoryData: any[] = [];
   loadInventoryDaata() {
     runInInjectionContext(this.injector, () => {
@@ -887,200 +700,6 @@ export class NewStockReportComponent implements OnInit{
     });
   }
 
-
-// Add this method to your NewStockReportComponent class
-
-  calculateStockReport(selectedOutlet: string) {
-    if (!selectedOutlet) {
-      console.error('No outlet selected');
-      return;
-    }
-
-    console.log('=== Calculating Stock Report for:', selectedOutlet);
-    console.log('Sales Data:', this.salesDataSource);
-    console.log('GRN Data:', this.grnDataSource);
-    console.log('Transfer Data:', this.stockTransferDataSource);
-
-    // Get today's date at start of day for comparison
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const todayTime = today.getTime();
-
-    // Filter inventory data for selected outlet
-    const outletInventory = this.dataSource.data.filter(
-      (item: any) => item.dealerOutlet === selectedOutlet
-    );
-
-    console.log('Outlet Inventory:', outletInventory);
-
-    // Create a map to store calculated data for each product
-    const productStockMap = new Map<string, any>();
-
-    // Step 1: Initialize with Opening Stock from Inventory
-    outletInventory.forEach((product: any) => {
-      const key = product.sku; // Using SKU as unique identifier
-
-      productStockMap.set(key, {
-        product: product.name,
-        sku: product.sku,
-        brand: product.brand,
-        model: product.model,
-        variant: product.variant,
-        opening: product.quantity || 0, // Current quantity is opening stock
-        sales: 0,
-        grn: 0,
-        outgoing: 0,
-        incoming: 0,
-        total: product.quantity || 0
-      });
-    });
-
-    console.log('Initial Product Map:', Array.from(productStockMap.values()));
-
-    // Step 2: Calculate Sales (subtract from opening)
-    let salesCount = 0;
-    this.salesDataSource.forEach((sale: any) => {
-      if (sale.dealerOutlet?.trim() === selectedOutlet.trim()) {
-        // Check if sale is from today
-        const saleDate = new Date(sale.salesDate);
-        saleDate.setHours(0, 0, 0, 0);
-
-        console.log('Processing Sale:', sale.name, 'Date:', saleDate, 'Today:', today);
-
-        if (saleDate.getTime() === todayTime) {
-          const key = sale.sku;
-          if (productStockMap.has(key)) {
-            const product = productStockMap.get(key);
-            product.sales += sale.quantity || 0;
-            salesCount++;
-            console.log('Added sale for', sale.name, 'Quantity:', sale.quantity);
-          } else {
-            console.log('Product not found in map:', sale.sku, sale.name);
-          }
-        }
-      }
-    });
-
-    console.log('Total sales processed:', salesCount);
-
-    // Step 3: Calculate GRN (add to stock)
-    let grnCount = 0;
-    this.grnDataSource.forEach((grn: any) => {
-      if (grn.dealerOutlet?.trim() === selectedOutlet.trim()) {
-        // Check if GRN is from today
-        const grnDate = grn.stockDate ? new Date(grn.stockDate) : null;
-        if (grnDate) {
-          grnDate.setHours(0, 0, 0, 0);
-
-          console.log('Processing GRN:', grn.name, 'Date:', grnDate, 'Today:', today);
-
-          if (grnDate.getTime() === todayTime) {
-            const key = grn.sku;
-            if (productStockMap.has(key)) {
-              const product = productStockMap.get(key);
-              product.grn += grn.quantity || 0;
-              grnCount++;
-              console.log('Added GRN for', grn.name, 'Quantity:', grn.quantity);
-            } else {
-              console.log('Product not found in map for GRN:', grn.sku, grn.name);
-            }
-          }
-        }
-      }
-    });
-
-    console.log('Total GRN processed:', grnCount);
-
-    // Step 4: Calculate Stock Transfers
-    let transferCount = 0;
-    this.stockTransferDataSource.forEach((transfer: any) => {
-      // Only process approved transfers
-      if (transfer.status === 'Approved' && transfer.items) {
-        // Check if transfer is from today
-        const transferDate = transfer.createdAt?.seconds
-          ? new Date(transfer.createdAt.seconds * 1000)
-          : null;
-
-        if (transferDate) {
-          transferDate.setHours(0, 0, 0, 0);
-
-          console.log('Processing Transfer from:', transfer.fromDealerOutlet, 'to:', transfer.toDealerOutlet, 'Date:', transferDate);
-
-          if (transferDate.getTime() === todayTime) {
-            transfer.items.forEach((item: any) => {
-              const key = item.sku;
-
-              // Outgoing: Current outlet is sending stock
-              if (transfer.fromDealerOutlet?.trim() === selectedOutlet.trim()) {
-                if (productStockMap.has(key)) {
-                  const product = productStockMap.get(key);
-                  product.outgoing += item.quantity || 0;
-                  transferCount++;
-                  console.log('Outgoing transfer for', item.name, 'Quantity:', item.quantity);
-                }
-              }
-
-              // Incoming: Current outlet is receiving stock
-              if (transfer.toDealerOutlet?.trim() === selectedOutlet.trim()) {
-                if (productStockMap.has(key)) {
-                  const product = productStockMap.get(key);
-                  product.incoming += item.quantity || 0;
-                  transferCount++;
-                  console.log('Incoming transfer for', item.name, 'Quantity:', item.quantity);
-                } else {
-                  // Product might not exist in inventory yet, create entry
-                  productStockMap.set(key, {
-                    product: item.name,
-                    sku: item.sku,
-                    brand: item.brand,
-                    model: item.model,
-                    variant: item.variant,
-                    opening: 0,
-                    sales: 0,
-                    grn: 0,
-                    outgoing: 0,
-                    incoming: item.quantity || 0,
-                    total: 0
-                  });
-                  transferCount++;
-                  console.log('Created new product entry for incoming transfer:', item.name);
-                }
-              }
-            });
-          }
-        }
-      }
-    });
-
-    console.log('Total transfers processed:', transferCount);
-
-    // Step 5: Calculate Total for each product
-    // Formula: Opening - Sales + GRN - Outgoing + Incoming
-    productStockMap.forEach((product, key) => {
-      product.total =
-        product.opening -
-        product.sales +
-        product.grn -
-        product.outgoing +
-        product.incoming;
-    });
-
-    // Convert map to array
-    const reportRows = Array.from(productStockMap.values());
-
-    console.log('Final Report Rows:', reportRows);
-
-    // Update the report
-    this.allOutletReports = [{
-      outlet: selectedOutlet,
-      rows: reportRows
-    }];
-
-    // Save to localStorage with timestamp
-    this.saveReportToLocalStorage(selectedOutlet, reportRows);
-
-    console.log('Stock Report Generated:', this.allOutletReports);
-  }
 
 
 // Save report to localStorage
@@ -1105,7 +724,6 @@ export class NewStockReportComponent implements OnInit{
 
   async saveAllReportsToFirestore(allReports: any[], dateString: string) {
 
-    // BLOCK ALL UNSCHEDULED SAVES
     if (!this.isAutoSaveRunning) {
       console.warn('Firestore save blocked (not scheduled auto-save time)');
       return;
@@ -1160,7 +778,6 @@ export class NewStockReportComponent implements OnInit{
 
         console.log(`Successfully saved ${successCount} reports to Firestore`);
 
-        // SUCCESS ALERT ONLY AT AUTO-SAVE TIME
         Swal.fire({
           title: 'Success!',
           text: `Stock reports saved to database: ${successCount} outlets`,
@@ -1182,14 +799,11 @@ export class NewStockReportComponent implements OnInit{
     });
   }
 
-
-// Schedule daily save at 11 PM
   scheduleAutoSave() {
     const scheduleNextSave = () => {
       const now = new Date();
       const scheduledTime = new Date();
 
-      // YOUR PROVIDED TIME (UNCHANGED)
       scheduledTime.setHours(23, 59, 0, 0); // 11:59 PM
 
       if (now > scheduledTime) {
@@ -1247,23 +861,15 @@ export class NewStockReportComponent implements OnInit{
         } catch (error) {
           console.error('Error during auto-save:', error);
         } finally {
-          // BLOCK DB SAVE AFTER AUTO-SAVE
           this.isAutoSaveRunning = false;
         }
-
-        // schedule next day
         scheduleNextSave();
-
       }, timeUntilSave);
-
       console.log(`Next auto-save scheduled for: ${scheduledTime.toLocaleString()}`);
     };
-
     scheduleNextSave();
   }
 
-
-// Load report from localStorage for a specific outlet and date
   loadReportFromLocalStorage(outlet: string, date?: string): any {
     const dateStr = date || this.getTodayDateString();
     const storageKey = `stock_report_${outlet}_${dateStr}`;
@@ -1280,7 +886,6 @@ export class NewStockReportComponent implements OnInit{
     return null;
   }
 
-// Update loadStockReportData to trigger report generation after loading
   loadStockReportData() {
     runInInjectionContext(this.injector, () => {
       this.stockReportService.getStockList().subscribe((data) => {
@@ -1306,21 +911,18 @@ export class NewStockReportComponent implements OnInit{
     }
   }
 
-
   clearPreviousDayStockReportsIfDateChanged(): void {
     const today = this.getTodayDateString(); // YYYY-MM-DD
     const storedDateKey = 'stock_report_active_date';
 
     const lastActiveDate = localStorage.getItem(storedDateKey);
 
-    // Same day → DO NOTHING
     if (lastActiveDate === today) {
       return;
     }
 
     console.warn(`Date changed (${lastActiveDate} → ${today}), clearing old stock reports`);
 
-    // Remove all previous stock report entries
     Object.keys(localStorage).forEach(key => {
 
       if (
@@ -1331,7 +933,6 @@ export class NewStockReportComponent implements OnInit{
       }
     });
 
-    // Save today as active date
     localStorage.setItem(storedDateKey, today);
 
     console.log('Previous day stock reports cleared. Fresh day started.');
@@ -1354,9 +955,6 @@ export class NewStockReportComponent implements OnInit{
 
       const worksheet = workbook.addWorksheet(sheetName);
 
-      /* ===========================
-         TITLE
-      ============================ */
       worksheet.mergeCells('A1:G1');
       worksheet.getCell('A1').value = 'Stock Report';
       worksheet.getCell('A1').font = { bold: true, size: 14 };
@@ -1369,9 +967,6 @@ export class NewStockReportComponent implements OnInit{
 
       worksheet.addRow([]);
 
-      /* ===========================
-         HEADER (EXACT LIKE IMAGE)
-      ============================ */
       const headerRow = worksheet.addRow([
         'Products Name',
         'Opening Stock',
@@ -1393,9 +988,6 @@ export class NewStockReportComponent implements OnInit{
         };
       });
 
-      /* ===========================
-         DATA ROWS
-      ============================ */
       report.rows.forEach((row: any) => {
 
         const dataRow = worksheet.addRow([
@@ -1419,11 +1011,8 @@ export class NewStockReportComponent implements OnInit{
         });
       });
 
-      /* ===========================
-         COLUMN WIDTH (MATCH UI)
-      ============================ */
       worksheet.columns = [
-        { width: 30 }, // Product
+        { width: 30 },
         { width: 15 },
         { width: 10 },
         { width: 10 },
@@ -1433,9 +1022,6 @@ export class NewStockReportComponent implements OnInit{
       ];
     });
 
-    /* ===========================
-       DOWNLOAD
-    ============================ */
     workbook.xlsx.writeBuffer().then(buffer => {
       const blob = new Blob(
         [buffer],
@@ -1448,7 +1034,5 @@ export class NewStockReportComponent implements OnInit{
       );
     });
   }
-
-
 
 }
