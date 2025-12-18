@@ -229,6 +229,23 @@ export class NewStockReportComponent implements OnInit{
     return date.toISOString().split('T')[0];
   }
 
+  isSameLocalDay(createdAt: any, selectedDate: string): boolean {
+    if (!createdAt?.seconds) return false;
+
+    const created = new Date(createdAt.seconds * 1000);
+    const startOfDay = new Date(selectedDate);
+    startOfDay.setHours(0, 0, 0, 0);
+
+    const endOfDay = new Date(selectedDate);
+    endOfDay.setHours(23, 59, 59, 999);
+
+    return (
+      created.getTime() >= startOfDay.getTime() &&
+      created.getTime() <= endOfDay.getTime()
+    );
+  }
+
+
 
   loadGrnList() {
     runInInjectionContext(this.injector, () => {
@@ -677,55 +694,93 @@ export class NewStockReportComponent implements OnInit{
     this.selectedOutlet = outlet;
   }
 
+  getLocalDateString(date: Date): string {
+    const d = new Date(date);
+    d.setHours(0, 0, 0, 0);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
   onSearch() {
 
     this.isSearchPerformed = true;
 
+    /* ===============================
+       1. VALIDATION
+       =============================== */
     if (!this.selectedOutlet) {
       Swal.fire('Required', 'Please select an outlet', 'warning');
       return;
     }
 
-    // Selected date OR today
+    /* ===============================
+       2. DATE NORMALIZATION (LOCAL)
+       =============================== */
+    const todayStr = this.getLocalDateString(new Date());
+
     const selectedDateStr = this.selectedDate
-      ? this.getDateString(this.selectedDate)
-      : this.getTodayDateString();
+      ? this.getLocalDateString(this.selectedDate)
+      : todayStr;
 
-    const isToday = selectedDateStr === this.getTodayDateString();
+    const isToday = selectedDateStr === todayStr;
 
-    // TODAY → LOCAL STORAGE
+    console.log('Searching for:', {
+      outlet: this.selectedOutlet,
+      selectedDateStr,
+      isToday
+    });
+
+    /* ===============================
+       3. TODAY → LOCAL STORAGE
+       =============================== */
     if (isToday) {
+
       const localReport = this.loadReportFromLocalStorage(
         this.selectedOutlet,
-        selectedDateStr
+        todayStr
       );
 
       if (localReport) {
         this.allOutletReports = [localReport];
-        console.log('Loaded today data from localStorage');
+        console.log('✔ TODAY data loaded from localStorage');
+        return;
+      }
+
+      // Safety fallback (should rarely happen)
+      const generated = this.calculateStockReportForOutlet(
+        this.selectedOutlet,
+        todayStr
+      );
+
+      if (generated) {
+        this.allOutletReports = [generated];
+        console.warn('⚠ LocalStorage missing, generated report');
         return;
       }
     }
 
-    // PAST DATE → FIRESTORE (COMPARE BY createdAt)
-    const firestoreReport = this.stockDataSource.data.find((r: any) => {
-
-      const reportDate = this.getDateFromFirestoreTimestamp(r.createdAt);
-
+    /* ===============================
+       4. PAST DATE → FIRESTORE
+       =============================== */
+    const firestoreReports = this.stockDataSource.data.filter((r: any) => {
       return (
         r.outlet?.trim() === this.selectedOutlet?.trim() &&
-        reportDate === selectedDateStr
+        this.isSameLocalDay(r.createdAt, selectedDateStr)
       );
     });
 
-    if (firestoreReport) {
-      this.allOutletReports = [firestoreReport];
-      console.log('☁Loaded Firestore data by createdAt date');
+    if (firestoreReports.length > 0) {
+      this.allOutletReports = firestoreReports;
+      console.log('✔ Past date data loaded from Firestore');
     } else {
       this.allOutletReports = [];
       Swal.fire('No Data', 'No stock report found for selected date', 'info');
     }
   }
+
+
 
   onClear() {
 
