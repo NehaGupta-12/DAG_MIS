@@ -1135,7 +1135,7 @@ export class NewStockReportComponent implements OnInit{
       const scheduledTime = new Date();
 
       // YOUR PROVIDED TIME (UNCHANGED)
-      scheduledTime.setHours(12, 5, 0, 0); // 11:59 PM
+      scheduledTime.setHours(23, 59, 0, 0); // 11:59 PM
 
       if (now > scheduledTime) {
         scheduledTime.setDate(scheduledTime.getDate() + 1);
